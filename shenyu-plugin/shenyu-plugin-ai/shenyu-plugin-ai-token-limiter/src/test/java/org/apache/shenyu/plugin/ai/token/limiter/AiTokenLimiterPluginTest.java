@@ -37,13 +37,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +52,6 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -72,42 +71,88 @@ class AiTokenLimiterPluginTest {
 
     @Test
     void testResponsesStreamEventRecordsOutputTokens() {
-        // Issue #7911: a Responses terminal event carries its usage inside the response object.
-        assertResponseUsage(RESPONSES_COMPLETED_EVENT, new byte[][] {RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8)},
-                false, false, 12L);
+        assertEventStreamUsage(RESPONSES_COMPLETED_EVENT,
+                new byte[][] {RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8)}, false, false, List.of(12L));
     }
 
     @Test
     void testResponsesStreamEventAcrossBuffersRecordsOutputTokens() {
-        // Split inside the output_tokens key: neither buffer holds a complete event, so the streaming JSON-parse path
-        // finds nothing and the regex fallback over the accumulated SSE tail is what accounts the usage.
         byte[] content = RESPONSES_COMPLETED_EVENT.getBytes(StandardCharsets.UTF_8);
         int split = RESPONSES_COMPLETED_EVENT.indexOf("\"output_tokens\"");
         byte[][] chunks = {Arrays.copyOfRange(content, 0, split), Arrays.copyOfRange(content, split, content.length)};
         for (boolean flush : new boolean[] {false, true}) {
-            assertResponseUsage(RESPONSES_COMPLETED_EVENT, chunks, flush, false, 12L);
+            assertEventStreamUsage(RESPONSES_COMPLETED_EVENT, chunks, flush, false, List.of(12L));
         }
     }
 
     @Test
     void testCompleteResponsesBodyRecordsOutputTokens() {
-        // A converted, non-streaming Responses body is not SSE framed: only the buffered fallback sees it.
         byte[] content = RESPONSES_BODY.getBytes(StandardCharsets.UTF_8);
-        assertResponseUsage(RESPONSES_BODY, new byte[][] {content}, false, false, 12L);
+        assertResponseUsage(content, new byte[][] {content}, MediaType.APPLICATION_JSON, false, false, List.of(12L));
     }
 
     @Test
     void testResponsesUsageIsNotReadFromMaxOutputTokens() {
-        // max_output_tokens is an echo of the request limit, never an accounted count.
         String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"max_output_tokens\":99,\"usage\":{\"input_tokens\":3,"
                 + "\"output_tokens\":12,\"total_tokens\":15}}";
-        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 12L);
+        assertJsonUsage(body, List.of(12L));
     }
 
     @Test
     void testResponsesUsageWithoutOutputTokensRecordsNothing() {
         String body = "{\"id\":\"resp_1\",\"object\":\"response\",\"status\":\"incomplete\",\"max_output_tokens\":99}";
-        assertResponseUsage(body, new byte[][] {body.getBytes(StandardCharsets.UTF_8)}, false, false, 0L);
+        assertJsonUsage(body, List.of());
+    }
+
+    @Test
+    void testMetadataTokenFieldsDoNotRecordUsage() {
+        assertJsonUsage("{\"metadata\":{\"output_tokens\":123},\"choices\":[]}", List.of());
+        assertJsonUsage("{\"metadata\":{\"completion_tokens\":123},\"choices\":[]}", List.of());
+        assertJsonUsage("{\"choices\":[{\"message\":{\"content\":\"{\\\"output_tokens\\\":123}\"}}]}", List.of());
+        assertJsonUsage("{\"choices\":[{\"message\":{\"tool_calls\":[{\"function\":{\"arguments\":\"{\\\"completion_tokens\\\":123}\"}}]}}]}", List.of());
+    }
+
+    @Test
+    void testMetadataTokenFieldsCannotOverrideUsage() {
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":12},\"metadata\":{\"output_tokens\":123}}", List.of(12L));
+        assertJsonUsage("{\"metadata\":{\"output_tokens\":123},\"usage\":{\"completion_tokens\":12}}", List.of(12L));
+        assertJsonUsage("{\"usage\":{\"output_tokens\":12},\"output_tokens\":123}", List.of(12L));
+    }
+
+    @Test
+    void testReportedZeroIsDifferentFromUnknownUsage() {
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":0}}", List.of(0L));
+        assertJsonUsage("{\"usage\":{}}", List.of());
+        assertJsonUsage("{\"usage\":null}", List.of());
+        assertJsonUsage("{}", List.of());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-1", "1.5", "\"12\"", "null", "true", "{}", "[]", "9223372036854775808"})
+    void testInvalidTokenCountsDoNotRecordUsage(final String count) {
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":" + count + "}}", List.of());
+    }
+
+    @Test
+    void testAmbiguousJsonDoesNotRecordUsage() {
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":12,\"completion_tokens\":13}}", List.of());
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":12}}{}", List.of());
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":12}}garbage", List.of());
+    }
+
+    @Test
+    void testLastCompleteStreamUsageIsRecordedOnce() {
+        String stream = "data: {\"usage\":{\"completion_tokens\":2}}\n\n"
+                + "data: {\"choices\":[]}\n\n"
+                + "data: {\"usage\":{\"completion_tokens\":12}}\n\n"
+                + "data: [DONE]\n\n";
+        assertEventStreamUsage(stream, splitEveryByte(stream.getBytes(StandardCharsets.UTF_8)), true, false, List.of(12L));
+    }
+
+    @Test
+    void testIncompleteStreamEventDoesNotRecordUsage() {
+        String stream = "data: {\"usage\":{\"completion_tokens\":12}}";
+        assertEventStreamUsage(stream, new byte[][] {stream.getBytes(StandardCharsets.UTF_8)}, false, false, List.of());
     }
 
     @ParameterizedTest
@@ -116,19 +161,39 @@ class AiTokenLimiterPluginTest {
         byte[] content = USAGE_EVENT.getBytes(StandardCharsets.UTF_8);
         int split = USAGE_EVENT.indexOf("field".equals(boundary) ? "tokens" : "2");
         byte[][] chunks = {Arrays.copyOfRange(content, 0, split), Arrays.copyOfRange(content, split, content.length)};
-        assertResponseUsage(content, chunks, flush, false);
+        assertResponseUsage(content, chunks, MediaType.TEXT_EVENT_STREAM, flush, false, List.of(12L));
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void testResponseUsageAcrossGzipBuffers(final boolean flush) throws IOException {
         byte[] compressed = compressGzip(USAGE_EVENT);
-        assertResponseUsage(compressed, splitIntoThreeChunks(compressed), flush, true);
+        assertResponseUsage(compressed, splitIntoThreeChunks(compressed), MediaType.TEXT_EVENT_STREAM, flush, true, List.of(12L));
+    }
+
+    @Test
+    void testGzipJsonUsesProtocolUsageOnly() throws IOException {
+        String body = "{\"usage\":{\"output_tokens\":12},\"metadata\":{\"output_tokens\":123}}";
+        byte[] compressed = compressGzip(body);
+        assertResponseUsage(compressed, splitIntoThreeChunks(compressed), MediaType.APPLICATION_JSON,
+                false, true, List.of(12L));
+
+        String metadataOnly = "{\"metadata\":{\"output_tokens\":123}}";
+        byte[] compressedMetadata = compressGzip(metadataOnly);
+        assertResponseUsage(compressedMetadata, splitIntoThreeChunks(compressedMetadata), MediaType.APPLICATION_JSON,
+                false, true, List.of());
+    }
+
+    @Test
+    void testCompleteUsageBeforeCancellationIsRecorded() {
+        assertCancellationUsage(USAGE_EVENT, List.of(12L));
+        assertCancellationUsage("data: {\"usage\":{\"completion_tokens\":12}}", List.of());
     }
 
     @Test
     void testFlushUsageIsFinalizedAfterOuterPublisherCompletes() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
         ByteArrayOutputStream forwarded = new ByteArrayOutputStream();
         exchange.getResponse().setWriteHandler(body -> body.doOnNext(buffer -> {
             byte[] bytes = new byte[buffer.readableByteCount()];
@@ -153,27 +218,6 @@ class AiTokenLimiterPluginTest {
         body.tryEmitComplete().orThrow();
         assertTrue(errors.isEmpty());
         assertEquals(List.of(12L), recorded);
-    }
-
-    @Test
-    void testBodyWriterRetainsOnlyTailBytes() {
-        AiTokenLimiterPlugin.BodyWriter writer = new AiTokenLimiterPlugin.BodyWriter(8);
-
-        assertTrue(writer.isEmpty());
-        writer.write(ByteBuffer.wrap("012345".getBytes(StandardCharsets.UTF_8)));
-        writer.write(ByteBuffer.wrap("6789".getBytes(StandardCharsets.UTF_8)));
-
-        assertFalse(writer.isEmpty());
-        assertEquals("23456789", writer.output());
-    }
-
-    @Test
-    void testBodyWriterKeepsTailOfLargeChunk() {
-        AiTokenLimiterPlugin.BodyWriter writer = new AiTokenLimiterPlugin.BodyWriter(8);
-
-        writer.write(ByteBuffer.wrap("0123456789".getBytes(StandardCharsets.UTF_8)));
-
-        assertEquals("23456789", writer.output());
     }
 
     @Test
@@ -305,19 +349,21 @@ class AiTokenLimiterPluginTest {
         assertEquals("0", valuePair.read(valuePair.write("0")));
     }
 
-    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip) {
-        assertResponseUsage(expected, chunks, flush, gzip, 12L);
+    private void assertJsonUsage(final String body, final List<Long> expectedTokens) {
+        byte[] content = body.getBytes(StandardCharsets.UTF_8);
+        assertResponseUsage(content, new byte[][] {content}, MediaType.APPLICATION_JSON, false, false, expectedTokens);
     }
 
-    private void assertResponseUsage(final String expected, final byte[][] chunks, final boolean flush, final boolean gzip,
-                                     final long expectedTokens) {
-        assertResponseUsage(expected.getBytes(StandardCharsets.UTF_8), chunks, flush, gzip, expectedTokens);
+    private void assertEventStreamUsage(final String expected, final byte[][] chunks, final boolean flush,
+                                        final boolean gzip, final List<Long> expectedTokens) {
+        assertResponseUsage(expected.getBytes(StandardCharsets.UTF_8), chunks, MediaType.TEXT_EVENT_STREAM,
+                flush, gzip, expectedTokens);
     }
 
-    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final boolean flush, final boolean gzip,
-                                     final long expectedTokens) {
+    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final MediaType mediaType,
+                                     final boolean flush, final boolean gzip, final List<Long> expectedTokens) {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
-        exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
+        exchange.getResponse().getHeaders().setContentType(mediaType);
         if (gzip) {
             exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
         }
@@ -328,7 +374,7 @@ class AiTokenLimiterPluginTest {
         Mono<Void> completion = flush ? response.writeAndFlushWith(body.map(Mono::just)) : response.writeWith(body);
         completion.block();
 
-        assertEquals(List.of(expectedTokens), recorded);
+        assertEquals(expectedTokens, recorded);
         byte[] forwarded = DataBufferUtils.join(exchange.getResponse().getBody()).map(buffer -> {
             byte[] bytes = new byte[buffer.readableByteCount()];
             buffer.read(bytes);
@@ -336,6 +382,23 @@ class AiTokenLimiterPluginTest {
             return bytes;
         }).block();
         assertArrayEquals(expected, forwarded);
+    }
+
+    private void assertCancellationUsage(final String content, final List<Long> expectedTokens) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
+        exchange.getResponse().setWriteHandler(body -> body.doOnNext(DataBufferUtils::release).then());
+        List<Long> recorded = new ArrayList<>();
+        AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
+                exchange, exchange.getResponse(), recorded::add);
+        Flux<DataBuffer> body = Flux.concat(
+                Mono.just(exchange.getResponse().bufferFactory().wrap(content.getBytes(StandardCharsets.UTF_8))),
+                Mono.never());
+        Disposable subscription = response.writeWith(body).subscribe();
+        assertTrue(recorded.isEmpty());
+
+        subscription.dispose();
+        assertEquals(expectedTokens, recorded);
     }
 
     @SuppressWarnings("unchecked")
@@ -370,5 +433,13 @@ class AiTokenLimiterPluginTest {
         System.arraycopy(data, 8 + chunk2Size, chunk3, 0, chunk3.length);
 
         return new byte[][]{chunk1, chunk2, chunk3};
+    }
+
+    private byte[][] splitEveryByte(final byte[] data) {
+        byte[][] chunks = new byte[data.length][];
+        for (int i = 0; i < data.length; i++) {
+            chunks[i] = new byte[] {data[i]};
+        }
+        return chunks;
     }
 }

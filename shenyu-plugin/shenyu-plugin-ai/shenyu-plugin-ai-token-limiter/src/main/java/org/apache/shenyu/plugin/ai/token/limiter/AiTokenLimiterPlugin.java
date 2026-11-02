@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.ai.token.limiter;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +45,7 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
@@ -52,15 +55,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Shenyu ai token limiter plugin.
@@ -85,14 +89,6 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
      * bare {@code response} name in the shared {@link Constants} would read as an HTTP response.
      */
     private static final String RESPONSES_EVENT_OBJECT = "response";
-
-    /**
-     * Output tokens of the Chat and Responses protocols. The leading quote keeps {@code max_output_tokens}, a request
-     * echo, from being read as an accounted count.
-     */
-    private static final Pattern OUTPUT_TOKENS_PATTERN = Pattern.compile("\"(?:completion|output)_tokens\"\\s*:\\s*(\\d+)");
-
-    private static final Pattern SSE_LINE_PATTERN = Pattern.compile("\\r?\\n");
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -210,15 +206,17 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     }
 
     static class AiStatisticServerHttpResponse extends ServerHttpResponseDecorator {
-        private static final ObjectMapper MAPPER = new ObjectMapper();
+
+        private static final int MAX_USAGE_PAYLOAD_SIZE = 64 * 1024;
+
+        private static final ObjectMapper MAPPER = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+                .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
         private final ServerWebExchange exchange;
 
         private final ServerHttpResponse serverHttpResponse;
 
         private final Consumer<Long> tokensRecorder;
-
-        private final AtomicBoolean streamingUsageRecorded = new AtomicBoolean(false);
 
         AiStatisticServerHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final Consumer<Long> tokensRecorder) {
             super(delegate);
@@ -231,10 +229,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             return Mono.defer(() -> {
-                final BodyWriter writer = new BodyWriter();
+                final ResponseUsageExtractor extractor = new ResponseUsageExtractor(isEventStream());
                 final GzipStreamDecoder decoder = createDecoder();
-                return super.writeWith(appendResponse(body, writer, decoder))
-                        .doFinally(signal -> finishResponse(writer, decoder));
+                return super.writeWith(appendResponse(body, extractor, decoder))
+                        .doFinally(signal -> finishResponse(extractor, decoder));
             });
         }
 
@@ -242,13 +240,18 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         @NonNull
         public Mono<Void> writeAndFlushWith(@NonNull final Publisher<? extends Publisher<? extends DataBuffer>> body) {
             return Mono.defer(() -> {
-                final BodyWriter writer = new BodyWriter();
+                final ResponseUsageExtractor extractor = new ResponseUsageExtractor(isEventStream());
                 final GzipStreamDecoder decoder = createDecoder();
                 Flux<? extends Publisher<? extends DataBuffer>> intercepted = Flux.from(body)
-                        .map(inner -> appendResponse(inner, writer, decoder));
+                        .map(inner -> appendResponse(inner, extractor, decoder));
                 return super.writeAndFlushWith(intercepted)
-                        .doFinally(signal -> finishResponse(writer, decoder));
+                        .doFinally(signal -> finishResponse(extractor, decoder));
             });
+        }
+
+        private boolean isEventStream() {
+            MediaType contentType = serverHttpResponse.getHeaders().getContentType();
+            return Objects.nonNull(contentType) && MediaType.TEXT_EVENT_STREAM.isCompatibleWith(contentType);
         }
 
         private GzipStreamDecoder createDecoder() {
@@ -261,7 +264,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
         @NonNull
         private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body,
-                                                        final BodyWriter writer, final GzipStreamDecoder decoder) {
+                                                        final ResponseUsageExtractor extractor, final GzipStreamDecoder decoder) {
             return Flux.<DataBuffer>from(body)
                     .doOnNext(buffer -> {
                         try (DataBuffer.ByteBufferIterator it = buffer.readableByteBuffers()) {
@@ -272,7 +275,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
                                 byte[] processedBytes = Objects.nonNull(decoder) ? decoder.decode(inBytes) : inBytes;
                                 if (processedBytes.length > 0) {
-                                    processChunk(processedBytes, writer);
+                                    extractor.accept(processedBytes);
                                 }
                             });
                         } catch (Exception e) {
@@ -281,60 +284,29 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     });
         }
 
-        private void finishResponse(final BodyWriter writer, final GzipStreamDecoder decoder) {
+        private void finishResponse(final ResponseUsageExtractor extractor, final GzipStreamDecoder decoder) {
             if (Objects.nonNull(decoder)) {
                 decoder.close();
             }
-            if (!streamingUsageRecorded.get()) {
-                String sse = writer.output();
-                long usageTokens = extractUsageTokensFromSse(sse);
-                tokensRecorder.accept(usageTokens);
-            }
-        }
-
-        private void processChunk(final byte[] processedBytes, final BodyWriter writer) {
-            String chunk = new String(processedBytes, StandardCharsets.UTF_8);
-            for (String line : SSE_LINE_PATTERN.split(chunk)) {
-                if (!line.startsWith("data:")) {
-                    continue;
-                }
-                String payload = line.substring("data:".length()).trim();
-                if (payload.isEmpty() || "[DONE]".equals(payload)) {
-                    continue;
-                }
-                if (!payload.startsWith("{")) {
-                    continue;
-                }
-                try {
-                    JsonNode node = MAPPER.readTree(payload);
-                    JsonNode usage = usageOf(node);
-                    JsonNode outputTokens = Objects.isNull(usage) ? null : outputTokensOf(usage);
-                    if (Objects.nonNull(outputTokens)) {
-                        tokensRecorder.accept(outputTokens.asLong());
-                        streamingUsageRecorded.set(true);
-                    }
-                } catch (Exception e) {
-                    LOG.error("Failed to parse AI response JSON payload", e);
-                }
-            }
-            writer.write(ByteBuffer.wrap(processedBytes));
+            extractor.finish().ifPresent(tokensRecorder::accept);
         }
 
         /**
-         * Locate the usage object of a payload: Chat payloads carry it at the root, while a Responses terminal event
-         * carries it inside its {@code response} object.
+         * Locate the usage object of a payload. Chat and complete Responses payloads carry it at the root, while a
+         * Responses terminal event carries it inside its {@code response} object.
          *
          * @param node parsed payload of a stream event or a complete body
-         * @return the usage object, or null when the payload reports none
+         * @param eventStream whether the payload is an SSE event
+         * @return the usage node, or null when the payload reports none
          */
-        private JsonNode usageOf(final JsonNode node) {
+        private static JsonNode usageOf(final JsonNode node, final boolean eventStream) {
             JsonNode usage = node.get(Constants.USAGE);
-            if (Objects.isNull(usage)) {
-                // Chat never uses a top-level "response" field, so the fallback cannot shadow a Chat payload.
+            if (Objects.isNull(usage) && eventStream) {
                 JsonNode responsesEvent = node.get(RESPONSES_EVENT_OBJECT);
-                usage = Objects.isNull(responsesEvent) ? null : responsesEvent.get(Constants.USAGE);
+                usage = Objects.nonNull(responsesEvent) && responsesEvent.isObject()
+                        ? responsesEvent.get(Constants.USAGE) : null;
             }
-            return Objects.nonNull(usage) && usage.isObject() ? usage : null;
+            return usage;
         }
 
         /**
@@ -343,73 +315,160 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
          * @param usage usage object of a Chat or Responses payload
          * @return the reported output tokens, or null when the object has neither field
          */
-        private JsonNode outputTokensOf(final JsonNode usage) {
+        private static JsonNode outputTokensOf(final JsonNode usage) {
             if (usage.has(Constants.COMPLETION_TOKENS)) {
                 return usage.get(Constants.COMPLETION_TOKENS);
             }
             return usage.has(Constants.OUTPUT_TOKENS) ? usage.get(Constants.OUTPUT_TOKENS) : null;
         }
 
-        private long extractUsageTokensFromSse(final String sse) {
-            // The usage of a body is reported once, at its end, so the last match of either field is the count.
-            Matcher matcher = OUTPUT_TOKENS_PATTERN.matcher(sse);
-            long last = 0L;
-            while (matcher.find()) {
-                last = Long.parseLong(matcher.group(1));
+        /**
+         * Bounded response usage extractor for complete JSON bodies and incrementally framed SSE events.
+         */
+        static final class ResponseUsageExtractor {
+
+            private final boolean eventStream;
+
+            private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+            private final StringBuilder event = new StringBuilder();
+
+            private boolean carriageReturn;
+
+            private boolean stopped;
+
+            private boolean invalid;
+
+            private boolean finished;
+
+            private int eventBytes;
+
+            private Long outputTokens;
+
+            ResponseUsageExtractor(final boolean eventStream) {
+                this.eventStream = eventStream;
             }
-            return last;
-        }
 
-    }
-
-    static class BodyWriter {
-
-        private static final int MAX_BUFFER_SIZE = 64 * 1024;
-
-        private final byte[] bytes;
-
-        private int size;
-
-        private final AtomicBoolean isClosed = new AtomicBoolean(false);
-
-        BodyWriter() {
-            this(MAX_BUFFER_SIZE);
-        }
-
-        BodyWriter(final int maxBufferSize) {
-            if (maxBufferSize <= 0) {
-                throw new IllegalArgumentException("maxBufferSize must be greater than zero");
+            synchronized void accept(final byte[] bytes) {
+                if (stopped || invalid || finished) {
+                    return;
+                }
+                try {
+                    if (!eventStream) {
+                        if (bytes.length > MAX_USAGE_PAYLOAD_SIZE - buffer.size()) {
+                            invalidate();
+                        } else {
+                            buffer.writeBytes(bytes);
+                        }
+                        return;
+                    }
+                    for (byte value : bytes) {
+                        if (stopped || invalid) {
+                            break;
+                        }
+                        if (carriageReturn && value == '\n') {
+                            carriageReturn = false;
+                            continue;
+                        }
+                        carriageReturn = false;
+                        if (++eventBytes > MAX_USAGE_PAYLOAD_SIZE) {
+                            invalidate();
+                            break;
+                        }
+                        if (value == '\r' || value == '\n') {
+                            readLine();
+                            carriageReturn = value == '\r';
+                        } else {
+                            buffer.write(value);
+                        }
+                    }
+                } catch (Exception ignored) {
+                    invalidate();
+                }
             }
-            this.bytes = new byte[maxBufferSize];
-        }
 
-        void write(final ByteBuffer source) {
-            if (isClosed.get() || !source.hasRemaining()) {
-                return;
+            synchronized OptionalLong finish() {
+                if (finished) {
+                    return OptionalLong.empty();
+                }
+                finished = true;
+                if (!invalid && !eventStream && buffer.size() > 0) {
+                    try {
+                        capture(MAPPER.readTree(buffer.toByteArray()));
+                    } catch (Exception ignored) {
+                        invalidate();
+                    }
+                }
+                OptionalLong result = !invalid && Objects.nonNull(outputTokens)
+                        ? OptionalLong.of(outputTokens) : OptionalLong.empty();
+                clear();
+                return result;
             }
-            int incomingSize = source.remaining();
-            if (incomingSize >= bytes.length) {
-                source.position(source.limit() - bytes.length);
-                source.get(bytes);
-                size = bytes.length;
-                return;
-            }
-            int overflow = Math.max(0, size + incomingSize - bytes.length);
-            if (overflow > 0) {
-                System.arraycopy(bytes, overflow, bytes, 0, size - overflow);
-                size -= overflow;
-            }
-            source.get(bytes, size, incomingSize);
-            size += incomingSize;
-        }
 
-        boolean isEmpty() {
-            return size == 0;
-        }
+            private void readLine() throws IOException {
+                String text = StandardCharsets.UTF_8.newDecoder()
+                        .onMalformedInput(CodingErrorAction.REPORT)
+                        .onUnmappableCharacter(CodingErrorAction.REPORT)
+                        .decode(ByteBuffer.wrap(buffer.toByteArray())).toString();
+                buffer.reset();
+                if (text.isEmpty()) {
+                    dispatch();
+                    eventBytes = 0;
+                } else if ("data".equals(text) || text.startsWith("data:")) {
+                    String value = "data".equals(text) ? "" : text.substring("data:".length());
+                    event.append(value.startsWith(" ") ? value.substring(1) : value).append('\n');
+                }
+            }
 
-        String output() {
-            isClosed.compareAndSet(false, true);
-            return new String(bytes, 0, size, StandardCharsets.UTF_8);
+            private void dispatch() throws IOException {
+                if (event.isEmpty()) {
+                    return;
+                }
+                String payload = event.substring(0, event.length() - 1);
+                event.setLength(0);
+                if ("[DONE]".equals(payload)) {
+                    stopped = true;
+                } else {
+                    capture(MAPPER.readTree(payload));
+                }
+            }
+
+            private void capture(final JsonNode root) {
+                if (Objects.isNull(root) || !root.isObject()) {
+                    invalidate();
+                    return;
+                }
+                JsonNode usage = usageOf(root, eventStream);
+                if (Objects.isNull(usage) || usage.isNull()) {
+                    return;
+                }
+                if (!usage.isObject()) {
+                    invalidate();
+                    return;
+                }
+                JsonNode outputTokenNode = outputTokensOf(usage);
+                if (Objects.isNull(outputTokenNode)) {
+                    outputTokens = null;
+                    return;
+                }
+                if (!outputTokenNode.isIntegralNumber() || !outputTokenNode.canConvertToLong()
+                        || outputTokenNode.longValue() < 0) {
+                    invalidate();
+                    return;
+                }
+                outputTokens = outputTokenNode.longValue();
+            }
+
+            private void invalidate() {
+                invalid = true;
+                outputTokens = null;
+                clear();
+            }
+
+            private void clear() {
+                buffer.reset();
+                event.setLength(0);
+            }
         }
     }
 }
