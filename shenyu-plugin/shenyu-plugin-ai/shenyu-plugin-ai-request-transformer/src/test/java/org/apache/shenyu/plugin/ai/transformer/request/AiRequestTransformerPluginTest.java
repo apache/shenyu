@@ -149,6 +149,46 @@ class AiRequestTransformerPluginTest {
     }
 
     @Test
+    void testDownstreamFailurePropagatesWithoutReenteringChain() {
+        AtomicInteger cursor = new AtomicInteger();
+        IllegalStateException downstreamFailure = new IllegalStateException("downstream failure");
+        ShenyuPluginChain advancingChain = ignored -> Mono.defer(() -> cursor.getAndIncrement() == 0
+                ? Mono.error(downstreamFailure) : Mono.empty());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).body("{}"));
+        RuleData rule = new RuleData();
+        rule.setId("downstream-failure-rule-id");
+        rule.setSelectorId("test-selector-id");
+
+        invokeWithModel(exchange, Flux.just("POST /test HTTP/1.1\nContent-Type: application/json\n\n{}"), advancingChain, rule,
+            result -> StepVerifier.create(result)
+                    .expectErrorMatches(error -> error == downstreamFailure)
+                    .verify());
+
+        assertEquals(1, cursor.get());
+    }
+
+    @Test
+    void testDownstreamPublisherSubscribedOnce() {
+        AtomicInteger subscriptions = new AtomicInteger();
+        IllegalStateException downstreamFailure = new IllegalStateException("downstream failure");
+        ShenyuPluginChain failingChain = ignored -> Mono.<Void>error(downstreamFailure)
+                .doOnSubscribe(subscription -> subscriptions.incrementAndGet());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .contentType(MediaType.APPLICATION_JSON).body("{}"));
+        RuleData rule = new RuleData();
+        rule.setId("downstream-subscription-rule-id");
+        rule.setSelectorId("test-selector-id");
+
+        invokeWithModel(exchange, Flux.just("POST /test HTTP/1.1\nContent-Type: application/json\n\n{}"), failingChain, rule,
+            result -> StepVerifier.create(result)
+                    .expectErrorMatches(error -> error == downstreamFailure)
+                    .verify());
+
+        assertEquals(1, subscriptions.get());
+    }
+
+    @Test
     void testModelFailureProceedsWithoutTransformation() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
                 .contentType(MediaType.APPLICATION_JSON).body("{}"));
