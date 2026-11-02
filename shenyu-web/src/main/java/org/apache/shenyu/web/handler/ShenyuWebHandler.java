@@ -23,6 +23,9 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
+import org.apache.shenyu.common.metrics.PluginObservationEvent;
+import org.apache.shenyu.plugin.api.observation.PluginObservationContext;
+import org.apache.shenyu.web.observation.PluginObservationManager;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.TraceIdUtils;
@@ -70,6 +73,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
     private final boolean scheduled;
 
+    private final PluginObservationManager observations;
+
     private Scheduler scheduler;
     
     /**
@@ -80,8 +85,22 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * @param shenyuConfig plugins config
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuLoaderService shenyuLoaderService, final ShenyuConfig shenyuConfig) {
+        this(plugins, shenyuLoaderService, shenyuConfig, PluginObservationManager.disabled());
+    }
+
+    /**
+     * Create an optionally observed legacy handler without changing plugin lifecycle hooks.
+     * @param plugins ordered implementations
+     * @param shenyuLoaderService loader
+     * @param shenyuConfig gateway configuration
+     * @param observations optional bounded observation owner
+     */
+    public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuLoaderService shenyuLoaderService, final ShenyuConfig shenyuConfig,
+                           final PluginObservationManager observations) {
+        this.observations = observations;
         this.sourcePlugins = new ArrayList<>(plugins);
         this.plugins = new ArrayList<>(plugins);
+        observations.prepare(this.plugins);
         this.shenyuLoaderService = shenyuLoaderService;
         ShenyuConfig.Scheduler config = shenyuConfig.getScheduler();
         this.scheduled = config.getEnabled();
@@ -138,7 +157,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
         return Mono.defer(() -> {
             before(exchange);
-            Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
+            Mono<Void> execute = new DefaultShenyuPluginChain(plugins, observations.start()).execute(exchange);
             if (scheduled) {
                 execute = execute.subscribeOn(scheduler);
             }
@@ -153,6 +172,14 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      */
     public List<ShenyuPlugin> getPlugins() {
         return plugins;
+    }
+
+    /**
+     * Inspect bounded exporter/drop state without reading request data.
+     * @return observation diagnostics
+     */
+    public PluginObservationManager.Stats observationStats() {
+        return observations.stats();
     }
     
     /**
@@ -248,6 +275,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             case SORTED:
                 // copy a new one, or there will be concurrency problems
                 this.plugins = sortPlugins(new ArrayList<>(this.plugins));
+                observations.prepare(this.plugins);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + event.getPluginStateEnums());
@@ -287,6 +315,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         List<ShenyuPlugin> newPluginList = new ArrayList<>(this.plugins);
         newPluginList.addAll(enabledPlugins);
         this.plugins = sortPlugins(newPluginList);
+        observations.prepare(this.plugins);
     }
 
     /**
@@ -299,6 +328,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         List<ShenyuPlugin> newPluginList = new ArrayList<>(this.plugins);
         newPluginList.removeIf(plugin -> plugin.named().equals(pluginData.getName()));
         this.plugins = newPluginList;
+        observations.prepare(this.plugins);
     }
 
     private static class DefaultShenyuPluginChain implements ShenyuPluginChain {
@@ -306,6 +336,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         private int index;
 
         private final List<ShenyuPlugin> plugins;
+
+        private final PluginObservationManager.Scope observation;
     
         /**
          * Instantiates a new Default shenyu plugin chain.
@@ -313,12 +345,17 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
          * @param plugins the plugins
          */
         DefaultShenyuPluginChain(final List<ShenyuPlugin> plugins) {
+            this(plugins, null);
+        }
+
+        DefaultShenyuPluginChain(final List<ShenyuPlugin> plugins, final PluginObservationManager.Scope observation) {
             this.plugins = plugins;
+            this.observation = observation;
         }
 
         @Override
         public ShenyuPluginChain fork() {
-            return new DefaultShenyuPluginChain(plugins);
+            return new DefaultShenyuPluginChain(plugins, observation);
         }
 
         /**
@@ -332,6 +369,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
             return Mono.defer(() -> {
                 if (this.index < plugins.size()) {
                     ShenyuPlugin plugin = plugins.get(this.index++);
+                    if (Objects.nonNull(observation)) {
+                        return observe(plugin, exchange);
+                    }
                     boolean skip = plugin.skip(exchange);
                     if (skip) {
                         return this.execute(exchange);
@@ -345,6 +385,43 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 }
                 return Mono.empty();
             });
+        }
+
+        private Mono<Void> observe(final ShenyuPlugin plugin, final ServerWebExchange exchange) {
+            Object trace = exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID);
+            PluginObservationManager.Span span = observation.span(plugin, trace instanceof String ? (String) trace : "");
+            final boolean skip;
+            try {
+                skip = plugin.skip(exchange);
+            } catch (RuntimeException | AssertionError | LinkageError failure) {
+                span.constructed(PluginObservationEvent.Kind.SKIP_ERROR);
+                throw failure;
+            }
+            if (skip) {
+                span.constructed(PluginObservationEvent.Kind.SKIPPED);
+                return execute(exchange);
+            }
+            Object previous = exchange.getAttributes().put(PluginObservationContext.KEY, span);
+            try {
+                final Mono<Void> result;
+                try {
+                    plugin.before(exchange);
+                    result = plugin.execute(exchange, this);
+                } finally {
+                    plugin.after(exchange);
+                }
+                span.constructed(PluginObservationEvent.Kind.CONSTRUCTED);
+                return span.publisher(result);
+            } catch (RuntimeException | AssertionError | LinkageError failure) {
+                span.constructed(PluginObservationEvent.Kind.CONSTRUCTION_ERROR);
+                throw failure;
+            } finally {
+                if (Objects.isNull(previous)) {
+                    exchange.getAttributes().remove(PluginObservationContext.KEY);
+                } else {
+                    exchange.getAttributes().put(PluginObservationContext.KEY, previous);
+                }
+            }
         }
     }
 }
