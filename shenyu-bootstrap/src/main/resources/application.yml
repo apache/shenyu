@@ -327,6 +327,15 @@ shenyu:
     props:
       jvm_enabled: true
   tracing:
+    # Tracing needs two switches. This property decides whether the plugin is
+    # installed at all: the starter builds no plugin bean while it is false. The
+    # tracing plugin relation then decides whether the installed plugin is
+    # switched on: the gateway receives it through the sync channel, and
+    # disabling it removes the plugin from the plugin chain at runtime without a
+    # restart. Keep the plugin row enabled, because the relation of a namespace
+    # created later copies enabled and sort from it. The settings below need a
+    # restart instead, because the tracer provider and the exporter are created
+    # when it starts.
     enabled: false
     serviceName: shenyu-gateway
     createSpan: true

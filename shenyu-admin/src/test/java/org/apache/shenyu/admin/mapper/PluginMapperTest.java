@@ -22,9 +22,12 @@ import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
+import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
@@ -39,6 +42,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -52,6 +56,9 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private PluginService pluginService;
+
+    @Resource
+    private NamespacePluginRelMapper namespacePluginRelMapper;
 
     @Test
     public void selectById() {
@@ -124,6 +131,25 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final int deleteResult = pluginMapper.delete(pluginDO.getId());
         assertThat(deleteResult, equalTo(1));
+    }
+
+    @Test
+    public void tracingPluginIsRegisteredInTheControlPlane() {
+        final PluginDO tracing = pluginMapper.selectByName(PluginEnum.TRACING.getName());
+        assertNotNull(tracing, "the tracing plugin must be registered by the initialization schema");
+        assertEquals(Integer.valueOf(PluginEnum.TRACING.getCode()), tracing.getSort(),
+                "the row sort must match the plugin order, otherwise the control plane reorders the plugin chain");
+        assertTrue(tracing.getEnabled(), "the row is registered enabled, so an upgrade does not stop tracing");
+        assertTrue(pluginService.listAllData().stream().anyMatch(plugin -> PluginEnum.TRACING.getName().equals(plugin.getName())),
+                "the tracing plugin must be listed by the admin plugin list");
+        // the gateway sync reads the namespace relation, not the plugin template row
+        final NamespacePluginVO relation = namespacePluginRelMapper.selectByPluginId(tracing.getId());
+        assertNotNull(relation, "the tracing plugin must be related to the default namespace");
+        assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, relation.getNamespaceId(),
+                "the migration registers the relation of the default namespace only");
+        assertEquals(Integer.valueOf(PluginEnum.TRACING.getCode()), relation.getSort(),
+                "the relation sort must match the plugin order on the plugin chain");
+        assertTrue(relation.getEnabled(), "the relation is seeded enabled, so an upgrade does not switch tracing off");
     }
 
     @Test

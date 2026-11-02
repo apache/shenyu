@@ -54,6 +54,40 @@ MySQL 8.0 or later; on MySQL 5.7 apply the same rename with the equivalent
 
   > this file is the Shenyu upgrade sql from v2.7.2 to v2.7.3
 
+### Tracing plugin registered in the control plane in 2.7.3
+
+The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts also register the `tracing`
+plugin, which shipped in 2.7.2 without a control plane entry. The migration inserts
+the plugin, its relation to the default namespace, the dashboard menu entry with
+its nine button permissions, and the admin grants for them. The plugin and the
+relation are inserted **enabled**: a relation registered disabled would push a
+disable event through the sync channel and remove the plugin from the gateway
+chain, so an installation that already traces through `shenyu.tracing.enabled`
+would silently stop tracing on upgrade.
+
+Tracing now has two switches with different meanings:
+
+- `shenyu.tracing.enabled` decides whether the plugin is installed at all. The
+  starter creates no plugin bean while it is false, so the dashboard entry exists
+  but nothing runs on the chain.
+- The tracing plugin relation is the switch the gateway sync channel reads.
+  Disabling it in the dashboard removes the installed plugin from the plugin
+  chain without a restart, and enabling it puts it back. The relation is stored per
+  namespace and the migration creates the one of the default namespace; a
+  namespace created later copies `enabled` and `sort` from the plugin row, which is
+  why that row stays enabled.
+
+Note that the gateway always starts with the plugin beans on its chain, and only a
+disable or a delete event takes one off it. A deployment whose synced data carries
+no tracing relation therefore keeps tracing as well. To stop tracing, disable the
+relation instead of deleting it.
+
+Everything below `shenyu.tracing.*` (service name, sampler, resource attributes,
+OTLP endpoint) still needs a restart, because the tracer provider and the exporter
+are created when it starts. The plugin has no selectors, rules or handles and
+keeps the local configuration model of `metrics`, so its dashboard page shows no
+configuration form and any selector or rule created for it would not be read.
+
 ### Instance identity uniqueness in 2.7.3
 
 The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts also enforce one
