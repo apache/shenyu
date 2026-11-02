@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `dashboard_user` (
   `role` int(4) NOT NULL COMMENT 'role',
   `enabled` tinyint(4) NOT NULL COMMENT 'delete or not',
   `client_id` varchar(32) DEFAULT NULL COMMENT 'client id',
+  `token_version` int NOT NULL DEFAULT 0 COMMENT 'token version used to revoke issued JWTs',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`),

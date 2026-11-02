@@ -205,6 +205,7 @@ public final class InstanceInfoUpsertTest {
         jdbc.execute("ALTER TABLE instance_info DROP CONSTRAINT uk_instance_info_identity");
         jdbc.execute("CREATE TABLE selector (loged INT)");
         jdbc.execute("CREATE TABLE rule (loged INT)");
+        jdbc.execute("CREATE TABLE dashboard_user (id VARCHAR(128))");
         jdbc.execute("CREATE TABLE mock_request_record (header VARCHAR(1024))");
         jdbc.execute("CREATE TABLE plugin (id VARCHAR(128), name VARCHAR(128), sort INT)");
         jdbc.execute("CREATE TABLE namespace_plugin_rel (plugin_id VARCHAR(128), sort INT)");

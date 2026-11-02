@@ -173,6 +173,7 @@ CREATE TABLE "public"."dashboard_user" (
   "role" int4 NOT NULL,
   "enabled" int2 NOT NULL,
   "client_id" varchar(32) COLLATE "pg_catalog"."default",
+  "token_version" int4 NOT NULL DEFAULT 0,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -182,13 +183,14 @@ COMMENT ON COLUMN "public"."dashboard_user"."user_name" IS 'user name';
 COMMENT ON COLUMN "public"."dashboard_user"."password" IS 'user password';
 COMMENT ON COLUMN "public"."dashboard_user"."role" IS 'role';
 COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."dashboard_user"."token_version" IS 'token version used to revoke issued JWTs';
 COMMENT ON COLUMN "public"."dashboard_user"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 
 -- ----------------------------
 -- Records of dashboard_user
 -- ----------------------------
-INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."dashboard_user" ("id", "user_name", "password", "role", "enabled", "client_id", "date_created", "date_updated") VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 
 -- ----------------------------
 -- Table structure for data_permission

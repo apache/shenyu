@@ -22,6 +22,7 @@ create table dashboard_user
     role         NUMBER(10) not null,
     enabled      NUMBER(3) not null,
     client_id     VARCHAR2(32),
+    token_version NUMBER(10) default 0 not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
@@ -38,6 +39,8 @@ comment on column DASHBOARD_USER.role
   is 'role';
 comment on column DASHBOARD_USER.enabled
   is 'delete or not';
+comment on column DASHBOARD_USER.token_version
+  is 'token version used to revoke issued JWTs';
 comment on column DASHBOARD_USER.date_created
   is 'create time';
 comment on column DASHBOARD_USER.date_updated

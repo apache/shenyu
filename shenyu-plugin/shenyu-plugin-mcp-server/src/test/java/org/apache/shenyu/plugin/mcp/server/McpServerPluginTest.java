@@ -300,6 +300,41 @@ class McpServerPluginTest {
     }
 
     /**
+     * Unknown SSE session IDs must not retain the request exchange in the global holder.
+     */
+    @Test
+    void testUnknownSseSessionsDoNotRetainExchanges() {
+        final ShenyuMcpServerManager manager = new ShenyuMcpServerManager();
+        final McpServerPlugin plugin = new McpServerPlugin(manager,
+                HandlerStrategies.withDefaults().messageReaders());
+        final ShenyuMcpServer server = new ShenyuMcpServer();
+        server.setPath("/mcp");
+        server.setMessageEndpoint("/rpc");
+        McpServerPluginDataHandler.CACHED_SERVER.get().cachedHandle("selector-1", server);
+        when(selector.getId()).thenReturn("selector-1");
+        manager.getOrCreateMcpServerTransport("/mcp", "/rpc");
+
+        try {
+            for (int index = 0; index < 8; index++) {
+                final String sessionId = "missing-session-" + index;
+                final MockServerWebExchange messageExchange = MockServerWebExchange.from(MockServerHttpRequest
+                        .post("/mcp/rpc?sessionId=" + sessionId)
+                        .header("Content-Type", "application/json")
+                        .build());
+                messageExchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+
+                StepVerifier.create(plugin.doExecute(messageExchange, chain, selector, rule))
+                        .verifyComplete();
+
+                assertEquals(HttpStatus.NOT_FOUND, messageExchange.getResponse().getStatusCode());
+                assertNull(ShenyuMcpExchangeHolder.get(sessionId));
+            }
+        } finally {
+            McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
+        }
+    }
+
+    /**
      * A JSON-RPC notification routed through the real plugin path must be
      * acknowledged with HTTP 202 and an empty body, not a serialized null
      * response body.

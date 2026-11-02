@@ -156,6 +156,7 @@ CREATE TABLE `dashboard_user`  (
   `role` int(0) NOT NULL COMMENT 'role',
   `enabled` tinyint(0) NOT NULL COMMENT 'delete or not (0 close, 1 open) ',
   `client_id` varchar(32) DEFAULT NULL COMMENT 'client id',
+  `token_version` int(0) NOT NULL DEFAULT 0 COMMENT 'token version used to revoke issued JWTs',
   `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
   `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE,
@@ -165,7 +166,7 @@ CREATE TABLE `dashboard_user`  (
 -- ----------------------------
 -- Records of dashboard_user
 -- ----------------------------
-INSERT INTO `dashboard_user` VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
+INSERT INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `client_id`, `date_created`, `date_updated`) VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:02:52', '2022-05-25 18:02:52');
 
 -- ----------------------------
 -- Table structure for data_permission
