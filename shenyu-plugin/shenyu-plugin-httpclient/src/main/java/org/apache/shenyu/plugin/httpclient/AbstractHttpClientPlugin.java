@@ -152,7 +152,9 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                     exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID),
                     uri.getScheme() + "://",
                     uri.getHost() + (uri.getPort() > 0 ? ":" + uri.getPort() : ""),
-                    httpMethod);
+                    httpMethod,
+                    // reuse the trace id of the gateway span; this adapter creates no span (#8209)
+                    exchange.getAttribute(Constants.SHENYU_AGENT_TRACE_ID));
             exchange.getAttributes().put(UpstreamAttemptObservation.CURRENT_ATTRIBUTE, observation);
             try {
                 observer.onAttemptStarted(observation);
@@ -170,9 +172,12 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                     })
                     .doFinally(signalType -> {
                         // a failed or cancelled attempt finishes here; a succeeded attempt is
-                        // finished by the terminal callback when its body is done (#8209)
+                        // finished by the terminal callback when its body is done (#8209). The
+                        // observation is finished directly instead of through the exchange: a
+                        // failover resend is subscribed inline while this attempt is failing, so
+                        // the exchange attribute may already name the next attempt.
                         if (signalType != reactor.core.publisher.SignalType.ON_COMPLETE) {
-                            finishObservedAttempt(exchange, signalType);
+                            finishObservation(observation, signalType);
                         }
                     });
         });
@@ -180,9 +185,13 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
 
     private void finishObservedAttempt(final ServerWebExchange exchange, final reactor.core.publisher.SignalType signalType) {
         final UpstreamAttemptObservation observation = exchange.getAttribute(UpstreamAttemptObservation.CURRENT_ATTRIBUTE);
-        if (Objects.isNull(observation)) {
-            return;
+        if (Objects.nonNull(observation)) {
+            finishObservation(observation, signalType);
         }
+    }
+
+    private void finishObservation(final UpstreamAttemptObservation observation,
+                                   final reactor.core.publisher.SignalType signalType) {
         final UpstreamAttemptObservation.Outcome outcome;
         if (signalType == reactor.core.publisher.SignalType.ON_ERROR) {
             outcome = UpstreamAttemptObservation.Outcome.ERROR;

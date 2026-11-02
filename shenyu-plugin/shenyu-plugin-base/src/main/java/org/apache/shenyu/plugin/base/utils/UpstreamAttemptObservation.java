@@ -33,6 +33,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * recorded exactly once per attempt: the response body's completion, error or
  * cancellation finishes the observation of the serving attempt, while a failed attempt
  * finishes its own as soon as it terminates (#8209).
+ *
+ * <p>The observation reuses the trace id the gateway span already published for the
+ * logical request; it never creates a span or another trace context. Request and
+ * response byte counts are intentionally not part of these facts: they are owned by
+ * the response-writer layer, so this adapter never buffers or subscribes to a body.
+ * Consumers own the bounded delivery of the facts and must not use the trace id,
+ * target or any per-request value as an unbounded metric label.
  */
 public final class UpstreamAttemptObservation {
 
@@ -76,6 +83,8 @@ public final class UpstreamAttemptObservation {
 
     private final String method;
 
+    private final String traceId;
+
     private final long startNanos = System.nanoTime();
 
     private final AtomicBoolean finished = new AtomicBoolean();
@@ -87,11 +96,12 @@ public final class UpstreamAttemptObservation {
     private volatile Outcome outcome;
 
     private UpstreamAttemptObservation(final String selectorId, final String protocol,
-                                       final String url, final String method) {
+                                       final String url, final String method, final String traceId) {
         this.selectorId = selectorId;
         this.protocol = protocol;
         this.url = url;
         this.method = method;
+        this.traceId = traceId;
     }
 
     /**
@@ -101,11 +111,12 @@ public final class UpstreamAttemptObservation {
      * @param protocol the target's protocol
      * @param url the target's address (no query, no credentials)
      * @param method the outbound HTTP method
+     * @param traceId the trace id already published by the gateway span, or null when tracing is off
      * @return the observation
      */
     public static UpstreamAttemptObservation started(final String selectorId, final String protocol,
-                                                     final String url, final String method) {
-        return new UpstreamAttemptObservation(selectorId, protocol, url, method);
+                                                     final String url, final String method, final String traceId) {
+        return new UpstreamAttemptObservation(selectorId, protocol, url, method, traceId);
     }
 
     /**
@@ -176,6 +187,16 @@ public final class UpstreamAttemptObservation {
      */
     public String getMethod() {
         return method;
+    }
+
+    /**
+     * Get the trace id already published for the logical request, reused instead of
+     * creating another span or trace context.
+     *
+     * @return the trace id, or null when tracing is not installed
+     */
+    public String getTraceId() {
+        return traceId;
     }
 
     /**
