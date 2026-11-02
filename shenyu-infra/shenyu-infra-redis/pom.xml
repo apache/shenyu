@@ -29,6 +29,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-plugin-ai-common</artifactId>
             <version>${project.version}</version>

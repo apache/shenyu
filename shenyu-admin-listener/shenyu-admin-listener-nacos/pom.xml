@@ -28,6 +28,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-admin-listener-api</artifactId>
             <version>${project.version}</version>

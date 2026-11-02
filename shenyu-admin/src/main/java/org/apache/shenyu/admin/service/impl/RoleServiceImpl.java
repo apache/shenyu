@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.RoleMapper;
+import org.apache.shenyu.admin.mapper.UserRoleMapper;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
@@ -38,9 +39,11 @@ import org.apache.shenyu.admin.model.vo.RoleEditVO.ResourceInfo;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.apache.shenyu.admin.service.RoleService;
 import org.apache.shenyu.admin.service.publish.RoleEventPublisher;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +70,8 @@ public class RoleServiceImpl implements RoleService {
     private final PermissionMapper permissionMapper;
     
     private final ResourceMapper resourceMapper;
+
+    private final UserRoleMapper userRoleMapper;
     
     private final RoleEventPublisher roleEventPublisher;
     
@@ -74,11 +79,13 @@ public class RoleServiceImpl implements RoleService {
                            final DashboardProperties properties,
                            final PermissionMapper permissionMapper,
                            final ResourceMapper resourceMapper,
+                           final UserRoleMapper userRoleMapper,
                            final RoleEventPublisher roleEventPublisher) {
         this.roleMapper = roleMapper;
         this.properties = properties;
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
+        this.userRoleMapper = userRoleMapper;
         this.roleEventPublisher = roleEventPublisher;
     }
     
@@ -121,10 +128,14 @@ public class RoleServiceImpl implements RoleService {
      *
      * @param ids primary key
      * @return rows
-     */
+    */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         final List<RoleDO> roles = roleMapper.selectByIds(ids);
+        Assert.isTrue(!ids.contains(AdminConstants.ROLE_SUPER_ID)
+                && roles.stream().noneMatch(role -> "super".equals(role.getRoleName())), "The super role cannot be deleted");
+        userRoleMapper.deleteByRoleIdList(ids);
         final int deleteCount = roleMapper.delete(ids);
         if (deleteCount > 0) {
             roleEventPublisher.onDeleted(roles);

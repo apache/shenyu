@@ -224,7 +224,9 @@ async function retestPullRequest({context, github, core, pullRequest}) {
             run_id: run.id,
             per_page: 100,
         });
-        return !artifacts.some(artifact => artifact.name === 'shenyu-images' && !artifact.expired);
+        // Failed-job reruns preserve the producer, so both E2E inputs must still exist.
+        return !['shenyu-images', 'shenyu-local-maven-repository'].every(name =>
+            artifacts.some(artifact => artifact.name === name && !artifact.expired));
     };
     for (const run of latest.values()) {
         if (!isFailed(run)) {
@@ -244,9 +246,9 @@ async function retestPullRequest({context, github, core, pullRequest}) {
                 core.info(`Run ${run.id} has already changed; skipping it.`);
                 continue;
             }
-            if (await needsFullRerun(run)) {
+            if (await needsFullRerun(currentRun)) {
                 await github.rest.actions.reRunWorkflow({...context.repo, run_id: run.id});
-                core.info(`Requested full rerun, the e2e image artifact is gone: ${run.html_url}`);
+                core.info(`Requested full rerun, an E2E artifact is unavailable: ${run.html_url}`);
             } else {
                 await github.rest.actions.reRunWorkflowFailedJobs({...context.repo, run_id: run.id});
                 core.info(`Requested failed-job rerun: ${run.html_url}`);

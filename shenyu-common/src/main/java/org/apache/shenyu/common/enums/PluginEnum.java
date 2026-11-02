@@ -296,12 +296,17 @@ public enum PluginEnum {
     /**
      * Agent gateway plugin enum.
      */
-    AGENT_GATEWAY(198, 0, "agentGateway"),
+    AGENT_GATEWAY(169, 0, "agentGateway"),
 
     /**
      * Ai-token-limiter plugin enum.
      */
     AI_TOKEN_LIMITER(171, 0, "aiTokenLimiter"),
+
+    /**
+     * Pii-detection plugin enum.
+     */
+    PII_DETECTION(196, 0, "piiDetection"),
 
     /**
      * Sensitive-word plugin enum.

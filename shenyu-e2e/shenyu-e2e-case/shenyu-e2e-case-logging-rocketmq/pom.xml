@@ -37,5 +37,11 @@
             <artifactId>awaitility</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-tools</artifactId>
+            <version>4.9.3</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

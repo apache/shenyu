@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,6 +56,13 @@ public abstract class AbstractWasmPlugin extends WasmLoader implements ShenyuPlu
     
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        if (hasExecutionDeadline()) {
+            return Mono.defer(() -> executeWasm(exchange, chain)).subscribeOn(Schedulers.boundedElastic());
+        }
+        return executeWasm(exchange, chain);
+    }
+
+    private Mono<Void> executeWasm(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return super.getWasmExtern(EXECUTE_METHOD_NAME).map(execute -> {
             final Long argumentId = callWASI(exchange, chain, execute);
             return doExecute(exchange, chain, argumentId);

@@ -17,63 +17,39 @@
 
 package org.apache.shenyu.e2e.testcase.logging.rocketmq;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.model.data.RuleCacheData;
-import org.apache.shenyu.e2e.model.data.SelectorCacheData;
+import org.apache.shenyu.e2e.model.data.PluginData;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
 
 class LoggingRuleSyncTest {
 
     @Test
-    void waitsForNewIdsEvenWhenCacheSizesMatch() {
-        AtomicInteger selectorReads = new AtomicInteger();
-        AtomicInteger ruleReads = new AtomicInteger();
+    void waitsForEnabledConfigurationInTheCurrentNamespace() throws Exception {
+        AtomicInteger reads = new AtomicInteger();
+        ObjectMapper mapper = new ObjectMapper();
+        String config = "{\"topic\":\"shenyu-access-logging\",\"namesrvAddr\":\"broker:9876\"}";
         GatewayClient gateway = new GatewayClient("sync-test", "gateway", "http://localhost", new Properties()) {
             @Override
-            public List<SelectorCacheData> getSelectorCache() {
-                SelectorCacheData selector = new SelectorCacheData();
-                selector.setId(selectorReads.incrementAndGet() < 3 ? "old-selector" : "new-selector");
-                return List.of(selector);
-            }
-
-            @Override
-            public List<RuleCacheData> getRuleCache() {
-                RuleCacheData rule = new RuleCacheData();
-                rule.setId(ruleReads.incrementAndGet() < 3 ? "old-rule" : "new-rule");
-                return List.of(rule);
+            public Map<String, PluginData> getPluginCache() {
+                int attempt = reads.incrementAndGet();
+                String namespace = attempt == 1 ? "other-namespace" : SYS_DEFAULT_NAMESPACE_NAMESPACE_ID;
+                String actual = attempt == 3 ? "old-topic" : "shenyu-access-logging";
+                return Map.of("loggingRocketMQ", mapper.convertValue(Map.of("name", "loggingRocketMQ", "namespaceId", namespace,
+                        "enabled", attempt != 2, "config", "{\"namesrvAddr\":\"broker:9876\",\"topic\":\"" + actual + "\"}"), PluginData.class));
             }
         };
 
-        DividePluginTest.waitForLoggingRules(gateway, List.of("new-selector"), List.of("new-rule"));
+        DividePluginTest.waitForPluginConfiguration(gateway, config);
 
-        assertTrue(selectorReads.get() >= 3);
-        assertTrue(ruleReads.get() >= 3);
+        assertTrue(reads.get() >= 4);
     }
 
-    @Test
-    void acceptsAlreadySynchronizedRulesAlongsideUnrelatedData() {
-        GatewayClient gateway = new GatewayClient("sync-test", "gateway", "http://localhost", new Properties()) {
-            @Override
-            public List<SelectorCacheData> getSelectorCache() {
-                SelectorCacheData selector = new SelectorCacheData();
-                selector.setId("new-selector");
-                return List.of(selector, new SelectorCacheData());
-            }
-
-            @Override
-            public List<RuleCacheData> getRuleCache() {
-                RuleCacheData rule = new RuleCacheData();
-                rule.setId("new-rule");
-                return List.of(rule, new RuleCacheData());
-            }
-        };
-
-        DividePluginTest.waitForLoggingRules(gateway, List.of("new-selector"), List.of("new-rule"));
-    }
 }

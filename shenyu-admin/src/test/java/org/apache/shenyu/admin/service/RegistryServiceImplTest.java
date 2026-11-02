@@ -21,6 +21,9 @@ import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.RegistryMapper;
 import org.apache.shenyu.admin.model.dto.RegistryDTO;
 import org.apache.shenyu.admin.model.entity.RegistryDO;
+import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.model.query.RegistryQuery;
 import org.apache.shenyu.admin.model.vo.RegistryVO;
 import org.apache.shenyu.admin.service.impl.RegistryServiceImpl;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +37,7 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -120,10 +124,13 @@ public final class RegistryServiceImplTest {
 
     @Test
     public void testListAndDelete() {
-        when(registryMapper.countByQuery(any())).thenReturn(0);
-        org.apache.shenyu.admin.model.query.RegistryQuery query = new org.apache.shenyu.admin.model.query.RegistryQuery();
-        query.setPageParameter(new org.apache.shenyu.admin.model.page.PageParameter());
-        registryService.listByPage(query);
+        RegistryQuery query = new RegistryQuery();
+        query.setPageParameter(new PageParameter());
+        when(registryMapper.selectByQuery(query)).thenReturn(Collections.emptyList());
+        CommonPager<RegistryVO> result = registryService.listByPage(query);
+        assertEquals(Collections.emptyList(), result.getDataList());
+        assertEquals(0, result.getPage().getTotalCount());
+        verify(registryMapper, never()).countByQuery(any());
         assertEquals(org.apache.shenyu.admin.utils.ShenyuResultMessage.DELETE_SUCCESS,
                 registryService.delete(Collections.singletonList("id")));
         verify(registryMapper).deleteByIds(any());
@@ -131,12 +138,18 @@ public final class RegistryServiceImplTest {
 
     @Test
     public void testListByPageWithResultsAndFindMappings() {
-        org.apache.shenyu.admin.model.query.RegistryQuery query = new org.apache.shenyu.admin.model.query.RegistryQuery();
-        query.setPageParameter(new org.apache.shenyu.admin.model.page.PageParameter());
+        RegistryQuery query = new RegistryQuery();
+        // The service must preserve pagination metadata supplied in the query.
+        final PageParameter page = new PageParameter(2, 1, 3);
+        query.setPageParameter(page);
         RegistryDO registry = RegistryDO.builder().id("id").registryId("r1").build();
-        when(registryMapper.countByQuery(query)).thenReturn(1);
         when(registryMapper.selectByQuery(query)).thenReturn(Collections.singletonList(registry));
-        assertEquals(1, registryService.listByPage(query).getDataList().size());
+        CommonPager<RegistryVO> result = registryService.listByPage(query);
+        assertEquals(1, result.getDataList().size());
+        assertEquals("id", result.getDataList().get(0).getId());
+        assertSame(page, result.getPage());
+        assertEquals(3, result.getPage().getTotalCount());
+        verify(registryMapper, never()).countByQuery(any());
         when(registryMapper.selectById("id")).thenReturn(registry);
         when(registryMapper.selectByRegistryId("r1")).thenReturn(registry);
         assertEquals("id", registryService.findById("id").getId());

@@ -22,6 +22,7 @@ import okhttp3.Headers;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
+import org.apache.shenyu.register.common.exception.HttpResponseException;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -115,7 +117,7 @@ public final class RegisterUtilsTest {
     @ValueSource(strings = {"failure", "{\"code\":400,\"message\":\"invalid parameters\"}"})
     public void testHeartbeatRejectsNonSuccessResponse(final String response) throws IOException {
         Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
-        when(okHttpTools.post(url, json, headers)).thenReturn(response);
+        when(okHttpTools.postWithStatusCheck(url, json, headers)).thenReturn(response);
         try (MockedStatic<OkHttpTools> mocked = mockStatic(OkHttpTools.class)) {
             mocked.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             assertThrows(IOException.class, () -> RegisterUtils.doHeartBeat(json, url, Constants.HEARTBEAT, accessToken));
@@ -138,11 +140,25 @@ public final class RegisterUtilsTest {
     public void testHeartbeatAndUnregisterAcceptSuccess() throws IOException {
         Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
         when(okHttpTools.post(url, json, headers)).thenReturn(Constants.SUCCESS);
+        when(okHttpTools.postWithStatusCheck(url, json, headers)).thenReturn(Constants.SUCCESS);
         try (MockedStatic<OkHttpTools> mocked = mockStatic(OkHttpTools.class)) {
             mocked.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doHeartBeat(json, url, Constants.HEARTBEAT, accessToken);
             RegisterUtils.doUnregister(json, url, accessToken);
-            verify(okHttpTools, times(2)).post(url, json, headers);
+            verify(okHttpTools).postWithStatusCheck(url, json, headers);
+            verify(okHttpTools).post(url, json, headers);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {401, 403, 500})
+    public void testHeartbeatPreservesHttpFailureStatus(final int status) throws IOException {
+        Headers headers = new Headers.Builder().add(RegistrationProtocol.VERSION_HEADER, RegistrationProtocol.V1).add(Constants.X_ACCESS_TOKEN, accessToken).build();
+        HttpResponseException failure = new HttpResponseException(status);
+        when(okHttpTools.postWithStatusCheck(url, json, headers)).thenThrow(failure);
+        try (MockedStatic<OkHttpTools> mocked = mockStatic(OkHttpTools.class)) {
+            mocked.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
+            assertSame(failure, assertThrows(HttpResponseException.class, () -> RegisterUtils.doHeartBeat(json, url, Constants.HEARTBEAT, accessToken)));
         }
     }
 

@@ -158,7 +158,7 @@
     select count(*) from scale_rule
     <where>
       <if test="metricName != null">
-        and metric_name like CONCAT('%', #{metricName, jdbcType=VARCHAR}, '%')
+        and metric_name like CONCAT(CONCAT('%', #{metricName, jdbcType=VARCHAR}), '%')
       </if>
     </where>
   </select>

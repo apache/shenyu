@@ -104,14 +104,16 @@ public class DefaultDiscoveryProcessorTest {
         discoveryDO.setDiscoveryType(type);
         discoveryDO.setProps(props);
         discoveryDO.setServerList("localhost:2181");
-        MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class);
-        ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
-        mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(extensionLoader);
-        when(extensionLoader.getExtensionClasses1()).thenReturn(Collections.singletonMap(type, ShenyuInstanceRegisterRepository.class));
-        when(extensionLoader.getJoin(anyString())).thenReturn(shenyuDiscoveryService);
-        doNothing().when(shenyuDiscoveryService).init(any(RegisterConfig.class));
-        defaultDiscoveryProcessor.createDiscovery(discoveryDO);
-        verify(ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class), times(1)).getJoin(type);
+        try (MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class)) {
+            ExtensionLoader extensionLoader = mock(ExtensionLoader.class);
+            mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class,
+                    ExtensionLoader.class.getClassLoader())).thenReturn(extensionLoader);
+            when(extensionLoader.getExtensionClasses1()).thenReturn(Collections.singletonMap(type, ShenyuInstanceRegisterRepository.class));
+            when(extensionLoader.getJoin(anyString())).thenReturn(shenyuDiscoveryService);
+            doNothing().when(shenyuDiscoveryService).init(any(RegisterConfig.class));
+            defaultDiscoveryProcessor.createDiscovery(discoveryDO);
+            verify(extensionLoader, times(1)).getJoin(type);
+        }
         try {
             final Field field = defaultDiscoveryProcessor.getClass().getSuperclass().getDeclaredField(
                     "discoveryServiceCache");
@@ -136,7 +138,6 @@ public class DefaultDiscoveryProcessorTest {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-        mocked.close();
     }
 
     @Test
@@ -145,7 +146,8 @@ public class DefaultDiscoveryProcessorTest {
         ShenyuInstanceRegisterRepository second = mock(ShenyuInstanceRegisterRepository.class);
         try (MockedStatic<ExtensionLoader> mocked = mockStatic(ExtensionLoader.class)) {
             ExtensionLoader<ShenyuInstanceRegisterRepository> loader = mock(ExtensionLoader.class);
-            mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class)).thenReturn(loader);
+            mocked.when(() -> ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class,
+                    ExtensionLoader.class.getClassLoader())).thenReturn(loader);
             when(loader.getExtensionClasses1()).thenReturn(Collections.singletonMap("zookeeper", ShenyuInstanceRegisterRepository.class));
             when(loader.getJoin("zookeeper")).thenReturn(first, second);
             DiscoveryDO firstDiscovery = new DiscoveryDO();

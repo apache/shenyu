@@ -130,11 +130,13 @@ public class OpenApiUtilsTest {
         assertThat(returnType.getRefs().get(4).getName(), is("address"));
         assertThat(returnType.getRefs().get(4).getType(), is("object"));
         assertThat(returnType.getRefs().get(4).getRefs(), notNullValue());
-        assertThat(returnType.getRefs().get(4).getRefs(), hasSize(2));
+        assertThat(returnType.getRefs().get(4).getRefs(), hasSize(3));
         assertThat(returnType.getRefs().get(4).getRefs().get(0).getName(), is("street"));
         assertThat(returnType.getRefs().get(4).getRefs().get(0).getType(), is("string"));
         assertThat(returnType.getRefs().get(4).getRefs().get(1).getName(), is("city"));
         assertThat(returnType.getRefs().get(4).getRefs().get(1).getType(), is("string"));
+        assertThat(returnType.getRefs().get(4).getRefs().get(2).getName(), is("tags"));
+        assertThat(returnType.getRefs().get(4).getRefs().get(2).getType(), is("array"));
 
         assertThat(returnType.getRefs().get(5).getName(), is("tags"));
         assertThat(returnType.getRefs().get(5).getType(), is("array"));
@@ -146,7 +148,20 @@ public class OpenApiUtilsTest {
         assertThat(returnType.getRefs().get(6).getType(), is("array"));
         assertThat(returnType.getRefs().get(6).getRefs(), notNullValue());
         assertThat(returnType.getRefs().get(6).getRefs(), hasSize(1));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getName(), is("items"));
         assertThat(returnType.getRefs().get(6).getRefs().get(0).getType(), is("object"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs(), notNullValue());
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs(), hasSize(3));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(0).getName(), is("street"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(0).getType(), is("string"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(1).getName(), is("city"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(1).getType(), is("string"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(2).getName(), is("tags"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(2).getType(), is("array"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(2).getRefs(), notNullValue());
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(2).getRefs(), hasSize(1));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(2).getRefs().get(0).getName(), is("items"));
+        assertThat(returnType.getRefs().get(6).getRefs().get(0).getRefs().get(2).getRefs().get(0).getType(), is("string"));
     }
 
     @Test
@@ -155,6 +170,19 @@ public class OpenApiUtilsTest {
         ResponseType returnType = OpenApiUtils.parseReturnType(method);
         assertThat(returnType.getType(), is("object"));
         assertThat(returnType.getRefs(), nullValue());
+    }
+
+    @Test
+    void testParseReturnTypeInheritedFields() throws Exception {
+        Method method = InheritanceTestService.class.getMethod("getSubDto");
+        ResponseType returnType = OpenApiUtils.parseReturnType(method);
+        assertThat(returnType.getType(), is("object"));
+        assertThat(returnType.getRefs(), notNullValue());
+        assertThat(returnType.getRefs(), hasSize(2));
+        assertThat(returnType.getRefs().get(0).getName(), is("name"));
+        assertThat(returnType.getRefs().get(0).getType(), is("string"));
+        assertThat(returnType.getRefs().get(1).getName(), is("id"));
+        assertThat(returnType.getRefs().get(1).getType(), is("string"));
     }
 
     @Test
@@ -499,6 +527,31 @@ public class OpenApiUtilsTest {
         }
 
         public Empty getEmpty() {
+            return null;
+        }
+    }
+
+    public static class BaseDto {
+
+        private String id;
+
+        public String getId() {
+            return id;
+        }
+    }
+
+    public static class SubDto extends BaseDto {
+
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    public static class InheritanceTestService {
+
+        public SubDto getSubDto() {
             return null;
         }
     }

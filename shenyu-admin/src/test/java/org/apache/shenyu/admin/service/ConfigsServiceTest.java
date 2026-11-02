@@ -171,7 +171,7 @@ public final class ConfigsServiceTest {
         SelectorMapper selectorMapper = mock(SelectorMapper.class);
         PluginMapper pluginMapper = mock(PluginMapper.class);
         RuleService ruleServiceImpl = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class),
-                selectorMapper, pluginMapper, mock(RuleEventPublisher.class), mock(ShenyuDictMapper.class));
+                selectorMapper, pluginMapper, mock(RuleEventPublisher.class), mock(ShenyuDictMapper.class), mock(DataPermissionChecker.class));
         ConfigsServiceImpl importService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService,
                 pluginHandleService, selectorService, ruleServiceImpl, metaDataService, shenyuDictService,
                 proxySelectorService, discoveryService, discoveryUpstreamService, Collections.emptyList());

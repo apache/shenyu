@@ -102,6 +102,7 @@ public final class PrometheusMetricsService implements MetricsService {
             return;
         }
         new LoggingQueueMetricsCollector().register();
+        new AgentCatalogMetricsCollector().register();
         String jvmEnabled = String.valueOf(config.getProps().getProperty("jvm_enabled"));
         if (StringUtils.isNotEmpty(jvmEnabled)) {
             boolean enabled = Boolean.parseBoolean(jvmEnabled);

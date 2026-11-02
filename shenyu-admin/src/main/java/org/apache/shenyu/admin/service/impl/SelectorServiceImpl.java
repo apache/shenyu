@@ -63,8 +63,10 @@ import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
+import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
@@ -133,6 +135,10 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final RegistrationFencingGuard registrationFencingGuard;
+
+    private final DataPermissionChecker dataPermissionChecker;
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -142,7 +148,9 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryRelMapper discoveryRelMapper,
                                final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
-                               final SelectorEventPublisher selectorEventPublisher) {
+                               final SelectorEventPublisher selectorEventPublisher,
+                               final DataPermissionChecker dataPermissionChecker,
+                               final RegistrationFencingGuard registrationFencingGuard) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
@@ -153,6 +161,8 @@ public class SelectorServiceImpl implements SelectorService {
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.eventPublisher = eventPublisher;
         this.selectorEventPublisher = selectorEventPublisher;
+        this.dataPermissionChecker = dataPermissionChecker;
+        this.registrationFencingGuard = registrationFencingGuard;
     }
 
     @Override
@@ -247,7 +257,9 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int update(final SelectorDTO selectorDTO) {
+        registrationFencingGuard.assertSelectorWriteAllowed(selectorDTO.getId());
         final SelectorDO before = selectorMapper.selectById(selectorDTO.getId());
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.updateSelective(selectorDO);
@@ -285,8 +297,27 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int updateSelective(final SelectorDO selectorDO) {
+        registrationFencingGuard.assertSelectorWriteAllowed(selectorDO.getId());
         final SelectorDO before = selectorMapper.selectById(selectorDO.getId());
+        final int updateCount = selectorMapper.updateSelective(selectorDO);
+        if (updateCount > 0) {
+            selectorEventPublisher.onUpdated(selectorDO, before);
+        }
+        return updateCount;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateSelectiveForRegistration(final SelectorDO selectorDO) {
+        // The registration transaction already owns this lock in the normal
+        // path. Re-selecting it here makes this method safe for callers that
+        // enter through another registration lifecycle operation as well.
+        final SelectorDO before = selectorMapper.selectByIdForUpdate(selectorDO.getId());
+        if (Objects.isNull(before)) {
+            return 0;
+        }
         final int updateCount = selectorMapper.updateSelective(selectorDO);
         if (updateCount > 0) {
             selectorEventPublisher.onUpdated(selectorDO, before);
@@ -306,6 +337,7 @@ public class SelectorServiceImpl implements SelectorService {
     public int deleteByNamespaceId(final List<String> ids, final String namespaceId) {
         final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
         List<PluginDO> pluginDOS = new ArrayList<>(pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
+        selectors.forEach(selector -> registrationFencingGuard.assertSelectorWriteAllowed(selector.getId()));
         unbindDiscovery(selectors, pluginDOS);
         return deleteSelector(selectors, pluginDOS);
     }
@@ -383,8 +415,18 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorVO findById(final String id) {
+        final String namespaceId = selectorMapper.selectNamespaceIdById(id);
+        if (Objects.isNull(namespaceId)) {
+            return null;
+        }
+        // Detail reads must apply the same data scope as the paged list queries, before loading configuration.
+        dataPermissionChecker.requireSelectorReadable(id, namespaceId);
+        final SelectorDO selectorDO = selectorMapper.selectById(id);
+        if (Objects.isNull(selectorDO)) {
+            return null;
+        }
         final List<SelectorConditionVO> conditions = ListUtil.map(selectorConditionMapper.selectByQuery(new SelectorConditionQuery(id)), SelectorConditionVO::buildSelectorConditionVO);
-        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorMapper.selectById(id), conditions);
+        SelectorVO selectorVO = SelectorVO.buildSelectorVO(selectorDO, conditions);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(id);
         if (Objects.nonNull(discoveryHandlerDO)) {
             selectorVO.setDiscoveryHandler(DiscoveryTransfer.INSTANCE.mapToVo(discoveryHandlerDO));
@@ -646,6 +688,7 @@ public class SelectorServiceImpl implements SelectorService {
                 // the selector does not belong to the request namespace; skip it
                 return;
             }
+            registrationFencingGuard.assertSelectorWriteAllowed(selectorDO.getId());
             SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
             selectorDO.setEnabled(enabled);
             if (selectorMapper.updateEnable(id, enabled) > 0) {
@@ -686,6 +729,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     private int deleteSelector(final List<SelectorDO> selectors, final List<PluginDO> plugins) {
         if (CollectionUtils.isNotEmpty(selectors)) {
+            selectors.forEach(selector -> registrationFencingGuard.assertSelectorWriteAllowed(selector.getId()));
             final List<String> selectorIds = ListUtil.map(selectors, BaseDO::getId);
             final int count = selectorMapper.deleteByIds(selectorIds);
             // delete all selector conditions

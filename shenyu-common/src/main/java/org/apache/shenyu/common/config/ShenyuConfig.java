@@ -630,7 +630,7 @@ public class ShenyuConfig {
     public static class SelectorMatchCache {
         
         /**
-         * the match cache, L1 cache.
+         * the selector match cache.
          */
         private MatchCacheConfig cache = new MatchCacheConfig();
         
@@ -656,7 +656,7 @@ public class ShenyuConfig {
     public static class RuleMatchCache {
         
         /**
-         * the match cache, L1 cache.
+         * the rule match cache.
          */
         private MatchCacheConfig cache = new MatchCacheConfig();
         

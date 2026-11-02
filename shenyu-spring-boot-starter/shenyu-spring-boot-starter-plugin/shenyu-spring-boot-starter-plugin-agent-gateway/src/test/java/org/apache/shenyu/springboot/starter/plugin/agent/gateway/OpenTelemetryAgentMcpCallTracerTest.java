@@ -22,8 +22,11 @@ import com.google.gson.JsonParser;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -33,6 +36,7 @@ import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
+import org.apache.shenyu.common.tracing.AgentTraceContext;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
@@ -63,6 +67,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -116,14 +121,18 @@ class OpenTelemetryAgentMcpCallTracerTest {
         }
     }
 
-    @Test
-    void reactorParentAndChildStayPrivateAcrossThirtyTwoSameIdCalls() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void reactorParentAndChildStayPrivateAcrossThirtyTwoSameIdCalls(final boolean gatewayKey) {
         try (Fixture fixture = new Fixture()) {
             List<String> parents = new CopyOnWriteArrayList<>();
             Map<String, String> children = new ConcurrentHashMap<>();
             Mono<JsonObject> action = Mono.deferContextual(context -> {
                 Context execution = context.get(Context.class);
                 assertTrue(Baggage.fromContext(execution).isEmpty());
+                Map<String, String> headers = context.get(AgentTraceContext.HEADERS_KEY);
+                assertEquals(Span.fromContext(execution).getSpanContext().getSpanId(), headers.get("traceparent").split("-")[2]);
+                assertThrows(UnsupportedOperationException.class, () -> headers.put("baggage", "secret"));
                 children.put(Span.fromContext(execution).getSpanContext().getSpanId(), context.get("expected-parent"));
                 return Mono.just(new JsonObject());
             }).subscribeOn(Schedulers.parallel());
@@ -133,7 +142,8 @@ class OpenTelemetryAgentMcpCallTracerTest {
                 parents.add(parent.getSpanContext().getSpanId());
                 Context context = Baggage.builder().put("private-subject", "secret").build().storeInContext(Context.root().with(parent));
                 return handler.handle(exchange("tools/call"), config("json", 30000), traffic(), index)
-                        .contextWrite(value -> value.put(Context.class, context).put("expected-parent", parent.getSpanContext().getSpanId()))
+                        .contextWrite(value -> value.put(gatewayKey ? AgentTraceContext.GATEWAY_REACTOR_CONTEXT_KEY : Context.class, context)
+                                .put("expected-parent", parent.getSpanContext().getSpanId()))
                         .doFinally(signal -> parent.end());
             }, 32)).verifyComplete();
             await().atMost(Duration.ofSeconds(3)).until(() -> fixture.exporter.getFinishedSpanItems().size() == 64);
@@ -145,6 +155,54 @@ class OpenTelemetryAgentMcpCallTracerTest {
             calls.forEach(span -> assertEquals(children.get(span.getSpanId()), span.getParentSpanId()));
             assertFalse(Span.current().getSpanContext().isValid());
         }
+    }
+
+    @Test
+    void gatewayServerParentWinsAndOnlyW3cHeadersAreAttached() {
+        try (Fixture fixture = new Fixture()) {
+            SpanContext gateway = SpanContext.create("11111111111111111111111111111111", "2222222222222222",
+                    TraceFlags.getSampled(), TraceState.builder().put("vendor", "opaque").build());
+            SpanContext other = SpanContext.create("33333333333333333333333333333333", "4444444444444444",
+                    TraceFlags.getSampled(), TraceState.getDefault());
+            Context parent = Baggage.builder().put("subject", "private").build().storeInContext(Context.root().with(Span.wrap(gateway)));
+            AgentMcpCallTracer.Trace trace = fixture.tracer.start(reactor.util.context.Context.of(
+                    AgentTraceContext.GATEWAY_REACTOR_CONTEXT_KEY, parent, Context.class, Context.root().with(Span.wrap(other))));
+            reactor.util.context.Context attached = trace.attach(reactor.util.context.Context.of(
+                    AgentTraceContext.HEADERS_KEY, Map.of("baggage", "must-be-replaced"), "application-key", "preserved"));
+            Map<String, String> headers = attached.get(AgentTraceContext.HEADERS_KEY);
+            assertEquals(Set.of("traceparent", "tracestate"), headers.keySet());
+            assertEquals("vendor=opaque", headers.get("tracestate"));
+            assertEquals("preserved", attached.get("application-key"));
+            assertTrue(Baggage.fromContext(attached.get(Context.class)).isEmpty());
+            trace.finish(Outcome.SUCCESS);
+            SpanData child = fixture.single(Outcome.SUCCESS);
+            assertEquals(gateway.getTraceId(), child.getTraceId());
+            assertEquals(gateway.getSpanId(), child.getParentSpanId());
+            assertEquals("00-" + child.getTraceId() + "-" + child.getSpanId() + "-01", headers.get("traceparent"));
+            assertThrows(UnsupportedOperationException.class, () -> headers.put("Authorization", "private"));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void invalidGatewayContextFallsBackToExplicitApplicationParent(final boolean wrongType) {
+        try (Fixture fixture = new Fixture()) {
+            SpanContext parent = SpanContext.create("11111111111111111111111111111111", "2222222222222222",
+                    TraceFlags.getSampled(), TraceState.getDefault());
+            AgentMcpCallTracer.Trace trace = fixture.tracer.start(reactor.util.context.Context.of(
+                    AgentTraceContext.GATEWAY_REACTOR_CONTEXT_KEY, wrongType ? "not-an-otel-context" : Context.root(),
+                    Context.class, Context.root().with(Span.wrap(parent))));
+            trace.finish(Outcome.SUCCESS);
+            assertEquals(parent.getSpanId(), fixture.single(Outcome.SUCCESS).getParentSpanId());
+        }
+    }
+
+    @Test
+    void noopTelemetryDoesNotInventTraceHeaders() {
+        AgentMcpCallTracer.Trace trace = new OpenTelemetryAgentMcpCallTracer(io.opentelemetry.api.OpenTelemetry.noop())
+                .start(reactor.util.context.Context.empty());
+        assertEquals(Map.of(), trace.attach(reactor.util.context.Context.empty()).get(AgentTraceContext.HEADERS_KEY));
+        trace.finish(Outcome.SUCCESS);
     }
 
     @Test

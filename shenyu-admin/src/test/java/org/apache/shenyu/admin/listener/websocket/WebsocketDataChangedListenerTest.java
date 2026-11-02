@@ -232,6 +232,47 @@ public final class WebsocketDataChangedListenerTest {
     }
 
     /**
+     * test namespace-addressed REFRESH (complete namespace sync) is sent as a full snapshot,
+     * so the gateway can remove plugin buckets absent from the payload.
+     */
+    @Test
+    public void testNamespaceRefreshIsSentAsFullSnapshot() {
+        String namespaceId = "namespace-id";
+        try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
+            websocketDataChangedListener.onPluginChanged(pluginDataList, DataEventTypeEnum.REFRESH, namespaceId);
+            websocketDataChangedListener.onSelectorChanged(selectorDataList, DataEventTypeEnum.REFRESH, namespaceId);
+            websocketDataChangedListener.onRuleChanged(ruleDataList, DataEventTypeEnum.REFRESH, namespaceId);
+            websocketDataChangedListener.onSelectorChanged(Collections.emptyList(), DataEventTypeEnum.REFRESH, namespaceId);
+
+            verifyNamespaceSnapshot(mockedStatic, namespaceId, "PLUGIN", false);
+            verifyNamespaceSnapshot(mockedStatic, namespaceId, "SELECTOR", false);
+            verifyNamespaceSnapshot(mockedStatic, namespaceId, "RULE", false);
+            verifyNamespaceSnapshot(mockedStatic, namespaceId, "SELECTOR", true);
+        }
+    }
+
+    /**
+     * test a REFRESH without a namespace (single-plugin sync) keeps the payload-scoped message.
+     */
+    @Test
+    public void testRefreshWithoutNamespaceKeepsPayloadScopedMessage() {
+        try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
+            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+                .thenAnswer(invocation -> null);
+            websocketDataChangedListener.onSelectorChanged(selectorDataList, DataEventTypeEnum.REFRESH, null);
+            mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(Constants.SYS_DEFAULT_NAMESPACE_ID),
+                argThat(actualMsg -> {
+                    JsonObject frame = JsonParser.parseString(actualMsg).getAsJsonObject();
+                    return "REFRESH".equals(frame.get("eventType").getAsString())
+                            && !frame.get("fullSnapshot").getAsBoolean();
+                }),
+                eq(DataEventTypeEnum.REFRESH)
+            ));
+        }
+    }
+
+    /**
      * test MetaData.
      */
     @Test
@@ -415,8 +456,8 @@ public final class WebsocketDataChangedListenerTest {
         try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
             new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(data, DataEventTypeEnum.UPDATE);
             for (DiscoverySyncData item : List.of(first, second)) {
-                collector.verify(() -> WebsocketCollector.send(eq(item.getNamespaceId()), argThat(message -> {
-                    JsonObject frame = JsonParser.parseString(message).getAsJsonObject();
+                collector.verify(() -> WebsocketCollector.sendDiscovery(eq(item.getNamespaceId()), any(), argThat(message -> {
+                    JsonObject frame = JsonParser.parseString(message.get()).getAsJsonObject();
                     return frame.getAsJsonArray("data").size() == 1
                             && item.getSelectorId().equals(frame.getAsJsonArray("data").get(0).getAsJsonObject().get("selectorId").getAsString());
                 }), eq(DataEventTypeEnum.UPDATE)));
@@ -431,8 +472,8 @@ public final class WebsocketDataChangedListenerTest {
         data.setUpstreamDataList(null);
         try (MockedStatic<WebsocketCollector> collector = mockStatic(WebsocketCollector.class)) {
             new WebsocketDataChangedListener(true).onDiscoveryUpstreamChanged(Collections.singletonList(data), DataEventTypeEnum.DELETE);
-            collector.verify(() -> WebsocketCollector.send(eq(Constants.SYS_DEFAULT_NAMESPACE_ID), argThat(message -> {
-                JsonObject item = JsonParser.parseString(message).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
+            collector.verify(() -> WebsocketCollector.sendDiscovery(eq(Constants.SYS_DEFAULT_NAMESPACE_ID), any(), argThat(message -> {
+                JsonObject item = JsonParser.parseString(message.get()).getAsJsonObject().getAsJsonArray("data").get(0).getAsJsonObject();
                 return !item.has("upstreamDataList") && "selector-id".equals(item.get("selectorId").getAsString());
             }), eq(DataEventTypeEnum.DELETE)));
         }
@@ -457,6 +498,11 @@ public final class WebsocketDataChangedListenerTest {
             collector.when(() -> WebsocketCollector.send(eq(data.getNamespaceId()), anyString(), eq(eventType)))
                     .thenAnswer(invocation -> {
                         messages.add(invocation.getArgument(1));
+                        return null;
+                    });
+            collector.when(() -> WebsocketCollector.sendDiscovery(eq(data.getNamespaceId()), any(), any(), eq(eventType)))
+                    .thenAnswer(invocation -> {
+                        messages.add(invocation.<java.util.function.Supplier<String>>getArgument(2).get());
                         return null;
                     });
             listener.onDiscoveryUpstreamChanged(Collections.singletonList(data), eventType);
@@ -538,6 +584,21 @@ public final class WebsocketDataChangedListenerTest {
                 "{\"groupType\":\"%s\",\"eventType\":\"%s\",\"data\":[],\"fullSnapshot\":false}", groupType, eventType.name());
         mockedStatic.verify(() -> WebsocketCollector.send(
                 eq(namespaceId), argThat(actualMsg -> jsonEquals(message, actualMsg)), eq(eventType)));
+    }
+
+    private void verifyNamespaceSnapshot(final MockedStatic<WebsocketCollector> mockedStatic, final String namespaceId,
+                                         final String groupType, final boolean emptyData) {
+        mockedStatic.verify(() -> WebsocketCollector.send(
+                eq(namespaceId),
+                argThat(actualMsg -> {
+                    JsonObject frame = JsonParser.parseString(actualMsg).getAsJsonObject();
+                    return groupType.equals(frame.get("groupType").getAsString())
+                            && "REFRESH".equals(frame.get("eventType").getAsString())
+                            && namespaceId.equals(frame.get("namespaceId").getAsString())
+                            && frame.get("fullSnapshot").getAsBoolean()
+                            && frame.getAsJsonArray("data").isEmpty() == emptyData;
+                }),
+                eq(DataEventTypeEnum.REFRESH)));
     }
 
     private void initMetaDataList() {

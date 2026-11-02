@@ -68,6 +68,24 @@ public interface AgentMcpRemoteCatalog {
         Map<String, ObjectNode> definitions();
 
         /**
+         * Return request-owned resource metadata for this same pinned generation.
+         * @return namespaced resource definitions, empty for tools-only adapters
+         */
+        default Map<String, ObjectNode> resourceDefinitions() {
+            return Map.of();
+        }
+
+        /**
+         * Read an authorized namespaced resource without changing target generation.
+         * @param uri exposed resource identifier
+         * @param context trusted resource-specific grants and deadline
+         * @return native resource result
+         */
+        default Mono<ObjectNode> readResource(final String uri, final AgentMcpExecutionContext context) {
+            return Mono.error(new SecurityException("Resource is not available"));
+        }
+
+        /**
          * Invoke a permitted exposed name and preserve its native remote result.
          * @param name exposed tool name
          * @param arguments request-private arguments

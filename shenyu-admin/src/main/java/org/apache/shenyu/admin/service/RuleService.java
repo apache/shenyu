@@ -101,7 +101,10 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     RuleVO findById(String id);
 
     /**
-     * find page of rule by query.
+     * find page of rule by query with the caller's data permission.
+     * <p>This legacy path applies the same data scope semantics as the condition-based
+     * {@code searchByPage} path: a non-administrator with no grants sees no rule,
+     * while a global administrator is unrestricted.</p>
      *
      * @param ruleQuery {@linkplain RuleQuery}
      * @return {@linkplain CommonPager}

@@ -43,7 +43,7 @@ public class CountSampler implements Sampler {
      */
     public CountSampler(final float probability) {
         counter = new AtomicInteger();
-        int percent = (int) (probability * 100.0f);
+        int percent = Math.round(probability * 100.0f);
         this.sampleDecisions = genRandomBitSet(100, percent);
     }
 

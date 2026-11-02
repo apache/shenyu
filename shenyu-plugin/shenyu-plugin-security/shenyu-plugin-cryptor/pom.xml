@@ -25,6 +25,11 @@
     <artifactId>shenyu-plugin-cryptor</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>commons-io</groupId>

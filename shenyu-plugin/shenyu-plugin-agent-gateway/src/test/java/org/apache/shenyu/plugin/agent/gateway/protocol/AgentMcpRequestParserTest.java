@@ -143,7 +143,7 @@ class AgentMcpRequestParserTest {
 
     @Test
     void shouldRejectUnknownMethodsWithoutInventingCapabilities() {
-        assertFailure(body("resources/list", "1", "2026-07-28"), headers("resources/list"), 404, -32601, "1");
+        assertFailure(body("prompts/list", "1", "2026-07-28"), headers("prompts/list"), 404, -32601, "1");
     }
 
     @Test

@@ -22,6 +22,7 @@ import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.function.ConfigSyncHelper;
 import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
@@ -66,6 +67,8 @@ import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAM
 
 public class DividePluginTest {
     private List<String> selectorIds = Lists.newArrayList();
+
+    private List<String> ruleIds = Lists.newArrayList();
     
     @BeforeAll
     void setup(final AdminClient client) {
@@ -83,7 +86,7 @@ public class DividePluginTest {
             selectorIds.add(dto.getId());
             res.getRules().forEach(rule -> {
                 rule.setSelectorId(dto.getId());
-                client.create(rule);
+                ruleIds.add(client.create(rule).getId());
             });
             BindingData bindingData = res.getBindingData();
             if (Objects.nonNull(bindingData)) {
@@ -93,14 +96,17 @@ public class DividePluginTest {
             }
         }
 
+        ConfigSyncHelper.awaitCreated(gateway, selectorIds, ruleIds);
         spec.getWaiting().waitFor(gateway);
     }
     
     @AfterEach
     void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
         spec.getDeleter().delete(client, selectorIds);
+        ConfigSyncHelper.awaitDeleted(gateway, selectorIds, ruleIds);
         spec.deleteWaiting().waitFor(gateway);
         selectorIds = Lists.newArrayList();
+        ruleIds = Lists.newArrayList();
     }
     
     @ShenYuScenario(provider = DividePluginCases.class)

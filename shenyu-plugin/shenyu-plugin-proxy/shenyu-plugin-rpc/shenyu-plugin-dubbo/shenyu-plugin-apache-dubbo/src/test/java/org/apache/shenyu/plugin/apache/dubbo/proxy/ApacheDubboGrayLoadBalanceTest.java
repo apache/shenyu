@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.apache.dubbo.proxy;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
+import org.apache.dubbo.rpc.RpcInvocation;
 import org.apache.dubbo.rpc.support.MockInvoker;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
@@ -38,10 +39,14 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -85,6 +90,8 @@ public class ApacheDubboGrayLoadBalanceTest {
                 .cachedHandle(Constants.DUBBO_SELECTOR_ID, dubboUpstreams);
 
         when(dubboRuleHandle.getLoadBalance()).thenReturn("random");
+        when(upstream.getInflight()).thenReturn(new AtomicLong(1));
+        when(upstream.identity()).thenReturn(Upstream.builder().url("localhost").build().identity());
         mockInvoker = new MockInvoker<>(URL.valueOf("localhost"), Object.class);
         invokers = Collections.singletonList(mockInvoker);
         loadBalancerFactoryMockedStatic = mockStatic(LoadBalancerFactory.class);
@@ -102,6 +109,57 @@ public class ApacheDubboGrayLoadBalanceTest {
     }
 
     @Test
+    public void otherAlgorithmsShouldReturnTheSelectedInvokerUnchanged() {
+        when(upstream.getUrl()).thenReturn("localhost");
+
+        assertSame(mockInvoker, apacheDubboGrayLoadBalance.select(invokers, url, invocation));
+    }
+
+    /**
+     * Dubbo's cluster keeps the returned invoker in its already-tried and connectivity-invalidation sets and
+     * compares raw candidates against them, so the load balance must hand back the bare directory invoker;
+     * the inflight counting travels to the consumer filter through a local attachment instead (#8132).
+     */
+    @Test
+    public void leastActiveShouldMarkTheInflightTargetAndReturnTheBareInvoker() {
+        when(dubboRuleHandle.getLoadBalance()).thenReturn("leastActive");
+        when(upstream.getUrl()).thenReturn("localhost");
+        Invoker<Object> rpcInvoker = mock(Invoker.class);
+        when(rpcInvoker.getUrl()).thenReturn(mockInvoker.getUrl());
+        RpcInvocation rpcInvocation = grayInvocation();
+
+        Invoker<Object> selected = apacheDubboGrayLoadBalance.select(Collections.singletonList(rpcInvoker), url, rpcInvocation);
+
+        assertSame(rpcInvoker, selected);
+        assertEquals(upstream.identity().markerKey(), rpcInvocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
+    }
+
+    @Test
+    public void leastActiveShouldNotMarkWhenTheUpstreamIsNotAddressableByUrl() {
+        when(dubboRuleHandle.getLoadBalance()).thenReturn("leastActive");
+        when(upstream.getUrl()).thenReturn("");
+        Invoker<Object> rpcInvoker = mock(Invoker.class);
+        when(rpcInvoker.getUrl()).thenReturn(mockInvoker.getUrl());
+        RpcInvocation rpcInvocation = grayInvocation();
+
+        assertSame(rpcInvoker, apacheDubboGrayLoadBalance.select(Collections.singletonList(rpcInvoker), url, rpcInvocation));
+        assertNull(rpcInvocation.getObjectAttachment(Constants.DUBBO_INFLIGHT_UPSTREAM_IDENTITY));
+    }
+
+    /**
+     * An invocation carrying the attachments gray routing reads.
+     *
+     * @return the invocation
+     */
+    private RpcInvocation grayInvocation() {
+        RpcInvocation rpcInvocation = new RpcInvocation();
+        rpcInvocation.setAttachment(Constants.DUBBO_SELECTOR_ID, Constants.DUBBO_SELECTOR_ID);
+        rpcInvocation.setAttachment(Constants.DUBBO_RULE_ID, Constants.DUBBO_RULE_ID);
+        rpcInvocation.setAttachment(Constants.DUBBO_REMOTE_ADDRESS, "localhost");
+        return rpcInvocation;
+    }
+
+    @Test
     public void apacheDubboLoadBalanceTest() {
         assertEquals(apacheDubboGrayLoadBalance.select(invokers, url, invocation), mockInvoker);
         when(upstream.getUrl()).thenReturn("localhost");
@@ -115,6 +173,12 @@ public class ApacheDubboGrayLoadBalanceTest {
 
         ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get()
                 .removeHandle(Constants.DUBBO_SELECTOR_ID);
+        assertEquals(apacheDubboGrayLoadBalance.select(invokers, url, invocation), mockInvoker);
+
+        ApacheDubboPluginDataHandler.SELECTOR_CACHED_HANDLE.get()
+                .cachedHandle(Constants.DUBBO_SELECTOR_ID, Collections.singletonList(DubboUpstream.builder().build()));
+        ApacheDubboPluginDataHandler.RULE_CACHED_HANDLE.get()
+                .removeHandle(Constants.DUBBO_RULE_ID);
         assertEquals(apacheDubboGrayLoadBalance.select(invokers, url, invocation), mockInvoker);
     }
 }

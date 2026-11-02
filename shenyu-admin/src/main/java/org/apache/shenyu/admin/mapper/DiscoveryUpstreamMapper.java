@@ -46,6 +46,14 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     List<DiscoveryUpstreamDO> selectByIds(@Param("ids") List<String> ids);
 
     /**
+     * Select upstream rows by id while holding row locks.
+     *
+     * @param ids id list
+     * @return locked upstream rows
+     */
+    List<DiscoveryUpstreamDO> selectByIdsForUpdate(@Param("ids") List<String> ids);
+
+    /**
      * selectAllByNamespaceId.
      *
      * @return discoveryUpstreamDO list
@@ -59,6 +67,19 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
      * @return matching rows
      */
     List<DiscoveryUpstreamDO> selectByDiscoveryHandlerIds(@Param("ids") List<String> ids);
+
+    /**
+     * Update the props JSON of the upstream matching the handler and url, leaving
+     * its status untouched (a draining marker must survive heartbeat-driven status flips).
+     *
+     * @param discoveryHandlerId discovery handler id
+     * @param upstreamUrl upstream url
+     * @param props the merged props JSON
+     * @return affected row count
+     */
+    int updatePropsByUrl(@Param("discoveryHandlerId") String discoveryHandlerId,
+                         @Param("upstreamUrl") String upstreamUrl,
+                         @Param("props") String props);
 
     /**
      * selectByProxySelectorId.
@@ -111,12 +132,32 @@ public interface DiscoveryUpstreamMapper extends ExistProvider {
     int update(DiscoveryUpstreamDO discoveryUpstreamDO);
 
     /**
+     * Update an upstream only if it still belongs to the expected handler.
+     *
+     * @param discoveryUpstreamDO discovery upstream
+     * @param expectedHandlerId expected current handler id
+     * @return rows int
+     */
+    int updateForHandler(@Param("upstream") DiscoveryUpstreamDO discoveryUpstreamDO,
+                         @Param("expectedHandlerId") String expectedHandlerId);
+
+    /**
      * update selective.
      *
      * @param discoveryUpstreamDO discoveryUpstreamDO
      * @return rows int
      */
     int updateSelective(DiscoveryUpstreamDO discoveryUpstreamDO);
+
+    /**
+     * Selectively update an upstream only if it still belongs to the expected handler.
+     *
+     * @param discoveryUpstreamDO discovery upstream
+     * @param expectedHandlerId expected current handler id
+     * @return rows int
+     */
+    int updateSelectiveForHandler(@Param("upstream") DiscoveryUpstreamDO discoveryUpstreamDO,
+                                  @Param("expectedHandlerId") String expectedHandlerId);
 
     /**
      * deleteByIdsAndNamespaceId.

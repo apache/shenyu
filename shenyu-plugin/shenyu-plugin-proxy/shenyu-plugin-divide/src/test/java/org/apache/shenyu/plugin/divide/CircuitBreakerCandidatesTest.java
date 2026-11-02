@@ -71,7 +71,8 @@ class CircuitBreakerCandidatesTest {
             expected.remove(blocked);
             List<Upstream> snapshot = new ArrayList<>(configured);
             CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(SELECTOR, snapshot);
-            assertSame(snapshot, candidates.getUpstreams());
+            // the input snapshot is never compacted in place any more; it stays exactly as supplied
+            assertEquals(configured, snapshot);
             assertEquals(expected, candidates.getUpstreams());
             for (int index = 0; index < expected.size(); index++) {
                 assertSame(expected.get(index), candidates.getUpstreams().get(index));

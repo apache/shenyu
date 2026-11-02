@@ -49,8 +49,15 @@ public class KubernetesScaler {
      * scale by action.
      *
      * @param action action
+     * @return true when the scale request succeeds
+     * @throws Exception when the current scale cannot be read from the cluster
      */
-    public void scaleByAction(final ScaleAction action) throws Exception {
+    public boolean scaleByAction(final ScaleAction action) throws Exception {
+        if (Objects.isNull(appsV1Api)) {
+            LOG.warn("kubernetes scale client is unavailable (scaling disabled or client creation failed),"
+                    + " ignoring scale action {}", action.getActionType());
+            return false;
+        }
         V1Scale scale = appsV1Api.readNamespacedDeploymentScale(
                 deploymentProperties.getName(),
                 deploymentProperties.getNamespace(),
@@ -60,7 +67,7 @@ public class KubernetesScaler {
                 ? spec.getReplicas()
                 : 0;
         int newReplicas = calculateNewReplicaCount(currentReplicas, action);
-        scaleByNum(newReplicas);
+        return scaleByNum(newReplicas);
     }
 
     /**
@@ -70,6 +77,11 @@ public class KubernetesScaler {
      * @return true when the scale request succeeds
      */
     public boolean scaleByNum(final int replicaCount) {
+        if (Objects.isNull(appsV1Api)) {
+            LOG.warn("kubernetes scale client is unavailable (scaling disabled or client creation failed),"
+                    + " ignoring request to scale to {} replicas", replicaCount);
+            return false;
+        }
         try {
             V1Scale scale = new V1Scale();
             scale.setSpec(new V1ScaleSpec().replicas(replicaCount));

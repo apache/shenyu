@@ -17,17 +17,35 @@
 
 package org.apache.shenyu.common.utils;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class SingletonTest {
+
+    @AfterEach
+    public void tearDown() {
+        Singleton.INST.remove(this.getClass());
+    }
 
     @Test
     public void testSingle() {
         Singleton.INST.single(this.getClass(), this);
         assertNotNull(Singleton.INST.get(this.getClass()));
         assertEquals(this, Singleton.INST.get(this.getClass()));
+    }
+
+    @Test
+    public void testRemove() {
+        Singleton.INST.single(this.getClass(), this);
+        assertSame(this, Singleton.INST.get(this.getClass()));
+
+        Singleton.INST.remove(this.getClass());
+
+        assertNull(Singleton.INST.get(this.getClass()));
     }
 }

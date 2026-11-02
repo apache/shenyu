@@ -21,12 +21,16 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.register.common.exception.HttpResponseException;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -94,6 +98,33 @@ public final class OkHttpTools {
                 .post(body)
                 .build();
         return client.newCall(request).execute().body().string();
+    }
+
+    /**
+     * Posts JSON, rejecting non-success HTTP statuses before reading the response body.
+     *
+     * @param url the url
+     * @param json the json
+     * @param headers the headers
+     * @return the response body
+     * @throws IOException on transport failure, a missing body, or an unsuccessful HTTP response
+     */
+    public String postWithStatusCheck(final String url, final String json, final Headers headers) throws IOException {
+        Request request = new Request.Builder()
+                .headers(headers)
+                .url(url)
+                .post(RequestBody.create(JSON, json))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new HttpResponseException(response.code());
+            }
+            ResponseBody body = response.body();
+            if (Objects.isNull(body)) {
+                throw new IOException("HTTP response body is missing");
+            }
+            return body.string();
+        }
     }
 
     /**

@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.admin.service;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
@@ -56,20 +59,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -396,5 +403,135 @@ public final class UpstreamCheckServiceTest {
         assertEquals(1, upstreamMap.get(selectorId).size());
         assertFalse(upstreamMap.get(selectorId).get(0).isHealthCheckEnabled());
         assertTrue(upstreamMap.get(selectorId).get(0).isStatus());
+    }
+
+    @Test
+    public void testProbeModeDefaultsToCentral() {
+        UpstreamCheckService centralService = buildServiceWithProbeMode(null);
+        assertFalse(centralService.isLocalMode());
+        assertFalse(upstreamCheckService.isLocalMode());
+    }
+
+    @Test
+    public void testUnknownProbeModeFallsBackToCentral() {
+        final ch.qos.logback.classic.Logger rootLogger =
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        rootLogger.addAppender(appender);
+        try {
+            UpstreamCheckService service = buildServiceWithProbeMode("bogus");
+
+            assertFalse(service.isLocalMode());
+            assertTrue(appender.list.stream().anyMatch(event -> event.getLevel() == Level.WARN
+                    && event.getFormattedMessage().contains("unknown probe mode [bogus], fallback to [central]")));
+        } finally {
+            rootLogger.detachAppender(appender);
+        }
+    }
+
+    @Test
+    public void testLocalModeSetupDoesNotCreateExecutors() {
+        UpstreamCheckService localService = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+
+        localService.setup();
+
+        assertNull(ReflectionTestUtils.getField(localService, "executor"));
+        assertNull(ReflectionTestUtils.getField(localService, "scheduledFuture"));
+        assertNull(ReflectionTestUtils.getField(localService, "invokeExecutor"));
+    }
+
+    @Test
+    public void testLocalModeCloseWithoutExecutors() {
+        UpstreamCheckService localService = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        localService.setup();
+        assertDoesNotThrow(localService::close);
+    }
+
+    @Test
+    public void testLocalModeCheckAndSubmitSkipsProbeAndZombieAndSubmit() {
+        UpstreamCheckService localService = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        upstreamMap.clear();
+        zombieSet.clear();
+        final DivideUpstream divideUpstream = DivideUpstream.builder()
+                .upstreamUrl("unreachable-url:8080")
+                .upstreamHost("unreachable-host")
+                .healthCheckEnabled(true)
+                .status(true)
+                .build();
+
+        try (MockedStatic<UpstreamCheckUtils> mockedUtils = mockStatic(UpstreamCheckUtils.class)) {
+            boolean result = localService.checkAndSubmit("localSelector", divideUpstream);
+            assertFalse(result);
+            mockedUtils.verifyNoMoreInteractions();
+        }
+        assertTrue(zombieSet.stream().noneMatch(zombie ->
+                "unreachable-url:8080".equals(zombie.getCommonUpstream().getUpstreamUrl())));
+        assertFalse(upstreamMap.containsKey("localSelector"));
+    }
+
+    @Test
+    public void testLocalModeSubmitIsNoOp() {
+        UpstreamCheckService localService = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        upstreamMap.clear();
+        final DivideUpstream divideUpstream = DivideUpstream.builder()
+                .upstreamUrl("any-url:8080")
+                .upstreamHost("any-host")
+                .healthCheckEnabled(false)
+                .status(true)
+                .build();
+
+        localService.submit("localSubmitSelector", divideUpstream);
+
+        assertFalse(upstreamMap.containsKey("localSubmitSelector"));
+    }
+
+    @Test
+    public void testLocalModeSubmitJustIsNoOp() {
+        UpstreamCheckService localService = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        upstreamMap.clear();
+        final DivideUpstream divideUpstream = DivideUpstream.builder()
+                .upstreamUrl("any-url:8080")
+                .upstreamHost("any-host")
+                .status(true)
+                .build();
+
+        Object result = ReflectionTestUtils.invokeMethod(localService, "submitJust", "localJustSelector", divideUpstream);
+
+        assertNull(result);
+        assertFalse(upstreamMap.containsKey("localJustSelector"));
+    }
+
+    @Test
+    public void testLocalModeDoCheckIsNoOp() {
+        UpstreamCheckService localService = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        upstreamMap.clear();
+        zombieSet.clear();
+        final DivideUpstream divideUpstream = DivideUpstream.builder()
+                .upstreamUrl("unreachable-url:8080")
+                .upstreamHost("unreachable-host")
+                .healthCheckEnabled(true)
+                .status(true)
+                .build();
+        localService.replace("localCheckSelector", Collections.singletonList(divideUpstream));
+        zombieSet.add(ZombieUpstream.transform(divideUpstream, 5, "localCheckSelector"));
+
+        ReflectionTestUtils.invokeMethod(localService, "doCheck");
+
+        assertTrue(divideUpstream.isStatus());
+        assertTrue(upstreamMap.containsKey("localCheckSelector"));
+        assertEquals(1, zombieSet.size());
+        verifyNoInteractions(discoveryUpstreamService, eventPublisher);
+    }
+
+    private UpstreamCheckService buildServiceWithProbeMode(final String probeMode) {
+        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+        config.setRegisterType("http");
+        config.getProps().setProperty(Constants.IS_CHECKED, "true");
+        if (Objects.nonNull(probeMode)) {
+            config.getProps().setProperty(Constants.PROBE_MODE, probeMode);
+        }
+        return new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+                config, converterFactor, discoveryUpstreamService);
     }
 }

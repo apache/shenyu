@@ -28,6 +28,9 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -35,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.apache.tomcat.websocket.server.Constants.BINARY_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM;
 import static org.apache.tomcat.websocket.server.Constants.TEXT_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM;
@@ -87,6 +91,29 @@ public class WebsocketConfiguratorTest {
         assertEquals("192.168.1.1", userProperties.get(WebsocketListener.CLIENT_IP_NAME));
         assertEquals("8080", userProperties.get(Constants.CLIENT_PORT_NAME));
         assertEquals("ns-123", userProperties.get(Constants.SHENYU_NAMESPACE_ID));
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"compact-v1", "compact-v2", "", "true", "compact-v1,compact-v2"})
+    void testDiscoveryCapabilityRequiresExactKnownVersion(final String capability) {
+        websocketSyncProperties.setToken("websocket-sync-token");
+        ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(Constants.X_SHENYU_DISCOVERY_PAYLOAD, Boolean.TRUE);
+        when(sec.getUserProperties()).thenReturn(properties);
+        HandshakeRequest request = mock(HandshakeRequest.class);
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put(Constants.X_SHENYU_SYNC_TOKEN, List.of("websocket-sync-token"));
+        if (Objects.nonNull(capability)) {
+            headers.put("x-shenyu-discovery-payload", List.of(capability));
+        }
+        when(request.getHeaders()).thenReturn(headers);
+        when(request.getHttpSession()).thenReturn(mock(HttpSession.class));
+
+        websocketConfigurator.modifyHandshake(sec, request, mock(HandshakeResponse.class));
+
+        assertEquals("compact-v1".equals(capability), properties.get(Constants.X_SHENYU_DISCOVERY_PAYLOAD));
     }
 
     @Test

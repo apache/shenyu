@@ -26,6 +26,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,6 +37,7 @@ import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -94,6 +97,64 @@ public class WaitForHelperTest {
             )
         );
         Assertions.assertTrue(delayedRequest.await(2, TimeUnit.SECONDS));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testRetryExhaustion(final boolean useChecker) {
+        AtomicInteger attempts = new AtomicInteger();
+        AssertionError failure = new AssertionError("configuration has not reached the gateway");
+        WaitForHelper helper = new WaitForHelper(3, Duration.ZERO, Duration.ofSeconds(5));
+        AssertionError thrown = Assertions.assertThrows(AssertionError.class, () -> {
+            if (useChecker) {
+                helper.waitFor(() -> given().baseUri(baseUri()), supplier -> {
+                    attempts.incrementAndGet();
+                    throw failure;
+                });
+            } else {
+                helper.waitFor(() -> {
+                    attempts.incrementAndGet();
+                    throw failure;
+                }, Method.GET, "/get", new ResponseSpecBuilder().build());
+            }
+        });
+        Assertions.assertEquals(3, attempts.get());
+        Assertions.assertSame(failure, useChecker ? thrown.getCause().getCause() : thrown.getCause());
+    }
+
+    @Test
+    void testRetryThenSuccess() throws TimeoutException {
+        AtomicInteger attempts = new AtomicInteger();
+        new WaitForHelper(3, Duration.ZERO, Duration.ofSeconds(5)).waitFor(
+                () -> given().baseUri(baseUri()), supplier -> {
+                    if (attempts.incrementAndGet() == 1) {
+                        throw new AssertionError("configuration has not reached the gateway");
+                    }
+                });
+        Assertions.assertEquals(2, attempts.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testExecutionFailure(final boolean useChecker) {
+        IllegalStateException failure = new IllegalStateException("request failed");
+        AtomicInteger attempts = new AtomicInteger();
+        WaitForHelper helper = new WaitForHelper(3, Duration.ZERO, Duration.ofSeconds(5));
+        AssertionError thrown = Assertions.assertThrows(AssertionError.class, () -> {
+            if (useChecker) {
+                helper.waitFor(() -> given().baseUri(baseUri()), supplier -> {
+                    attempts.incrementAndGet();
+                    throw failure;
+                });
+            } else {
+                helper.waitFor(() -> {
+                    attempts.incrementAndGet();
+                    throw failure;
+                }, Method.GET, "/get", new ResponseSpecBuilder().build());
+            }
+        });
+        Assertions.assertEquals(1, attempts.get());
+        Assertions.assertSame(failure, thrown.getCause());
     }
 
     private String baseUri() {

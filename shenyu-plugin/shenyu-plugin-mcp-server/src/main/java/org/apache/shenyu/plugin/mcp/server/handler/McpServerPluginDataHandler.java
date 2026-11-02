@@ -101,7 +101,15 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         ShenyuMcpServer previousServer = CACHED_SERVER.get().obtainHandle(selectorData.getId());
         final boolean pathMoved = Objects.nonNull(previousServer) && StringUtils.isNotBlank(previousServer.getPath())
                 && !previousServer.getPath().equals(path);
-        if (pathMoved && shenyuMcpServerManager.hasMcpServer(previousServer.getPath())) {
+        // when only the message endpoint changed, the transport keeps advertising the old
+        // one (it is built at construction and immutable), so the server must be rebuilt
+        // around the new endpoint; existing SSE sessions end and clients reconnect (#8044)
+        final boolean endpointMoved = Objects.nonNull(previousServer) && !pathMoved
+                && !Objects.equals(previousServer.getMessageEndpoint(), shenyuMcpServer.getMessageEndpoint());
+        // removal is idempotent, so it must not be gated on the manager still knowing
+        // the previous path: a server that escaped a previous teardown would otherwise
+        // keep advertising the stale endpoint (#8044)
+        if ((pathMoved || endpointMoved) && StringUtils.isNotBlank(previousServer.getPath())) {
             shenyuMcpServerManager.removeMcpServer(previousServer.getPath());
         }
         CACHED_SERVER.get().cachedHandle(
@@ -118,7 +126,7 @@ public class McpServerPluginDataHandler implements PluginDataHandler {
         }
 
         // Sync groups can arrive in either order after restart. Replay rules once their server exists.
-        if (serverCreated || pathMoved) {
+        if (serverCreated || pathMoved || endpointMoved) {
             rules.values().stream().filter(rule -> selectorData.getId().equals(rule.getSelectorId()))
                     .forEach(this::registerTool);
         }

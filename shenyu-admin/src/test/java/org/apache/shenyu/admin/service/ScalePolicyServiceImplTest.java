@@ -37,6 +37,8 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,16 +79,27 @@ public final class ScalePolicyServiceImplTest {
     @Test
     public void testUpdateImmediatelyAndAfterCommit() {
         when(mapper.updateByPrimaryKeySelective(any(ScalePolicyDO.class))).thenReturn(1);
+        ScalePolicyDO immediate = ScalePolicyDO.builder().id("p").status(1).sort(2).num(3)
+                .beginTime(new Timestamp(1000L)).endTime(new Timestamp(2000L)).build();
+        when(mapper.selectByPrimaryKey("p")).thenReturn(immediate);
         service.update(ScalePolicyDTO.builder().id("p").status(1).build());
-        verify(cache, times(1)).updatePolicy(any(ScalePolicyDO.class));
+        verify(cache).updatePolicy(immediate);
         verify(scaleService).executeScaling();
 
+        ScalePolicyDO committed = ScalePolicyDO.builder().id("p2").status(0).sort(4).num(7)
+                .beginTime(new Timestamp(3000L)).endTime(new Timestamp(4000L)).build();
+        when(mapper.selectByPrimaryKey("p2")).thenReturn(committed);
         TransactionSynchronizationManager.initSynchronization();
         service.update(ScalePolicyDTO.builder().id("p2").status(0).build());
+        verify(mapper, never()).selectByPrimaryKey("p2");
         verify(cache, times(1)).updatePolicy(any(ScalePolicyDO.class));
+        verify(scaleService, times(1)).executeScaling();
         TransactionSynchronizationUtils.invokeAfterCommit(TransactionSynchronizationManager.getSynchronizations());
+        verify(mapper).selectByPrimaryKey("p2");
+        verify(cache).updatePolicy(committed);
         verify(cache, times(2)).updatePolicy(any(ScalePolicyDO.class));
         verify(scaleService, times(2)).executeScaling();
+        verify(cache, never()).removePolicy(anyString());
     }
 
     @Test

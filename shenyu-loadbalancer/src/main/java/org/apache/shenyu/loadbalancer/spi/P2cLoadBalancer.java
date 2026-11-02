@@ -22,6 +22,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -46,7 +47,21 @@ public class P2cLoadBalancer extends AbstractLoadBalancer {
     private static final int PICK_TIMES = 3;
 
     private final Random random = new Random();
-    
+
+    @Override
+    public Upstream select(final List<Upstream> upstreamList, final LoadBalanceData data) {
+        Upstream picked = super.select(upstreamList, data);
+        // AbstractLoadBalancer short-circuits a singleton candidate list before doSelect runs, so the
+        // inflight increment in doSelect is skipped while the P2C completion accounting (DividePlugin's
+        // response trigger) still decrements it. Pair the accounting here so repeated singleton
+        // selections keep inflight at its baseline instead of driving it negative. See #7974.
+        if (Objects.nonNull(picked) && upstreamList.size() == 1) {
+            picked.setLastPicked(System.currentTimeMillis());
+            picked.getInflight().incrementAndGet();
+        }
+        return picked;
+    }
+
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         long start = System.currentTimeMillis();
