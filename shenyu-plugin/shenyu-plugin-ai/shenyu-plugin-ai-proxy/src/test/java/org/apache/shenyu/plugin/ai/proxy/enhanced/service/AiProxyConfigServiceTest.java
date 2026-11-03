@@ -313,12 +313,17 @@ public class AiProxyConfigServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"file:///tmp/model", "https://user:password@example.test", "https://example.test?token=secret", "https://example.test#fragment", "https://example.test:0", "https://example.test:99999", "not an endpoint"})
+    @ValueSource(strings = {"file:///tmp/model", "https://user:password@example.test", "https://example.test?token=secret",
+            "https://example.test#fragment", "https://example.test:0", "https://example.test:99999", "not an endpoint",
+            "relative", "https:///v1", "https://example.test/%ZZ"})
     void rejectsAmbiguousOrNonHttpManagedEndpoints(final String endpoint) {
         AiProxyHandle.FallbackConfig target = new AiProxyHandle.FallbackConfig();
         target.setBaseUrl(endpoint);
         target.setApiKey("managed-key");
-        assertThrows(ShenyuException.class, () -> configService.resolveDynamicFallbackConfig(primary(), managed(target), "{\"fallbackConfig\":{\"target\":\"backup\"}}"));
+        ShenyuException error = assertThrows(ShenyuException.class,
+                () -> configService.resolveDynamicFallbackConfig(primary(), managed(target), "{\"fallbackConfig\":{\"target\":\"backup\"}}"));
+        assertEquals("AI fallback requires a valid HTTP(S) endpoint", error.getMessage());
+        assertNull(error.getCause());
     }
 
     @Test

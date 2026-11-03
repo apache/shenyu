@@ -44,6 +44,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -411,6 +413,96 @@ class AiProxyEngineTest {
         assertEquals(List.of(OpenAiChat.NAME, OpenAiResponses.NAME), preparedProtocols);
         assertEquals(1, conversions.get());
         assertEquals(2, transports.get());
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(doubles = {-1, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY})
+    void testInvalidResolvedTemperatureIsRejectedBeforeCustomProviderBuild(final double temperature) {
+        final List<String> built = new ArrayList<>();
+        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(recordingProvider("custom", AiProviderCapabilities.chat(), built))),
+                protocolRouteResolver(), request -> {
+                    transportedRequest.set(request);
+                    return Mono.just(upstreamResponse);
+                });
+        config.setProvider("custom");
+        config.setTemperature(temperature);
+        final AiCommonConfig fallback = new AiCommonConfig(config);
+        fallback.setTemperature(0.5);
+        StepVerifier.create(engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}",
+                config, Optional.of(fallback), response -> response.getBody().then()))
+                .expectErrorMatches(error -> error instanceof AiProxyException
+                        && ((AiProxyException) error).getKind() == AiProxyException.Kind.PROVIDER).verify();
+        assertTrue(built.isEmpty());
+        assertNull(transportedRequest.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {200, 503})
+    void testFallbackConfigurationIsValidatedWhenUsed(final int primaryStatus) {
+        final AtomicInteger transports = new AtomicInteger();
+        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), request -> {
+                    transports.incrementAndGet();
+                    return Mono.just(new AiUpstreamResponse(primaryStatus, Map.of(), Flux.empty()));
+                }, new AiProxyRetryProperties(0, 0, Duration.ZERO));
+        final AiCommonConfig fallback = new AiCommonConfig(config);
+        fallback.setTemperature(-1.0);
+        final Mono<Void> execution = engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}",
+                config, Optional.of(fallback), response -> response.getBody().then());
+        if (primaryStatus == 200) {
+            StepVerifier.create(execution).verifyComplete();
+        } else {
+            StepVerifier.create(execution).expectErrorMatches(error -> error instanceof AiProxyException
+                    && ((AiProxyException) error).getKind() == AiProxyException.Kind.PROVIDER
+                    && "temperature.negative".equals(error.getCause().getMessage())).verify();
+        }
+        assertEquals(1, transports.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ftp://example.org", "relative", "https:///v1", "https://example.org/%ZZ",
+            "https://user:secret@example.org", "https://example.org?token=secret", "https://example.org#fragment", "https://example.org:0", "https://example.org:65536"})
+    void testInvalidResolvedEndpointIsRejectedBeforeCustomProviderBuild(final String endpoint) {
+        final List<String> built = new ArrayList<>();
+        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(recordingProvider("custom", AiProviderCapabilities.chat(), built))),
+                protocolRouteResolver(), request -> {
+                    transportedRequest.set(request);
+                    return Mono.just(upstreamResponse);
+                });
+        config.setProvider("custom");
+        config.setBaseUrl(endpoint);
+        StepVerifier.create(engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}",
+                config, Optional.empty(), response -> response.getBody().then()))
+                .expectErrorMatches(error -> error instanceof AiProxyException
+                        && ((AiProxyException) error).getKind() == AiProxyException.Kind.PROVIDER).verify();
+        assertTrue(built.isEmpty());
+        assertNull(transportedRequest.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {200, 503})
+    void testFallbackEndpointIsValidatedWhenUsed(final int primaryStatus) {
+        final AtomicInteger transports = new AtomicInteger();
+        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), request -> {
+                    transports.incrementAndGet();
+                    return Mono.just(new AiUpstreamResponse(primaryStatus, Map.of(), Flux.empty()));
+                }, new AiProxyRetryProperties(0, 0, Duration.ZERO));
+        final AiCommonConfig fallback = new AiCommonConfig(config);
+        fallback.setBaseUrl("ftp://example.org");
+        final Mono<Void> execution = engine.execute("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}]}",
+                config, Optional.of(fallback), response -> response.getBody().then());
+        if (primaryStatus == 200) {
+            StepVerifier.create(execution).verifyComplete();
+        } else {
+            StepVerifier.create(execution).expectErrorMatches(error -> error instanceof AiProxyException
+                    && ((AiProxyException) error).getKind() == AiProxyException.Kind.PROVIDER
+                    && "baseUrl.invalidEndpoint".equals(error.getCause().getMessage())).verify();
+        }
+        assertEquals(1, transports.get());
     }
 
     private void assertCapabilityRejected(final String body, final AiProviderCapabilities capabilities, final String capability) {

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -32,6 +33,8 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
@@ -43,6 +46,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber.CommonAiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -51,6 +55,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
@@ -449,6 +454,83 @@ class AiProxyPluginTest {
                 .thenAwait(Duration.ofSeconds(1)).then(() -> assertTrue(writing.get())).thenCancel().verify();
         assertEquals(1, events.size());
         assertEquals(AiCallOutcome.CANCELLED, events.get(0).outcome());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"temperature\":-1}", "{\"temperature\":\"NaN\"}", "{\"temperature\":\"Infinity\"}",
+            "{\"maxTokens\":0}", "{\"maxTokens\":-1}", "{\"baseUrl\":\"https://example.org/%ZZ\"}",
+            "{\"baseUrl\":\"ftp://example.org\"}", "{\"baseUrl\":\"relative\"}", "{\"baseUrl\":\"https:///v1\"}",
+            "{\"baseUrl\":\"https://user:secret@example.org\"}", "{\"baseUrl\":\"https://example.org?token=secret\"}",
+            "{\"baseUrl\":\"https://example.org#fragment\"}", "{\"baseUrl\":\"https://example.org:0\"}", "{\"baseUrl\":\"https://example.org:65536\"}"})
+    void testInvalidSelectorOverrideIsRejectedWithoutChangingDefaults(final String overlay) {
+        PluginData defaults = new PluginData();
+        defaults.setConfig("{\"provider\":\"OpenAI\",\"baseUrl\":\"https://example.org\",\"apiKey\":\"global-key\",\"temperature\":0.2}");
+        handler.handlerPlugin(defaults);
+        final AiCommonConfig original = handler.getGlobalConfig();
+        handle = GsonUtils.getInstance().fromJson(overlay, AiProxyHandle.class);
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.BAD_GATEWAY, exchange.getResponse().getStatusCode());
+        assertTrue(requests.isEmpty());
+        assertEquals(original, handler.getGlobalConfig());
+    }
+
+    @Test
+    void testPartialDefaultsCanBeCompletedBySelectorAndProxyKey() throws Exception {
+        PluginData defaults = new PluginData();
+        defaults.setConfig("{\"maxTokens\":64}");
+        handler.handlerPlugin(defaults);
+        final AiCommonConfig original = handler.getGlobalConfig();
+        handle.setApiKey(null);
+        handle.setProxyEnabled("true");
+        AiProxyApiKeyCache.getInstance().cache(ProxyApiKeyData.builder().selectorId(SELECTOR_ID).proxyApiKey("proxy-valid")
+                .realApiKey("real-key").enabled(true).build());
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-valid").body(REQUEST_BODY));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "ok"))))).verifyComplete();
+        assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
+        assertEquals(List.of("Bearer real-key"), requests.get(0).getHeaders().get("Authorization"));
+        assertEquals(64, new ObjectMapper().readTree(requests.get(0).getBody()).get("max_completion_tokens").intValue());
+        assertEquals(original, handler.getGlobalConfig());
+    }
+
+    @Test
+    void testInvalidBodyMaxTokensIsStillRejectedBeforeConfigurationOverride() {
+        handle.setMaxTokens(64);
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
+                .body("{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"max_tokens\":-1}"));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.BAD_REQUEST, exchange.getResponse().getStatusCode());
+        assertTrue(requests.isEmpty());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"disable,malformed", "disable,semantic", "delete,malformed", "delete,semantic"})
+    void testRejectedDefaultsCannotRestoreRevokedProxyKey(final String operation, final String rejection) {
+        handle.setProxyEnabled("true");
+        PluginData defaults = new PluginData();
+        defaults.setConfig("{\"apiKey\":\"global-key\",\"model\":\"global-model\"}");
+        handler.handlerPlugin(defaults);
+        final AiCommonConfig original = handler.getGlobalConfig();
+        CommonAiProxyApiKeyDataSubscriber subscriber = new CommonAiProxyApiKeyDataSubscriber();
+        ProxyApiKeyData key = ProxyApiKeyData.builder().selectorId(SELECTOR_ID).proxyApiKey("proxy-revoked")
+                .realApiKey("real-key").enabled(true).build();
+        subscriber.onSubscribe(key);
+        assertEquals("real-key", AiProxyApiKeyCache.getInstance().getRealApiKey(SELECTOR_ID, "proxy-revoked"));
+        if ("disable".equals(operation)) {
+            key.setEnabled(false);
+            subscriber.onSubscribe(key);
+        } else {
+            subscriber.unSubscribe(key);
+        }
+        defaults.setConfig("malformed".equals(rejection) ? "{" : "{\"temperature\":-1}");
+        handler.handlerPlugin(defaults);
+        assertEquals(original, handler.getGlobalConfig());
+        BodyProbe body = new BodyProbe();
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test").header(Constants.X_API_KEY, "proxy-revoked")
+                .body(body.flux(REQUEST_BODY)));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "unexpected"))))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertBodyNotSubscribed(body);
+        assertTrue(requests.isEmpty());
     }
 
     private AiProxyPlugin plugin(final AiProxyTransport transport) {
