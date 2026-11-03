@@ -228,6 +228,7 @@ jobs:
           else
             tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" org/apache/shenyu
           fi
+          cp .mvn/wrapper/maven-wrapper.jar /tmp/shenyu-m2/maven-wrapper.jar
       - name: Resolve distribution runtime dependencies
         run: |
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-bootstrap,shenyu-dist/shenyu-admin-dist,shenyu-dist/shenyu-bootstrap-dist dependency:list \
@@ -284,7 +285,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shenyu-local-maven-repository
-          path: /tmp/shenyu-m2/repository.tar.gz
+          path: /tmp/shenyu-m2/
           compression-level: 0
           if-no-files-found: error
           retention-days: 1
