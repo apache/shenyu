@@ -17,6 +17,11 @@ name: ci
 
 on:
   workflow_dispatch:
+    inputs:
+      release_candidate:
+        description: Build unsigned release artifacts, including Javadoc and source archives
+        type: boolean
+        default: false
   # Required checks must report a result even for documentation-only PRs.
   pull_request:
   push:
@@ -191,9 +196,23 @@ jobs:
 
       - name: Build ShenYu local Maven repository
         shell: bash
+        env:
+          RELEASE_CANDIDATE: ${{ github.event_name == 'workflow_dispatch' && inputs.release_candidate || false }}
         run: |
-          ./mvnw -B -ntp -T 1C install -Prelease -DskipTests -DskipRemoteResources=true \
-            -Djacoco.skip=true -Dmaven.javadoc.skip=true -Drat.skip=true
+          release_args=(-Prelease -Dmaven.javadoc.skip=true)
+          if [[ "$RELEASE_CANDIDATE" == "true" ]]; then
+            python3 - <<'PYTHON'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('pom.xml').getroot()
+          version = root.findtext('{http://maven.apache.org/POM/4.0.0}version')
+          if not version or 'SNAPSHOT' in version:
+              raise SystemExit('Release candidates require a non-SNAPSHOT project version')
+          print('Building unsigned release candidate:', version)
+          PYTHON
+            release_args=(-Prelease,apache-release -Dmaven.javadoc.skip=false -Dgpg.skip=true)
+          fi
+          ./mvnw -B -ntp -T 1C install "${release_args[@]}" -DskipTests -DskipRemoteResources=true \
+            -Djacoco.skip=true -Drat.skip=true
 
           mkdir -p /tmp/shenyu-m2
           tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" org/apache/shenyu
@@ -201,6 +220,7 @@ jobs:
         run: |
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-bootstrap dependency:list \
             -DincludeScope=runtime -DoutputFile=target/release-runtime-dependencies.txt
+          python3 .github/scripts/collect-release-licenses.py
       - name: Upload distribution runtime dependency reports
         uses: actions/upload-artifact@v4
         with:
@@ -208,6 +228,7 @@ jobs:
           path: |
             shenyu-admin/target/release-runtime-dependencies.txt
             shenyu-bootstrap/target/release-runtime-dependencies.txt
+            target/release-audit/*.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload ShenYu local Maven repository

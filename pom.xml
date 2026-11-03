@@ -182,7 +182,7 @@
         <spring-security.version>6.5.11</spring-security.version>
         <grpc.version>1.65.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
-        <lz4-java.version>1.8.0</lz4-java.version>
+        <lz4-java.version>1.11.4</lz4-java.version>
         <elasticsearch-java.version>8.2.3</elasticsearch-java.version>
         <jackson-databind.version>2.21.7</jackson-databind.version>
         <jackson-bom.version>2.21.7</jackson-bom.version>
@@ -196,6 +196,8 @@
         <httpclient.version>4.5.14</httpclient.version>
         <vertx.version>4.5.24</vertx.version>
         <rhino.version>1.7.15.1</rhino.version>
+        <fastjson.version>2.0.66</fastjson.version>
+        <snappy.version>1.1.10.9</snappy.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.9.2</kafka-clients.version>
@@ -342,6 +344,44 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcutil-jdk18on</artifactId>
                 <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2-bom</artifactId>
+                <version>${fastjson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>at.yawk.lz4</groupId>
+                <artifactId>lz4-java</artifactId>
+                <version>${lz4-java.version}</version>
+            </dependency>
+            <!-- This relocation POM redirects legacy consumers to the maintained LZ4 group. -->
+            <dependency>
+                <groupId>org.lz4</groupId>
+                <artifactId>lz4-java</artifactId>
+                <version>1.8.1</version>
+            </dependency>
+
+            <!-- The Jakarta BOM excludes unclassified Shiro variants from Jakarta dependencies. -->
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-bom</artifactId>
+                <version>${shiro.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- Boot 3.5 no longer manages OkHttp; keep the client and interceptor aligned. -->
