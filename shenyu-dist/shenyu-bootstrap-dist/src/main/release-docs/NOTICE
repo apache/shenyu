@@ -19,7 +19,7 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  byte-buddy-agent-1.14.17.jar / META-INF/NOTICE
+  byte-buddy-agent-1.17.8.jar / META-INF/NOTICE
 ========================================================================
 
 Copyright 2014 - Present Rafael Winterhalter
@@ -38,7 +38,7 @@ limitations under the License.
 
 ========================================================================
 Bundled resources:
-  classmate-1.7.0.jar / META-INF/NOTICE
+  classmate-1.7.3.jar / META-INF/NOTICE
 ========================================================================
 
 Java ClassMate library was originally written by Tatu Saloranta (tatu.saloranta@iki.fi)
@@ -53,14 +53,14 @@ Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
 
 ========================================================================
 Bundled resources:
-  commons-beanutils-1.9.4.jar / META-INF/NOTICE.txt
+  commons-beanutils-1.11.0.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons BeanUtils
-Copyright 2000-2019 The Apache Software Foundation
+Copyright 2000-2025 The Apache Software Foundation
 
 This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
+The Apache Software Foundation (https://www.apache.org/).
 
 ========================================================================
 Bundled resources:
@@ -75,11 +75,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  commons-codec-1.16.1.jar / META-INF/NOTICE.txt
+  commons-codec-1.18.0.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons Codec
-Copyright 2002-2024 The Apache Software Foundation
+Copyright 2002-2025 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
@@ -119,11 +119,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  commons-io-2.11.0.jar / META-INF/NOTICE.txt
+  commons-io-2.21.0.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons IO
-Copyright 2002-2021 The Apache Software Foundation
+Copyright 2002-2025 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
@@ -152,11 +152,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  commons-pool2-2.12.0.jar / META-INF/NOTICE.txt
+  commons-pool2-2.12.1.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons Pool
-Copyright 2001-2023 The Apache Software Foundation
+Copyright 2001-2025 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
@@ -174,7 +174,7 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  context-propagation-1.1.1.jar / META-INF/NOTICE
+  context-propagation-1.1.4.jar / META-INF/NOTICE
 ========================================================================
 
 Micrometer Context Propagation
@@ -261,11 +261,12 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  curator-x-discovery-4.3.0.jar / META-INF/NOTICE
+  curator-x-discovery-5.8.0.jar / META-INF/NOTICE
 ========================================================================
 
 Curator Service Discovery
-Copyright 2011-2020 The Apache Software Foundation
+Copyright 2011-2023 The Apache Software Foundation
+
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
@@ -296,7 +297,7 @@ Adrien Grand contributed the heart of the AVLTreeDigest (https://github.com/jpou
 
 ========================================================================
 Bundled resources:
-  elasticsearch-java-8.13.4.jar / META-INF/NOTICE.txt
+  elasticsearch-java-8.18.8.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Elasticsearch Java Client
@@ -315,27 +316,6 @@ Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  fastjson-1.2.76.jar / META-INF/NOTICE.txt
-========================================================================
-
-/*
- * Copyright 1999-2017 Alibaba Group.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-========================================================================
-Bundled resources:
   httpasyncclient-4.1.5.jar / META-INF/NOTICE
 ========================================================================
 
@@ -347,11 +327,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  httpclient-4.5.13.jar / META-INF/NOTICE
+  httpclient-4.5.14.jar / META-INF/NOTICE
 ========================================================================
 
 Apache HttpClient
-Copyright 1999-2020 The Apache Software Foundation
+Copyright 1999-2022 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
@@ -380,8 +360,8 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  jackson-annotations-2.17.1.jar / META-INF/NOTICE
-  jackson-databind-2.17.1.jar / META-INF/NOTICE
+  jackson-annotations-2.21.jar / META-INF/NOTICE
+  jackson-databind-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -408,7 +388,7 @@ from the source code management (SCM) system project uses.
 
 ========================================================================
 Bundled resources:
-  jackson-core-2.17.1.jar / META-INF/NOTICE
+  jackson-core-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -441,57 +421,22 @@ under the following copyright.
 
 Copyright © 2023 Werner Randelshofer, Switzerland. MIT License.
 
-See FastDoubleParser-NOTICE for details of other source code included in FastDoubleParser
-and the licenses and copyrights that apply to that code.
+See FastDoubleParser-LICENSE and also FastDoubleParser-ThirdParty-LICENSE for details of other source code
+included in FastDoubleParser and the licenses and copyrights that apply to that code.
+
+## Schubfach
+
+jackson-core bundles a copy of the Schubfach number writing code <https://github.com/c4f7fcce9cb06515/Schubfach>.
+That code is available under an MIT license <https://github.com/c4f7fcce9cb06515/Schubfach/blob/master/todec/LICENSE>
+under the following copyright.
+
+Copyright 2018-2020 Raffaello Giulietti
+
+See Schubfach-LICENSE.
 
 ========================================================================
 Bundled resources:
-  jackson-core-2.17.1.jar / META-INF/FastDoubleParser-NOTICE
-========================================================================
-
-# FastDoubleParser
-
-This is a Java port of Daniel Lemire's fast_float project.
-This project provides parsers for double, float, BigDecimal and BigInteger values.
-
-## Copyright
-
-Copyright © 2023 Werner Randelshofer, Switzerland.
-
-## Licensing
-
-This code is licensed under MIT License.
-https://github.com/wrandelshofer/FastDoubleParser/blob/522be16e145f43308c43b23094e31d5efcaa580e/LICENSE
-(The file 'LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-Some portions of the code have been derived from other projects.
-All these projects require that we include a copyright notice, and some require that we also include some text of their
-license file.
-
-fast_double_parser, Copyright (c) 2022 Daniel Lemire. BSL License.
-https://github.com/lemire/fast_double_parser
-https://github.com/lemire/fast_double_parser/blob/07d9189a8fb815fe800cb15ca022e7a07093236e/LICENSE.BSL
-(The file 'thirdparty-LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-fast_float, Copyright (c) 2021 The fast_float authors. MIT License.
-https://github.com/fastfloat/fast_float
-https://github.com/fastfloat/fast_float/blob/cc1e01e9eee74128e48d51488a6b1df4a767a810/LICENSE-MIT
-(The file 'thirdparty-LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-bigint, Copyright 2020 Tim Buktu. 2-clause BSD License.
-https://github.com/tbuktu/bigint/tree/floatfft
-https://github.com/tbuktu/bigint/blob/617c8cd8a7c5e4fb4d919c6a4d11e2586107f029/LICENSE
-https://github.com/wrandelshofer/FastDoubleParser/blob/39e123b15b71f29a38a087d16a0bc620fc879aa6/bigint-LICENSE
-(We only use those portions of the bigint project that can be licensed under 2-clause BSD License.)
-(The file 'thirdparty-LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-========================================================================
-Bundled resources:
-  jackson-dataformat-yaml-2.17.1.jar / META-INF/NOTICE
+  jackson-dataformat-yaml-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -518,9 +463,9 @@ from the source code management (SCM) system project uses.
 
 ========================================================================
 Bundled resources:
-  jackson-datatype-jdk8-2.17.1.jar / META-INF/NOTICE
-  jackson-datatype-jsr310-2.17.1.jar / META-INF/NOTICE
-  jackson-module-parameter-names-2.17.1.jar / META-INF/NOTICE
+  jackson-datatype-jdk8-2.21.7.jar / META-INF/NOTICE
+  jackson-datatype-jsr310-2.21.7.jar / META-INF/NOTICE
+  jackson-module-parameter-names-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -540,6 +485,103 @@ as per accompanying LICENSE file.
 A list of contributors may be found from CREDITS file, which is included
 in some artifacts (usually source distributions); but is always available
 from the source code management (SCM) system project uses.
+
+========================================================================
+Bundled resources:
+  jakarta.activation-api-2.1.4.jar / META-INF/NOTICE.md
+========================================================================
+
+# Notices for Jakarta Activation
+
+This content is produced and maintained by the Jakarta Activation project.
+
+* Project home: https://projects.eclipse.org/projects/ee4j.jaf
+
+## Trademarks
+
+Jakarta Activation is a trademark of the Eclipse Foundation.
+
+## Copyright
+
+All content is the property of the respective authors or their employers. For
+more information regarding authorship of content, please consult the listed
+source code repository logs.
+
+## Declared Project Licenses
+
+This program and the accompanying materials are made available under the terms
+of the Eclipse Public License v. 2.0 which is available at
+https://www.eclipse.org/legal/epl-2.0, or the Eclipse Distribution License v1.0
+which is available at https://www.eclipse.org/org/documents/edl-v10.php. This
+Source Code may also be made available under the following Secondary Licenses
+when the conditions for such availability set forth in the Eclipse Public
+License v. 2.0 are satisfied: (secondary) GPL-2.0 with Classpath-exception-2.0
+which is available at https://openjdk.java.net/legal/gplv2+ce.html.
+
+SPDX-License-Identifier: EPL-2.0 OR BSD-3-Clause OR GPL-2.0-only with
+Classpath-exception-2.0
+
+## Source Code
+
+The project maintains the following source code repositories:
+
+* https://github.com/jakartaee/jaf-api
+* https://github.com/jakartaee/jaf-tck
+
+## Third-party Content
+
+This project leverages the following third party content.
+
+Apache Ant (1.9.6)
+
+* License: Apache License, 2.0, W3C License, Public Domain
+
+Apache Ant (1.9.6)
+
+* License: Apache License, 2.0, W3C License, Public Domain
+
+Apache commons-lang (3.5)
+
+* License: Apache-2.0
+
+font-awesome (4.7.0)
+
+* License: OFL-1.1 AND MIT
+
+jsoup (1.10.2)
+
+* License: MIT
+
+JTHarness (5.0)
+
+* License: (GPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)
+* Project: https://wiki.openjdk.java.net/display/CodeTools/JT+Harness
+* Source: http://hg.openjdk.java.net/code-tools/jtharness/
+
+JUnit (4.12)
+
+* License: Eclipse Public License
+
+normalize.css (3.0.2)
+
+* License: MIT
+* Project: http://necolas.github.io/normalize.css/
+* Source: http://necolas.github.io/normalize.css/
+
+SigTest (4.0)
+
+* License: GPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+* Project: https://wiki.openjdk.java.net/display/CodeTools/sigtest
+* Source: http://hg.openjdk.java.net/code-tools/sigtest/file/c57f97e2ac2f
+
+## Cryptography
+
+Content may contain encryption software. The country in which you are currently
+may have restrictions on the import, possession, and use, and/or re-export to
+another country, of encryption software. BEFORE using any encryption software,
+please check the country's laws, regulations and policies concerning the import,
+possession, or use, and re-export of encryption software, to see if this is
+permitted.
 
 ========================================================================
 Bundled resources:
@@ -680,28 +722,93 @@ permitted.
 
 ========================================================================
 Bundled resources:
-  lettuce-core-6.3.2.RELEASE.jar / META-INF/NOTICE
+  jakarta.xml.bind-api-4.0.5.jar / META-INF/NOTICE.md
 ========================================================================
 
-Lettuce Java Redis Client 6.3.2.RELEASE
-Copyright (c) 2011-2020 Mark Paluch
+[//]: # " Copyright (c) 2018, 2024 Oracle and/or its affiliates. All rights reserved. "
+[//]: # "  "
+[//]: # " This program and the accompanying materials are made available under the "
+[//]: # " terms of the Eclipse Distribution License v. 1.0, which is available at "
+[//]: # " http://www.eclipse.org/org/documents/edl-v10.php. "
+[//]: # "  "
+[//]: # " SPDX-License-Identifier: BSD-3-Clause "
 
-This product is licensed to you under the Apache License, Version 2.0
-(the "License"). You may not use this product except in compliance with
-the License.
+# Notices for Jakarta XML Binding
 
-This product may include a number of subcomponents with separate
-copyright notices and license terms. Your use of the source code for
-these subcomponents is subject to the terms and conditions of the
-subcomponent's license, as noted in the license file.
+This content is produced and maintained by the Jakarta XML Binding project.
+
+* Project home: https://projects.eclipse.org/projects/ee4j.jaxb
+
+## Trademarks
+
+Jakarta XML Binding™ is a trademark of the Eclipse Foundation.
+
+## Copyright
+
+All content is the property of the respective authors or their employers. For
+more information regarding authorship of content, please consult the listed
+source code repository logs.
+
+## Declared Project Licenses
+
+This program and the accompanying materials are made available under the terms
+of the Eclipse Distribution License v1.0 which is available at
+https://www.eclipse.org/org/documents/edl-v10.php.
+
+SPDX-License-Identifier: BSD-3-Clause
+
+## Source Code
+
+The project maintains the following source code repositories:
+
+* https://github.com/jakartaee/jaxb-api
+* https://github.com/jakartaee/jaxb-tck
+
+## Cryptography
+
+Content may contain encryption software. The country in which you are currently
+may have restrictions on the import, possession, and use, and/or re-export to
+another country, of encryption software. BEFORE using any encryption software,
+please check the country's laws, regulations and policies concerning the import,
+possession, or use, and re-export of encryption software, to see if this is
+permitted.
 
 ========================================================================
 Bundled resources:
-  log4j-api-2.23.1.jar / META-INF/NOTICE
+  kafka-clients-3.9.2.jar / NOTICE
+========================================================================
+
+Apache Kafka
+Copyright 2026 The Apache Software Foundation.
+
+This product includes software developed at
+The Apache Software Foundation (https://www.apache.org/).
+
+This distribution has a binary dependency on jersey, which is available under the CDDL
+License. The source code of jersey can be found at https://github.com/jersey/jersey/.
+
+This distribution has a binary test dependency on jqwik, which is available under
+the Eclipse Public License 2.0. The source code can be found at
+https://github.com/jlink/jqwik.
+
+The streams-scala (streams/streams-scala) module was donated by Lightbend and the original code was copyrighted by them:
+Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
+Copyright (C) 2017-2018 Alexis Seigneurin.
+
+This project contains the following code copied from Apache Hadoop:
+clients/src/main/java/org/apache/kafka/common/utils/PureJavaCrc32C.java
+Some portions of this file Copyright (c) 2004-2006 Intel Corporation and licensed under the BSD license.
+
+This project contains the following code copied from Apache Hive:
+streams/src/main/java/org/apache/kafka/streams/state/internals/Murmur3.java
+
+========================================================================
+Bundled resources:
+  log4j-api-2.25.5.jar / META-INF/NOTICE
 ========================================================================
 
 Apache Log4j API
-Copyright 1999-2024 The Apache Software Foundation
+Copyright 1999-2026 The Apache Software Foundation
 
 
 This product includes software developed at
@@ -709,11 +816,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  log4j-to-slf4j-2.23.1.jar / META-INF/NOTICE
+  log4j-to-slf4j-2.25.5.jar / META-INF/NOTICE
 ========================================================================
 
-Apache Log4j to SLF4J Adapter
-Copyright 1999-2024 The Apache Software Foundation
+Log4j API to SLF4J Adapter
+Copyright 1999-2026 The Apache Software Foundation
 
 
 This product includes software developed at
@@ -721,10 +828,10 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  micrometer-commons-1.13.1.jar / META-INF/NOTICE
-  micrometer-core-1.13.1.jar / META-INF/NOTICE
-  micrometer-jakarta9-1.13.1.jar / META-INF/NOTICE
-  micrometer-observation-1.13.1.jar / META-INF/NOTICE
+  micrometer-commons-1.15.12.jar / META-INF/NOTICE
+  micrometer-core-1.15.12.jar / META-INF/NOTICE
+  micrometer-jakarta9-1.15.12.jar / META-INF/NOTICE
+  micrometer-observation-1.15.12.jar / META-INF/NOTICE
 ========================================================================
 
 Micrometer
@@ -832,60 +939,6 @@ This product contains code from boringssl.
 
 ========================================================================
 Bundled resources:
-  netty-incubator-codec-native-quic-0.0.63.Final-linux-x86_64.jar / META-INF/NOTICE.txt
-========================================================================
-
-The Netty Project
-                            =================
-
-Please visit the Netty web site for more information:
-
-  * https://netty.io/
-
-Copyright 2020 The Netty Project
-
-The Netty Project licenses this file to you under the Apache License,
-version 2.0 (the "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at:
-
-  https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-License for the specific language governing permissions and limitations
-under the License.
-
-Also, please refer to each LICENSE.<component>.txt file, which is located in
-the 'license' directory of the distribution file, for the license terms of the
-components that this product depends on.
-
--------------------------------------------------------------------------------
-
-This product contains the Maven wrapper scripts from 'Maven Wrapper', that provides an easy way to ensure a user has everything necessary to run the Maven build.
-
-  * LICENSE:
-    * license/LICENSE.mvn-wrapper.txt (Apache License 2.0)
-  * HOMEPAGE:
-    * https://github.com/takari/maven-wrapper
-
-This product is statically linked against Quiche.
-
- * LICENSE:
-    * license/LICENSE.quiche.txt (BSD2)
-  * HOMEPAGE:
-    * https://github.com/cloudflare/quiche
-
-
-This product is statically linked against boringssl.
-
-  * LICENSE (Combination ISC and OpenSSL license)
-    * license/LICENSE.boringssl.txt (Combination ISC and OpenSSL license)
-  * HOMEPAGE:
-    * https://boringssl.googlesource.com/boringssl/
-
-========================================================================
-Bundled resources:
   netty-tcnative-boringssl-static-2.0.84.Final-linux-aarch_64.jar / META-INF/NOTICE.txt
   netty-tcnative-boringssl-static-2.0.84.Final-linux-x86_64.jar / META-INF/NOTICE.txt
   netty-tcnative-boringssl-static-2.0.84.Final-osx-aarch_64.jar / META-INF/NOTICE.txt
@@ -936,6 +989,17 @@ This product contains code from boringssl.
     * license/LICENSE.boringssl.txt (Apache License 2.0)
   * HOMEPAGE:
     * https://boringssl.googlesource.com/boringssl/
+
+========================================================================
+Bundled resources:
+  okhttp-4.12.0.jar / okhttp3/internal/publicsuffix/NOTICE
+========================================================================
+
+Note that publicsuffixes.gz is compiled from The Public Suffix List:
+https://publicsuffix.org/list/public_suffix_list.dat
+
+It is subject to the terms of the Mozilla Public License, v. 2.0:
+https://mozilla.org/MPL/2.0/
 
 ========================================================================
 Bundled resources:
@@ -1005,22 +1069,22 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  spring-aop-6.1.10.jar / META-INF/notice.txt
-  spring-beans-6.1.10.jar / META-INF/notice.txt
-  spring-context-6.1.10.jar / META-INF/notice.txt
-  spring-context-support-6.1.10.jar / META-INF/notice.txt
-  spring-core-6.1.10.jar / META-INF/notice.txt
-  spring-expression-6.1.10.jar / META-INF/notice.txt
-  spring-jcl-6.1.10.jar / META-INF/notice.txt
-  spring-messaging-6.1.10.jar / META-INF/notice.txt
-  spring-oxm-6.1.10.jar / META-INF/notice.txt
-  spring-tx-6.1.10.jar / META-INF/notice.txt
-  spring-web-6.1.10.jar / META-INF/notice.txt
-  spring-webflux-6.1.10.jar / META-INF/notice.txt
+  spring-aop-6.2.19.jar / META-INF/notice.txt
+  spring-beans-6.2.19.jar / META-INF/notice.txt
+  spring-context-6.2.19.jar / META-INF/notice.txt
+  spring-context-support-6.2.19.jar / META-INF/notice.txt
+  spring-core-6.2.19.jar / META-INF/notice.txt
+  spring-expression-6.2.19.jar / META-INF/notice.txt
+  spring-jcl-6.2.19.jar / META-INF/notice.txt
+  spring-messaging-6.2.19.jar / META-INF/notice.txt
+  spring-oxm-6.2.19.jar / META-INF/notice.txt
+  spring-tx-6.2.19.jar / META-INF/notice.txt
+  spring-web-6.2.19.jar / META-INF/notice.txt
+  spring-webflux-6.2.19.jar / META-INF/notice.txt
 ========================================================================
 
-Spring Framework 6.1.10
-Copyright (c) 2002-2024 Pivotal, Inc.
+Spring Framework 6.2.19
+Copyright (c) 2002-2026 Pivotal, Inc.
 
 This product is licensed to you under the Apache License, Version 2.0
 (the "License"). You may not use this product except in compliance with
@@ -1033,20 +1097,20 @@ subcomponent's license, as noted in the license.txt file.
 
 ========================================================================
 Bundled resources:
-  spring-boot-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-actuator-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-actuator-autoconfigure-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-autoconfigure-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-actuator-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-json-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-logging-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-reactor-netty-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-webflux-3.3.1.jar / META-INF/NOTICE.txt
+  spring-boot-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-actuator-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-actuator-autoconfigure-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-autoconfigure-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-actuator-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-json-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-logging-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-reactor-netty-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-webflux-3.5.16.jar / META-INF/NOTICE.txt
 ========================================================================
 
-Spring Boot 3.3.1
-Copyright (c) 2012-2024 VMware, Inc.
+Spring Boot 3.5.16
+Copyright (c) 2012-2026 VMware, Inc.
 
 This product is licensed to you under the Apache License, Version 2.0
 (the "License"). You may not use this product except in compliance with
@@ -1054,7 +1118,56 @@ the License.
 
 ========================================================================
 Bundled resources:
-  spring-retry-2.0.6.jar / META-INF/NOTICE.txt
+  spring-data-commons-3.5.13.jar / notice.txt
+========================================================================
+
+Spring Data Commons 3.5.13 (2025.0.13)
+Copyright (c) [2010-2021] Pivotal Software, Inc.
+
+This product is licensed to you under the Apache License, Version 2.0 (the "License").
+You may not use this product except in compliance with the License.
+
+This product may include a number of subcomponents with
+separate copyright notices and license terms. Your use of the source
+code for the these subcomponents is subject to the terms and
+conditions of the subcomponent's license, as noted in the LICENSE file.
+
+========================================================================
+Bundled resources:
+  spring-data-keyvalue-3.5.13.jar / notice.txt
+========================================================================
+
+Spring Data KeyValue 3.5.13 (2025.0.13)
+Copyright (c) 2015-2019 Pivotal Software, Inc.
+
+This product is licensed to you under the Apache License, Version 2.0
+(the "License"). You may not use this product except in compliance with
+the License.
+
+This product may include a number of subcomponents with separate
+copyright notices and license terms. Your use of the source code for
+these subcomponents is subject to the terms and conditions of the
+subcomponent's license, as noted in the license.txt file.
+
+========================================================================
+Bundled resources:
+  spring-data-redis-3.5.13.jar / notice.txt
+========================================================================
+
+Spring Data Redis 3.5.13 (2025.0.13)
+Copyright (c) [2010-2019] Pivotal Software, Inc.
+
+This product is licensed to you under the Apache License, Version 2.0 (the "License").
+You may not use this product except in compliance with the License.
+
+This product may include a number of subcomponents with
+separate copyright notices and license terms. Your use of the source
+code for the these subcomponents is subject to the terms and
+conditions of the subcomponent's license, as noted in the LICENSE file.
+
+========================================================================
+Bundled resources:
+  spring-retry-2.0.13.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Copyright (c) 2006-2023 the original author or authors.
@@ -1074,6 +1187,7 @@ Swagger Core - swagger-annotations  is licensed under Apache 2.0 license.
 Copy of the Apache 2.0 license can be found in `LICENSE` file.
 
 Additional upstream notices for bundled dependencies.
+
 
 ========================================================================
 Netty 4.1.139.Final / upstream NOTICE.txt
@@ -1380,143 +1494,3 @@ Third-Party Notices and Licenses:
 - Hadoop: Apache Hadoop is used as a dependency
   License: Apache License 2.0
   Source/Reference: https://github.com/apache/hadoop/blob/trunk/NOTICE.txt
-
-Additional upstream dependency texts
-
-========================================================================
-okhttp-4.12.0.jar / okhttp3/internal/publicsuffix/NOTICE
-========================================================================
-
-Note that publicsuffixes.gz is compiled from The Public Suffix List:
-https://publicsuffix.org/list/public_suffix_list.dat
-
-It is subject to the terms of the Mozilla Public License, v. 2.0:
-https://mozilla.org/MPL/2.0/
-
-========================================================================
-spring-data-redis-3.3.1.jar / notice.txt
-========================================================================
-
-Spring Data Redis 3.3.1 (2024.0.1)
-Copyright (c) [2010-2019] Pivotal Software, Inc.
-
-This product is licensed to you under the Apache License, Version 2.0 (the "License").
-You may not use this product except in compliance with the License.
-
-This product may include a number of subcomponents with
-separate copyright notices and license terms. Your use of the source
-code for the these subcomponents is subject to the terms and
-conditions of the subcomponent's license, as noted in the LICENSE file.
-
-========================================================================
-spring-data-keyvalue-3.3.1.jar / notice.txt
-========================================================================
-
-Spring Data KeyValue 3.3.1 (2024.0.1)
-Copyright (c) 2015-2019 Pivotal Software, Inc.
-
-This product is licensed to you under the Apache License, Version 2.0
-(the "License"). You may not use this product except in compliance with
-the License.
-
-This product may include a number of subcomponents with separate
-copyright notices and license terms. Your use of the source code for
-these subcomponents is subject to the terms and conditions of the
-subcomponent's license, as noted in the license.txt file.
-
-========================================================================
-spring-data-commons-3.3.1.jar / notice.txt
-========================================================================
-
-Spring Data Commons 3.3.1 (2024.0.1)
-Copyright (c) [2010-2021] Pivotal Software, Inc.
-
-This product is licensed to you under the Apache License, Version 2.0 (the "License").
-You may not use this product except in compliance with the License.
-
-This product may include a number of subcomponents with
-separate copyright notices and license terms. Your use of the source
-code for the these subcomponents is subject to the terms and
-conditions of the subcomponent's license, as noted in the LICENSE file.
-
-========================================================================
-kafka-clients-3.9.2.jar / NOTICE
-========================================================================
-
-Apache Kafka
-Copyright 2026 The Apache Software Foundation.
-
-This product includes software developed at
-The Apache Software Foundation (https://www.apache.org/).
-
-This distribution has a binary dependency on jersey, which is available under the CDDL
-License. The source code of jersey can be found at https://github.com/jersey/jersey/.
-
-This distribution has a binary test dependency on jqwik, which is available under
-the Eclipse Public License 2.0. The source code can be found at
-https://github.com/jlink/jqwik.
-
-The streams-scala (streams/streams-scala) module was donated by Lightbend and the original code was copyrighted by them:
-Copyright (C) 2018 Lightbend Inc. <https://www.lightbend.com>
-Copyright (C) 2017-2018 Alexis Seigneurin.
-
-This project contains the following code copied from Apache Hadoop:
-clients/src/main/java/org/apache/kafka/common/utils/PureJavaCrc32C.java
-Some portions of this file Copyright (c) 2004-2006 Intel Corporation and licensed under the BSD license.
-
-This project contains the following code copied from Apache Hive:
-streams/src/main/java/org/apache/kafka/streams/state/internals/Murmur3.java
-
-========================================================================
-io.lettuce:lettuce-core:6.3.2.RELEASE / sources / META-INF/NOTICE
-========================================================================
-
-Lettuce Java Redis Client ${version}
-Copyright (c) 2011-2020 Mark Paluch
-
-This product is licensed to you under the Apache License, Version 2.0
-(the "License"). You may not use this product except in compliance with
-the License.
-
-This product may include a number of subcomponents with separate
-copyright notices and license terms. Your use of the source code for
-these subcomponents is subject to the terms and conditions of the
-subcomponent's license, as noted in the license file.
-
-========================================================================
-io.swagger.core.v3:swagger-annotations-jakarta:2.2.38 / sources / META-INF/NOTICE
-========================================================================
-
-Swagger Core - ${pom.name}
-Copyright (c) 2015. SmartBear Software Inc.
-Swagger Core - ${pom.name}  is licensed under Apache 2.0 license.
-Copy of the Apache 2.0 license can be found in `LICENSE` file.
-
-========================================================================
-org.apache.dubbo:dubbo:3.2.14 / sources / META-INF/NOTICE
-========================================================================
-
-dubbo
-Copyright 2011-2020 The Apache Software Foundation
-
-
-This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
-
-========================================================================
-net.bytebuddy:byte-buddy-agent:1.14.17 / sources / META-INF/NOTICE
-========================================================================
-
-Copyright ${project.inceptionYear} - Present ${copyright.holder}
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.

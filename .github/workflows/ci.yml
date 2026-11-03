@@ -215,7 +215,19 @@ jobs:
             -Djacoco.skip=true -Drat.skip=true
 
           mkdir -p /tmp/shenyu-m2
-          tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" org/apache/shenyu
+          if [[ "$RELEASE_CANDIDATE" == "true" ]]; then
+            release_version="$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('pom.xml').getroot().findtext('{http://maven.apache.org/POM/4.0.0}version'))")"
+            repository_paths=()
+            for artifact_dir in "${HOME}/.m2/repository/org/apache/shenyu/"*; do
+              if [[ -d "${artifact_dir}/${release_version}" ]]; then
+                repository_paths+=("org/apache/shenyu/${artifact_dir##*/}/${release_version}")
+              fi
+            done
+            [[ ${#repository_paths[@]} -gt 0 ]]
+            tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" "${repository_paths[@]}"
+          else
+            tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" org/apache/shenyu
+          fi
       - name: Resolve distribution runtime dependencies
         run: |
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-bootstrap,shenyu-dist/shenyu-admin-dist,shenyu-dist/shenyu-bootstrap-dist dependency:list \
