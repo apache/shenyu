@@ -102,6 +102,15 @@ public class UserRoleMapperTest extends AbstractSpringIntegrationTest {
         assertEquals(userRoleMapper.deleteByUserIdList(userIdList), 2);
     }
 
+    @Test
+    public void testDeleteByRoleIdList() {
+        String roleId = "delete-role-id";
+        userRoleMapper.insert(buildUserRoleDO("2", roleId));
+        userRoleMapper.insert(buildUserRoleDO("3", roleId));
+
+        assertEquals(2, userRoleMapper.deleteByRoleIdList(List.of(roleId)));
+    }
+
     @AfterEach
     public void after() {
         userRoleMapper.delete(userRoleDO.getId());

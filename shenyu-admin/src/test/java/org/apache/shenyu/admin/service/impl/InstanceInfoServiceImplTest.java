@@ -118,6 +118,13 @@ public final class InstanceInfoServiceImplTest {
         verify(instanceInfoMapper, never()).updateById(any());
     }
 
+    @Test
+    public void testDeleteExpiredDelegatesCutoffToMapper() {
+        given(instanceInfoMapper.deleteExpired(FIXED_HEART_BEAT_TIME)).willReturn(3);
+        assertEquals(3, instanceInfoService.deleteExpired(FIXED_HEART_BEAT_TIME));
+        verify(instanceInfoMapper).deleteExpired(FIXED_HEART_BEAT_TIME);
+    }
+
     private InstanceInfoVO buildReport() {
         InstanceInfoVO report = new InstanceInfoVO();
         report.setInstanceIp("127.0.0.1");

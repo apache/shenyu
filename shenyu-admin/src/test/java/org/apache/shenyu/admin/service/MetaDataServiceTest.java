@@ -35,9 +35,14 @@ import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -58,11 +63,13 @@ import java.util.stream.Collectors;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -102,6 +109,9 @@ public final class MetaDataServiceTest {
     @Mock
     private NamespaceMapper namespaceMapper;
 
+    @Mock
+    private Subject subject;
+
     @BeforeAll
     public static void beforeClass() {
         loggerSpy = spy(LoggerFactory.getLogger(MetaDataServiceImpl.class));
@@ -114,6 +124,16 @@ public final class MetaDataServiceTest {
         loggerFactoryMockedStatic.close();
     }
 
+    @BeforeEach
+    public void setUp() {
+        ThreadContext.bind(subject);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        ThreadContext.unbindSubject();
+    }
+
     /**
      * Test case for saveOrUpdateMetaData().
      */
@@ -124,6 +144,28 @@ public final class MetaDataServiceTest {
     }
 
     /**
+     * Test case for re-registering disabled metadata keeps it disabled on the gateway.
+     */
+    @Test
+    public void testSaveOrUpdateMetaDataKeepsExistingEnabledStatus() {
+        MetaDataDO exist = MetaDataDO.builder().id("1").enabled(false).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+        MetaDataRegisterDTO registerDTO = new MetaDataRegisterDTO();
+        registerDTO.setPath("/svc/m1");
+        registerDTO.setEnabled(true);
+
+        metaDataService.saveOrUpdateMetaData(exist, registerDTO);
+
+        ArgumentCaptor<MetaDataDO> doCaptor = ArgumentCaptor.forClass(MetaDataDO.class);
+        verify(metaDataMapper).update(doCaptor.capture());
+        Assertions.assertFalse(doCaptor.getValue().getEnabled());
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        List<?> source = (List<?>) captor.getValue().getSource();
+        Assertions.assertEquals(1, source.size());
+        Assertions.assertFalse(((MetaData) source.get(0)).getEnabled());
+    }
+
+    /**
      * Test case for createOrUpdate.<br>
      * Note that the following methods have dependencies before and after.
      */
@@ -131,6 +173,89 @@ public final class MetaDataServiceTest {
     public void testCreateOrUpdate() {
         testCreateOrUpdateForInsert();
         testCreateOrUpdateForUpdate();
+    }
+
+    /**
+     * Test case for an add-only subject creating metadata with a blank id.
+     */
+    @Test
+    public void testAddOnlyPermissionAllowsCreateWithBlankId() {
+        MetaDataDTO dto = new MetaDataDTO();
+        dto.setId(" ");
+        dto.setPath("path");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(metaDataMapper.pathExisted("path", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(null);
+        when(metaDataMapper.insert(any())).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.CREATE_SUCCESS, metaDataService.createOrUpdate(dto));
+
+        verify(subject).checkPermission("system:meta:add");
+        verify(subject, never()).checkPermission("system:meta:edit");
+        verify(metaDataMapper).insert(any());
+    }
+
+    /**
+     * Test case for an edit-only subject updating existing metadata.
+     */
+    @Test
+    public void testEditOnlyPermissionAllowsUpdate() {
+        MetaDataDTO dto = new MetaDataDTO();
+        dto.setId("id");
+        dto.setPath("path");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO current = MetaDataDO.builder().id("id").enabled(true).build();
+        when(metaDataMapper.pathExistedExclude("path", SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList("id"))).thenReturn(null);
+        when(metaDataMapper.selectById("id")).thenReturn(current);
+        when(metaDataMapper.update(any())).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, metaDataService.createOrUpdate(dto));
+
+        verify(subject).checkPermission("system:meta:edit");
+        verify(subject, never()).checkPermission("system:meta:add");
+        verify(metaDataMapper).update(any());
+    }
+
+    /**
+     * Test case for an edit-only subject attempting to create metadata.
+     */
+    @Test
+    public void testEditOnlyPermissionCannotCreate() {
+        MetaDataDTO dto = new MetaDataDTO();
+        doThrow(new UnauthorizedException()).when(subject).checkPermission("system:meta:add");
+
+        assertThrows(UnauthorizedException.class, () -> metaDataService.createOrUpdate(dto));
+
+        verifyNoInteractions(metaDataMapper, eventPublisher, publisher);
+    }
+
+    /**
+     * Test case for an add-only subject attempting to update a missing metadata id.
+     */
+    @Test
+    public void testAddOnlyPermissionCannotUpdateMissingMetadata() {
+        MetaDataDTO dto = new MetaDataDTO();
+        dto.setId("missing");
+        doThrow(new UnauthorizedException()).when(subject).checkPermission("system:meta:edit");
+
+        assertThrows(UnauthorizedException.class, () -> metaDataService.createOrUpdate(dto));
+
+        verifyNoInteractions(metaDataMapper, eventPublisher, publisher);
+    }
+
+    /**
+     * Test case for a subject without either metadata write permission.
+     */
+    @Test
+    public void testNoPermissionRejectsCreateAndUpdate() {
+        doThrow(new UnauthorizedException()).when(subject).checkPermission(anyString());
+        MetaDataDTO create = new MetaDataDTO();
+        MetaDataDTO update = new MetaDataDTO();
+        update.setId("id");
+
+        assertThrows(UnauthorizedException.class, () -> metaDataService.createOrUpdate(create));
+        assertThrows(UnauthorizedException.class, () -> metaDataService.createOrUpdate(update));
+
+        verifyNoInteractions(metaDataMapper, eventPublisher, publisher);
     }
 
     /**

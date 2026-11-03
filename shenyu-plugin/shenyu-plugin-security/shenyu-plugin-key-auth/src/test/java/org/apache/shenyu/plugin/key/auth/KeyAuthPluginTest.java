@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.key.auth;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
@@ -81,6 +82,35 @@ public class KeyAuthPluginTest {
                 .build());
         Mono<Void> mono = keyAuthPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(mono).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void rejectionIsObservedWithoutInferringAgentTrafficOrLeakingKey() {
+        ruleData.setHandle("{\"keyName\":\"apiKey\",\"key\":\"private-key\"}");
+        keyAuthPluginDataHandler.handlerRule(ruleData);
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").header("apiKey", "wrong").build());
+        AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);
+        exchange.getAttributes().put(AgentRuntimeMetrics.KEY, metrics);
+        StepVerifier.create(keyAuthPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        org.mockito.Mockito.verify(metrics).authenticationRejected(AgentRuntimeMetrics.AuthenticationSource.KEY_AUTH,
+                AgentRuntimeMetrics.AuthenticationReason.CREDENTIAL_REJECTED);
+        org.mockito.Mockito.verifyNoMoreInteractions(metrics);
+        org.mockito.Mockito.verify(chain, org.mockito.Mockito.never()).execute(any());
+    }
+
+    @Test
+    public void reportingFailureCannotTurnAuthenticationRejectionIntoAdmission() {
+        ruleData.setHandle("{}");
+        keyAuthPluginDataHandler.handlerRule(ruleData);
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);
+        org.mockito.Mockito.doThrow(new IllegalStateException("private")).when(metrics)
+                .authenticationRejected(any(), any());
+        exchange.getAttributes().put(AgentRuntimeMetrics.KEY, metrics);
+        StepVerifier.create(keyAuthPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        org.mockito.Mockito.verify(metrics).authenticationRejected(AgentRuntimeMetrics.AuthenticationSource.KEY_AUTH,
+                AgentRuntimeMetrics.AuthenticationReason.INVALID_CONFIGURATION);
+        org.mockito.Mockito.verify(chain, org.mockito.Mockito.never()).execute(any());
     }
 
     @Test

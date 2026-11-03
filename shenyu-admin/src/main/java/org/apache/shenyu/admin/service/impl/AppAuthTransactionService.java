@@ -42,6 +42,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,7 +103,7 @@ public class AppAuthTransactionService {
         candidate.setRequestId(request.getRequestId());
         candidate.setRequestHash(requestHash);
         candidate.setState(STATE_CREATED);
-        requestMapper.reserveIfAbsent(candidate);
+        reserveIfAbsent(candidate);
 
         final AppAuthRequestDO locked = requestMapper.selectByKeyForUpdate(
                 callerKey, request.getNamespaceId(), request.getRequestId());
@@ -150,7 +151,7 @@ public class AppAuthTransactionService {
             authPathMapper.batchSave(paths);
         }
 
-        final int completed = requestMapper.completeCreated(candidate.getId(), auth.getId());
+        final int completed = requestMapper.completeCreated(candidate.getId(), auth.getId(), STATE_CREATED);
         if (completed != 1) {
             throw new ShenyuAdminException("Apply failed: association backfill matched no row");
         }
@@ -218,7 +219,7 @@ public class AppAuthTransactionService {
         candidate.setRequestHash(null);
         candidate.setAuthId(null);
         candidate.setState(STATE_REVOKED);
-        requestMapper.reserveIfAbsent(candidate);
+        reserveIfAbsent(candidate);
 
         final AppAuthRequestDO locked = requestMapper.selectByKeyForUpdate(
                 callerKey, request.getNamespaceId(), request.getRequestId());
@@ -242,7 +243,7 @@ public class AppAuthTransactionService {
         }
         authParamMapper.deleteByAuthIds(ids);
         authPathMapper.deleteByAuthIds(ids);
-        requestMapper.markRevoked(locked.getId(), request.getReason());
+        requestMapper.markRevoked(locked.getId(), request.getReason(), STATE_REVOKED);
         registerAfterCommitDeleteEvent(deletedAuths);
         return revokedResult(request);
     }
@@ -292,7 +293,7 @@ public class AppAuthTransactionService {
             authPathMapper.batchSave(newPaths);
         }
 
-        registerAfterCommitUpdateEvent(auth, appName, newPaths);
+        registerAfterCommitUpdateEvent(auth, params, newPaths);
         final List<String> pathList = newPaths.stream().map(AuthPathDO::getPath).collect(Collectors.toList());
         return AppAuthResultVO.builder()
                 .state(STATE_CREATED)
@@ -307,7 +308,16 @@ public class AppAuthTransactionService {
                 .build();
     }
 
-    private void registerAfterCommitUpdateEvent(final AppAuthDO auth, final String appName, final List<AuthPathDO> paths) {
+    /**
+     * Publish the update event as a complete snapshot: the gateway subscribers replace the whole cached auth with
+     * the payload, so the untouched application parameters must be carried along with the replaced paths.
+     *
+     * @param auth the auth being updated
+     * @param params the persisted application parameters, part of the snapshot because replacePaths never touches them
+     * @param paths the new path records
+     */
+    private void registerAfterCommitUpdateEvent(final AppAuthDO auth, final List<AuthParamDO> params,
+                                                final List<AuthPathDO> paths) {
         try {
             final AppAuthData data = AppAuthData.builder()
                     .appKey(auth.getAppKey())
@@ -315,9 +325,12 @@ public class AppAuthTransactionService {
                     .open(auth.getOpen())
                     .enabled(auth.getEnabled())
                     .namespaceId(auth.getNamespaceId())
+                    .paramDataList(params.stream()
+                            .map(param -> new AuthParamData(param.getAppName(), param.getAppParam()))
+                            .collect(Collectors.toList()))
                     .pathDataList(paths.stream()
                             .map(path -> AuthPathData.builder()
-                                    .appName(appName).path(path.getPath()).enabled(path.getEnabled()).build())
+                                    .appName(path.getAppName()).path(path.getPath()).enabled(path.getEnabled()).build())
                             .collect(Collectors.toList()))
                     .build();
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
@@ -325,6 +338,22 @@ public class AppAuthTransactionService {
         } catch (Exception e) {
             LOG.error("APP_AUTH_SYNC_FAILED: update event authId={}, errorType={}",
                     auth.getId(), e.getClass().getName());
+        }
+    }
+
+    /**
+     * Insert the reservation. A concurrent insert of the same unique key (Oracle MERGE can raise ORA-00001)
+     * is not a failure: the following lock reads the winning row and the existing validation decides replay,
+     * conflict, or revoke. Other database errors still roll the transaction back.
+     *
+     * @param candidate reservation candidate
+     */
+    private void reserveIfAbsent(final AppAuthRequestDO candidate) {
+        try {
+            requestMapper.reserveIfAbsent(candidate);
+        } catch (DuplicateKeyException ex) {
+            LOG.debug("APP_AUTH_RESERVE: unique key already inserted, callerKey={}, namespaceId={}, requestId={}",
+                    candidate.getCallerKey(), candidate.getNamespaceId(), candidate.getRequestId());
         }
     }
 

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.agent.gateway;
 
+import org.apache.shenyu.common.dto.AgentRequestContext;
+
 import java.util.Objects;
 
 /**
@@ -57,6 +59,10 @@ public final class AgentTrafficContext {
 
     public String getRuleId() {
         return ruleId;
+    }
+
+    public AgentRequestContext toRequestContext(final long configurationVersion) {
+        return new AgentRequestContext(requestId, trafficType, selectorId, ruleId).withConfigurationVersion(configurationVersion);
     }
 
     @Override

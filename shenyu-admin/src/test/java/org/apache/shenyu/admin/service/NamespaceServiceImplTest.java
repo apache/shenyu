@@ -26,6 +26,8 @@ import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.model.dto.NamespaceDTO;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.model.entity.NamespaceDO;
 import org.apache.shenyu.admin.model.query.NamespaceQuery;
@@ -34,6 +36,12 @@ import org.apache.shenyu.admin.service.impl.NamespaceServiceImpl;
 import org.apache.shenyu.admin.service.publish.NamespaceEventPublisher;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,9 +55,12 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -92,11 +103,46 @@ public final class NamespaceServiceImplTest {
     @Mock
     private AppAuthMapper appAuthMapper;
 
+    @Mock
+    private Subject subject;
+
     @InjectMocks
     private NamespaceServiceImpl namespaceService;
 
+    @BeforeEach
+    public void setUp() {
+        ThreadContext.bind(subject);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        ThreadContext.unbindSubject();
+        SessionUtil.setLocalVisitor(null);
+    }
+
+    private void loginAs(final String userId) {
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId(userId).userName(userId).build());
+    }
+
+    private void loginAsAdmin() {
+        SessionUtil.setLocalVisitor(UserInfo.builder()
+                .userId("admin-user-id")
+                .userName(AdminConstants.ADMIN_NAME)
+                .build());
+    }
+
+    private NamespaceDTO namespaceDTO(final String id, final String namespaceId) {
+        NamespaceDTO dto = new NamespaceDTO();
+        dto.setId(id);
+        dto.setNamespaceId(namespaceId);
+        dto.setName("name");
+        dto.setDescription("description");
+        return dto;
+    }
+
     @Test
     public void testDeleteBlockedByDiscovery() {
+        loginAsAdmin();
         List<String> ids = List.of("namespace-primary-key");
         List<String> namespaceIds = List.of("namespace-id");
         when(namespaceMapper.selectByIds(ids)).thenReturn(List.of(NamespaceDO.builder().id(ids.get(0)).namespaceId(namespaceIds.get(0)).build()));
@@ -110,6 +156,7 @@ public final class NamespaceServiceImplTest {
 
     @Test
     public void testBatchDeleteBlockedByDiscoveryInOneNamespace() {
+        loginAsAdmin();
         List<String> ids = List.of("namespace-primary-key-1", "namespace-primary-key-2");
         List<String> namespaceIds = List.of("namespace-id-1", "namespace-id-2");
         when(namespaceMapper.selectByIds(ids)).thenReturn(List.of(
@@ -124,6 +171,7 @@ public final class NamespaceServiceImplTest {
 
     @Test
     public void testDeleteSucceedsWithoutDiscovery() {
+        loginAsAdmin();
         List<String> ids = List.of("namespace-primary-key");
         List<String> namespaceIds = List.of("namespace-id");
         when(namespaceMapper.selectByIds(ids)).thenReturn(List.of(NamespaceDO.builder().id(ids.get(0)).namespaceId(namespaceIds.get(0)).build()));
@@ -133,6 +181,117 @@ public final class NamespaceServiceImplTest {
 
         verify(discoveryMapper).selectAllByNamespaceIds(namespaceIds);
         verify(namespaceMapper).deleteByIds(ids);
+        verifyNoInteractions(namespaceUserService);
+    }
+
+    @Test
+    public void testDeleteRequiresDeletePermission() {
+        loginAs("user-1");
+        doThrow(new UnauthorizedException()).when(subject).checkPermission("system:namespace:delete");
+
+        assertThrows(UnauthorizedException.class, () -> namespaceService.delete(List.of("namespace-primary-key")));
+
+        verifyNoInteractions(namespaceMapper, namespaceUserService, discoveryMapper);
+    }
+
+    @Test
+    public void testDeleteRequiresNamespaceMembership() {
+        loginAs("user-1");
+        List<String> ids = List.of("namespace-primary-key");
+        when(namespaceMapper.selectByIds(ids))
+                .thenReturn(List.of(NamespaceDO.builder().id(ids.get(0)).namespaceId("namespace-id").build()));
+        when(namespaceUserService.listNamespaceIdByUserId("user-1")).thenReturn(List.of("another-namespace-id"));
+
+        assertThrows(UnauthorizedException.class, () -> namespaceService.delete(ids));
+
+        verify(namespaceMapper, never()).deleteByIds(anyList());
+    }
+
+    @Test
+    public void testDeleteSucceedsForNamespaceMember() {
+        loginAs("user-1");
+        List<String> ids = List.of("namespace-primary-key");
+        List<String> namespaceIds = List.of("namespace-id");
+        when(namespaceMapper.selectByIds(ids))
+                .thenReturn(List.of(NamespaceDO.builder().id(ids.get(0)).namespaceId(namespaceIds.get(0)).build()));
+        when(namespaceUserService.listNamespaceIdByUserId("user-1")).thenReturn(namespaceIds);
+        when(discoveryMapper.selectAllByNamespaceIds(namespaceIds)).thenReturn(Collections.emptyList());
+
+        assertEquals(ShenyuResultMessage.DELETE_SUCCESS, namespaceService.delete(ids));
+
+        verify(subject).checkPermission("system:namespace:delete");
+        verify(namespaceMapper).deleteByIds(ids);
+    }
+
+    @Test
+    public void testCreateRequiresAddPermission() {
+        loginAs("user-1");
+        doThrow(new UnauthorizedException()).when(subject).checkPermission("system:namespace:add");
+
+        assertThrows(UnauthorizedException.class, () -> namespaceService.createOrUpdate(namespaceDTO(null, null)));
+
+        verify(subject, never()).checkPermission("system:namespace:edit");
+        verifyNoInteractions(namespaceMapper, namespaceEventPublisher);
+    }
+
+    @Test
+    public void testCreateSucceedsWithAddPermission() {
+        loginAs("user-1");
+        when(namespaceMapper.insert(any())).thenReturn(1);
+
+        assertNotNull(namespaceService.createOrUpdate(namespaceDTO(null, null)));
+
+        verify(subject).checkPermission("system:namespace:add");
+        verify(subject, never()).checkPermission("system:namespace:edit");
+        verify(namespaceMapper).insert(any());
+    }
+
+    @Test
+    public void testCreateRejectsExistingNamespaceId() {
+        loginAs("user-1");
+        when(namespaceMapper.selectByNamespaceId("namespace-id"))
+                .thenReturn(NamespaceDO.builder().id("another-id").namespaceId("namespace-id").build());
+
+        assertThrows(ShenyuAdminException.class,
+                () -> namespaceService.createOrUpdate(namespaceDTO(null, "namespace-id")));
+
+        verify(namespaceMapper, never()).insert(any());
+        verifyNoInteractions(namespaceEventPublisher);
+    }
+
+    @Test
+    public void testUpdateRequiresEditPermission() {
+        loginAs("user-1");
+        doThrow(new UnauthorizedException()).when(subject).checkPermission("system:namespace:edit");
+
+        assertThrows(UnauthorizedException.class,
+                () -> namespaceService.createOrUpdate(namespaceDTO("id", "namespace-id")));
+
+        verify(subject, never()).checkPermission("system:namespace:add");
+        verifyNoInteractions(namespaceMapper, namespaceUserService);
+    }
+
+    @Test
+    public void testUpdateRequiresNamespaceMembership() {
+        loginAs("user-1");
+        when(namespaceUserService.listNamespaceIdByUserId("user-1")).thenReturn(List.of("another-namespace-id"));
+
+        assertThrows(UnauthorizedException.class,
+                () -> namespaceService.createOrUpdate(namespaceDTO("id", "namespace-id")));
+
+        verify(namespaceMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testUpdateSucceedsForNamespaceMember() {
+        loginAs("user-1");
+        when(namespaceUserService.listNamespaceIdByUserId("user-1")).thenReturn(List.of("namespace-id"));
+        when(namespaceMapper.updateSelective(any())).thenReturn(1);
+
+        assertNotNull(namespaceService.createOrUpdate(namespaceDTO("id", "namespace-id")));
+
+        verify(subject).checkPermission("system:namespace:edit");
+        verify(namespaceMapper).updateSelective(any());
     }
 
     @Test

@@ -22,6 +22,7 @@ create table dashboard_user
     role         NUMBER(10) not null,
     enabled      NUMBER(3) not null,
     client_id     VARCHAR2(32),
+    token_version NUMBER(10) default 0 not null,
     date_created timestamp(3) default SYSDATE not null,
     date_updated timestamp(3) default SYSDATE not null,
     PRIMARY KEY (id),
@@ -38,6 +39,8 @@ comment on column DASHBOARD_USER.role
   is 'role';
 comment on column DASHBOARD_USER.enabled
   is 'delete or not';
+comment on column DASHBOARD_USER.token_version
+  is 'token version used to revoke issued JWTs';
 comment on column DASHBOARD_USER.date_created
   is 'create time';
 comment on column DASHBOARD_USER.date_updated
@@ -1052,6 +1055,12 @@ insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) *
 values ('1518229897206079508', 'keyResolverName', 'REMOTE_ADDRESS_KEY_RESOLVER', 'remoteAddress', 'REMOTE_ADDRESS_KEY_RESOLVER', 'Rate limit by remote address', 1, 1);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+values ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+values ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1);
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 values ('1518229897206079509', 'automaticTransitionFromOpenToHalfOpenEnabled', 'AUTOMATIC_HALF_OPEN', 'open', 'true', null, 1, 1);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(type, dict_code, dict_name)) */ into SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
@@ -1557,6 +1566,9 @@ values ('1518229897210273829', '4', 'algorithmName', 'algorithmName', 3, 2, 1, '
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273830', '4', 'keyResolverName', 'keyResolverName', 3, 2, 4, '{"required":"1","defaultValue":"WHOLE_KEY_RESOLVER","rule":""}');
+
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273831', '5', 'upstreamHost', 'host', 2, 1, 0, null);
@@ -3085,7 +3097,7 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(shenyu_dict(id)) */ INTO shenyu_dict (id, 
 VALUES ('1679002911061737583', 'postRole', 'ROLE_TYPE_USER', 'USER', 'user', 'user', 1, 1, to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2024-02-07 14:31:49', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) 
-VALUES ('1801816010882822189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '52', NULL, 171, 0, to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'));
+VALUES ('1801816010882822189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '52', NULL, 170, 0, to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'), to_timestamp('2022-05-25 18:02:53', 'YYYY-MM-DD HH24:MI:SS'));
 
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(resource(id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
@@ -3330,9 +3342,9 @@ VALUES ('1722804548510507240', '53', 'provider', 'provider', 3, 3, 0, '{"require
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated)
 VALUES ('61', 'mcpServer', NULL, 'MCP', 180, 0, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin(id)) */ INTO plugin (id, name, config, role, sort, enabled, date_created, date_updated)
-VALUES ('68', 'agentGateway', NULL, 'Ai', 198, 0, sysdate, sysdate);
+VALUES ('68', 'agentGateway', NULL, 'Ai', 169, 0, sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id,namespace_id,plugin_id, config, sort, enabled)
-VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 198, 0);
+VALUES ('1960000000000001030','649330b6-c2d7-4edc-be8e-8a54df9eb385','68', NULL, 169, 0);
 
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated)
 VALUES ('1801816010882832189', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '61', NULL, 180, 0, sysdate, sysdate);
@@ -3561,3 +3573,31 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', sysdate, sysdate);
+CREATE TABLE registration_fencing_target (
+    id varchar2(128) NOT NULL,
+    date_created timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    domain_id varchar2(128) NOT NULL,
+    namespace_id varchar2(64) NOT NULL,
+    selector_id varchar2(128) NOT NULL,
+    plugin_id varchar2(128) NOT NULL,
+    protocol varchar2(32) NOT NULL,
+    host varchar2(255) NOT NULL,
+    port number(10) NOT NULL,
+    principal_id varchar2(128) NOT NULL,
+    enabled number(3) NOT NULL,
+    state varchar2(16) NOT NULL,
+    generation number(19) NOT NULL,
+    owner_startup_id varchar2(64),
+    session_id varchar2(128),
+    last_sequence number(19) NOT NULL,
+    last_payload clob,
+    last_result clob,
+    last_request_id varchar2(64),
+    last_request_payload clob,
+    retired_startups clob,
+    CONSTRAINT registration_fencing_target_pk PRIMARY KEY (id),
+    CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
+);
+CREATE INDEX idx_registration_fencing_target_address ON registration_fencing_target (namespace_id, host, port);
+CREATE INDEX idx_fencing_domain_session ON registration_fencing_target (domain_id, session_id);

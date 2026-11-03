@@ -26,6 +26,9 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
+import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 import org.apache.shenyu.plugin.grpc.proto.MessageWriter;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
@@ -38,10 +41,13 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -143,6 +149,33 @@ class ShenyuGrpcCancellationTest {
         assertEquals(1, call.cancellations.get());
         completion.cancel(true);
         assertEquals(1, call.cancellations.get());
+    }
+
+    @Test
+    void aggregateOverflowFailsResultWithoutWaitingForTransportClose() {
+        RecordingCall call = new RecordingCall();
+        call.closeOnCancel = false;
+        ShenyuGrpcClient client = client(call);
+        GrpcRegisterConfig config = new GrpcRegisterConfig();
+        config.setMaxAggregatedResultCount(1L);
+        Singleton.INST.single(GrpcRegisterConfig.class, config);
+        try {
+            CompletableFuture<ShenyuGrpcResponse> result = client.call(
+                    MetaData.builder().serviceName("cancel.Service").methodName("overflow").build(),
+                    CallOptions.DEFAULT, "{\"data\":[{}]}", MethodDescriptor.MethodType.SERVER_STREAMING);
+            DynamicMessage message = JsonMessage.buildJsonMessage("{\"value\":1}");
+            call.listener.onMessage(message);
+            call.listener.onMessage(message);
+
+            ExecutionException error = assertThrows(ExecutionException.class,
+                    () -> result.get(1, TimeUnit.SECONDS));
+            assertTrue(error.getCause() instanceof ShenyuGrpcException);
+            assertTrue(error.getCause().getMessage().contains("exceeded budget"));
+            assertTrue(result.isCompletedExceptionally());
+            assertEquals(1, call.cancellations.get());
+        } finally {
+            Singleton.INST.remove(GrpcRegisterConfig.class);
+        }
     }
 
     private CompletableFuture<ShenyuGrpcResponse> start(final RecordingCall call, final MethodDescriptor.MethodType type) {

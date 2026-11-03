@@ -85,6 +85,7 @@ public final class RateLimiterPluginDataHandlerTest {
         RateLimiterPluginDataHandler.CACHED_HANDLE.get().removeHandle("1_clear-test");
         RateLimiterPluginDataHandler.CACHED_HANDLE.get().removeHandle("1_null-clear-test");
         RateLimiterPluginDataHandler.CACHED_HANDLE.get().removeHandle("1_remove-null-test");
+        RateLimiterPluginDataHandler.CACHED_HANDLE.get().removeHandle("1_policy-test");
     }
 
     @BeforeEach
@@ -267,6 +268,28 @@ public final class RateLimiterPluginDataHandlerTest {
         handler.removeRule(ruleData);
 
         assertNull(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_remove-null-test"));
+    }
+
+    /**
+     * A handle update must replace the cached backend-failure policy instead of keeping a stale one.
+     */
+    @Test
+    public void handlerRuleReplacesBackendFailurePolicy() {
+        final RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
+        final RuleData ruleData = new RuleData();
+        ruleData.setSelectorId("1");
+        ruleData.setId("policy-test");
+        final RateLimiterHandle rejectHandle = RateLimiterHandle.newDefaultInstance();
+        rejectHandle.setBackendFailurePolicy(RateLimiterHandle.BACKEND_FAILURE_POLICY_REJECT);
+        ruleData.setHandle(GsonUtils.getGson().toJson(rejectHandle));
+        handler.handlerRule(ruleData);
+        assertTrue(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_policy-test").isRejectOnBackendFailure());
+
+        final RateLimiterHandle allowHandle = RateLimiterHandle.newDefaultInstance();
+        allowHandle.setBackendFailurePolicy(RateLimiterHandle.BACKEND_FAILURE_POLICY_ALLOW);
+        ruleData.setHandle(GsonUtils.getGson().toJson(allowHandle));
+        handler.handlerRule(ruleData);
+        assertFalse(RateLimiterPluginDataHandler.CACHED_HANDLE.get().obtainHandle("1_policy-test").isRejectOnBackendFailure());
     }
 
     /**

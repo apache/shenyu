@@ -107,6 +107,14 @@ public final class ExceptionHandlersTest {
     }
 
     @Test
+    public void testWrappedUnauthorizedExceptionHandler() {
+        ShenyuException shenyuException = new ShenyuAdminException(new UnauthorizedException("Permission denied"));
+        ShenyuAdminResult result = exceptionHandlersUnderTest.handleShenyuException(shenyuException);
+        Assertions.assertEquals(CommonErrorCode.TOKEN_NO_PERMISSION, result.getCode().intValue());
+        Assertions.assertEquals(ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION, result.getMessage());
+    }
+
+    @Test
     public void testServerExceptionHandlerByDuplicateKeyException() {
         DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleDuplicateKeyException(duplicateKeyException);

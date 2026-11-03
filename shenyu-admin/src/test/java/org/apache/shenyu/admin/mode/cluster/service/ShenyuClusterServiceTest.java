@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.scale.scaler.ScaleLifecycleService;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,13 +45,12 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test case for {@link ShenyuClusterService} shutdown lifecycle.
+ * Test case for {@link ShenyuClusterService}.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -78,6 +78,11 @@ public final class ShenyuClusterServiceTest {
         properties.setSelectPeriod(1L);
         clusterService = new ShenyuClusterService(
                 clusterSelectMasterService, upstreamCheckService, instanceCheckService, scaleLifecycleService, properties);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        clusterService.shutdown();
     }
 
     @Test
@@ -131,18 +136,107 @@ public final class ShenyuClusterServiceTest {
 
         clusterService.start("127.0.0.1", 9095, "/");
         // the first election succeeded and the renewal loop is running
-        org.mockito.Mockito.verify(clusterSelectMasterService, timeout(AWAIT_MILLIS).atLeastOnce())
+        verify(clusterSelectMasterService, timeout(AWAIT_MILLIS).atLeastOnce())
                 .selectMaster(anyString(), anyString(), anyString());
 
         clusterService.shutdown();
 
         // the interrupted renewal loop releases leadership through its own finally block
-        org.mockito.Mockito.verify(clusterSelectMasterService, timeout(3000L)).releaseMaster();
+        verify(clusterSelectMasterService, timeout(3000L)).releaseMaster();
         // and the existing error path closes the owned check services
-        org.mockito.Mockito.verify(upstreamCheckService, timeout(3000L)).close();
-        org.mockito.Mockito.verify(instanceCheckService, timeout(3000L)).close();
+        verify(upstreamCheckService, timeout(3000L)).close();
+        verify(instanceCheckService, timeout(3000L)).close();
+        verify(scaleLifecycleService, timeout(3000L)).start();
+        verify(scaleLifecycleService, timeout(3000L)).stop();
+    }
+
+    @Test
+    public void testMasterSelectionContinuesAfterException() throws InterruptedException {
+        CountDownLatch attempts = new CountDownLatch(2);
+        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString())).thenAnswer(invocation -> {
+            attempts.countDown();
+            if (attempts.getCount() == 1) {
+                throw new RuntimeException("simulated select error");
+            }
+            return false;
+        });
+
+        clusterService.start("127.0.0.1", 9195, "/shenyu");
+
+        assertTrue(attempts.await(5, TimeUnit.SECONDS), "Periodic master selection must continue after an exception");
+        clusterService.shutdown();
+
+        verify(clusterSelectMasterService, atLeast(2)).selectMaster("127.0.0.1", "9195", "/shenyu");
+        verify(clusterSelectMasterService, never()).releaseMaster();
+        verify(upstreamCheckService, never()).setup();
+        verify(instanceCheckService, never()).setup();
+        verify(scaleLifecycleService, never()).start();
+    }
+
+    @Test
+    public void testMasterRenewalExceptionCleansUpAndRetries() throws InterruptedException {
+        CountDownLatch attempts = new CountDownLatch(2);
+        AtomicInteger invocationCount = new AtomicInteger();
+
+        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString())).thenAnswer(invocation -> {
+            attempts.countDown();
+            int count = invocationCount.incrementAndGet();
+            return count == 1;
+        });
+
+        when(clusterSelectMasterService.checkMasterStatus()).thenAnswer(invocation -> {
+            throw new IllegalStateException("simulated lock lost");
+        });
+
+        clusterService.start("127.0.0.1", 9195, "/shenyu");
+
+        assertTrue(attempts.await(5, TimeUnit.SECONDS), "Master selection should retry on next period after renewal failure");
+        clusterService.shutdown();
+
+        verify(upstreamCheckService).setup();
+        verify(instanceCheckService).setup();
         verify(scaleLifecycleService).start();
-        verify(scaleLifecycleService, times(2)).stop();
+        verify(upstreamCheckService).close();
+        verify(instanceCheckService).close();
+        verify(scaleLifecycleService).stop();
+        verify(clusterSelectMasterService, atLeast(1)).releaseMaster();
+    }
+
+    @Test
+    public void testSelectMasterFailureWaitsForNextPeriod() throws InterruptedException {
+        CountDownLatch attempts = new CountDownLatch(2);
+        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString())).thenAnswer(invocation -> {
+            attempts.countDown();
+            return false;
+        });
+
+        clusterService.start("127.0.0.1", 9195, "/shenyu");
+
+        assertTrue(attempts.await(5, TimeUnit.SECONDS));
+        clusterService.shutdown();
+
+        verify(clusterSelectMasterService, atLeast(2)).selectMaster("127.0.0.1", "9195", "/shenyu");
+        verify(upstreamCheckService, never()).setup();
+        verify(instanceCheckService, never()).setup();
+        verify(scaleLifecycleService, never()).start();
+        verify(upstreamCheckService, never()).close();
+        verify(instanceCheckService, never()).close();
+        verify(clusterSelectMasterService, never()).releaseMaster();
+    }
+
+    @Test
+    public void testSelectMasterErrorCountTracking() throws Exception {
+        CountDownLatch errorsOccurred = new CountDownLatch(2);
+        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString())).thenAnswer(invocation -> {
+            errorsOccurred.countDown();
+            throw new RuntimeException("consecutive failure");
+        });
+
+        clusterService.start("127.0.0.1", 9195, "/shenyu");
+        assertTrue(errorsOccurred.await(5, TimeUnit.SECONDS));
+        assertTrue(clusterService.getSelectMasterErrorCount() >= 2);
+
+        clusterService.shutdown();
     }
 
     private ScheduledExecutorService scheduler() {
@@ -170,14 +264,11 @@ public final class ShenyuClusterServiceTest {
         AtomicInteger attempts = new AtomicInteger();
         CountDownLatch attemptsFinished = new CountDownLatch(2);
         when(localSelectMasterService.selectMaster("127.0.0.1", "9195", "/shenyu")).thenAnswer(invocation -> {
+            attemptsFinished.countDown();
             if (attempts.incrementAndGet() == 1) {
                 throw new IllegalStateException("temporary lock failure");
             }
             return false;
-        });
-        when(localSelectMasterService.releaseMaster()).thenAnswer(invocation -> {
-            attemptsFinished.countDown();
-            return true;
         });
 
         ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionTestUtils.getField(localClusterService, "executorService");
@@ -186,9 +277,9 @@ public final class ShenyuClusterServiceTest {
 
             assertTrue(attemptsFinished.await(5, TimeUnit.SECONDS));
             verify(localSelectMasterService, atLeast(2)).selectMaster("127.0.0.1", "9195", "/shenyu");
-            verify(localSelectMasterService, atLeast(2)).releaseMaster();
-            verify(localUpstreamCheckService, times(1)).close();
-            verify(localInstanceCheckService, times(1)).close();
+            verify(localSelectMasterService, never()).releaseMaster();
+            verify(localUpstreamCheckService, never()).close();
+            verify(localInstanceCheckService, never()).close();
         } finally {
             executorService.shutdownNow();
         }

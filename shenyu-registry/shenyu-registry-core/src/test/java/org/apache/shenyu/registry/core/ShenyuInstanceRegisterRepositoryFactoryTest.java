@@ -71,7 +71,7 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
     void noProviderGivesDependencyHint() throws Exception {
         useProviders("");
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> ShenyuInstanceRegisterRepositoryFactory.newInstance("zookeeper"));
+                () -> ShenyuInstanceRegisterRepositoryFactory.newInstance("zookeeper", classLoader));
         assertTrue(exception.getMessage().contains("shenyu-registry-zookeeper"));
         assertTrue(exception.getMessage().contains("runtime classpath"));
         assertTrue(exception.getMessage().contains("Available types: []"));
@@ -80,22 +80,22 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
     @Test
     void oneProviderIsLoadedAndCached() throws Exception {
         useProviders(provider("external"));
-        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance("external");
+        ShenyuInstanceRegisterRepository repository = ShenyuInstanceRegisterRepositoryFactory.newInstance("external", classLoader);
         assertEquals(TestRepository.class, repository.getClass());
-        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newInstance("external"));
-        assertNotSame(repository, ShenyuInstanceRegisterRepositoryFactory.loadRepository("external"));
+        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newInstance("external", classLoader));
+        assertNotSame(repository, ShenyuInstanceRegisterRepositoryFactory.loadRepository("external", classLoader));
     }
 
     @Test
     void multipleExternalProvidersKeepTheirSpiKeys() throws Exception {
         useProviders(provider("consul") + provider("polaris"));
-        ShenyuInstanceRegisterRepository consul = ShenyuInstanceRegisterRepositoryFactory.newInstance("consul");
-        ShenyuInstanceRegisterRepository polaris = ShenyuInstanceRegisterRepositoryFactory.newInstance("polaris");
+        ShenyuInstanceRegisterRepository consul = ShenyuInstanceRegisterRepositoryFactory.newInstance("consul", classLoader);
+        ShenyuInstanceRegisterRepository polaris = ShenyuInstanceRegisterRepositoryFactory.newInstance("polaris", classLoader);
         assertNotSame(consul, polaris);
-        assertSame(consul, ShenyuInstanceRegisterRepositoryFactory.newInstance("consul"));
-        assertSame(polaris, ShenyuInstanceRegisterRepositoryFactory.newInstance("polaris"));
+        assertSame(consul, ShenyuInstanceRegisterRepositoryFactory.newInstance("consul", classLoader));
+        assertSame(polaris, ShenyuInstanceRegisterRepositoryFactory.newInstance("polaris", classLoader));
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> ShenyuInstanceRegisterRepositoryFactory.newInstance("unknown"));
+                () -> ShenyuInstanceRegisterRepositoryFactory.newInstance("unknown", classLoader));
         assertTrue(exception.getMessage().contains("Available types: [consul, polaris]"));
     }
 
@@ -103,9 +103,9 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
     void missingProviderFailsFromEveryFactoryEntryPoint() throws Exception {
         useProviders(provider("external"));
         RegisterConfig config = config("missing");
-        assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.loadRepository("missing"));
-        assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config));
-        assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(config));
+        assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.loadRepository("missing", classLoader));
+        assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config, classLoader));
+        assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(config, classLoader));
     }
 
     @Test
@@ -115,6 +115,10 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
             assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.loadRepository(type));
             assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config(type)));
             assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(config(type)));
+            assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.newInstance(type, classLoader));
+            assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.loadRepository(type, classLoader));
+            assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config(type), classLoader));
+            assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(config(type), classLoader));
         }
     }
 
@@ -122,24 +126,24 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
     void initializationAndRenewalPreserveCacheContract() throws Exception {
         useProviders(provider("external"));
         RegisterConfig config = config("external");
-        TestRepository repository = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config);
+        TestRepository repository = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config, classLoader);
         assertSame(config, repository.config);
         assertEquals(1, repository.initCount);
-        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config));
+        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config, classLoader));
         assertEquals(1, repository.initCount);
         RegisterConfig replacement = config("external");
         replacement.setServerLists("replacement");
-        TestRepository renewed = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(replacement);
+        TestRepository renewed = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(replacement, classLoader);
         assertNotSame(repository, renewed);
         assertSame(replacement, renewed.config);
-        assertSame(renewed, ShenyuInstanceRegisterRepositoryFactory.newInstance("external"));
+        assertSame(renewed, ShenyuInstanceRegisterRepositoryFactory.newInstance("external", classLoader));
     }
 
     @Test
     void uninitializedCachedInstanceKeepsExistingBehavior() throws Exception {
         useProviders(provider("external"));
-        TestRepository repository = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.newInstance("external");
-        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config("external")));
+        TestRepository repository = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.newInstance("external", classLoader);
+        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config("external"), classLoader));
         assertEquals(0, repository.initCount);
     }
 
@@ -148,11 +152,18 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
         useProviders(provider("external"));
         RegisterConfig failing = config("external");
         failing.setServerLists("fail");
-        assertThrows(IllegalStateException.class, () -> ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(failing));
-        TestRepository repository = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config("external"));
+        assertThrows(IllegalStateException.class, () -> ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(failing, classLoader));
+        TestRepository repository = (TestRepository) ShenyuInstanceRegisterRepositoryFactory.newAndInitInstance(config("external"), classLoader);
         assertEquals(1, repository.initCount);
-        assertThrows(IllegalStateException.class, () -> ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(failing));
-        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newInstance("external"));
+        assertThrows(IllegalStateException.class, () -> ShenyuInstanceRegisterRepositoryFactory.reNewAndInitInstance(failing, classLoader));
+        assertSame(repository, ShenyuInstanceRegisterRepositoryFactory.newInstance("external", classLoader));
+    }
+
+    @Test
+    void externalProvidersDoNotLeakIntoDefaultLoader() throws Exception {
+        useProviders(provider("external"));
+        assertEquals(TestRepository.class, ShenyuInstanceRegisterRepositoryFactory.loadRepository("external", classLoader).getClass());
+        assertThrows(IllegalArgumentException.class, () -> ShenyuInstanceRegisterRepositoryFactory.loadRepository("external"));
     }
 
     private void useProviders(final String definitions) throws IOException {
@@ -168,7 +179,6 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
                 return super.getResources(name);
             }
         };
-        ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class, classLoader);
     }
 
     private String provider(final String type) {
@@ -183,9 +193,9 @@ class ShenyuInstanceRegisterRepositoryFactoryTest {
         Field repositories = ShenyuInstanceRegisterRepositoryFactory.class.getDeclaredField("REPOSITORY_MAP");
         repositories.setAccessible(true);
         ((Map<?, ?>) repositories.get(null)).clear();
-        Field loaders = ExtensionLoader.class.getDeclaredField("LOADERS");
-        loaders.setAccessible(true);
-        ((Map<?, ?>) loaders.get(null)).remove(ShenyuInstanceRegisterRepository.class);
+        if (Objects.nonNull(classLoader)) {
+            ExtensionLoader.removeExtensionLoader(ShenyuInstanceRegisterRepository.class, classLoader);
+        }
     }
 
     /**

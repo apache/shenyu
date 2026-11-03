@@ -43,6 +43,12 @@
 
 ### Behavior Changes
 
+- Agent Gateway's default order changes from 198 to 169. Matched MCP traffic now
+  terminates in Agent Gateway before `mcpServer`, Kafka/ElasticSearch logging,
+  sensitive-word filtering, Prompt, Token Limiter, RocketMQ logging and AI Proxy.
+  Deployments that previously relied on the later `mcpServer` handling an overlapping
+  path must review their selectors and explicit plugin orders; the migration changes
+  only old Agent Gateway sort values and does not rewrite custom orders.
 - The `leastActive` load balancer now sees outstanding requests for the websocket
   plugin and for apache dubbo gray routing, not only for the divide plugin. A
   proxied websocket session is counted for as long as it runs, and a gray routed

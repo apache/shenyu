@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.mapping.VendorDatabaseIdProvider;
 import org.apache.shenyu.admin.config.properties.DataBaseProperties;
@@ -25,6 +26,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -56,19 +60,52 @@ public class DataBaseConfiguration {
     /**
      * Database dialect configuration.
      *
+     * <p>opengauss-jdbc reports the product name as PostgreSQL, so the vendor map would select the
+     * postgresql statements. The configured {@code shenyu.database.dialect} is the same value that
+     * chooses scripts and interceptors, and it wins.
+     *
+     * @param dialect configured admin dialect
      * @return {@linkplain DatabaseIdProvider}
      */
     @Bean
-    public DatabaseIdProvider databaseIdProvider() {
-        Properties properties = new Properties();
+    public DatabaseIdProvider databaseIdProvider(@Value("${shenyu.database.dialect:h2}") final String dialect) {
+        final Properties properties = new Properties();
         properties.setProperty("Oracle", "oracle");
         properties.setProperty("MySQL", "mysql");
         properties.setProperty("PostgreSQL", "postgresql");
         properties.setProperty("H2", "h2");
         properties.setProperty("OpenGauss", "opengauss");
         properties.setProperty("OceanBase", "oceanbase");
-        VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
-        databaseIdProvider.setProperties(properties);
-        return databaseIdProvider;
+        final VendorDatabaseIdProvider vendor = new VendorDatabaseIdProvider();
+        vendor.setProperties(properties);
+        return new DialectDatabaseIdProvider(dialect, vendor);
+    }
+
+    /**
+     * Prefer the configured dialect, and consult the JDBC product name only when it is blank.
+     */
+    static final class DialectDatabaseIdProvider implements DatabaseIdProvider {
+
+        private final String dialect;
+
+        private final DatabaseIdProvider vendor;
+
+        private DialectDatabaseIdProvider(final String dialect, final DatabaseIdProvider vendor) {
+            this.dialect = dialect;
+            this.vendor = vendor;
+        }
+
+        @Override
+        public void setProperties(final Properties properties) {
+            vendor.setProperties(properties);
+        }
+
+        @Override
+        public String getDatabaseId(final DataSource dataSource) throws SQLException {
+            if (StringUtils.isBlank(dialect)) {
+                return vendor.getDatabaseId(dataSource);
+            }
+            return dialect.trim().toLowerCase(Locale.ROOT);
+        }
     }
 }

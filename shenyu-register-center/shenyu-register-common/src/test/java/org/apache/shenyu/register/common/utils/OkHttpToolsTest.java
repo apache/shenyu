@@ -24,7 +24,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.apache.shenyu.register.common.exception.HttpResponseException;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -34,6 +38,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test case for {@link OkHttpTools}.
@@ -50,10 +55,22 @@ public final class OkHttpToolsTest {
 
     private final Map<String, Object> request = new HashMap<>();
 
+    private OkHttpClient originalClient;
+
+    private Field clientField;
+
     @BeforeEach
-    public void setUpWireMock() {
+    public void setUpWireMock() throws ReflectiveOperationException {
         getUrl = url + "/get";
         postUrl = url + "/post";
+        clientField = OkHttpTools.class.getDeclaredField("client");
+        clientField.setAccessible(true);
+        originalClient = (OkHttpClient) clientField.get(OkHttpTools.getInstance());
+    }
+
+    @AfterEach
+    public void restoreClient() throws IllegalAccessException {
+        clientField.set(OkHttpTools.getInstance(), originalClient);
     }
 
     @Test
@@ -90,5 +107,56 @@ public final class OkHttpToolsTest {
         request.put("get", "request");
         Assertions.assertDoesNotThrow(() -> OkHttpTools.getInstance().get(getUrl, request));
         Assertions.assertDoesNotThrow(() -> OkHttpTools.getInstance().get(getUrl, "userName", "passWord"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {401, 403, 500, 503})
+    public void testCheckedPostPreservesStatusAndClosesResponse(final int status) throws Exception {
+        Response response = checkedResponse();
+        when(response.code()).thenReturn(status);
+        HttpResponseException failure = Assertions.assertThrows(HttpResponseException.class,
+                () -> OkHttpTools.getInstance().postWithStatusCheck(postUrl, json, new Headers.Builder().build()));
+        Assertions.assertEquals(status, failure.getStatusCode());
+        verify(response).close();
+    }
+
+    @Test
+    public void testCheckedPostReadsBodyAndClosesResponse() throws Exception {
+        Response response = checkedResponse();
+        when(response.isSuccessful()).thenReturn(true);
+        ResponseBody body = mock(ResponseBody.class);
+        when(response.body()).thenReturn(body);
+        when(body.string()).thenReturn("success");
+        Assertions.assertEquals("success", OkHttpTools.getInstance().postWithStatusCheck(postUrl, json, new Headers.Builder().build()));
+        verify(response).close();
+    }
+
+    @Test
+    public void testCheckedPostClosesResponseWhenBodyReadFails() throws Exception {
+        Response response = checkedResponse();
+        when(response.isSuccessful()).thenReturn(true);
+        ResponseBody body = mock(ResponseBody.class);
+        when(response.body()).thenReturn(body);
+        when(body.string()).thenThrow(new IOException("test read failure"));
+        Assertions.assertThrows(IOException.class, () -> OkHttpTools.getInstance().postWithStatusCheck(postUrl, json, new Headers.Builder().build()));
+        verify(response).close();
+    }
+
+    @Test
+    public void testCheckedPostRejectsMissingBody() throws Exception {
+        Response response = checkedResponse();
+        when(response.isSuccessful()).thenReturn(true);
+        Assertions.assertThrows(IOException.class, () -> OkHttpTools.getInstance().postWithStatusCheck(postUrl, json, new Headers.Builder().build()));
+        verify(response).close();
+    }
+
+    private Response checkedResponse() throws Exception {
+        OkHttpClient client = mock(OkHttpClient.class);
+        clientField.set(OkHttpTools.getInstance(), client);
+        Call call = mock(Call.class);
+        when(client.newCall(any())).thenReturn(call);
+        Response response = mock(Response.class);
+        when(call.execute()).thenReturn(response);
+        return response;
     }
 }

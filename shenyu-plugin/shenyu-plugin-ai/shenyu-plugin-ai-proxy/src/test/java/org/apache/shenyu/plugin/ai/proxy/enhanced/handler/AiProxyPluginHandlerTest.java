@@ -19,12 +19,15 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.handler;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,6 +46,11 @@ class AiProxyPluginHandlerTest {
     @BeforeEach
     void setUp() {
         handler = new AiProxyPluginHandler();
+    }
+
+    @AfterEach
+    void cleanupCache() {
+        AiProxyApiKeyCache.getInstance().refresh();
     }
 
     @Test
@@ -119,6 +127,29 @@ class AiProxyPluginHandlerTest {
 
         handler.removeSelector(selector);
         assertNull(handler.getSelectorCachedHandle().obtainHandle(key));
+    }
+
+    @Test
+    void testRemoveSelectorClearsProxyApiKeyCache() {
+        SelectorData selector = new SelectorData();
+        selector.setId("sel-cache");
+        selector.setHandle("{\"provider\":\"open_ai\",\"model\":\"gpt-4\"}");
+        handler.handlerSelector(selector);
+
+        ProxyApiKeyData data = ProxyApiKeyData.builder()
+                .selectorId("sel-cache")
+                .proxyApiKey("proxy-cache")
+                .realApiKey("real-cache")
+                .enabled(Boolean.TRUE)
+                .namespaceId("default")
+                .build();
+        AiProxyApiKeyCache.getInstance().cache(data);
+        assertEquals("real-cache", AiProxyApiKeyCache.getInstance().getRealApiKey("sel-cache", "proxy-cache"));
+
+        handler.removeSelector(selector);
+
+        assertNull(AiProxyApiKeyCache.getInstance().getRealApiKey("sel-cache", "proxy-cache"));
+        assertEquals(0, AiProxyApiKeyCache.getInstance().size());
     }
 
     @Test

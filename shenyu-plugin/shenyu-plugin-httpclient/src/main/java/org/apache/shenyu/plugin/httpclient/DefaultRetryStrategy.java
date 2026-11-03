@@ -48,6 +48,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -110,7 +111,29 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     ? resend(exchange, duration, exclude)
                     : Mono.delay(backoff).flatMap(ignored -> resend(exchange, duration, exclude)));
         }
-        return result.onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+        return mapFailoverErrors(result);
+    }
+
+    /**
+     * Retry eligible failures on another upstream using the supplied backoff policy.
+     *
+     * @param clientResponse original request response
+     * @param exchange current exchange
+     * @param duration timeout per request
+     * @param retry retry policy
+     * @return response after failover
+     */
+    Mono<R> executeFailover(final Mono<R> clientResponse, final ServerWebExchange exchange, final Duration duration, final Retry retry) {
+        return mapFailoverErrors(Mono.defer(() -> {
+            final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
+            final AtomicBoolean firstAttempt = new AtomicBoolean(true);
+            return Mono.defer(() -> firstAttempt.compareAndSet(true, false) ? clientResponse : resend(exchange, duration, exclude))
+                    .retryWhen(retry);
+        }));
+    }
+
+    private Mono<R> mapFailoverErrors(final Mono<R> response) {
+        return response.onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         "CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER", th))
                 .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
     }

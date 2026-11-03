@@ -123,6 +123,10 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(ShenyuException.class)
     protected ShenyuAdminResult handleShenyuException(final ShenyuException exception) {
+        if (exception.getCause() instanceof UnauthorizedException) {
+            LOG.error("unauthorized exception", exception.getCause());
+            return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
+        }
         LOG.error(exception.getMessage(), exception);
         String message = Objects.isNull(exception.getCause()) ? null : exception.getCause().getMessage();
         if (!StringUtils.hasText(message)) {

@@ -35,7 +35,9 @@ public class DashboardUserModifyPasswordDTO implements Serializable {
     private String id;
     
     /**
-     * user name.
+     * user name. Informational only: the self-service password change is
+     * authorized against the authenticated user id, never against this
+     * caller-controlled value (#8182).
      */
     private String userName;
     

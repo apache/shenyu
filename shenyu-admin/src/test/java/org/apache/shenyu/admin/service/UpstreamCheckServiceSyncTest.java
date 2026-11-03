@@ -18,6 +18,9 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.listener.DataChangedEvent;
+import org.apache.shenyu.admin.listener.DataChangedEventDispatcher;
+import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -27,7 +30,9 @@ import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
 import org.apache.shenyu.admin.service.converter.DivideSelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
+import org.apache.shenyu.admin.service.manager.LoadServiceDocEntry;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.dto.convert.selector.CommonUpstream;
@@ -48,7 +53,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.SimpleTransactionStatus;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
@@ -58,8 +70,10 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -117,6 +131,7 @@ class UpstreamCheckServiceSyncTest {
                 config, converters, discoveryUpstreamService);
         lenient().when(selectorMapper.selectById(SELECTOR_ID)).thenReturn(SelectorDO.builder().id(SELECTOR_ID)
                 .selectorName("/divide").namespaceId("namespace").pluginId("divide-id").handle("[]").build());
+        lenient().when(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(any(), any(), any())).thenReturn(true);
         lenient().when(pluginMapper.selectById("divide-id"))
                 .thenReturn(PluginDO.builder().id("divide-id").name(PluginEnum.DIVIDE.getName()).build());
     }
@@ -149,7 +164,7 @@ class UpstreamCheckServiceSyncTest {
             ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
             ReflectionTestUtils.invokeMethod(service, "waitFinish");
 
-            verify(discoveryUpstreamService).changeStatusBySelectorIdAndUrl(SELECTOR_ID, failedUrl, Boolean.FALSE);
+            verify(discoveryUpstreamService).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, failedUrl, Boolean.FALSE);
             DiscoverySyncData snapshot = publishedSnapshot();
             assertEquals(1, snapshot.getUpstreamDataList().size());
             assertEquals(healthyUrl, snapshot.getUpstreamDataList().get(0).getUrl());
@@ -176,7 +191,7 @@ class UpstreamCheckServiceSyncTest {
         assertEquals(1, snapshot.getUpstreamDataList().size());
         assertEquals("replacement", snapshot.getUpstreamDataList().get(0).getId());
         assertEquals(80, snapshot.getUpstreamDataList().get(0).getWeight());
-        verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(SELECTOR_ID, replacement.getUrl(), Boolean.TRUE);
+        verify(discoveryUpstreamService, never()).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, replacement.getUrl(), Boolean.TRUE);
         ArgumentCaptor<SelectorDO> selectorCaptor = ArgumentCaptor.forClass(SelectorDO.class);
         verify(selectorMapper).updateSelective(selectorCaptor.capture());
         assertTrue(selectorCaptor.getValue().getHandle().contains(replacement.getUrl()));
@@ -229,7 +244,7 @@ class UpstreamCheckServiceSyncTest {
         ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive), Collections.emptySet());
 
         assertTrue(publishedSnapshot().getUpstreamDataList().isEmpty());
-        verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(SELECTOR_ID, alive.getUpstreamUrl(), Boolean.TRUE);
+        verify(discoveryUpstreamService, never()).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, alive.getUpstreamUrl(), Boolean.TRUE);
     }
 
     @Test
@@ -275,7 +290,7 @@ class UpstreamCheckServiceSyncTest {
 
         ReflectionTestUtils.invokeMethod(service, "updateSelectorHandler", SELECTOR_ID, Collections.singletonList(alive), Collections.emptySet());
 
-        verify(discoveryUpstreamService).changeStatusBySelectorIdAndUrl(SELECTOR_ID, recovered.getUrl(), Boolean.TRUE);
+        verify(discoveryUpstreamService).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, recovered.getUrl(), Boolean.TRUE);
         DiscoverySyncData snapshot = publishedSnapshot();
         assertEquals(1, snapshot.getUpstreamDataList().size());
         DiscoveryUpstreamData upstream = snapshot.getUpstreamDataList().get(0);
@@ -283,6 +298,182 @@ class UpstreamCheckServiceSyncTest {
         assertEquals("recovered", upstream.getId());
         assertEquals(80, upstream.getWeight());
         assertEquals("{}", upstream.getProps());
+    }
+
+    @Test
+    void testRejectedHealthCheckCannotRebuildProtectedRoute() {
+        String url = "127.0.0.1:8080";
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(Collections.singletonList(
+                DiscoveryUpstreamData.builder().url(url).protocol("http://").status(1).build()));
+        when(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, url, Boolean.TRUE)).thenReturn(false);
+        CommonUpstream upstream = DivideUpstream.builder().upstreamUrl(url).protocol("http://").status(false)
+                .healthCheckEnabled(false).build();
+        service.replace(SELECTOR_ID, Collections.singletonList(upstream));
+        @SuppressWarnings("unchecked")
+        List<CommonUpstream> current = (List<CommonUpstream>) ((Map<?, ?>) ReflectionTestUtils
+                .getField(UpstreamCheckService.class, "UPSTREAM_MAP")).get(SELECTOR_ID);
+        current.get(0).setStatus(true);
+        ((Collection<Integer>) ReflectionTestUtils.getField(UpstreamCheckService.class, "PENDING_SYNC"))
+                .add(current.get(0).hashCode());
+
+        ReflectionTestUtils.invokeMethod(service, "updateHandler", SELECTOR_ID, current,
+                Collections.singletonList(current.get(0)), current, new HashSet<>(),
+                Collections.singletonMap(url, false));
+
+        assertFalse(current.get(0).isStatus());
+        verify(discoveryUpstreamService).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, url, Boolean.TRUE);
+        verifyNoInteractions(eventPublisher);
+        verify(selectorMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    void testStaleHealthCheckUsesCommittedOfflineSnapshotInsideSelectorTransaction() {
+        List<String> steps = new ArrayList<>();
+        ReflectionTestUtils.setField(service, "transactionManager", transactionManager(steps));
+        SelectorDO selector = SelectorDO.builder().id(SELECTOR_ID).selectorName("/divide").namespaceId("namespace")
+                .pluginId("divide-id").handle("[]").build();
+        when(selectorMapper.selectByIdForUpdate(SELECTOR_ID)).thenAnswer(invocation -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+            steps.add("selector-lock");
+            return selector;
+        });
+        when(discoveryUpstreamService.hasDiscoveryHandler(SELECTOR_ID)).thenReturn(true);
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenAnswer(invocation -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+            steps.add("snapshot");
+            return Collections.emptyList();
+        });
+        when(selectorMapper.updateSelective(any())).thenAnswer(invocation -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+            steps.add("selector-write");
+            return 1;
+        });
+        doAnswer(invocation -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+            steps.add("event");
+            return null;
+        }).when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+
+        CommonUpstream stale = DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(true).build();
+        stale.setStatus(true);
+        service.replace(SELECTOR_ID, Collections.singletonList(stale));
+        @SuppressWarnings("unchecked")
+        List<CommonUpstream> current = (List<CommonUpstream>) ((Map<?, ?>) ReflectionTestUtils
+                .getField(UpstreamCheckService.class, "UPSTREAM_MAP")).get(SELECTOR_ID);
+        ((Collection<Integer>) ReflectionTestUtils.getField(UpstreamCheckService.class, "PENDING_SYNC")).add(stale.hashCode());
+
+        ReflectionTestUtils.invokeMethod(service, "updateHandler", SELECTOR_ID, current, current, current,
+                new HashSet<>(), Collections.singletonMap(stale.getUpstreamUrl(), false));
+
+        ArgumentCaptor<SelectorDO> selectorCaptor = ArgumentCaptor.forClass(SelectorDO.class);
+        verify(selectorMapper).updateSelective(selectorCaptor.capture());
+        assertFalse(selectorCaptor.getValue().getHandle().contains(stale.getUpstreamUrl()));
+        assertEquals(List.of("begin", "selector-lock", "snapshot", "snapshot", "selector-write", "event", "event", "commit"), steps);
+    }
+
+    @Test
+    void testHealthEventsAreDispatchedOnceAfterCommitByRealDispatcher() {
+        List<String> steps = new ArrayList<>();
+        ReflectionTestUtils.setField(service, "transactionManager", transactionManager(steps));
+        SelectorDO selector = SelectorDO.builder().id(SELECTOR_ID).selectorName("/divide").namespaceId("namespace")
+                .pluginId("divide-id").handle("[]").build();
+        when(selectorMapper.selectByIdForUpdate(SELECTOR_ID)).thenReturn(selector);
+        when(discoveryUpstreamService.hasDiscoveryHandler(SELECTOR_ID)).thenReturn(true);
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(Collections.emptyList());
+        when(selectorMapper.updateSelective(any())).thenReturn(1);
+
+        ApplicationContext applicationContext = mock(ApplicationContext.class);
+        when(applicationContext.getBean(LoadServiceDocEntry.class)).thenReturn(mock(LoadServiceDocEntry.class));
+        DataChangedEventDispatcher dispatcher = new DataChangedEventDispatcher(applicationContext);
+        DataChangedListener listener = mock(DataChangedListener.class);
+        ReflectionTestUtils.setField(dispatcher, "listeners", Collections.singletonList(listener));
+        ReflectionTestUtils.setField(dispatcher, "clusterProperties", new ClusterProperties());
+        doAnswer(invocation -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+            dispatcher.onApplicationEvent(invocation.getArgument(0));
+            return null;
+        }).when(eventPublisher).publishEvent(any(DataChangedEvent.class));
+
+        ReflectionTestUtils.invokeMethod(service, "updateHandler", SELECTOR_ID,
+                Collections.singletonList(DivideUpstream.builder().upstreamUrl("127.0.0.1:8080").protocol("http://").status(true).build()),
+                Collections.emptyList());
+
+        verify(listener, times(1)).onSelectorChanged(any(), any(), any());
+        verify(listener, times(1)).onDiscoveryUpstreamChanged(any(), any());
+        verify(applicationContext, times(1)).getBean(LoadServiceDocEntry.class);
+        verify(eventPublisher, times(2)).publishEvent(any(DataChangedEvent.class));
+        assertEquals(List.of("begin", "commit"), steps);
+    }
+
+    @Test
+    void testRejectedProtectedMemberDoesNotBlockLegacyFailurePublication() {
+        ReflectionTestUtils.setField(service, "transactionManager", transactionManager(new ArrayList<>()));
+        String protectedUrl = "127.0.0.1:8080";
+        String legacyFailedUrl = "127.0.0.1:8081";
+        when(selectorMapper.selectByIdForUpdate(SELECTOR_ID)).thenReturn(SelectorDO.builder().id(SELECTOR_ID).selectorName("/divide")
+                .namespaceId("namespace").pluginId("divide-id").handle("[]").build());
+        DiscoveryUpstreamData protectedData = DiscoveryUpstreamData.builder().url(protectedUrl).protocol("http://").status(0).build();
+        DiscoveryUpstreamData legacyFailedData = DiscoveryUpstreamData.builder().url(legacyFailedUrl).protocol("http://").status(0).build();
+        List<DiscoveryUpstreamData> persisted = new ArrayList<>(List.of(protectedData, legacyFailedData));
+        when(discoveryUpstreamService.hasDiscoveryHandler(SELECTOR_ID)).thenReturn(true);
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(persisted);
+        when(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, protectedUrl, Boolean.FALSE)).thenReturn(false);
+        when(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, legacyFailedUrl, Boolean.FALSE)).thenAnswer(invocation -> {
+            legacyFailedData.setStatus(1);
+            return true;
+        });
+        CommonUpstream protectedUpstream = DivideUpstream.builder().upstreamUrl(protectedUrl).protocol("http://").status(true)
+                .healthCheckEnabled(true).build();
+        CommonUpstream legacyFailedUpstream = DivideUpstream.builder().upstreamUrl(legacyFailedUrl).protocol("http://").status(true)
+                .healthCheckEnabled(true).build();
+        service.replace(SELECTOR_ID, List.of(protectedUpstream, legacyFailedUpstream));
+        @SuppressWarnings("unchecked")
+        List<CommonUpstream> current = (List<CommonUpstream>) ((Map<?, ?>) ReflectionTestUtils
+                .getField(UpstreamCheckService.class, "UPSTREAM_MAP")).get(SELECTOR_ID);
+
+        ReflectionTestUtils.setField(service, "invokeExecutor", new ScheduledThreadPoolExecutor(2));
+        try (MockedStatic<UpstreamCheckUtils> checks = mockStatic(UpstreamCheckUtils.class)) {
+            checks.when(() -> UpstreamCheckUtils.checkUrl(protectedUrl)).thenReturn(false);
+            checks.when(() -> UpstreamCheckUtils.checkUrl(legacyFailedUrl)).thenReturn(false);
+            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, current);
+            ReflectionTestUtils.invokeMethod(service, "waitFinish");
+        }
+
+        DiscoverySyncData published = publishedSnapshot();
+        assertEquals(1, published.getUpstreamDataList().size());
+        assertEquals(protectedUrl, published.getUpstreamDataList().get(0).getUrl());
+        assertEquals(1, legacyFailedData.getStatus());
+        verify(discoveryUpstreamService).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, legacyFailedUrl, Boolean.FALSE);
+        verify(discoveryUpstreamService).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, protectedUrl, Boolean.FALSE);
+        ArgumentCaptor<SelectorDO> selectorCaptor = ArgumentCaptor.forClass(SelectorDO.class);
+        verify(selectorMapper).updateSelective(selectorCaptor.capture());
+        assertTrue(selectorCaptor.getValue().getHandle().contains(protectedUrl));
+        assertFalse(selectorCaptor.getValue().getHandle().contains(legacyFailedUrl));
+    }
+
+    @Test
+    void testRejectedZombieRecoveryRestoresCacheAndKeepsRetry() {
+        String url = "127.0.0.1:8080";
+        when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(Collections.singletonList(
+                DiscoveryUpstreamData.builder().url(url).protocol("http://").status(1).build()));
+        when(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, url, Boolean.TRUE)).thenReturn(false);
+        CommonUpstream upstream = DivideUpstream.builder().upstreamUrl(url).protocol("http://").status(false)
+                .healthCheckEnabled(false).build();
+        ZombieUpstream zombie = ZombieUpstream.transform(upstream, 3, SELECTOR_ID);
+
+        ReflectionTestUtils.invokeMethod(service, "checkZombie0", zombie);
+
+        assertFalse(upstream.isStatus());
+        @SuppressWarnings("unchecked")
+        Map<String, List<CommonUpstream>> cache = (Map<String, List<CommonUpstream>>) ReflectionTestUtils
+                .getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+        assertTrue(Objects.isNull(cache.get(SELECTOR_ID)) || cache.get(SELECTOR_ID).isEmpty());
+        @SuppressWarnings("unchecked")
+        Collection<ZombieUpstream> zombies = (Collection<ZombieUpstream>) ReflectionTestUtils
+                .getField(UpstreamCheckService.class, "ZOMBIE_SET");
+        assertTrue(zombies.contains(zombie));
+        verify(eventPublisher, never()).publishEvent(any());
+        verify(selectorMapper, never()).updateSelective(any());
     }
 
     @Test
@@ -415,6 +606,103 @@ class UpstreamCheckServiceSyncTest {
         org.junit.jupiter.api.Assertions.assertFalse(upstreams.get(SELECTOR_ID).get(1).isStatus());
     }
 
+    /**
+     * Central probe mode (the default): a successful admin probe keeps the legacy behavior and
+     * revives the upstream in the db status, the persisted selector handle and the published
+     * events, see <a href="https://github.com/apache/shenyu/issues/8056">issue #8056</a>.
+     */
+    @Test
+    void testCentralModeProbeSuccessWritesBackAliveAsLegacy() throws Exception {
+        try (ServerSocket healthy = new ServerSocket(0)) {
+            String aliveUrl = "127.0.0.1:" + healthy.getLocalPort();
+            DiscoveryUpstreamData disabled = DiscoveryUpstreamData.builder().url(aliveUrl).protocol("http://").status(1)
+                    .dateCreated(new Timestamp(1)).build();
+            when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(List.of(disabled)));
+            when(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, aliveUrl, Boolean.TRUE)).thenReturn(true);
+            CommonUpstream recovered = DivideUpstream.builder().upstreamUrl(aliveUrl).protocol("http://").status(false).healthCheckEnabled(true).build();
+            ReflectionTestUtils.setField(service, "invokeExecutor", new ScheduledThreadPoolExecutor(2));
+            service.replace(SELECTOR_ID, List.of(recovered));
+            Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+
+            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
+            ReflectionTestUtils.invokeMethod(service, "waitFinish");
+
+            verify(discoveryUpstreamService).tryChangeStatusBySelectorIdAndUrl(SELECTOR_ID, aliveUrl, Boolean.TRUE);
+            ArgumentCaptor<SelectorDO> selector = ArgumentCaptor.forClass(SelectorDO.class);
+            verify(selectorMapper).updateSelective(selector.capture());
+            List<DivideUpstream> handle = GsonUtils.getInstance().fromCurrentList(selector.getValue().getHandle(), DivideUpstream.class);
+            assertEquals(1, handle.size());
+            assertEquals(aliveUrl, handle.get(0).getUpstreamUrl());
+            assertTrue(handle.get(0).isStatus());
+            DiscoverySyncData snapshot = publishedSnapshot();
+            assertEquals(1, snapshot.getUpstreamDataList().size());
+            assertEquals(aliveUrl, snapshot.getUpstreamDataList().get(0).getUrl());
+            assertEquals(0, snapshot.getUpstreamDataList().get(0).getStatus());
+        }
+    }
+
+    /**
+     * Local probe mode: the scheduled check entry is inert, so a probe success can never reach
+     * the write-back of updateSelectorHandler; the explicitly disabled discovery row, the selector
+     * handle and the published events all stay untouched,
+     * see <a href="https://github.com/apache/shenyu/issues/8056">issue #8056</a>.
+     */
+    @Test
+    void testLocalModeScheduledCheckDoesNotReviveDisabledUpstream() throws Exception {
+        service = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        try (Socket crashed = new Socket()) {
+            crashed.bind(new InetSocketAddress("127.0.0.1", 0));
+            String deadUrl = "127.0.0.1:" + crashed.getLocalPort();
+            CommonUpstream upstream = DivideUpstream.builder().upstreamUrl(deadUrl).protocol("http://").status(false).healthCheckEnabled(true).build();
+            service.replace(SELECTOR_ID, List.of(upstream));
+
+            ReflectionTestUtils.invokeMethod(service, "doCheck");
+
+            verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(any(), any(), any());
+            verify(selectorMapper, never()).updateSelective(any());
+            verify(eventPublisher, never()).publishEvent(any());
+        }
+    }
+
+    /**
+     * Local probe mode: even when the probe-execution path below the scheduled entry is exercised
+     * directly and the probe really succeeds, the defensive write-side gate in updateSelectorHandler
+     * keeps the explicitly disabled upstream disabled in the db and the selector handle, and no
+     * selector/discovery event is published, see <a href="https://github.com/apache/shenyu/issues/8056">issue #8056</a>.
+     */
+    @Test
+    void testLocalModeCheckPipelineDoesNotReviveDisabledUpstream() throws Exception {
+        service = buildServiceWithProbeMode(Constants.LOCAL_PROBE_MODE_VALUE);
+        try (ServerSocket healthy = new ServerSocket(0)) {
+            String aliveUrl = "127.0.0.1:" + healthy.getLocalPort();
+            DiscoveryUpstreamData disabled = DiscoveryUpstreamData.builder().url(aliveUrl).protocol("http://").status(1).build();
+            lenient().when(discoveryUpstreamService.findBySelectorId(SELECTOR_ID)).thenReturn(new ArrayList<>(List.of(disabled)));
+            CommonUpstream upstream = DivideUpstream.builder().upstreamUrl(aliveUrl).protocol("http://").status(false).healthCheckEnabled(true).build();
+            ReflectionTestUtils.setField(service, "invokeExecutor", new ScheduledThreadPoolExecutor(2));
+            service.replace(SELECTOR_ID, List.of(upstream));
+            Map<?, ?> upstreams = (Map<?, ?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
+
+            ReflectionTestUtils.invokeMethod(service, "check", SELECTOR_ID, upstreams.get(SELECTOR_ID));
+            ReflectionTestUtils.invokeMethod(service, "waitFinish");
+
+            verify(discoveryUpstreamService, never()).changeStatusBySelectorIdAndUrl(any(), any(), any());
+            verify(selectorMapper, never()).updateSelective(any());
+            verify(eventPublisher, never()).publishEvent(any());
+            assertEquals(1, disabled.getStatus());
+        }
+    }
+
+    private UpstreamCheckService buildServiceWithProbeMode(final String probeMode) {
+        ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
+        config.setRegisterType("http");
+        config.getProps().setProperty(Constants.IS_CHECKED, "true");
+        config.getProps().setProperty(Constants.PROBE_MODE, probeMode);
+        SelectorHandleConverterFactor converters = new SelectorHandleConverterFactor(
+                Collections.singletonMap(PluginEnum.DIVIDE.getName(), new DivideSelectorHandleConverter()));
+        return new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
+                config, converters, discoveryUpstreamService);
+    }
+
     private DiscoverySyncData publishedSnapshot() {
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(eventPublisher, times(2)).publishEvent(captor.capture());
@@ -426,5 +714,35 @@ class UpstreamCheckServiceSyncTest {
         assertEquals("namespace", snapshot.getNamespaceId());
         assertEquals(PluginEnum.DIVIDE.getName(), snapshot.getPluginName());
         return snapshot;
+    }
+
+    private PlatformTransactionManager transactionManager(final List<String> steps) {
+        return new PlatformTransactionManager() {
+            @Override
+            public TransactionStatus getTransaction(final TransactionDefinition definition) {
+                steps.add("begin");
+                TransactionSynchronizationManager.setActualTransactionActive(true);
+                TransactionSynchronizationManager.initSynchronization();
+                return new SimpleTransactionStatus();
+            }
+
+            @Override
+            public void commit(final TransactionStatus status) {
+                steps.add("commit");
+                TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+                TransactionSynchronizationManager.getSynchronizations()
+                        .forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_COMMITTED));
+                TransactionSynchronizationManager.clearSynchronization();
+                TransactionSynchronizationManager.setActualTransactionActive(false);
+            }
+
+            @Override
+            public void rollback(final TransactionStatus status) {
+                TransactionSynchronizationManager.getSynchronizations()
+                        .forEach(sync -> sync.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+                TransactionSynchronizationManager.clearSynchronization();
+                TransactionSynchronizationManager.setActualTransactionActive(false);
+            }
+        };
     }
 }

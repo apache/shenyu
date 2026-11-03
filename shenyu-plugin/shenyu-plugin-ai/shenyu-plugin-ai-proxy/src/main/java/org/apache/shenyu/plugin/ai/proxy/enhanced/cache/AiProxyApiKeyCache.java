@@ -19,6 +19,10 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.cache;
 
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,10 +31,15 @@ import org.slf4j.LoggerFactory;
 
 /**
  * AiProxyApiKeyCache stores proxyApiKey -> ProxyApiKeyData mapping.
+ *
+ * <p>Cache debug logs identify entries by selector id plus a truncated SHA-256 digest, so neither
+ * proxy credentials nor real API keys are written to logs.
  */
 public final class AiProxyApiKeyCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyApiKeyCache.class);
+
+    private static final int LOG_DIGEST_BYTES = 8;
 
     private static final AiProxyApiKeyCache INSTANCE = new AiProxyApiKeyCache();
 
@@ -45,6 +54,20 @@ public final class AiProxyApiKeyCache {
 
     private String key(final String selectorId, final String proxyApiKey) {
         return selectorId + "::" + proxyApiKey;
+    }
+
+    private static String logKey(final ProxyApiKeyData data) {
+        final String proxyApiKey = data.getProxyApiKey();
+        return data.getSelectorId() + "::" + (Objects.isNull(proxyApiKey) ? "null" : digest(proxyApiKey));
+    }
+
+    private static String digest(final String value) {
+        try {
+            final byte[] hash = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash, 0, LOG_DIGEST_BYTES);
+        } catch (NoSuchAlgorithmException ex) {
+            return "redacted";
+        }
     }
 
     /**
@@ -68,7 +91,7 @@ public final class AiProxyApiKeyCache {
         if (Boolean.TRUE.equals(data.getEnabled())) {
             dataMap.put(key(data), data);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("[AiProxyApiKeyCache] cache key={}, size={}", key(data), dataMap.size());
+                LOG.debug("[AiProxyApiKeyCache] cache key={}, size={}", logKey(data), dataMap.size());
             }
         } else if (Boolean.FALSE.equals(data.getEnabled())) {
             // a disabled key arrives as an UPDATE event, so the stale enabled entry must be evicted here
@@ -85,7 +108,7 @@ public final class AiProxyApiKeyCache {
         if (Objects.nonNull(data) && Objects.nonNull(data.getProxyApiKey())) {
             dataMap.remove(key(data));
             if (LOG.isDebugEnabled()) {
-                LOG.debug("[AiProxyApiKeyCache] remove key={}, size={}", key(data), dataMap.size());
+                LOG.debug("[AiProxyApiKeyCache] remove key={}, size={}", logKey(data), dataMap.size());
             }
         }
     }

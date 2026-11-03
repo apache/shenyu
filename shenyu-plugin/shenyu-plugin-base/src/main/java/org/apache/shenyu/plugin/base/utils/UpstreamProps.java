@@ -42,6 +42,8 @@ public final class UpstreamProps {
 
     private static final String DRAINING = "draining";
 
+    private static final String NOT_READY = "notReady";
+
     private static final String DEFAULT_WARMUP = "10";
 
     private static final String DEFAULT_GRAY = "false";
@@ -120,6 +122,16 @@ public final class UpstreamProps {
      */
     public boolean isDraining() {
         return Boolean.parseBoolean(getProperty(DRAINING, "false"));
+    }
+
+    /**
+     * Whether the upstream is ready to receive new work, {@code true} by default.
+     * A not-ready upstream stays registered but must not be selected (#8042).
+     *
+     * @return true if the upstream is ready
+     */
+    public boolean isReady() {
+        return !Boolean.parseBoolean(getProperty(NOT_READY, "false"));
     }
 
     /**

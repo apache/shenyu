@@ -40,6 +40,12 @@ public class LoadBalanceData {
     private Map<String, Object> attributes = Collections.emptyMap();
     
     private Map<String, Collection<String>> queryParams = Collections.emptyMap();
+
+    /**
+     * An explicit deterministic hash key. When set, hash-based selection uses it
+     * instead of the client ip; every other algorithm ignores it (#8037).
+     */
+    private String hashKey;
     
     /**
      * Instantiates a new Load balance data.
@@ -200,5 +206,23 @@ public class LoadBalanceData {
      */
     public void setIp(final String ip) {
         this.ip = ip;
+    }
+
+    /**
+     * Get the explicit deterministic hash key.
+     *
+     * @return the hash key, or null when not set
+     */
+    public String getHashKey() {
+        return hashKey;
+    }
+
+    /**
+     * Set the explicit deterministic hash key.
+     *
+     * @param hashKey the hash key
+     */
+    public void setHashKey(final String hashKey) {
+        this.hashKey = hashKey;
     }
 }

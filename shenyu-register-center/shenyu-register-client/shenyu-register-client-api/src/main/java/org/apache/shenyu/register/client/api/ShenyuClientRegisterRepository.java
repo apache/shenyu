@@ -79,6 +79,22 @@ public interface ShenyuClientRegisterRepository {
     }
 
     /**
+     * Declare the node not ready: alive, but not yet ready to receive new work.
+     *
+     * @param notReadyDTO the not-ready dto
+     */
+    default void notReady(URIRegisterDTO notReadyDTO) {
+    }
+
+    /**
+     * Declare the node ready again, resuming new work and releasing a previous drain.
+     *
+     * @param readyDTO the ready dto
+     */
+    default void ready(URIRegisterDTO readyDTO) {
+    }
+
+    /**
      * Send heartbeat.
      *
      * @param heartbeatDTO the heartbeat dto

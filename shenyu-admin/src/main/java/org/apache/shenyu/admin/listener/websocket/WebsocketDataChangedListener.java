@@ -81,6 +81,10 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType,
                                 final String namespaceId) {
+        if (eventType == DataEventTypeEnum.REFRESH && StringUtils.isNotBlank(namespaceId)) {
+            sendNamespaceSnapshot(ConfigGroupEnum.PLUGIN, namespaceId, changed);
+            return;
+        }
         if (CollectionUtils.isEmpty(changed)) {
             sendEmptySnapshot(ConfigGroupEnum.PLUGIN, eventType, namespaceId);
             return;
@@ -96,6 +100,10 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType,
                                   final String namespaceId) {
+        if (eventType == DataEventTypeEnum.REFRESH && StringUtils.isNotBlank(namespaceId)) {
+            sendNamespaceSnapshot(ConfigGroupEnum.SELECTOR, namespaceId, changed);
+            return;
+        }
         if (CollectionUtils.isEmpty(changed)) {
             sendEmptySnapshot(ConfigGroupEnum.SELECTOR, eventType, namespaceId);
             return;
@@ -111,6 +119,10 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType,
                               final String namespaceId) {
+        if (eventType == DataEventTypeEnum.REFRESH && StringUtils.isNotBlank(namespaceId)) {
+            sendNamespaceSnapshot(ConfigGroupEnum.RULE, namespaceId, changed);
+            return;
+        }
         if (CollectionUtils.isEmpty(changed)) {
             sendEmptySnapshot(ConfigGroupEnum.RULE, eventType, namespaceId);
             return;
@@ -131,6 +143,25 @@ public class WebsocketDataChangedListener implements DataChangedListener {
             return;
         }
         onAppAuthChanged(changed, eventType);
+    }
+
+    /**
+     * Send a complete-group snapshot for one namespace. A namespace-addressed REFRESH publishes the whole
+     * group of that namespace (see {@code SyncDataService#syncAllByNamespaceId}), so it must be applied as
+     * a full snapshot: a payload-derived plugin scope could not remove a plugin bucket whose last row was
+     * deleted, because that plugin no longer appears in the payload.
+     *
+     * @param group config group to replace
+     * @param namespaceId namespace to replace
+     * @param dataList complete group of the namespace, possibly empty
+     */
+    private <T> void sendNamespaceSnapshot(final ConfigGroupEnum group, final String namespaceId, final List<T> dataList) {
+        WebsocketData<T> websocketData = new WebsocketData<>(group.name(), DataEventTypeEnum.REFRESH.name(), dataList);
+        websocketData.setNamespaceId(namespaceId);
+        websocketData.setFullSnapshot(true);
+        WebsocketCollector.send(namespaceId, GsonUtils.getInstance().toJson(websocketData), DataEventTypeEnum.REFRESH);
+        LOG.info("websocket namespace snapshot delivered, group={}, namespaceId={}, count={}",
+                group.name(), namespaceId, dataList.size());
     }
 
     private void sendEmptySnapshot(final ConfigGroupEnum group, final DataEventTypeEnum eventType,

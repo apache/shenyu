@@ -58,6 +58,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Regression tests for recovery after asynchronous upstream check failures.
@@ -97,6 +98,7 @@ class UpstreamCheckServiceRecoveryTest {
                 Collections.singletonMap(PluginEnum.DIVIDE.getName(), new DivideSelectorHandleConverter()));
         service = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper,
                 config, converterFactor, discoveryUpstreamService);
+        lenient().when(discoveryUpstreamService.tryChangeStatusBySelectorIdAndUrl(any(), any(), any())).thenReturn(true);
         ReflectionTestUtils.setField(service, "invokeExecutor", new ScheduledThreadPoolExecutor(1));
         futures = (List<CompletableFuture<Void>>) ReflectionTestUtils.getField(service, "futures");
     }

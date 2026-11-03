@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
+import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
@@ -38,6 +40,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -48,6 +51,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import reactor.core.publisher.Mono;
@@ -68,6 +72,8 @@ public class AgentGatewayPluginConfiguration {
      * @param catalogs optional, unambiguous managed remote catalog
      * @param resources explicitly registered local resources
      * @param tracers optional tracing bridge
+     * @param terminalObservers optional application-owned terminal event sink
+     * @param aiObservers optional application-owned AI attempt and terminal sink
      * @param environment deployment-controlled tracing opt-in
      * @param beanFactory application bean factory used to verify the conditional JWT resolver
      * @return the plugin
@@ -76,6 +82,8 @@ public class AgentGatewayPluginConfiguration {
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
                                            final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentResourceProvider> resources,
                                            final ObjectProvider<AgentMcpCallTracer> tracers,
+                                           final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
+                                           final ObjectProvider<AiCallObserver> aiObservers,
                                            final Environment environment, final BeanFactory beanFactory) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
@@ -97,17 +105,24 @@ public class AgentGatewayPluginConfiguration {
                 && !beanFactory.containsBean(JWT_SECURITY_RESOLVER_BEAN_NAME)) {
             throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
         }
-        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources);
+        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources,
+                terminalObservers.getIfAvailable(), aiObservers.getIfAvailable(),
+                environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
     private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
                                       final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
-                                      final ObjectProvider<AgentResourceProvider> resources) {
+                                      final ObjectProvider<AgentResourceProvider> resources, final AgentMcpTerminalObserver terminalObserver,
+                                      final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
         AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
         AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
+        if (llmIdentityEnabled && resolvers.isEmpty()) {
+            throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
+        }
         return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
-                AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer));
+                AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer, terminalObserver),
+                llmIdentityEnabled ? resolver : null, aiObserver);
     }
 
     /**
@@ -272,13 +287,23 @@ public class AgentGatewayPluginConfiguration {
 
         /**
          * Use the explicitly supplied application telemetry, never a second SDK or global singleton.
-         * @param telemetry application-owned telemetry
+         * @param telemetry optional application-owned telemetry (takes precedence)
+         * @param gatewayTracer optional tracer owned by the ShenYu tracing starter
          * @return request-local tracing bridge
          */
         @Bean
         @ConditionalOnMissingBean(AgentMcpCallTracer.class)
-        AgentMcpCallTracer agentGatewayCallTracer(final OpenTelemetry telemetry) {
-            return new OpenTelemetryAgentMcpCallTracer(telemetry);
+        AgentMcpCallTracer agentGatewayCallTracer(final ObjectProvider<OpenTelemetry> telemetry,
+                                                  @Qualifier("tracingTracer") final ObjectProvider<io.opentelemetry.api.trace.Tracer> gatewayTracer) {
+            OpenTelemetry application = telemetry.getIfAvailable();
+            if (Objects.nonNull(application)) {
+                return new OpenTelemetryAgentMcpCallTracer(application);
+            }
+            io.opentelemetry.api.trace.Tracer shared = gatewayTracer.getIfAvailable();
+            if (Objects.isNull(shared)) {
+                throw new IllegalStateException("Enabled MCP tracing requires application OpenTelemetry, tracingTracer, or a custom AgentMcpCallTracer");
+            }
+            return new OpenTelemetryAgentMcpCallTracer(shared);
         }
     }
 }

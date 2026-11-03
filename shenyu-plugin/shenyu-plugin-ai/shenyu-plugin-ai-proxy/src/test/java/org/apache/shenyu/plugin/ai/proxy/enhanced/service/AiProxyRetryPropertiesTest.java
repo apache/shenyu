@@ -20,16 +20,26 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for {@link AiProxyRetryProperties}.
  */
 class AiProxyRetryPropertiesTest {
+
+    private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
 
     @Test
     void shouldProvideCompatibleDefaults() {
@@ -38,6 +48,10 @@ class AiProxyRetryPropertiesTest {
         assertEquals(3, properties.maxRetries(false));
         assertEquals(1, properties.maxRetries(true));
         assertEquals(Duration.ofSeconds(1), properties.getInitialBackoff());
+        assertEquals(Duration.ofSeconds(30), properties.getMaxBackoff());
+        assertEquals(0.2d, properties.getJitterFraction());
+        assertEquals(Duration.ofSeconds(60), properties.getMaxRetryAfter());
+        assertEquals(Duration.ofMinutes(5), properties.getRequestDeadline());
     }
 
     @ParameterizedTest
@@ -49,7 +63,48 @@ class AiProxyRetryPropertiesTest {
     void shouldCalculateExponentialBackoff(final int retryIndex, final long expectedMillis) {
         final AiProxyRetryProperties properties = new AiProxyRetryProperties(3, 1, Duration.ofSeconds(1));
 
-        assertEquals(Duration.ofMillis(expectedMillis), properties.retryDelay(false, retryIndex));
+        assertEquals(Duration.ofMillis(expectedMillis), properties.retryDelay(false, retryIndex, 0L));
+    }
+
+    @Test
+    void shouldCapExponentialBackoff() {
+        AiProxyRetryProperties properties = new AiProxyRetryProperties(3, 1, Duration.ofSeconds(10));
+        properties.setMaxBackoff(Duration.ofSeconds(15));
+        properties.setJitterFraction(0d);
+
+        assertEquals(Duration.ofSeconds(15), properties.retryDelay(false, 5, 0L));
+    }
+
+    @Test
+    void shouldBoundDeterministicJitter() {
+        AiProxyRetryProperties properties = new AiProxyRetryProperties(3, 1, Duration.ofSeconds(10));
+        properties.setJitterFraction(1d);
+
+        for (int seed = -10; seed <= 10; seed++) {
+            Duration delay = properties.retryDelay(false, 0, seed);
+            assertTrue(!delay.minus(Duration.ofSeconds(10)).isNegative()
+                    && !Duration.ofSeconds(20).minus(delay).isNegative());
+        }
+    }
+
+    @Test
+    void shouldParseRetryAfterSecondsAndUtcDates() {
+        AiProxyRetryProperties properties = new AiProxyRetryProperties();
+
+        assertEquals(12L, properties.parseRetryAfter("12", CLOCK));
+        assertEquals(5L, properties.parseRetryAfter("2026-01-01T00:00:05Z", CLOCK));
+        assertEquals(5L, properties.parseRetryAfter("Thu, 1 Jan 2026 00:00:05 GMT", CLOCK));
+        assertEquals(-1L, properties.parseRetryAfter("-1", CLOCK));
+        assertEquals(-1L, properties.parseRetryAfter("not-a-date", CLOCK));
+    }
+
+    @Test
+    void shouldClampRetryAfter() {
+        AiProxyRetryProperties properties = new AiProxyRetryProperties();
+        properties.setMaxRetryAfter(Duration.ofSeconds(3));
+
+        assertNull(properties.clampRetryAfter(Duration.ofSeconds(9)));
+        assertEquals(Duration.ofSeconds(1), properties.clampRetryAfter(Duration.ofSeconds(1)));
     }
 
     @ParameterizedTest
@@ -57,7 +112,7 @@ class AiProxyRetryPropertiesTest {
     void shouldRetryStreamingRequestsImmediately(final int retryIndex) {
         final AiProxyRetryProperties properties = new AiProxyRetryProperties(3, 1, Duration.ofSeconds(1));
 
-        assertEquals(Duration.ZERO, properties.retryDelay(true, retryIndex));
+        assertEquals(Duration.ZERO, properties.retryDelay(true, retryIndex, 0L));
     }
 
     @ParameterizedTest
@@ -73,10 +128,39 @@ class AiProxyRetryPropertiesTest {
     }
 
     @Test
-    void shouldRejectInvalidBackoff() {
+    void shouldRejectInvalidRetryBounds() {
         assertThrows(IllegalArgumentException.class, () -> new AiProxyRetryProperties(3, 1, null));
         assertThrows(IllegalArgumentException.class,
                 () -> new AiProxyRetryProperties(3, 1, Duration.ofMillis(-1)));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AiProxyRetryProperties(3, 1, Duration.ZERO, null, 0d,
+                        Duration.ZERO, Duration.ofSeconds(1)));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AiProxyRetryProperties(3, 1, Duration.ZERO, Duration.ZERO, 1.1d,
+                        Duration.ZERO, Duration.ofSeconds(1)));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AiProxyRetryProperties(3, 1, Duration.ZERO, Duration.ZERO, 0d,
+                        null, Duration.ofSeconds(1)));
+        assertThrows(IllegalArgumentException.class,
+                () -> new AiProxyRetryProperties(3, 1, Duration.ZERO, Duration.ZERO, 0d,
+                        Duration.ZERO, Duration.ZERO));
+    }
+
+    @Test
+    void shouldRejectMalformedOperationReplayConfiguration() {
+        final AiProxyRetryProperties properties = new AiProxyRetryProperties();
+        Map<String, AiProxyRetryProperties.ReplayMode> operations = new HashMap<>();
+        operations.put(" ", AiProxyRetryProperties.ReplayMode.NEVER);
+        assertThrows(IllegalArgumentException.class, () -> properties.getReplay().setOperations(operations));
+    }
+
+    @Test
+    void shouldResolveRelaxedSpringOperationNames() {
+        final AiProxyRetryProperties properties = new AiProxyRetryProperties();
+        properties.getReplay().setOperations(java.util.Map.of(
+                "chat-completion", AiProxyRetryProperties.ReplayMode.NEVER));
+        assertEquals(AiProxyRetryProperties.ReplayMode.NEVER, properties.getReplay()
+                .mode(ShenyuAiRequest.Operation.CHAT_COMPLETION, false, true));
     }
 
     @ParameterizedTest
@@ -84,6 +168,7 @@ class AiProxyRetryPropertiesTest {
     void shouldRejectRetryIndexOutsideTheSupportedRange(final int retryIndex) {
         final AiProxyRetryProperties properties = new AiProxyRetryProperties();
 
-        assertThrows(IllegalArgumentException.class, () -> properties.retryDelay(false, retryIndex));
+        assertThrows(IllegalArgumentException.class, () -> properties.retryDelay(false, retryIndex, 0L));
     }
+
 }

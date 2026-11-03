@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AuthParamDO;
 import org.apache.shenyu.admin.model.entity.AuthPathDO;
+import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthParamVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
@@ -85,6 +86,32 @@ public enum AppAuthTransfer {
                             .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime()))
                             .orElse(null));
                     return appAuthVO;
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Map to app auth list vo without the application secret.
+     *
+     * @param appAuthDO the app auth do
+     * @return the app auth list vo
+     */
+    public AppAuthListVO mapToListVO(final AppAuthDO appAuthDO) {
+        return Optional.ofNullable(appAuthDO)
+                .map(v -> {
+                    AppAuthListVO appAuthListVO = new AppAuthListVO();
+                    appAuthListVO.setId(v.getId());
+                    appAuthListVO.setAppKey(v.getAppKey());
+                    appAuthListVO.setUserId(v.getUserId());
+                    appAuthListVO.setPhone(v.getPhone());
+                    appAuthListVO.setExtInfo(v.getExtInfo());
+                    appAuthListVO.setOpen(v.getOpen());
+                    appAuthListVO.setEnabled(v.getEnabled());
+                    appAuthListVO.setNamespaceId(v.getNamespaceId());
+                    appAuthListVO.setDateUpdated(Optional.ofNullable(v.getDateUpdated())
+                            .map(u -> DateUtils.localDateTimeToString(u.toLocalDateTime()))
+                            .orElse(null));
+                    return appAuthListVO;
                 })
                 .orElse(null);
     }
