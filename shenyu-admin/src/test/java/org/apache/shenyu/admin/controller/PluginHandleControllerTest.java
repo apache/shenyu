@@ -120,7 +120,7 @@ public final class PluginHandleControllerTest {
         pluginHandleDTO.setType(1);
         pluginHandleDTO.setSort(1);
         given(this.pluginHandleService.createOrUpdate(pluginHandleDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin-handle/")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin-handle")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(pluginHandleDTO)))
                 .andExpect(status().isOk())
