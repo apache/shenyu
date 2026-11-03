@@ -218,9 +218,33 @@ jobs:
           tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" org/apache/shenyu
       - name: Resolve distribution runtime dependencies
         run: |
-          bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-bootstrap dependency:list \
+          bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-bootstrap,shenyu-dist/shenyu-admin-dist,shenyu-dist/shenyu-bootstrap-dist dependency:list \
             -DincludeScope=runtime -DoutputFile=target/release-runtime-dependencies.txt
           python3 .github/scripts/collect-release-licenses.py
+      # Fetch the verifier after packaging so its sources cannot enter the source archive.
+      - name: Check out the pinned ShenYu license verifier
+        if: github.event_name == 'workflow_dispatch' && inputs.release_candidate
+        uses: actions/checkout@v4
+        with:
+          repository: apache/shenyu-watcher
+          ref: 94c1bb95ffc65038ea8be4c15fda5167d8d6b675
+          path: .release-tools/shenyu-watcher
+      - name: Check candidate distribution licenses
+        if: github.event_name == 'workflow_dispatch' && inputs.release_candidate
+        shell: bash
+        run: |
+          python3 .github/scripts/collect-release-licenses.py --check
+          audit_root="${RUNNER_TEMP}/shenyu-release-license-audit"
+          for component in admin bootstrap; do
+            archives=("shenyu-dist/shenyu-${component}-dist/target/"apache-shenyu-*-"${component}"-bin.tar.gz)
+            [[ ${#archives[@]} -eq 1 && -f "${archives[0]}" ]]
+            mkdir -p "${audit_root}/${component}"
+            tar -xzf "${archives[0]}" -C "${audit_root}/${component}"
+            distributions=("${audit_root}/${component}/"apache-shenyu-*-"${component}"-bin)
+            [[ ${#distributions[@]} -eq 1 && -d "${distributions[0]}/lib" ]]
+            python3 .release-tools/shenyu-watcher/shenyu_watcher.py \
+              --lib "${distributions[0]}/lib" "shenyu-dist/shenyu-${component}-dist" "${distributions[0]}/LICENSE"
+          done
       - name: Upload distribution runtime dependency reports
         uses: actions/upload-artifact@v4
         with:
@@ -228,6 +252,8 @@ jobs:
           path: |
             shenyu-admin/target/release-runtime-dependencies.txt
             shenyu-bootstrap/target/release-runtime-dependencies.txt
+            shenyu-dist/shenyu-admin-dist/target/release-runtime-dependencies.txt
+            shenyu-dist/shenyu-bootstrap-dist/target/release-runtime-dependencies.txt
             target/release-audit/*.json
           if-no-files-found: error
           retention-days: 7
