@@ -41,6 +41,8 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.DiscoveryUpstreamVO;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
+import org.apache.shenyu.register.common.protocol.RegistrationFencingAddress;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.DiscoveryUpstreamPropsValidator;
 import org.apache.shenyu.admin.utils.Assert;
@@ -57,6 +59,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -64,10 +67,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Consumer;
 
 @Service
 public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
@@ -99,6 +104,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
 
     private final DiscoveryProcessorHolder discoveryProcessorHolder;
 
+    private final RegistrationFencingGuard registrationFencingGuard;
+
     public DiscoveryUpstreamServiceImpl(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                         final DiscoveryHandlerMapper discoveryHandlerMapper,
                                         final ProxySelectorMapper proxySelectorMapper,
@@ -106,7 +113,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                                         final DiscoveryRelMapper discoveryRelMapper,
                                         final SelectorMapper selectorMapper,
                                         final PluginMapper pluginMapper,
-                                        final DiscoveryProcessorHolder discoveryProcessorHolder) {
+                                        final DiscoveryProcessorHolder discoveryProcessorHolder,
+                                        final RegistrationFencingGuard registrationFencingGuard) {
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
         this.discoveryProcessorHolder = discoveryProcessorHolder;
         this.discoveryHandlerMapper = discoveryHandlerMapper;
@@ -115,6 +123,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         this.selectorMapper = selectorMapper;
         this.proxySelectorMapper = proxySelectorMapper;
         this.pluginMapper = pluginMapper;
+        this.registrationFencingGuard = registrationFencingGuard;
     }
 
     /**
@@ -126,9 +135,12 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
-
+        List<String> ids = StringUtils.hasLength(discoveryUpstreamDTO.getId())
+                ? Collections.singletonList(discoveryUpstreamDTO.getId()) : Collections.emptyList();
+        Map<String, DiscoveryUpstreamDO> existingRows = lockAndAssertUpstreamWritesAllowed(ids,
+                Collections.singletonList(discoveryUpstreamDTO.getDiscoveryHandlerId()));
         return StringUtils.hasLength(discoveryUpstreamDTO.getId())
-                ? update(discoveryUpstreamDTO) : create(discoveryUpstreamDTO);
+                ? update(discoveryUpstreamDTO, existingRows.get(discoveryUpstreamDTO.getId())) : create(discoveryUpstreamDTO);
     }
 
     @Override
@@ -139,16 +151,33 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }
         upstreams.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         Set<String> handlerIds = new LinkedHashSet<>();
+        List<String> upstreamIds = upstreams.stream().map(DiscoveryUpstreamDTO::getId)
+                .filter(StringUtils::hasLength).collect(Collectors.toList());
+        List<String> destinationHandlerIds = upstreams.stream().map(DiscoveryUpstreamDTO::getDiscoveryHandlerId)
+                .collect(Collectors.toList());
+        Map<String, DiscoveryUpstreamDO> existingRows = lockAndAssertUpstreamWritesAllowed(upstreamIds, destinationHandlerIds);
+        boolean ownerChanged = false;
         for (DiscoveryUpstreamDTO upstream : upstreams) {
             DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
             if (StringUtils.hasLength(upstream.getId())) {
-                discoveryUpstreamMapper.update(entity);
+                DiscoveryUpstreamDO existing = existingRows.get(upstream.getId());
+                if (Objects.nonNull(existing) && discoveryUpstreamMapper.updateForHandler(entity, existing.getDiscoveryHandlerId()) != 1) {
+                    throw new IllegalStateException("Discovery upstream owner changed during update");
+                }
+                if (Objects.nonNull(existing) && StringUtils.hasLength(existing.getDiscoveryHandlerId())) {
+                    handlerIds.add(existing.getDiscoveryHandlerId());
+                    ownerChanged |= !Objects.equals(existing.getDiscoveryHandlerId(), upstream.getDiscoveryHandlerId());
+                }
             } else {
                 discoveryUpstreamMapper.insert(entity);
             }
             handlerIds.add(upstream.getDiscoveryHandlerId());
         }
-        handlerIds.forEach(this::fetchAll);
+        if (ownerChanged) {
+            fetchAllAfterCommit(handlerIds);
+        } else {
+            handlerIds.forEach(this::fetchAll);
+        }
     }
 
     @Override
@@ -156,6 +185,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     public int updateBatch(final String discoveryHandlerId, final List<DiscoveryUpstreamDTO> discoveryUpstreamDTOList) {
         // Validate the complete replacement before deleting anything or emitting a sync event.
         discoveryUpstreamDTOList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
+        lockAndAssertUpstreamWritesAllowed(Collections.emptyList(), Collections.singletonList(discoveryHandlerId));
         discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
             discoveryUpstreamDTO.setId(null);
@@ -168,28 +198,51 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     }
 
     private void fetchAfterCommit(final String discoveryHandlerId) {
+        fetchAllAfterCommit(Collections.singletonList(discoveryHandlerId));
+    }
+
+    private void fetchAllAfterCommit(final Collection<String> discoveryHandlerIds) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    fetchAll(discoveryHandlerId);
+                    discoveryHandlerIds.stream().filter(StringUtils::hasLength).distinct().forEach(DiscoveryUpstreamServiceImpl.this::fetchAll);
                 }
             });
         } else {
-            this.fetchAll(discoveryHandlerId);
+            discoveryHandlerIds.stream().filter(StringUtils::hasLength).distinct().forEach(this::fetchAll);
         }
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void nativeCreateOrUpdate(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
         DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
+        String canonicalUrl = canonicalEndpoint(discoveryUpstreamDO.getUpstreamUrl());
+        List<String> ids = StringUtils.hasLength(discoveryUpstreamDTO.getId())
+                ? Collections.singletonList(discoveryUpstreamDTO.getId()) : Collections.emptyList();
+        Map<String, DiscoveryUpstreamDO> existingRows = lockAndAssertUpstreamWritesAllowed(ids,
+                Collections.singletonList(discoveryUpstreamDO.getDiscoveryHandlerId()), false);
+        assertHandlerAddressWriteAllowed(discoveryUpstreamDO.getDiscoveryHandlerId(), canonicalUrl);
         if (StringUtils.hasLength(discoveryUpstreamDTO.getId())) {
-            discoveryUpstreamMapper.updateSelective(discoveryUpstreamDO);
+            DiscoveryUpstreamDO existingRecord = existingRows.get(discoveryUpstreamDTO.getId());
+            if (Objects.nonNull(existingRecord)) {
+                assertHandlerAddressWriteAllowed(existingRecord.getDiscoveryHandlerId(), existingRecord.getUpstreamUrl());
+                discoveryUpstreamDO.setUpstreamUrl(canonicalUrl);
+                if (discoveryUpstreamMapper.updateSelectiveForHandler(discoveryUpstreamDO, existingRecord.getDiscoveryHandlerId()) != 1) {
+                    throw new IllegalStateException("Discovery upstream owner changed during native update");
+                }
+            }
         } else {
-            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryUpstreamDO.getDiscoveryHandlerId(), discoveryUpstreamDO.getUpstreamUrl());
+            DiscoveryUpstreamDO existingRecord = discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId())
+                    .stream().filter(record -> Objects.equals(canonicalUrl, canonicalEndpoint(record.getUpstreamUrl())))
+                    .findFirst().orElse(null);
             if (Objects.isNull(existingRecord)) {
                 discoveryUpstreamMapper.insert(discoveryUpstreamDO);
+            } else if (!Objects.equals(existingRecord.getUpstreamUrl(), canonicalUrl)) {
+                existingRecord.setUpstreamUrl(canonicalUrl);
+                discoveryUpstreamMapper.updateSelective(existingRecord);
             }
         }
     }
@@ -201,11 +254,19 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
         // resolve the owning handlers before the rows disappear, so the gateways can be
         // notified with the remaining upstream snapshot (including an empty one)
-        final List<DiscoveryUpstreamDO> deleted = discoveryUpstreamMapper.selectByIds(ids);
-        discoveryUpstreamMapper.deleteByIds(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            return ShenyuResultMessage.DELETE_SUCCESS;
+        }
+        final Map<String, DiscoveryUpstreamDO> deletedById = lockAndAssertUpstreamWritesAllowed(ids, Collections.emptyList());
+        final List<DiscoveryUpstreamDO> deleted = new ArrayList<>(deletedById.values());
+        if (deleted.isEmpty()) {
+            return ShenyuResultMessage.DELETE_SUCCESS;
+        }
+        discoveryUpstreamMapper.deleteByIds(deletedById.keySet().stream().sorted().collect(Collectors.toList()));
         deleted.stream().map(DiscoveryUpstreamDO::getDiscoveryHandlerId).distinct().forEach(this::fetchAll);
         return ShenyuResultMessage.DELETE_SUCCESS;
     }
@@ -321,11 +382,24 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @param discoveryUpstreamDTO discoveryUpstreamDTO
      * @return the string
      */
-    private String update(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
+    private String update(final DiscoveryUpstreamDTO discoveryUpstreamDTO, final DiscoveryUpstreamDO existing) {
         DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
-        discoveryUpstreamMapper.update(discoveryUpstreamDO);
-        fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
+        if (Objects.nonNull(existing) && discoveryUpstreamMapper.updateForHandler(discoveryUpstreamDO, existing.getDiscoveryHandlerId()) != 1) {
+            throw new IllegalStateException("Discovery upstream owner changed during update");
+        }
+        Set<String> affectedHandlerIds = new LinkedHashSet<>();
+        boolean ownerChanged = false;
+        if (Objects.nonNull(existing) && StringUtils.hasLength(existing.getDiscoveryHandlerId())) {
+            affectedHandlerIds.add(existing.getDiscoveryHandlerId());
+            ownerChanged = !Objects.equals(existing.getDiscoveryHandlerId(), discoveryUpstreamDTO.getDiscoveryHandlerId());
+        }
+        affectedHandlerIds.add(discoveryUpstreamDTO.getDiscoveryHandlerId());
+        if (ownerChanged) {
+            fetchAllAfterCommit(affectedHandlerIds);
+        } else {
+            affectedHandlerIds.forEach(this::fetchAll);
+        }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 
@@ -347,36 +421,77 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteBySelectorIdAndUrl(final String selectorId, final String url) {
+        registrationFencingGuard.assertSelectorAddressWriteAllowed(selectorId, url);
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
-            discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), url);
+            DiscoveryUpstreamDO upstream = findByCanonicalUrl(discoveryHandlerDO.getId(), url);
+            if (Objects.isNull(upstream)) {
+                return;
+            }
+            if (Objects.equals(upstream.getUpstreamUrl(), url)) {
+                discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), url);
+            } else if (StringUtils.hasLength(upstream.getId())) {
+                discoveryUpstreamMapper.deleteByIds(Collections.singletonList(upstream.getId()));
+            } else {
+                // A legacy row without an id cannot be deleted by identity;
+                // retain the old URL delete as the safest fallback.
+                discoveryUpstreamMapper.deleteByUrl(discoveryHandlerDO.getId(), upstream.getUpstreamUrl());
+            }
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void changeStatusBySelectorIdAndUrl(final String selectorId, final String url, final Boolean enabled) {
+        registrationFencingGuard.assertSelectorAddressWriteAllowed(selectorId, url);
+        changeStatus(selectorId, url, enabled);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean tryChangeStatusBySelectorIdAndUrl(final String selectorId, final String url, final Boolean enabled) {
+        if (registrationFencingGuard.isSelectorAddressProtected(selectorId, url)) {
+            return false;
+        }
+        changeStatus(selectorId, url, enabled);
+        return true;
+    }
+
+    private void changeStatus(final String selectorId, final String url, final Boolean enabled) {
         DiscoveryHandlerDO discoveryHandlerDO = discoveryHandlerMapper.selectBySelectorId(selectorId);
         if (Objects.nonNull(discoveryHandlerDO)) {
-            discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), url, enabled ? 0 : 1);
+            DiscoveryUpstreamDO upstream = findByCanonicalUrl(discoveryHandlerDO.getId(), url);
+            if (Objects.isNull(upstream)) {
+                return;
+            }
+            if (Objects.equals(upstream.getUpstreamUrl(), url)) {
+                discoveryUpstreamMapper.updateStatusByUrl(discoveryHandlerDO.getId(), url, enabled ? 0 : 1);
+            } else {
+                upstream.setUpstreamStatus(enabled ? 0 : 1);
+                upstream.setDateUpdated(new java.sql.Timestamp(System.currentTimeMillis()));
+                discoveryUpstreamMapper.updateSelective(upstream);
+            }
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void markDrainingBySelectorIdAndUrl(final String selectorId, final String url, final boolean draining) {
+        registrationFencingGuard.assertSelectorAddressWriteAllowed(selectorId, url);
         updateUpstreamProps(selectorId, url, props -> props.put(DRAINING_PROP_KEY, draining));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void markNotReadyBySelectorIdAndUrl(final String selectorId, final String url, final boolean notReady) {
+        registrationFencingGuard.assertSelectorAddressWriteAllowed(selectorId, url);
         updateUpstreamProps(selectorId, url, props -> props.put(NOT_READY_PROP_KEY, notReady));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void markReadyBySelectorIdAndUrl(final String selectorId, final String url) {
+        registrationFencingGuard.assertSelectorAddressWriteAllowed(selectorId, url);
         updateUpstreamProps(selectorId, url, props -> {
             props.remove(DRAINING_PROP_KEY);
             props.remove(NOT_READY_PROP_KEY);
@@ -388,14 +503,108 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (Objects.isNull(discoveryHandlerDO)) {
             return;
         }
-        DiscoveryUpstreamDO upstream = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerDO.getId(), url);
+        DiscoveryUpstreamDO upstream = findByCanonicalUrl(discoveryHandlerDO.getId(), url);
         if (Objects.isNull(upstream)) {
             return;
         }
         Map<String, Object> props = !StringUtils.hasLength(upstream.getProps())
                 ? new LinkedHashMap<>() : GsonUtils.getInstance().convertToMap(upstream.getProps());
         mutation.accept(props);
-        discoveryUpstreamMapper.updatePropsByUrl(discoveryHandlerDO.getId(), url, GsonUtils.getInstance().toJson(props));
+        String serializedProps = GsonUtils.getInstance().toJson(props);
+        if (Objects.equals(upstream.getUpstreamUrl(), url)) {
+            discoveryUpstreamMapper.updatePropsByUrl(discoveryHandlerDO.getId(), url, serializedProps);
+        } else {
+            upstream.setProps(serializedProps);
+            upstream.setDateUpdated(new java.sql.Timestamp(System.currentTimeMillis()));
+            discoveryUpstreamMapper.updateSelective(upstream);
+        }
+    }
+
+    /**
+     * Resolve an upstream by its canonical endpoint, while retaining the
+     * exact URL query for the normal path and existing row-lock behavior.
+     * Historical rows may contain a different IPv6 spelling or brackets.
+     *
+     * @param discoveryHandlerId discovery handler id
+     * @param url requested endpoint
+     * @return matching row or {@code null}
+     */
+    private DiscoveryUpstreamDO findByCanonicalUrl(final String discoveryHandlerId, final String url) {
+        DiscoveryUpstreamDO exact = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(discoveryHandlerId, url);
+        if (Objects.nonNull(exact)) {
+            return exact;
+        }
+        final String canonical = canonicalEndpoint(url);
+        return Optional.ofNullable(discoveryUpstreamMapper.selectByDiscoveryHandlerId(discoveryHandlerId))
+                .orElseGet(Collections::emptyList).stream()
+                .filter(Objects::nonNull)
+                .filter(record -> Objects.equals(canonical, canonicalEndpoint(record.getUpstreamUrl())))
+                .findFirst().orElse(null);
+    }
+
+    private Map<String, DiscoveryUpstreamDO> lockAndAssertUpstreamWritesAllowed(final Collection<String> upstreamIds,
+                                                                                 final Collection<String> destinationHandlerIds) {
+        return lockAndAssertUpstreamWritesAllowed(upstreamIds, destinationHandlerIds, true);
+    }
+
+    private Map<String, DiscoveryUpstreamDO> lockAndAssertUpstreamWritesAllowed(final Collection<String> upstreamIds,
+                                                                                 final Collection<String> destinationHandlerIds,
+                                                                                 final boolean assertSelectorWritesAllowed) {
+        List<String> sortedIds = upstreamIds.stream().filter(StringUtils::hasLength).distinct().sorted().collect(Collectors.toList());
+        List<DiscoveryUpstreamDO> observedRows = sortedIds.isEmpty()
+                ? Collections.emptyList() : discoveryUpstreamMapper.selectByIds(sortedIds);
+        Map<String, DiscoveryUpstreamDO> observedById = observedRows.stream()
+                .collect(Collectors.toMap(DiscoveryUpstreamDO::getId, Function.identity()));
+        Set<String> handlerIds = new TreeSet<>();
+        destinationHandlerIds.stream().filter(StringUtils::hasLength).forEach(handlerIds::add);
+        observedRows.stream().map(DiscoveryUpstreamDO::getDiscoveryHandlerId).filter(StringUtils::hasLength).forEach(handlerIds::add);
+        lockAndAssertHandlerWritesAllowed(handlerIds, assertSelectorWritesAllowed);
+        List<DiscoveryUpstreamDO> lockedRows = sortedIds.isEmpty()
+                ? Collections.emptyList() : discoveryUpstreamMapper.selectByIdsForUpdate(sortedIds);
+        Map<String, DiscoveryUpstreamDO> lockedById = new LinkedHashMap<>();
+        for (DiscoveryUpstreamDO locked : lockedRows) {
+            DiscoveryUpstreamDO observed = observedById.get(locked.getId());
+            if (Objects.isNull(observed) || !Objects.equals(observed.getDiscoveryHandlerId(), locked.getDiscoveryHandlerId())) {
+                throw new IllegalStateException("Discovery upstream owner changed during update");
+            }
+            lockedById.put(locked.getId(), locked);
+        }
+        return lockedById;
+    }
+
+    private void lockAndAssertHandlerWritesAllowed(final Collection<String> discoveryHandlerIds,
+                                                   final boolean assertSelectorWritesAllowed) {
+        Set<String> selectorIds = new TreeSet<>();
+        for (String discoveryHandlerId : discoveryHandlerIds) {
+            if (StringUtils.hasLength(discoveryHandlerId)) {
+                DiscoveryRelDO rel = discoveryRelMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+                if (Objects.nonNull(rel) && StringUtils.hasLength(rel.getSelectorId())) {
+                    selectorIds.add(rel.getSelectorId());
+                }
+            }
+        }
+        selectorIds.forEach(selectorMapper::selectByIdForUpdate);
+        if (assertSelectorWritesAllowed) {
+            selectorIds.forEach(registrationFencingGuard::assertSelectorWriteAllowed);
+        }
+    }
+
+    private void assertHandlerAddressWriteAllowed(final String discoveryHandlerId, final String url) {
+        if (StringUtils.isEmpty(discoveryHandlerId)) {
+            return;
+        }
+        DiscoveryRelDO rel = discoveryRelMapper.selectByDiscoveryHandlerId(discoveryHandlerId);
+        if (Objects.nonNull(rel) && StringUtils.hasLength(rel.getSelectorId())) {
+            registrationFencingGuard.assertSelectorAddressWriteAllowed(rel.getSelectorId(), url);
+        }
+    }
+
+    private String canonicalEndpoint(final String endpoint) {
+        try {
+            return RegistrationFencingAddress.canonicalEndpoint(endpoint);
+        } catch (IllegalArgumentException exception) {
+            return endpoint;
+        }
     }
 
     @Override
@@ -405,6 +614,9 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
             return ConfigImportResult.success();
         }
         discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
+        List<String> handlerIds = discoveryUpstreamList.stream().map(DiscoveryUpstreamDTO::getDiscoveryHandlerId)
+                .filter(StringUtils::hasText).collect(Collectors.toList());
+        lockAndAssertUpstreamWritesAllowed(Collections.emptyList(), handlerIds);
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, List<DiscoveryUpstreamDO>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
@@ -452,6 +664,10 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }
         Map<String, String> discoveryHandlerIdMapping = context.getDiscoveryHandlerIdMapping();
         discoveryUpstreamList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
+        List<String> handlerIds = discoveryUpstreamList.stream().map(DiscoveryUpstreamDTO::getDiscoveryHandlerId)
+                .map(discoveryHandlerId -> discoveryHandlerIdMapping.getOrDefault(discoveryHandlerId, discoveryHandlerId))
+                .filter(StringUtils::hasText).collect(Collectors.toList());
+        lockAndAssertUpstreamWritesAllowed(Collections.emptyList(), handlerIds);
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         Map<String, Set<String>> discoveryHandlerUpstreamMap = discoveryUpstreamMapper
