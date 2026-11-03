@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.grpc.proto;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
@@ -50,8 +51,8 @@ import io.grpc.stub.StreamObserver;
  * payload-size bound rather than an exact JVM heap bound.</p>
  *
  * <p>A {@code StreamObserver} receives serialized callbacks for one call, and each call owns its
- * own {@code MessageWriter} and {@link ShenyuGrpcResponse}; therefore the mutable counters here
- * need no locking and concurrent RPCs are naturally isolated.</p>
+ * own {@code MessageWriter} and {@link ShenyuGrpcResponse}; concurrent RPCs are naturally isolated.
+ * Callbacks for one call are synchronized so a late completion cannot race an overflow.</p>
  */
 public final class MessageWriter<T extends Message> implements StreamObserver<T> {
 
@@ -67,11 +68,15 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
 
     private final AtomicReference<ClientCall<?, ?>> callRef = new AtomicReference<>();
 
+    private final CompletableFuture<ShenyuGrpcException> overflowFuture = new CompletableFuture<>();
+
     private long currentCount;
 
     private long currentBytes;
 
     private boolean overflowed;
+
+    private boolean terminated;
 
     private MessageWriter(final ShenyuGrpcResponse grpcResponse, final long maxResultCount, final long maxResultBytes) {
         this.grpcResponse = grpcResponse;
@@ -116,59 +121,89 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
         this.callRef.set(call);
     }
 
-    @Override
-    public void onNext(final T value) {
-        if (overflowed) {
-            return;
-        }
-        String respData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) value);
-        long payloadBytes;
-        boolean retained;
-        if (StringUtils.isNotBlank(respData)) {
-            respData = respData.trim();
-            if (StringUtils.startsWith(respData, "{") && StringUtils.endsWith(respData, "}")) {
-                // standardized json output.
-                grpcResponse.getResults().add(GSON.fromJson(respData,
-                        new TypeToken<HashMap<String, Object>>() {
-                        }.getType()));
-                payloadBytes = respData.getBytes(StandardCharsets.UTF_8).length;
-                retained = true;
-            } else {
-                // non-json, non-blank payloads are not retained by the aggregate contract.
-                payloadBytes = 0L;
-                retained = false;
-            }
-        } else {
-            grpcResponse.getResults().add(respData);
-            payloadBytes = 0L;
-            retained = true;
-        }
-        if (!retained) {
-            return;
-        }
-        currentCount++;
-        currentBytes += payloadBytes;
-        if (exceedsBudget()) {
-            triggerOverflow();
-        }
+    /**
+     * Returns the classified failure when this call exceeds an aggregate budget.
+     *
+     * <p>The future is completed before the underlying transport is cancelled. This lets the
+     * owning client fail the result deterministically even when the transport does not synchronously
+     * deliver a close callback.</p>
+     *
+     * @return overflow future
+     */
+    public CompletableFuture<ShenyuGrpcException> getOverflowFuture() {
+        return overflowFuture;
     }
 
     @Override
-    public void onError(final Throwable t) {
+    public synchronized void onNext(final T value) {
+        if (overflowed || terminated) {
+            return;
+        }
+        String respData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) value);
+        if (StringUtils.isBlank(respData)) {
+            if (wouldExceedCount()) {
+                currentCount++;
+                triggerOverflow();
+                return;
+            }
+            grpcResponse.getResults().add(respData);
+            currentCount++;
+            return;
+        }
+        respData = respData.trim();
+        if (!StringUtils.startsWith(respData, "{") || !StringUtils.endsWith(respData, "}")) {
+            // non-json, non-blank payloads are not retained by the aggregate contract.
+            return;
+        }
+        long payloadBytes = respData.getBytes(StandardCharsets.UTF_8).length;
+        if (wouldExceedCount() || wouldExceedBytes(payloadBytes)) {
+            // Account for the rejected item so the failure reports the attempted aggregate size,
+            // but do not parse it into a retained map before enforcing the budget.
+            currentCount++;
+            currentBytes += payloadBytes;
+            triggerOverflow();
+            return;
+        }
+        // standardized json output.
+        grpcResponse.getResults().add(GSON.fromJson(respData,
+                new TypeToken<HashMap<String, Object>>() {
+                }.getType()));
+        currentCount++;
+        currentBytes += payloadBytes;
+    }
+
+    @Override
+    public synchronized void onError(final Throwable t) {
+        if (terminated) {
+            return;
+        }
+        terminated = true;
+        // The owning client fails the call, so a partial aggregate must not stay reachable.
+        grpcResponse.getResults().clear();
         LOG.error("Messages write occur errors", t);
     }
 
     @Override
-    public void onCompleted() {
+    public synchronized void onCompleted() {
+        if (terminated) {
+            return;
+        }
+        terminated = true;
         LOG.info("Messages write complete");
     }
 
-    private boolean exceedsBudget() {
-        return (maxResultCount > 0 && currentCount > maxResultCount)
-                || (maxResultBytes > 0 && currentBytes > maxResultBytes);
+    private boolean wouldExceedCount() {
+        return maxResultCount > 0 && currentCount + 1 > maxResultCount;
+    }
+
+    private boolean wouldExceedBytes(final long payloadBytes) {
+        return maxResultBytes > 0 && currentBytes + payloadBytes > maxResultBytes;
     }
 
     private void triggerOverflow() {
+        if (overflowed) {
+            return;
+        }
         overflowed = true;
         String reason = String.format(
                 "gRPC aggregated response exceeded budget: retainedCount=%d (max=%d), retainedBytes=%d (max=%d)",
@@ -176,10 +211,12 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
         // release retained results so the memory can be reclaimed before the RPC terminates.
         grpcResponse.getResults().clear();
         currentBytes = 0L;
+        ShenyuGrpcException failure = new ShenyuGrpcException(reason);
+        overflowFuture.complete(failure);
         LOG.warn(reason);
         ClientCall<?, ?> call = callRef.get();
         if (Objects.nonNull(call)) {
-            call.cancel(reason, new ShenyuGrpcException(reason));
+            call.cancel(reason, failure);
         }
     }
 }
