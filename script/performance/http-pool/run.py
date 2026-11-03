@@ -62,7 +62,8 @@ def production_diff_sha256():
 
 
 def snapshot(destination):
-    destination.mkdir(parents=True, exist_ok=True)
+    # Never overwrite a retained baseline, even when the caller reuses its path.
+    destination.mkdir(parents=True, exist_ok=False)
     report = next(extended(MODULE / "target/surefire-reports").glob("TEST-*.xml"))
     properties = {node.get("name"): node.get("value") for node in ET.parse(report).getroot().findall("./properties/property")}
     roots = [MODULE / "target/test-classes", MODULE / "target/classes", PLUGIN / "target/classes"]

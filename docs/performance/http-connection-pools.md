@@ -154,11 +154,15 @@ python script/performance/http-pool/run.py run \
   --pending 4 --k6 /path/to/k6 --repeat 3 --warmup 5 --duration 8
 ```
 
+Choose a new, nonexistent directory for every snapshot. Existing directories
+(including empty ones) are rejected to protect retained baseline artifacts; if a
+snapshot fails, inspect its partial output and use a new destination for the retry.
+
 Snapshot the baseline's compiled classes **before** modifying the production
 factory, and run the same fixture without `--pending`. The fixture needs the new
 property accessor only to request the comparison policy; the old factory ignores
 it. A snapshot copies the compiled factory, properties and test fixture into an
-immutable JAR, records its SHA-256 and retains the dependency classpath. The
+immutable JAR in a new destination directory, records its SHA-256 and retains the dependency classpath. The
 tracked production-source diff hash compares the final worktree with the recorded
 HEAD, including both staged and unstaged changes (but not untracked files).
 Staging alone does not change this source identity; the compiled JAR hash remains

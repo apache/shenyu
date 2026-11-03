@@ -89,5 +89,56 @@ class SnapshotSourceTest(unittest.TestCase):
         self.assertEqual(clean, self.digest())
 
 
+class SnapshotDestinationTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.module = self.root / "module"
+        self.plugin = self.root / "plugin"
+        reports = self.module / "target/surefire-reports"
+        reports.mkdir(parents=True)
+        (reports / "TEST-fixture.xml").write_text(
+            '<testsuite><properties><property name="java.class.path" value=""/>'
+            '</properties></testsuite>', encoding="utf-8")
+        classes = self.module / "target/classes"
+        classes.mkdir()
+        (classes / "Fixture.class").write_bytes(b"new compiled fixture")
+        for name, value in (("MODULE", self.module), ("PLUGIN", self.plugin)):
+            context = patch.object(run, name, value)
+            context.start()
+            self.addCleanup(context.stop)
+
+    def test_fresh_snapshot_can_be_created(self):
+        destination = self.root / "new" / "snapshot"
+        run.snapshot(destination)
+        self.assertTrue((destination / "fixture.jar").is_file())
+        self.assertTrue((destination / "build.json").is_file())
+        self.assertTrue((destination / "classpath.txt").is_file())
+
+    def test_existing_snapshot_is_not_overwritten(self):
+        destination = self.root / "baseline"
+        destination.mkdir()
+        for name in ("fixture.jar", "build.json", "classpath.txt"):
+            (destination / name).write_bytes(b"retained baseline")
+        with self.assertRaises(FileExistsError):
+            run.snapshot(destination)
+        for name in ("fixture.jar", "build.json", "classpath.txt"):
+            self.assertEqual(b"retained baseline", (destination / name).read_bytes())
+
+    def test_existing_empty_directory_is_rejected(self):
+        destination = self.root / "empty"
+        destination.mkdir()
+        with self.assertRaises(FileExistsError):
+            run.snapshot(destination)
+
+    def test_existing_file_is_preserved(self):
+        destination = self.root / "baseline"
+        destination.write_bytes(b"unrelated file")
+        with self.assertRaises(FileExistsError):
+            run.snapshot(destination)
+        self.assertEqual(b"unrelated file", destination.read_bytes())
+
+
 if __name__ == "__main__":
     unittest.main()
