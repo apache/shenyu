@@ -20,12 +20,9 @@ package org.apache.shenyu.plugin.ai.transformer.request.template;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URLDecoder;
@@ -95,24 +92,9 @@ public class AiRequestTransformerTemplate {
     }
 
     /**
-     * bodyToString.
-     *
-     * @param body body
-     * @return requestBody
-     */
-    private Mono<String> bodyToString(final Flux<DataBuffer> body) {
-        return DataBufferUtils.join(body)
-                .map(dataBuffer -> {
-                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                    dataBuffer.read(bytes);
-                    DataBufferUtils.release(dataBuffer);
-                    return new String(bytes, StandardCharsets.UTF_8);
-                }).defaultIfEmpty("");
-    }
-
-    /**
      * parse formData to map .
      *
+     * @param body the form body
      * @return encodedMap
      */
     private Map<String, String> parseFormUrlEncoded(final String body) {
@@ -141,56 +123,53 @@ public class AiRequestTransformerTemplate {
     /**
      * assembleMessage .
      *
+     * @param bodyString the inbound request body, already read by the caller
      * @return message
      */
-    public Mono<String> assembleMessage() {
+    public Mono<String> assembleMessage(final String bodyString) {
         JsonNode headersJson = headersToJson(originalRequest.getHeaders());
 
+        ObjectNode rootNode = objectMapper.createObjectNode();
+        rootNode.put("system_prompt", SYS_CONTENT);
+        rootNode.put("user_prompt", userContent);
+
+        ObjectNode requestNode = objectMapper.createObjectNode();
+        requestNode.set("headers", headersJson);
+        String fullPath = originalRequest.getURI().getRawPath();
+        String query = originalRequest.getURI().getRawQuery();
+
+        if (Objects.nonNull(query)) {
+            fullPath += "?" + query;
+        }
+
+        requestNode.put("path", fullPath);
         MediaType contentType = originalRequest.getHeaders().getContentType();
+        if (Objects.nonNull(contentType)) {
+            if (MediaType.APPLICATION_JSON.isCompatibleWith(contentType)) {
+                try {
+                    JsonNode bodyJsonNode = objectMapper.readTree(bodyString);
+                    requestNode.set("body", bodyJsonNode);
+                } catch (Exception e) {
+                    requestNode.put("body", bodyString);
+                }
+            } else if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
+                Map<String, String> formMap = parseFormUrlEncoded(bodyString);
+                JsonNode formJson = objectMapper.valueToTree(formMap);
+                requestNode.set("body", formJson);
+            } else {
+                requestNode.put("body", bodyString);
+            }
+        } else {
+            requestNode.put("body", bodyString);
+        }
 
-        return bodyToString(originalRequest.getBody())
-                .flatMap(bodyString -> {
-                    ObjectNode rootNode = objectMapper.createObjectNode();
-                    rootNode.put("system_prompt", SYS_CONTENT);
-                    rootNode.put("user_prompt", userContent);
+        rootNode.set("request", requestNode);
 
-                    ObjectNode requestNode = objectMapper.createObjectNode();
-                    requestNode.set("headers", headersJson);
-                    String fullPath = originalRequest.getURI().getRawPath();
-                    String query = originalRequest.getURI().getRawQuery();
-
-                    if (Objects.nonNull(query)) {
-                        fullPath += "?" + query;
-                    }
-
-                    requestNode.put("path", fullPath);
-                    if (Objects.nonNull(contentType)) {
-                        if (MediaType.APPLICATION_JSON.isCompatibleWith(contentType)) {
-                            try {
-                                JsonNode bodyJsonNode = objectMapper.readTree(bodyString);
-                                requestNode.set("body", bodyJsonNode);
-                            } catch (Exception e) {
-                                requestNode.put("body", bodyString);
-                            }
-                        } else if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(contentType)) {
-                            Map<String, String> formMap = parseFormUrlEncoded(bodyString);
-                            JsonNode formJson = objectMapper.valueToTree(formMap);
-                            requestNode.set("body", formJson);
-                        } else {
-                            requestNode.put("body", bodyString);
-                        }
-                    } else {
-                        requestNode.put("body", bodyString);
-                    }
-
-                    rootNode.set("request", requestNode);
-
-                    try {
-                        String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
-                        return Mono.just(jsonString);
-                    } catch (Exception e) {
-                        return Mono.error(e);
-                    }
-                });
+        try {
+            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
+            return Mono.just(jsonString);
+        } catch (Exception e) {
+            return Mono.error(e);
+        }
     }
 }
