@@ -221,7 +221,7 @@ The following components are provided under the Apache License. See project link
 The text of each license is the standard Apache 2.0 license.
 
     simpleclient_httpserver 0.15.0: https://mvnrepository.com/artifact/io.prometheus/simpleclient_httpserver, Apache 2.0
-    client-java-api 17.0.2: https://mvnrepository.com/artifact/io.kubernetes/client-java-api, Apache 2.0
+    client-java-api 19.0.3: https://mvnrepository.com/artifact/io.kubernetes/client-java-api, Apache 2.0
     client-java 19.0.3: https://mvnrepository.com/artifact/io.kubernetes/client-java, Apache 2.0
     client-java-proto 19.0.3: https://mvnrepository.com/artifact/io.kubernetes/client-java-proto, Apache 2.0
     eureka-client-jersey3 2.0.6: https://github.com/Netflix/eureka, Apache 2.0
@@ -386,7 +386,7 @@ The text of each license is the standard Apache 2.0 license.
     spring-web 6.2.19: https://mvnrepository.com/artifact/org.springframework/spring-web, Apache 2.0
     spring-webmvc 6.2.19: https://mvnrepository.com/artifact/org.springframework/spring-webmvc, Apache 2.0
     spring-websocket 6.2.19: https://mvnrepository.com/artifact/org.springframework/spring-websocket, Apache 2.0
-    swagger-annotations 1.6.9: https://github.com/swagger-api/swagger-core, Apache 2.0
+    swagger-annotations 1.6.11: https://github.com/swagger-api/swagger-core, Apache 2.0
     swagger-annotations 2.2.34: https://github.com/swagger-api/swagger-core, Apache 2.0
     swagger-annotations-jakarta 2.2.47: https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations-jakarta, Apache 2.0
     swagger-core 1.6.16: https://github.com/swagger-api/swagger-core, Apache 2.0
