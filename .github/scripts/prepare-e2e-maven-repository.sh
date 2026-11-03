@@ -44,6 +44,11 @@ if [[ -n "${example_projects}" ]]; then
   bash "${script_dir}/maven-with-retry.sh" ./mvnw "${common[@]}" "${examples[@]}" \
     "${resolver}:go-offline" "${resolver}:tree" -DoutputType=json -DappendOutput=true \
     "-DoutputFile=${artifact_dir}/example-dependencies.json"
+  # Load the examples' plugin realm: go-offline misses Maven-injected runtime
+  # dependencies. The parent-only invocation skips tests and compiles no scenarios.
+  bash "${script_dir}/maven-with-retry.sh" ./mvnw "${common[@]}" \
+    -f shenyu-examples/pom.xml -N -Dmaven.test.skip=true \
+    org.apache.maven.plugins:maven-surefire-plugin:test
 fi
 
 bash "${script_dir}/maven-with-retry.sh" ./mvnw "${common[@]}" "${tests[@]}" \
