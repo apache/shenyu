@@ -1,5 +1,20 @@
 ## Unreleased
 
+### Dependency Upgrade Notes
+
+- The release dependency baseline moves to Spring Boot 3.5.16 and Shiro 2.2.1.
+  Custom authentication realms and integrations must be validated against these
+  versions before deployment. Patched Jackson and Tomcat versions are managed
+  explicitly ahead of the imported Boot dependency management.
+- H2 moves from 1.4.200 to 2.3.232. An existing persistent H2 database requires
+  migration: stop Admin writers, back up the original database, export it with
+  `SCRIPT` using H2 1.4.200, then import the export into a fresh H2 2.3.232 database
+  with `RUNSCRIPT FROM 'backup.sql' FROM_1X`. Verify the migrated database before
+  switching Admin to it. Do not open a 1.4 database file directly with the new
+  driver. Rollback restores the old Admin binaries and the original database
+  backup together. The default in-memory H2 database has no persistent file to
+  migrate. See the [H2 migration guide](https://www.h2database.com/html/migration-to-v2.html).
+
 ### API Changes
 
 - WASM loaders support opt-in startup execution deadlines and per-instance linear-memory
