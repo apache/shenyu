@@ -19,17 +19,25 @@ package org.apache.shenyu.springboot.starter.plugin.httpclient;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.Connection;
 import reactor.netty.resources.ConnectionProvider;
 
 import java.time.Duration;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,6 +45,76 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class HttpClientConnectionProviderTest {
+
+    @Test
+    void requestCancellationIsIsolatedAcrossConnectorSubscriptions() {
+        ConnectionProvider delegate = mock(ConnectionProvider.class);
+        AtomicInteger cancelled = new AtomicInteger();
+        when(delegate.acquire(null, null, null, null)).thenAnswer(invocation -> Mono.<Connection>never().doOnCancel(cancelled::incrementAndGet));
+        HttpClientConnectionProvider provider = new HttpClientConnectionProvider(delegate, false);
+        List<Disposable> acquisitions = new ArrayList<>();
+        // Model a connector that subscribes to acquisition separately, as Reactor Netty does.
+        Mono<Connection> connector = Mono.create(sink -> acquisitions.add(provider.acquire(null, null, null, null)
+                .contextWrite(sink.contextView()).subscribe(sink::success, sink::error)));
+        Mono<? extends Connection> cancellable = HttpClientConnectionProvider.propagateCancellation(connector);
+        CompletableFuture<? extends Connection> first = cancellable.toFuture();
+        CompletableFuture<? extends Connection> second = cancellable.toFuture();
+        try {
+            assertEquals(2, acquisitions.size());
+            assertTrue(first.cancel(true));
+            assertEquals(1, cancelled.get());
+            assertFalse(second.isDone());
+            assertTrue(second.cancel(true));
+            assertEquals(2, cancelled.get());
+        } finally {
+            first.cancel(true);
+            second.cancel(true);
+            acquisitions.forEach(Disposable::dispose);
+        }
+    }
+
+    @Test
+    void acquisitionWithoutRequestContextPreservesDelegateFailure() {
+        ConnectionProvider delegate = mock(ConnectionProvider.class);
+        IllegalStateException failure = new IllegalStateException("pool disposed");
+        when(delegate.acquire(null, null, null, null)).thenReturn(Mono.error(failure));
+        HttpClientConnectionProvider provider = new HttpClientConnectionProvider(delegate, false);
+
+        assertSame(failure, assertThrows(IllegalStateException.class, () -> provider.acquire(null, null, null, null).block(Duration.ofSeconds(5))));
+    }
+
+    @Test
+    void poolInspectionAndMutationRetainDelegateConfiguration() {
+        ConnectionProvider delegate = ConnectionProvider.builder("inspection").maxConnections(3).build();
+        HttpClientConnectionProvider provider = new HttpClientConnectionProvider(delegate, false);
+        ConnectionProvider mutated = provider.mutate().maxConnections(2).build();
+        try {
+            assertEquals("inspection", provider.name());
+            assertEquals(3, provider.maxConnections());
+            assertEquals(delegate.maxConnectionsPerHost(), provider.maxConnectionsPerHost());
+            assertEquals(2, mutated.maxConnections());
+            assertFalse(mutated instanceof HttpClientConnectionProvider);
+        } finally {
+            provider.dispose();
+            mutated.dispose();
+        }
+        assertTrue(provider.isDisposed());
+    }
+
+    @Test
+    void remoteDisposalDoesNotDisposeTheWholeProvider() {
+        ConnectionProvider delegate = mock(ConnectionProvider.class);
+        InetSocketAddress retired = new InetSocketAddress("127.0.0.1", 9195);
+        InetSocketAddress retained = new InetSocketAddress("127.0.0.1", 9196);
+        when(delegate.maxConnectionsPerHost()).thenReturn(Map.of(retained, 3));
+        HttpClientConnectionProvider provider = new HttpClientConnectionProvider(delegate, false);
+
+        provider.disposeWhen(retired);
+
+        org.mockito.Mockito.verify(delegate).disposeWhen(retired);
+        org.mockito.Mockito.verify(delegate, org.mockito.Mockito.never()).dispose();
+        assertEquals(Map.of(retained, 3), provider.maxConnectionsPerHost());
+    }
 
     @Test
     void cancellationFailsAcquisitionAndCancelsDelegate() {

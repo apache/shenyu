@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.NullSource;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -175,6 +176,28 @@ public class HttpClientPluginConfigurationTest {
     void invalidQueueCountsAreRejected(final int count) {
         HttpClientProperties properties = new HttpClientProperties();
         properties.getPool().setPendingAcquireMaxCount(count);
+        HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+        assertThrows(IllegalArgumentException.class, () -> factory.buildFixedConnectionPool(properties.getPool(), ConnectionProvider.builder("test")));
+        assertThrows(IllegalArgumentException.class, () -> factory.buildElasticConnectionPool(ConnectionProvider.builder("test")));
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(ints = {0, -1})
+    void invalidConnectionLimitsFailBeforeBuildingEitherPoolType(final Integer count) {
+        HttpClientProperties properties = new HttpClientProperties();
+        properties.getPool().setMaxConnections(count);
+        HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+        assertThrows(IllegalArgumentException.class, () -> factory.buildFixedConnectionPool(properties.getPool(), ConnectionProvider.builder("test")));
+        assertThrows(IllegalArgumentException.class, () -> factory.buildElasticConnectionPool(ConnectionProvider.builder("test")));
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(longs = {-1})
+    void invalidAcquisitionTimeoutsFailBeforeBuildingEitherPoolType(final Long timeout) {
+        HttpClientProperties properties = new HttpClientProperties();
+        properties.getPool().setAcquireTimeout(timeout);
         HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
         assertThrows(IllegalArgumentException.class, () -> factory.buildFixedConnectionPool(properties.getPool(), ConnectionProvider.builder("test")));
         assertThrows(IllegalArgumentException.class, () -> factory.buildElasticConnectionPool(ConnectionProvider.builder("test")));
