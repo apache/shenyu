@@ -254,8 +254,19 @@ jobs:
             tar -xzf "${archives[0]}" -C "${audit_root}/${component}"
             distributions=("${audit_root}/${component}/"apache-shenyu-*-"${component}"-bin)
             [[ ${#distributions[@]} -eq 1 && -d "${distributions[0]}/lib" ]]
-            python3 .release-tools/shenyu-watcher/shenyu_watcher.py \
-              --lib "${distributions[0]}/lib" "shenyu-dist/shenyu-${component}-dist" "${distributions[0]}/LICENSE"
+            # The verifier CLI prints failures with exit code zero; enforce its result explicitly.
+            python3 - "${distributions[0]}/lib" "shenyu-dist/shenyu-${component}-dist" "${distributions[0]}/LICENSE" <<'PYTHON'
+          import importlib.util
+          import sys
+          spec = importlib.util.spec_from_file_location('release_watcher', '.release-tools/shenyu-watcher/shenyu_watcher.py')
+          watcher = importlib.util.module_from_spec(spec)
+          sys.modules[spec.name] = watcher
+          spec.loader.exec_module(watcher)
+          result = watcher.run_check(sys.argv[2], sys.argv[3], lib_dir=sys.argv[1])
+          watcher.print_result(result)
+          if not result.checked or result.unmatched or result.parse_failures:
+              raise SystemExit('Candidate dependency license declarations are incomplete')
+          PYTHON
           done
       - name: Upload distribution runtime dependency reports
         uses: actions/upload-artifact@v4
