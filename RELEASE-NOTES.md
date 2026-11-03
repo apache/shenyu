@@ -9,20 +9,23 @@
 - MyBatis Spring Boot Starter moves to 3.0.5 and Springdoc OpenAPI moves to
   2.8.17 with Swagger Models 2.2.47, aligning their integrations with Boot 3.5.
 - Transitive dependency fixes include Log4j 2.25.5, Commons Compress 1.28.0,
-  HttpClient 4.5.14, Vert.x 4.5.24, Rhino 1.7.15.1, Bouncy Castle 1.85,
+  HttpClient 4.5.14, Vert.x 4.5.27, Rhino 1.7.15.1, Bouncy Castle 1.85,
   Snappy 1.1.10.9 and Fastjson 2.0.66 (the Fastjson 1 API compatibility module).
   LZ4 moves from the archived `org.lz4` implementation to the maintained
   `at.yawk.lz4:lz4-java` 1.11.4; legacy transitive coordinates are relocated.
 - Spring Framework remains on 6.2.19. This upgrade does not resolve
   CVE-2026-47884 (XsltView with implicit view names and wildcard mappings) or
   CVE-2026-47890 (SSE view fragments), or CVE-2026-47892 (WebFlux functional
-  header predicates deployed with DispatcherServlet). Their public fixes start at Spring 7.0.9;
+  header predicates deployed with DispatcherServlet). Their public fixes start
+  at Spring 7.0.9;
   the Spring 6.2.20 fixes require enterprise support. Deployments using these
   features must review the corresponding Spring security advisories.
-- MCP SDK remains on the 0.17.0 line used by Spring AI 1.1.8. The DNS rebinding
+- MCP SDK moves to 0.18.3 with Spring AI 1.1.8. The DNS rebinding
   advisory CVE-2026-35568 is fixed in SDK 1.0.0, whose Spring transports moved
   to Spring AI 2.0. Deployments must validate Host and Origin headers as described
   in the SDK advisory; this dependency upgrade does not resolve that advisory.
+- Existing OpenTelemetry API dependencies are aligned at 1.67.0 to include
+  upstream security fixes. This update adds no telemetry instrumentation.
 - The release dependency baseline moves to Spring Boot 3.5.16 and Shiro 2.2.1.
   Custom authentication realms and integrations must be validated against these
   versions before deployment. Patched Jackson and Tomcat versions are managed
