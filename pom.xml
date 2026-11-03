@@ -171,7 +171,7 @@
         <jwt.version>3.12.0</jwt.version>
         <spring-boot.version>3.5.16</spring-boot.version>
         <netty.version>4.1.139.Final</netty.version>
-        <aspectjweaver.version>1.9.6</aspectjweaver.version>
+        <aspectjweaver.version>1.9.25.1</aspectjweaver.version>
         <h2.version>2.3.232</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
         <java-websocket.version>1.5.0</java-websocket.version>
@@ -388,13 +388,46 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Align the existing Resilience4j 1.x plugins instead of mixing in Cloud's 2.x core. -->
+            <!-- Keep the existing plugin API and every transitive Resilience4j module on the same line. -->
             <dependency>
                 <groupId>io.github.resilience4j</groupId>
-                <artifactId>resilience4j-bom</artifactId>
+                <artifactId>resilience4j-bulkhead</artifactId>
                 <version>${resilience.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-circuitbreaker</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-core</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-micrometer</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-ratelimiter</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-reactor</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-retry</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-timelimiter</artifactId>
+                <version>${resilience.version}</version>
             </dependency>
 
             <!-- Use the release train compatible with Boot 3.5 for all Cloud components. -->
