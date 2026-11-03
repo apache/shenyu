@@ -142,7 +142,7 @@
 
         <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
-        <mybatis.starter.version>3.0.3</mybatis.starter.version>
+        <mybatis.starter.version>3.0.5</mybatis.starter.version>
         <mysql.version>8.3.0</mysql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <guava.version>33.7.2-jre</guava.version>
@@ -159,7 +159,7 @@
         <okhttp.version>4.12.0</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
-        <springdoc.version>2.5.0</springdoc.version>
+        <springdoc.version>2.8.17</springdoc.version>
         <sofa.rpc.version>5.13.0</sofa.rpc.version>
         <sofa-common-tools.version>2.1.1</sofa-common-tools.version>
         <tars.version>1.7.2</tars.version>
@@ -221,7 +221,7 @@
         <oceanbase.version>2.4.12</oceanbase.version>
         <spring-ai.version>1.1.8</spring-ai.version>
         <mcp.version>0.17.0</mcp.version>
-        <swagger-models.version>2.2.34</swagger-models.version>
+        <swagger-models.version>2.2.47</swagger-models.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
         <slf4j.version>2.0.17</slf4j.version>

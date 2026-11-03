@@ -6,6 +6,8 @@
   OpenFeign and Netflix) to match Spring Boot 3.5. OkHttp and its logging
   interceptor are managed together at 4.12.0; Lettuce moves to 6.6.0.RELEASE
   to match Spring Data Redis in the Boot dependency baseline.
+- MyBatis Spring Boot Starter moves to 3.0.5 and Springdoc OpenAPI moves to
+  2.8.17 with Swagger Models 2.2.47, aligning their integrations with Boot 3.5.
 - The release dependency baseline moves to Spring Boot 3.5.16 and Shiro 2.2.1.
   Custom authentication realms and integrations must be validated against these
   versions before deployment. Patched Jackson and Tomcat versions are managed
