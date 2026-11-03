@@ -26,7 +26,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,7 +150,7 @@ public final class JwtUtils {
         } catch (IllegalArgumentException | JWTCreationException e) {
             LOG.error("JWTToken generate fail ", e);
         }
-        return StringUtils.EMPTY_STRING;
+        return "";
     }
 
     public static boolean verifyToken(final String token, final String key) {
