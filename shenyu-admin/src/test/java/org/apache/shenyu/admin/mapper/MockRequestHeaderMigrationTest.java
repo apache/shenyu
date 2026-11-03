@@ -71,7 +71,6 @@ public final class MockRequestHeaderMigrationTest {
             mapper.insert(record);
 
             statement.execute("CREATE TABLE selector (loged INT)");
-            statement.execute("CREATE TABLE rule (loged INT)");
             statement.execute("CREATE TABLE dashboard_user (id VARCHAR(128))");
             statement.execute("CREATE TABLE rule (loged INT, handle VARCHAR(1024))");
             statement.execute("CREATE TABLE instance_info (id VARCHAR(128), namespace_id VARCHAR(50), instance_ip VARCHAR(128),"
