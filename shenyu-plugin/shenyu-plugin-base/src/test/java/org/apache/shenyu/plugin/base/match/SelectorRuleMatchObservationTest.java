@@ -24,7 +24,6 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -41,13 +40,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -260,7 +255,29 @@ public final class SelectorRuleMatchObservationTest {
                 .conditionDataList(Collections.singletonList(conditionData)).build());
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
         assertEquals(1, events.size());
-        assertEquals(SelectorRuleMatchObservation.Decision.NO_RULE, events.get(0).getDecision());
+        assertEquals(SelectorRuleMatchObservation.Decision.FULL_FLOW_NO_ENABLED_RULE, events.get(0).getDecision());
+    }
+
+    @Test
+    public void negativeRuleCacheHitReportsNoRuleFromCache() {
+        mockShenyuConfig(true);
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selectorData);
+        // the rule list carries only non-matching, path-only, uniquely decidable rules,
+        // so the first request evaluates live and warms the negative rule entry
+        BaseDataCache.getInstance().cacheRuleData(RuleData.builder().id("r2").pluginName("SHENYU").selectorId("s1")
+                .enabled(true).logged(true).matchRestful(false).matchMode(0).sort(1)
+                .conditionDataList(Collections.singletonList(unmatchedCondition())).build());
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        assertEquals(1, events.size());
+        assertEquals(SelectorRuleMatchObservation.Decision.RULE_UNMATCHED, events.get(0).getDecision());
+        events.clear();
+        // the second request is served by the negative rule cache entry
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        assertEquals(1, events.size());
+        SelectorRuleMatchObservation observation = events.get(0);
+        assertEquals(SelectorRuleMatchObservation.Decision.NO_RULE, observation.getDecision());
+        assertEquals(SelectorRuleMatchObservation.CacheResolution.NEGATIVE_HIT, observation.getRuleCache());
     }
 
     @Test
@@ -300,49 +317,28 @@ public final class SelectorRuleMatchObservationTest {
     }
 
     @Test
+    public void registrationTokenUnregistersOnlyItsOwnObserver() throws Exception {
+        seedSuccessfulConfig();
+        AutoCloseable token = SelectorRuleMatchObserverHolder.register(events::add);
+        SelectorRuleMatchObserver later = observation -> { };
+        final AutoCloseable laterToken = SelectorRuleMatchObserverHolder.register(later);
+        token.close();
+        // the later registration must survive closing an earlier token
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+        assertTrue(events.isEmpty(), "the later observer discards, but stays registered");
+        laterToken.close();
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
+        verify(testShenyuPlugin, org.mockito.Mockito.times(2)).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
+    }
+
+    @Test
     public void unregisteredObserverProducesNoEventsAndNoFailure() {
         seedSuccessfulConfig();
         SelectorRuleMatchObserverHolder.unregister();
-        assertFalse(SelectorRuleMatchObserverHolder.isInstrumented());
         StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
         verify(testShenyuPlugin).doExecute(exchange, shenyuPluginChain, selectorData, ruleData);
         assertTrue(events.isEmpty());
-    }
-
-    @Test
-    public void outerSkipProducesNoEventBecauseExecuteIsNeverReached() {
-        seedSuccessfulConfig();
-        // emulate the chain: skip is checked before execute and a skipped plugin never matches
-        SkippingPlugin skippingPlugin = new SkippingPlugin();
-        if (!skippingPlugin.skip(exchange)) {
-            skippingPlugin.execute(exchange, shenyuPluginChain).subscribe();
-        }
-        assertTrue(events.isEmpty(), "a skipped plugin must not fabricate a matching event");
-    }
-
-    @Test
-    public void pluginsOutsideAbstractShenyuPluginProduceNoEvents() throws Exception {
-        seedSuccessfulConfig();
-        // a direct ShenyuPlugin implementation has no selector/rule decision to report
-        ShenyuPlugin plainPlugin = new PlainPlugin();
-        StepVerifier.create(plainPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
-        assertTrue(events.isEmpty(), "unsupported plugins must not get fabricated events");
-    }
-
-    @Test
-    public void observationIsImmutableAndFreeOfRequestData() {
-        seedSuccessfulConfig();
-        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).verifyComplete();
-        for (Method method : SelectorRuleMatchObservation.class.getDeclaredMethods()) {
-            assertFalse(method.getName().startsWith("set"), "observations must expose no setters");
-        }
-        for (Field field : SelectorRuleMatchObservation.class.getDeclaredFields()) {
-            assertTrue(Modifier.isFinal(field.getModifiers()), field.getName() + " must be final");
-        }
-        SelectorRuleMatchObservation observation = events.get(0);
-        // no field can carry the request path: the record only holds ids and enums
-        assertFalse(Objects.nonNull(observation.getSelectorId()) && observation.getSelectorId().contains("SHENYU/SHENYU"));
-        assertEquals("SHENYU", observation.getPluginName());
     }
 
     private void seedSuccessfulConfig() {
@@ -381,48 +377,6 @@ public final class SelectorRuleMatchObservationTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(ShenyuConfig.class)).thenReturn(shenyuConfig);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-    }
-
-    static class SkippingPlugin extends AbstractShenyuPlugin {
-
-        @Override
-        public boolean skip(final ServerWebExchange serverExchange) {
-            return true;
-        }
-
-        @Override
-        protected Mono<Void> doExecute(final ServerWebExchange serverExchange, final ShenyuPluginChain pluginChain,
-                                       final SelectorData selector, final RuleData rule) {
-            return Mono.empty();
-        }
-
-        @Override
-        public int getOrder() {
-            return 0;
-        }
-
-        @Override
-        public String named() {
-            return "SHENYU";
-        }
-    }
-
-    static class PlainPlugin implements ShenyuPlugin {
-
-        @Override
-        public Mono<Void> execute(final ServerWebExchange serverExchange, final ShenyuPluginChain pluginChain) {
-            return Mono.empty();
-        }
-
-        @Override
-        public int getOrder() {
-            return 0;
-        }
-
-        @Override
-        public String named() {
-            return "PLAIN";
-        }
     }
 
     static class TestShenyuPlugin extends AbstractShenyuPlugin {

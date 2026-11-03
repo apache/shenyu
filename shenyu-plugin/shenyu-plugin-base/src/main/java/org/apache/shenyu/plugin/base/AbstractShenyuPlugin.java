@@ -143,7 +143,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
             RuleData rule = lastEnabledRule(rules);
             if (Objects.isNull(rule)) {
-                reportDecision(Decision.NO_RULE, selectorData, null, false,
+                reportDecision(Decision.FULL_FLOW_NO_ENABLED_RULE, selectorData, null, false,
                         selectorCache, CacheResolution.NOT_CONSULTED);
                 return handleRuleIfNull(pluginName, exchange, chain);
             }

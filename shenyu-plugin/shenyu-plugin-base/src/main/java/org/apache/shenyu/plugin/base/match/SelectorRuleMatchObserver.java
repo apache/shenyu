@@ -21,11 +21,13 @@ package org.apache.shenyu.plugin.base.match;
  * Read-only consumer of selector/rule matching decisions.
  *
  * <p>Implementations are invoked synchronously on the gateway request path after a matching
- * decision has been taken. The contract is strict: the callback must not throw, must not
- * block, must not mutate the exchange, the configuration caches or the observation, and must
- * never consume or buffer request bodies. Sampling, bounded queues and export backpressure
- * are the consumer's own responsibility, so a slow or saturated consumer can never alter a
- * request outcome, hold an unbounded queue or retain request data.</p>
+ * decision has been taken, on the event-loop thread that is driving the request. The
+ * contract is strict: the callback must return immediately (blocking there directly slows
+ * the real request), must not throw, must not mutate the exchange, the configuration caches
+ * or the observation, and must never consume or buffer request bodies. Sampling, bounded
+ * queues and export backpressure are the consumer's own responsibility, so a slow or
+ * saturated consumer can never alter a request outcome, hold an unbounded queue or retain
+ * request data.</p>
  */
 @FunctionalInterface
 public interface SelectorRuleMatchObserver {

@@ -32,6 +32,10 @@ package org.apache.shenyu.plugin.base.match;
  * <p>Instances carry plugin identity, the selected ids and the decision reason only. They
  * never contain request paths, credentials, condition payloads or bodies, so they are safe
  * to forward to metric labels or log pipelines.</p>
+ *
+ * <p>Observations are dispatched synchronously on the request's event-loop thread; the
+ * observer contract requires returning immediately, because blocking there directly slows
+ * the real request.</p>
  */
 public final class SelectorRuleMatchObservation {
 
@@ -179,8 +183,10 @@ public final class SelectorRuleMatchObservation {
         PLUGIN_DISABLED,
 
         /**
-         * No selector was selected: the selector list is empty, the negative match cache
-         * recorded no match for this path, or live matching found no candidate.
+         * The selector stage found no candidate and the plugin entered its
+         * {@code handleSelectorIfNull} fallback hook (the default hook continues the
+         * chain; plugins overriding the hook decide their own route). Covers an empty
+         * selector list and a negative match-cache hit for this path.
          */
         NO_SELECTOR,
 
@@ -190,15 +196,24 @@ public final class SelectorRuleMatchObservation {
         SELECTOR_UNMATCHED,
 
         /**
-         * No rule was selected: the rule list is empty, the negative match cache recorded
-         * no match for this path, or live matching found no enabled rule.
+         * The rule stage found no candidate and the plugin entered its
+         * {@code handleRuleIfNull} fallback hook (the default hook continues the chain;
+         * plugins overriding the hook decide their own route). Covers an empty rule list
+         * and a negative match-cache hit for this path.
          */
         NO_RULE,
 
         /**
          * Live rule matching evaluated the candidate set and found no candidate.
          */
-        RULE_UNMATCHED
+        RULE_UNMATCHED,
+
+        /**
+         * A full-flow selector supplied no rule because none of its rules is enabled.
+         * Operationally distinct from {@link #NO_RULE}: the configuration exists but is
+         * entirely disabled.
+         */
+        FULL_FLOW_NO_ENABLED_RULE
     }
 
     /**

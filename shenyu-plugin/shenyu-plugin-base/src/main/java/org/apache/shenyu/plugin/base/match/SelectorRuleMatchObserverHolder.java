@@ -22,10 +22,11 @@ import java.util.Objects;
 /**
  * Opt-in static registration point for the {@link SelectorRuleMatchObserver}.
  *
- * <p>The holder follows the same pattern as the diagnostics and metrics registration
- * points: exactly one observer is registered at startup by whichever consumer (metrics,
- * diagnostics, agent) wants the decision stream. With no observer registered the matching
- * path performs a single null read and never allocates an observation, so instrumentation
+ * <p>This is a single-slot adapter wiring point, not a telemetry backend: it follows the
+ * same pattern as the existing static registration points (the metrics reporter and the
+ * diagnostics configuration), where exactly one consumer is registered at startup and no
+ * new observation machinery is introduced. With no observer registered the matching path
+ * performs a single volatile read and never allocates an observation, so instrumentation
  * enabled/disabled is behaviourally and cost-invisible at the request path.</p>
  */
 public final class SelectorRuleMatchObserverHolder {
@@ -39,9 +40,16 @@ public final class SelectorRuleMatchObserverHolder {
      * Register the process-wide observer, replacing any previous one.
      *
      * @param newObserver the observer to register, must not be null
+     * @return a registration token whose {@code close()} unregisters this observer
+     *         (only while it is still the registered one); it never throws
      */
-    public static void register(final SelectorRuleMatchObserver newObserver) {
+    public static AutoCloseable register(final SelectorRuleMatchObserver newObserver) {
         observer = Objects.requireNonNull(newObserver, "observer");
+        return () -> {
+            if (observer == newObserver) {
+                observer = null;
+            }
+        };
     }
 
     /**
@@ -58,14 +66,5 @@ public final class SelectorRuleMatchObserverHolder {
      */
     public static SelectorRuleMatchObserver get() {
         return observer;
-    }
-
-    /**
-     * Whether an observer is registered.
-     *
-     * @return true when decisions are being reported
-     */
-    public static boolean isInstrumented() {
-        return Objects.nonNull(observer);
     }
 }
