@@ -53,7 +53,7 @@
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-cloud.version>4.1.2</spring-cloud.version>
+        <spring-cloud.version>4.3.3</spring-cloud.version>
         <okhttp3.version>4.9.3</okhttp3.version>
 <!--        <curator.version>4.0.1</curator.version>-->
         <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
