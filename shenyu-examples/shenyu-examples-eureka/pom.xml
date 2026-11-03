@@ -29,7 +29,7 @@
 
     <properties>
         <spring-cloud.version>4.3.3</spring-cloud.version>
-        <spring-cloud-dependencies.version>2023.0.3</spring-cloud-dependencies.version>
+        <spring-cloud-dependencies.version>2025.0.3</spring-cloud-dependencies.version>
         <jersey.version>1.19.4</jersey.version>
         <spring-cloud-commons.version>4.3.3</spring-cloud-commons.version>
         <jersey-bom.version>4.0.0-M1</jersey-bom.version>
