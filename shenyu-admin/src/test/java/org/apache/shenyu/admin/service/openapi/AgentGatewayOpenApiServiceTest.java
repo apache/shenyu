@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.openapi;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.admin.mapper.AgentGatewayImportMapper;
@@ -209,6 +210,27 @@ class AgentGatewayOpenApiServiceTest {
     }
 
     @Test
+    void rejectsSelectionThatExceedsTheMergedToolBudget() {
+        target.setHandle(handleWithTools(15));
+        AgentGatewayOpenApiRequest request = OpenApiImportFixture.request();
+        AgentGatewayOpenApiPreview preview = service.preview(request);
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> service.apply(apply(request, preview, Set.of("GET /backend/orders", "POST /backend/orders"), false)));
+        assertTrue(error.getMessage().contains("Tool budget exceeded"));
+        verify(ruleService, never()).createOrUpdate(any());
+        verify(imports, never()).insertSelective(any());
+    }
+
+    @Test
+    void allowsSelectionAtTheExactToolBudget() {
+        target.setHandle(handleWithTools(15));
+        AgentGatewayOpenApiRequest request = OpenApiImportFixture.request();
+        AgentGatewayOpenApiPreview preview = service.preview(request);
+        service.apply(apply(request, preview, Set.of("GET /backend/orders"), false));
+        assertEquals(16, handle().getAsJsonObject("mcp").getAsJsonObject("httpTools").size());
+    }
+
+    @Test
     void unknownSelectionsAndUnacknowledgedCatalogCannotPublish() {
         AgentGatewayOpenApiRequest request = OpenApiImportFixture.request();
         AgentGatewayOpenApiPreview preview = service.preview(request);
@@ -228,6 +250,26 @@ class AgentGatewayOpenApiServiceTest {
 
     private JsonObject handle() {
         return JsonParser.parseString(target.getHandle()).getAsJsonObject();
+    }
+
+    private String handleWithTools(final int count) {
+        JsonObject mcp = new JsonObject();
+        JsonArray allowed = new JsonArray();
+        JsonObject tools = new JsonObject();
+        for (int index = 0; index < count; index++) {
+            String name = "existing" + index;
+            allowed.add(name);
+            tools.add(name, JsonParser.parseString("{\"description\":\"existing\","
+                    + "\"inputSchema\":{\"type\":\"object\",\"properties\":{}},"
+                    + "\"requestConfig\":{\"requestTemplate\":{\"method\":\"GET\",\"url\":\"/existing\"},"
+                    + "\"argsPosition\":{}}}"));
+        }
+        mcp.add("allowedTools", allowed);
+        mcp.add("httpTools", tools);
+        JsonObject handle = new JsonObject();
+        handle.addProperty("trafficType", "mcp");
+        handle.add("mcp", mcp);
+        return handle.toString();
     }
 
     private RuleDO rule(final String id, final String selector, final String handle) {

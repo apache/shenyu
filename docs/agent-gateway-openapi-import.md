@@ -195,9 +195,12 @@ the same-name `structuredContentRemovals` entry. Unrelated grants, filters and
 manual configuration are preserved.
 
 `UNCHANGED` selections do not rewrite the rule handle. A source removal requires
-`confirmRemovals=true`. An operation that becomes unsupported remains published
-and is not proposed for removal automatically; the operator must either remove
-it from the complete source document or manage it manually.
+`confirmRemovals=true`. Apply also enforces the runtime 16-tool budget against
+the merged result and rejects a selection that would exceed it, reporting the
+current, selected and final counts before any write. An operation that becomes
+unsupported remains published and is not proposed for removal automatically; the
+operator must either remove it from the complete source document or manage it
+manually.
 
 An operation that was already imported and then manually edited becomes a
 `CONFLICT` and blocks update and removal until it is restored or managed
@@ -286,8 +289,6 @@ Known boundaries:
 - no dashboard UI in this repository;
 - no import history or audit table beyond the existing operation log;
 - no automatic cleanup of provenance when a target rule is deleted;
-- no pre-check for the merged 16-tool budget across sources; a second source
-  that exceeds it fails during final handle validation;
 - no collision visibility for startup-local providers or remote catalogs, as
   described above.
 

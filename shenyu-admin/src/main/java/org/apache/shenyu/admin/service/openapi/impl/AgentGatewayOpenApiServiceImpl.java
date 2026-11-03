@@ -126,6 +126,17 @@ public class AgentGatewayOpenApiServiceImpl implements AgentGatewayOpenApiServic
         if (mcp.has("allowedTools")) {
             mcp.getAsJsonArray("allowedTools").forEach(value -> allowed.add(value.getAsString()));
         }
+        Set<String> finalTools = new LinkedHashSet<>(tools.keySet());
+        selected.forEach(item -> {
+            if ("REMOVE".equals(item.action())) {
+                finalTools.remove(item.toolName());
+            } else if (!"UNCHANGED".equals(item.action())) {
+                finalTools.add(item.toolName());
+            }
+        });
+        require(finalTools.size() <= 16, "Tool budget exceeded: the target rule has " + tools.size()
+                + " httpTools and the selection would produce " + finalTools.size()
+                + "; the runtime maximum is 16 tools per rule");
         JsonObject manifest = prepared.manifest().deepCopy();
         JsonObject owned = manifest.has(apply.request().sourceId()) ? manifest.getAsJsonObject(apply.request().sourceId()) : new JsonObject();
         for (Item item : selected) {
