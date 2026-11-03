@@ -498,7 +498,8 @@ The text of each license is also included at licenses/LICENSE-[project].txt.
     h2 2.3.232: http://www.h2database.com/html/main.html , MPL 2.0 or EPL 1.0
     logback-classic 1.5.34: https://github.com/qos-ch/logback, EPL 1.0
     logback-core 1.5.34: https://github.com/qos-ch/logback, EPL 1.0
-    jakarta.mail 2.0.5: https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail, EDL 1.0/EPL 2.0/GPL
+    jakarta.mail 2.0.5: https://mvnrepository.com/artifact/org.eclipse.angus/jakarta.mail, EPL 2.0/GPL 2.0 with Classpath Exception
+    jakarta.mail-api 2.1.5 (bundled in jakarta.mail 2.0.5): https://mvnrepository.com/artifact/jakarta.mail/jakarta.mail-api, EPL 2.0/GPL 2.0 with Classpath Exception
     hk2-utils 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-utils, EPL 2.0/GPL
     hk2-api 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-api, EPL 2.0/GPL
     hk2-locator 3.0.6: https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-locator, EPL 2.0/GPL
