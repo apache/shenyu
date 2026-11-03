@@ -99,7 +99,7 @@ public class ShenyuGrpcClient implements Closeable {
                 jsonResponse);
         
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse,
+        MessageWriter<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse,
                 resolveMaxAggregatedResultCount(), resolveMaxAggregatedResultBytes());
         
         ShenyuGrpcCallRequest callParams = new ShenyuGrpcCallRequest();
@@ -111,16 +111,31 @@ public class ShenyuGrpcClient implements Closeable {
         
         ListenableFuture<Void> invocation = this.invoke(callParams);
         CompletableFuture<ShenyuGrpcResponse> result = new CompletableFuture<>();
+        streamObserver.getOverflowFuture().thenAccept(failure -> {
+            if (result.completeExceptionally(failure)) {
+                invocation.cancel(true);
+            }
+        });
         Futures.addCallback(invocation, new FutureCallback<>() {
             @Override
             public void onSuccess(final Void ignored) {
-                result.complete(shenyuGrpcResponse);
+                ShenyuGrpcException overflow = streamObserver.getOverflowFuture().getNow(null);
+                if (Objects.nonNull(overflow)) {
+                    result.completeExceptionally(overflow);
+                } else {
+                    result.complete(shenyuGrpcResponse);
+                }
             }
 
             @Override
             public void onFailure(final Throwable throwable) {
-                result.completeExceptionally(new ShenyuGrpcException(
-                        "Caught exception while waiting for rpc :{ " + throwable.getMessage() + "}", throwable));
+                ShenyuGrpcException overflow = streamObserver.getOverflowFuture().getNow(null);
+                if (Objects.nonNull(overflow)) {
+                    result.completeExceptionally(overflow);
+                } else {
+                    result.completeExceptionally(new ShenyuGrpcException(
+                            "Caught exception while waiting for rpc :{ " + throwable.getMessage() + "}", throwable));
+                }
             }
         }, MoreExecutors.directExecutor());
         result.whenComplete((ignored, throwable) -> {

@@ -19,14 +19,17 @@ package org.apache.shenyu.admin.service.impl;
 
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualLineVO;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.utils.InstanceInfoUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.slf4j.Logger;
@@ -81,6 +84,8 @@ public class InstanceCheckService {
 
     private InstanceInfoService instanceInfoService;
 
+    private final RegistrationFencingGuard registrationFencingGuard;
+
     private final InstanceRetentionProperties instanceRetentionProperties;
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
@@ -95,12 +100,14 @@ public class InstanceCheckService {
 
     @Autowired
     public InstanceCheckService(final InstanceInfoService instanceInfoService,
+                                final RegistrationFencingGuard registrationFencingGuard,
                                 final InstanceRetentionProperties instanceRetentionProperties) {
-        this(instanceInfoService, instanceRetentionProperties, Clock.systemDefaultZone());
+        this(instanceInfoService, registrationFencingGuard, instanceRetentionProperties, Clock.systemDefaultZone());
     }
 
     // Visible for tests that need a controlled clock.
     InstanceCheckService(final InstanceInfoService instanceInfoService,
+                         final RegistrationFencingGuard registrationFencingGuard,
                          final InstanceRetentionProperties instanceRetentionProperties, final Clock clock) {
         this.scheduledTime = 10;
         this.clock = clock;
@@ -108,6 +115,7 @@ public class InstanceCheckService {
         this.instanceHeartBeatTimeOut = 1000 * 20;
         this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
+        this.registrationFencingGuard = registrationFencingGuard;
         this.instanceRetentionProperties = instanceRetentionProperties;
         this.stateHistoryMap = new ConcurrentHashMap<>();
         this.namespaceStateHistoryMap = new HashMap<>();
@@ -143,6 +151,10 @@ public class InstanceCheckService {
             if (Objects.isNull(instanceInfoVO.getInstanceState())) {
                 instanceInfoVO.setInstanceState(InstanceStatusEnum.DELETED.getCode());
             }
+            if (isProtectedClientObservation(instanceInfoVO.getNamespaceId(), instanceInfoVO.getInstanceIp(),
+                    instanceInfoVO.getInstancePort(), instanceInfoVO.getInstanceType())) {
+                return;
+            }
             String instanceKey = getInstanceKey(instanceInfoVO);
             // a persisted observation is older than any heartbeat already accepted in the live map
             // (heartbeat time is not persisted), so only fill identities that have no live entry
@@ -166,6 +178,24 @@ public class InstanceCheckService {
         return instanceHealthBeatInfo.get(instanceKey);
     }
 
+    /**
+     * Fenced business addresses are excluded from the address-only diagnostic cache.
+     *
+     * @param namespaceId namespace id
+     * @param instanceIp instance ip
+     * @param instancePort instance port
+     * @param instanceType instance type
+     * @return whether the observation belongs to a protected business target
+     */
+    private boolean isProtectedClientObservation(final String namespaceId, final String instanceIp,
+                                                 final String instancePort, final String instanceType) {
+        if (!InstanceTypeConstants.CLIENT_INSTANCE_TYPE.equals(instanceType)) {
+            return false;
+        }
+        int port = NumberUtils.toInt(instancePort, -1);
+        return port > 0 && registrationFencingGuard.isProtectedAddress(namespaceId, instanceIp, port);
+    }
+
     public boolean handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         // every in-repo producer defaults a blank namespace, so treat it as the default namespace
         // rather than an incomplete identity (review feedback on #7776)
@@ -175,6 +205,11 @@ public class InstanceCheckService {
                     instanceBeatInfoDTO.getInstanceIp(), instanceBeatInfoDTO.getInstancePort(),
                     instanceBeatInfoDTO.getInstanceType(), instanceBeatInfoDTO.getNamespaceId());
             return false;
+        }
+        if (isProtectedClientObservation(instanceBeatInfoDTO.getNamespaceId(), instanceBeatInfoDTO.getInstanceIp(),
+                instanceBeatInfoDTO.getInstancePort(), instanceBeatInfoDTO.getInstanceType())) {
+            // Fenced business instances are observed through their boot session, not the address cache.
+            return true;
         }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
         long currentTime = clock.millis();
@@ -331,6 +366,10 @@ public class InstanceCheckService {
         try {
             List<InstanceInfoVO> snapshot = new ArrayList<>(instanceHealthBeatInfo.values());
             for (InstanceInfoVO vo : snapshot) {
+                if (isProtectedClientObservation(vo.getNamespaceId(), vo.getInstanceIp(),
+                        vo.getInstancePort(), vo.getInstanceType())) {
+                    continue;
+                }
                 try {
                     instanceInfoService.createOrUpdate(copyInstanceInfoVO(vo));
                 } catch (Exception e) {
