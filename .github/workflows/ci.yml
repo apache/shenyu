@@ -465,6 +465,13 @@ jobs:
         run: |
           modules="$(GROUP_ROOTS="${{ matrix.modules }}" bash .github/scripts/expand-ci-module-roots.sh)"
           ./mvnw -B -ntp -T 1C -pl "${modules}" test -Prelease -DskipRemoteResources=true -Dcheckstyle.skip=true -Djacoco.skip=true
+      - name: Repeat actual HTTP cancellation and peer isolation on Java 21
+        if: github.event_name == 'workflow_dispatch' && inputs.release_candidate && matrix.name == 'plugin-ai'
+        run: |
+          for attempt in {1..10}; do
+            ./mvnw -B -ntp -pl shenyu-plugin/shenyu-plugin-agent-gateway test -Dtest=RemoteResourceNetworkTest \
+              -Prelease -DskipRemoteResources=true -Dcheckstyle.skip=true -Djacoco.skip=true
+          done
 
   check-license-header:
     name: check-license-header
