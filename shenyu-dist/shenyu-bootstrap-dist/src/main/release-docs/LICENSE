@@ -212,6 +212,11 @@ Additional license and copyright texts from the exact bundled JARs are
 reproduced in licenses/LICENSE-bundled-dependencies.txt. These texts supplement
 the component declarations and license files below. Upstream texts missing
 from the JARs are included in licenses/LICENSE-upstream-dependencies.txt.
+For jcl-over-slf4j 2.0.17, the upstream JAR incorrectly contains MIT text;
+its module POM and versioned source license use Apache 2.0. The correct
+module license is reproduced in licenses/LICENSE-jcl-over-slf4j.txt.
+See https://github.com/qos-ch/slf4j/blob/v_2.0.17/jcl-over-slf4j/LICENSE.txt
+and https://www.slf4j.org/news.html (2.0.19, issue 465).
 
 ========================================================================
 Apache 2.0 licenses
@@ -220,6 +225,7 @@ Apache 2.0 licenses
 The following components are provided under the Apache License. See project link for details.
 The text of each license is the standard Apache 2.0 license.
 
+    jcl-over-slf4j 2.0.17: https://www.slf4j.org, Apache 2.0 (see licenses/LICENSE-jcl-over-slf4j.txt)
     context-propagation 1.1.4: https://github.com/micrometer-metrics/context-propagation, Apache 2.0
     perfmark-api 0.26.0: https://github.com/perfmark/perfmark, Apache 2.0
     accessors-smart 2.5.2: https://www.minidev.net, Apache 2.0
@@ -287,7 +293,6 @@ The text of each license is the standard Apache 2.0 license.
     kotlin-stdlib-jdk8 1.9.25: https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-jdk7 1.9.25: https://kotlinlang.org, Apache 2.0
     kotlin-stdlib-common 1.9.25: https://kotlinlang.org, Apache 2.0
-    lettuce-core 6.6.0.RELEASE: http://github.com/lettuce-io/lettuce-core, Apache 2.0
     listenablefuture 9999.0-empty-to-avoid-conflict-with-guava: https://github.com/google/guava, Apache 2.0
     log4j-api 2.25.5: https://logging.apache.org/log4j/2.x/log4j-api, Apache 2.0
 	log4j-to-slf4j 2.23.1: https://logging.apache.org/log4j/2.x/log4j-to-slf4j, Apache 2.0
@@ -478,6 +483,7 @@ EPL licenses
 The following components are provided under the EPL License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
+    jakarta.annotation-api 2.1.1: https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api, EPL 2.0 OR GPL 2.0 with Classpath Exception (EPL 2.0 selected)
     logback-classic 1.5.34: https://github.com/qos-ch/logback, EPL 1.0
     logback-core 1.5.34: https://github.com/qos-ch/logback, EPL 1.0
     jakarta.json-api 2.0.1: https://projects.eclipse.org/projects/ee4j.jsonp, EPL 2.0
@@ -490,11 +496,11 @@ MIT licenses
 The following components are provided under the MIT License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
+    lettuce-core 6.6.0.RELEASE: http://github.com/lettuce-io/lettuce-core, MIT (see licenses/LICENSE-lettuce-core.txt)
     connect 0.1.0: https://github.com/agentic-ai-java/connect, MIT (see licenses/LICENSE-connect.txt)
     jtokkit 1.1.0: https://github.com/knuddelsgmbh/jtokkit, MIT
     animal-sniffer-annotations 1.23: https://github.com/mojohaus/animal-sniffer, MIT
     Java-WebSocket 1.5.0: https://github.com/TooTallNate/Java-WebSocket, MIT
-    jcl-over-slf4j 2.0.17: https://www.slf4j.org, MIT
     jul-to-slf4j 2.0.17: http://www.slf4j.org, MIT
     slf4j-api 2.0.17: https://www.slf4j.org, MIT
     checker-qual 3.33.0: https://github.com/typetools/checker-framework/blob/master/checker-qual, MIT
@@ -538,7 +544,6 @@ EDL License
 The following components are provided under the EDL License. See project link for details.
 The text of each license is also included at licenses/LICENSE-[project].txt.
 
-    jakarta.annotation-api 2.1.1: https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api, EDL 1.0
 
 ========================================================================
 XPP License
