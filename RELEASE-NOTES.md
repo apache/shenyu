@@ -30,6 +30,11 @@
   Custom authentication realms and integrations must be validated against these
   versions before deployment. Patched Jackson and Tomcat versions are managed
   explicitly ahead of the imported Boot dependency management.
+- Admin explicitly disables Shiro RememberMe and authenticates stateless tokens.
+  This prevents use of the cookie functionality affected by CVE-2026-56130
+  (GHSA-m8g6-vrr2-x7ff). Shiro 2.2.1 still matches the dependency advisory;
+  its library fix requires Shiro 3.0.0. Custom security managers must keep
+  RememberMe disabled or migrate to a fixed version before enabling it.
 - H2 moves from 1.4.200 to 2.3.232. An existing persistent H2 database requires
   migration: stop Admin writers, back up the original database, export it with
   `SCRIPT` using H2 1.4.200, then import the export into a fresh H2 2.3.232 database
