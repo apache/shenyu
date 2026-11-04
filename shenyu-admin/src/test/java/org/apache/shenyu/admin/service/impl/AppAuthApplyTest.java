@@ -185,7 +185,8 @@ class AppAuthApplyTest {
 
     @Test
     void canonicalHashMatchesSharedVector() throws Exception {
-        // matches the frozen vector: appName with whitespace and a shuffled duplicated pathList yield the same digest
+        // matches the frozen legacy vector: appName with whitespace and a shuffled duplicated pathList yield the same digest;
+        // rows stored before the v2 rollout carry the v1 digest (phone included), so replay compatibility is anchored here
         final AppAuthApplyRequestDTO request = new AppAuthApplyRequestDTO();
         request.setNamespaceId("ns-demo");
         request.setRequestId("req-ignored-by-hash");
@@ -194,9 +195,9 @@ class AppAuthApplyTest {
         request.setPathList(List.of("/api/b", "/api/a", "/api/b"));
 
         final String expected = Files.readString(
-                Paths.get("src/test/resources/app-auth/canonical-request.sha256"),
+                Paths.get("src/test/resources/app-auth/canonical-request-v1.sha256"),
                 StandardCharsets.UTF_8).trim();
         // same-package direct call of the package-private static method
-        assertEquals(expected, AppAuthLifecycleServiceImpl.canonicalRequestHash(request));
+        assertEquals(expected, AppAuthLifecycleServiceImpl.legacyCanonicalRequestHash(request));
     }
 }
