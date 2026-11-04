@@ -43,6 +43,8 @@ import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.NamespaceUserService;
 import org.apache.shenyu.admin.service.PasswordHashService;
@@ -64,7 +66,11 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.support.LdapEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -309,7 +315,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
         final DashboardUserVO finalDashboardUserVO = dashboardUserVO;
-        return Optional.ofNullable(loginDashboardUserVO)
+        final LoginDashboardUserVO result = Optional.ofNullable(loginDashboardUserVO)
                 .map(loginUser -> {
                     if (Boolean.FALSE.equals(loginUser.getEnabled())) {
                         return loginUser;
@@ -325,6 +331,56 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                             jwtProperties.getExpiredSeconds())).setExpiredTime(jwtProperties.getExpiredSeconds());
                 })
                 .orElse(null);
+        auditLogin(result, userName);
+        return result;
+    }
+
+    /**
+     * record the login audit event exactly once per login call; both the POST and the deprecated
+     * GET login endpoints delegate here, so neither endpoint can produce a duplicate record.
+     * The actor stays unauthenticated because the submitted user name is not a verified identity;
+     * it is recorded separately as sanitized submitted identity. The password, the decrypted
+     * password and any exception detail are never recorded.
+     *
+     * @param result login result, null when the credentials did not match
+     * @param userName submitted user name
+     */
+    private void auditLogin(final LoginDashboardUserVO result, final String userName) {
+        final SecurityAuditLog.Outcome outcome;
+        final String reason;
+        if (Objects.isNull(result)) {
+            outcome = SecurityAuditLog.Outcome.FAILURE;
+            reason = "bad_credentials";
+        } else if (Boolean.FALSE.equals(result.getEnabled())) {
+            outcome = SecurityAuditLog.Outcome.DENIED;
+            reason = "account_disabled";
+        } else {
+            outcome = SecurityAuditLog.Outcome.SUCCESS;
+            reason = "success";
+        }
+        final HttpServletRequest request = currentRequest();
+        SecurityAuditLog.event(SecurityAuditEventType.LOGIN)
+                .outcome(outcome)
+                .action("login")
+                .reason(reason)
+                .actor("unauthenticated")
+                .submittedIdentity(userName)
+                .resource(Objects.isNull(request) ? null : request.getRequestURI())
+                .remoteAddr(Objects.isNull(request) ? null : request.getRemoteAddr())
+                .emit();
+    }
+
+    /**
+     * get the current HTTP request when running in a web request context.
+     *
+     * @return current request, null outside a request thread
+     */
+    private HttpServletRequest currentRequest() {
+        final RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        if (attributes instanceof ServletRequestAttributes) {
+            return ((ServletRequestAttributes) attributes).getRequest();
+        }
+        return null;
     }
 
     private String resolveLoginPassword(final String password) {
@@ -448,7 +504,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         } catch (NameNotFoundException e) {
             return null;
         } catch (Exception e) {
-            LOG.error("ldap verify error.", e);
+            // the exception message and stack trace may carry the LDAP url, base DN, search base
+            // or the login name, so only the exception type is logged (issue #8179)
+            LOG.warn("ldap verify error, type={}", e.getClass().getSimpleName());
             return null;
         }
     }

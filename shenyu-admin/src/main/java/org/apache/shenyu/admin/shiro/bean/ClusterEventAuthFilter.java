@@ -24,6 +24,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.web.filter.AccessControlFilter;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -43,10 +45,43 @@ public final class ClusterEventAuthFilter extends AccessControlFilter {
 
     @Override
     protected boolean isAccessAllowed(final ServletRequest request, final ServletResponse response, final Object mappedValue) {
-        String expected = properties.getEventSecret();
-        String supplied = ((HttpServletRequest) request).getHeader(HEADER);
-        return properties.isEnabled() && StringUtils.isNotBlank(expected) && StringUtils.isNotBlank(supplied)
-                && MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), supplied.getBytes(StandardCharsets.UTF_8));
+        final String expected = properties.getEventSecret();
+        final String supplied = ((HttpServletRequest) request).getHeader(HEADER);
+        if (!properties.isEnabled()) {
+            auditDenied("cluster_auth_disabled", request);
+            return false;
+        }
+        if (StringUtils.isBlank(expected)) {
+            auditDenied("secret_not_configured", request);
+            return false;
+        }
+        if (StringUtils.isBlank(supplied)) {
+            auditDenied("missing_secret", request);
+            return false;
+        }
+        final boolean allowed = MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), supplied.getBytes(StandardCharsets.UTF_8));
+        if (!allowed) {
+            auditDenied("invalid_secret", request);
+        }
+        return allowed;
+    }
+
+    /**
+     * emit the cluster event auth denial audit event with a fixed reason. The supplied secret is
+     * never recorded in any form (no raw value, no fingerprint) and no header content is logged.
+     *
+     * @param reason fixed denial reason
+     * @param request current request
+     */
+    private void auditDenied(final String reason, final ServletRequest request) {
+        final HttpServletRequest httpRequest = (HttpServletRequest) request;
+        SecurityAuditLog.event(SecurityAuditEventType.CLUSTER_EVENT_AUTH)
+                .outcome(SecurityAuditLog.Outcome.DENIED)
+                .action("cluster_event_auth")
+                .reason(reason)
+                .resource(httpRequest.getRequestURI())
+                .remoteAddr(httpRequest.getRemoteAddr())
+                .emit();
     }
 
     @Override

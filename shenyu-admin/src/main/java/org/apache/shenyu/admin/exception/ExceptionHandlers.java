@@ -18,6 +18,9 @@
 package org.apache.shenyu.admin.exception;
 
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -35,6 +38,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.validation.ConstraintViolation;
@@ -69,7 +75,15 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(UnauthorizedException.class)
     protected ShenyuAdminResult handleUnauthorizedException(final UnauthorizedException exception) {
-        LOG.error("unauthorized exception", exception);
+        // the exception message and stack trace may embed the untrusted principal or permission detail,
+        // so the raw LOG.error(exception) is replaced by a fixed-field audit event (review decision Q1)
+        SecurityAuditLog.event(SecurityAuditEventType.PERMISSION_CHECK)
+                .outcome(SecurityAuditLog.Outcome.DENIED)
+                .action("permission_check")
+                .reason("permission_denied")
+                .actor(SessionUtil.visitorName())
+                .resource(currentRequestUri())
+                .emit();
         return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
     
@@ -146,5 +160,18 @@ public class ExceptionHandlers {
     protected ShenyuAdminResult webI18nException(final WebI18nException exception) {
         final String message = messageSource.getMessage(exception.getMessage(), exception.getArgs(), LocaleContextHolder.getLocale());
         return ShenyuAdminResult.error(CommonErrorCode.ERROR, message);
+    }
+
+    /**
+     * get the current request URI when running in a web request context.
+     *
+     * @return request URI, null outside a request thread
+     */
+    private String currentRequestUri() {
+        final RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        if (attributes instanceof ServletRequestAttributes) {
+            return ((ServletRequestAttributes) attributes).getRequest().getRequestURI();
+        }
+        return null;
     }
 }
