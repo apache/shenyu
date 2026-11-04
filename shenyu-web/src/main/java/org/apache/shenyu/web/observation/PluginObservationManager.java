@@ -266,9 +266,7 @@ public final class PluginObservationManager implements AutoCloseable {
          * @return observed publisher
          */
         public Mono<Void> publisher(final Mono<Void> publisher) {
-            if (Objects.isNull(publisher)) {
-                return null;
-            }
+            Objects.requireNonNull(publisher, "Plugin returned a null publisher");
             return Mono.defer(() -> {
                 long subscription = scope.sequence.incrementAndGet();
                 long started = System.nanoTime();

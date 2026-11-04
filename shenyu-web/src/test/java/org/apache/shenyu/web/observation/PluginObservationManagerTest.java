@@ -133,6 +133,23 @@ class PluginObservationManagerTest {
     }
 
     @Test
+    void nullPublisherFailsWithAndWithoutObservation() throws Exception {
+        ShenyuPlugin broken = plugin((exchange, chain) -> null);
+        StepVerifier.create(handler(PluginObservationManager.disabled(), broken).handle(exchange()))
+                .expectError(NullPointerException.class).verify();
+        List<PluginObservationEvent> events = new CopyOnWriteArrayList<>();
+        CountDownLatch exported = new CountDownLatch(1);
+        try (var observer = observer(event -> {
+            events.add(event);
+            exported.countDown();
+        })) {
+            StepVerifier.create(handler(observer, broken).handle(exchange())).expectError(NullPointerException.class).verify();
+            assertTrue(exported.await(5, TimeUnit.SECONDS));
+            assertEquals(PluginObservationEvent.Kind.CONSTRUCTION_ERROR, events.get(0).kind());
+        }
+    }
+
+    @Test
     void cancellationAndRepeatedRootsHaveIndependentIdentities() throws Exception {
         List<PluginObservationEvent> events = new CopyOnWriteArrayList<>();
         CountDownLatch exported = new CountDownLatch(6);

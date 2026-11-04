@@ -109,7 +109,7 @@ public final class PluginInventoryCollector implements SectionCollector {
         entry.put("name", named.isEmpty() ? bounded(plugin.getClass().getSimpleName(), 64) : named);
         entry.put("class", implementation);
         entry.put("order", plugin.getOrder());
-        entry.put("implementationVersion", Optional.ofNullable(plugin.getClass().getPackage().getImplementationVersion())
+        entry.put("implementationVersion", Optional.ofNullable(plugin.getClass().getPackage()).map(Package::getImplementationVersion)
                 .map(value -> bounded(value, 64)).orElse("UNKNOWN"));
         Optional<PluginCapabilityDescriptor> declaration = PluginCapabilityRegistry.shared().find(named, implementation);
         entry.put("declarationStatus", declaration.isPresent() ? "DECLARED" : "UNKNOWN");

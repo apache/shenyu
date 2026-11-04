@@ -410,8 +410,9 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 } finally {
                     plugin.after(exchange);
                 }
+                Mono<Void> observed = span.publisher(result);
                 span.constructed(PluginObservationEvent.Kind.CONSTRUCTED);
-                return span.publisher(result);
+                return observed;
             } catch (RuntimeException | AssertionError | LinkageError failure) {
                 span.constructed(PluginObservationEvent.Kind.CONSTRUCTION_ERROR);
                 throw failure;
