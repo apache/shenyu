@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -36,7 +37,7 @@ import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,25 +47,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,6 +82,9 @@ public final class SelectorControllerTest {
 
     @Mock
     private SelectorService selectorService;
+
+    @Mock
+    private PluginDataPermissionChecker pluginDataPermissionChecker;
 
     @Mock
     private SelectorMapper selectorMapper;
@@ -249,19 +251,36 @@ public final class SelectorControllerTest {
     }
 
     @Test
-    public void shouldRequirePluginPermissionsForMutatingEndpoints() throws NoSuchMethodException {
-        assertPermissions(SelectorController.class.getMethod("createSelector", SelectorDTO.class), "system:plugin:edit");
-        assertPermissions(SelectorController.class.getMethod("updateSelector", String.class, SelectorDTO.class), "system:plugin:edit");
-        assertPermissions(SelectorController.class.getMethod("batchEnabled", BatchCommonDTO.class), "system:plugin:disable");
-        assertPermissions(SelectorController.class.getMethod("deleteSelector", BatchNamespaceCommonDTO.class), "system:plugin:delete");
+    public void shouldCheckPermissionBeforeEveryWrite() {
+        SelectorDTO selectorDTO = SelectorDTO.builder().id("1").build();
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Collections.singletonList("1"));
+        BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
+        batchNamespaceCommonDTO.setIds(Collections.singletonList("1"));
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateSelector(selectorDTO);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkUpdateSelector("1");
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableSelectors(batchCommonDTO.getIds());
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkDeleteSelectors(batchNamespaceCommonDTO.getIds());
+
+        assertThrows(UnauthorizedException.class, () -> selectorController.createSelector(selectorDTO));
+        assertThrows(UnauthorizedException.class, () -> selectorController.updateSelector("1", selectorDTO));
+        assertThrows(UnauthorizedException.class, () -> selectorController.batchEnabled(batchCommonDTO));
+        assertThrows(UnauthorizedException.class, () -> selectorController.deleteSelector(batchNamespaceCommonDTO));
+        verifyNoInteractions(selectorService);
     }
 
-    private void assertPermissions(final Method method, final String... expectedPermissions) {
-        RequiresPermissions permissions = AnnotationUtils.findAnnotation(method, RequiresPermissions.class);
-        if (Objects.isNull(permissions)) {
-            permissions = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequiresPermissions.class);
-        }
-        assertNotNull(permissions, method.getName() + " should declare @RequiresPermissions");
-        assertArrayEquals(expectedPermissions, permissions.value(), method.getName() + " should declare the expected permissions");
+    @Test
+    public void shouldReturnNoPermissionMessageWhenDenied() throws Exception {
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableSelectors(any());
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Collections.singletonList("1"));
+        batchCommonDTO.setEnabled(false);
+        batchCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/selector/batchEnabled")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION)));
+        verifyNoInteractions(selectorService);
     }
 }
