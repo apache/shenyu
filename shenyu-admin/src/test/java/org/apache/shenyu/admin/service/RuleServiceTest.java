@@ -635,7 +635,7 @@ public final class RuleServiceTest {
     }
 
     @Test
-    public void testUpdateRejectsBlankSelectorId() {
+    public void testUpdateRejectsBlankSelectorIdAsMissingSelector() {
         publishEvent();
         RuleDTO dto = buildRuleDTO("123");
         dto.setSelectorId("");

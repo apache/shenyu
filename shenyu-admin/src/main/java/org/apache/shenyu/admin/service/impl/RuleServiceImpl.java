@@ -276,9 +276,12 @@ public class RuleServiceImpl implements RuleService {
             return;
         }
         final SelectorDO currentSelector = selectorMapper.selectById(before.getSelectorId());
-        final SelectorDO targetSelector = selectorMapper.selectById(targetSelectorId);
         if (Objects.isNull(currentSelector)) {
             throw new ShenyuAdminException("rule selector is not found");
+        }
+        final SelectorDO targetSelector = selectorMapper.selectById(targetSelectorId);
+        if (Objects.isNull(targetSelector)) {
+            throw new ShenyuAdminException("the target selector of the rule is not found");
         }
         if (!Objects.equals(currentSelector.getPluginId(), targetSelector.getPluginId())) {
             throw new ShenyuAdminException("a rule cannot be moved to a selector of another plugin");
