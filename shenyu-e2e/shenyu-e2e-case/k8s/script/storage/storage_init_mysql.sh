@@ -27,6 +27,8 @@ download=$(mktemp "$driver_dir/mysql-connector.XXXXXX")
 trap 'rm -f "$download"' EXIT
 wget -O "$download" "https://repo.maven.apache.org/maven2/$artifact" || \
   wget -O "$download" "https://repo1.maven.org/maven2/$artifact"
+# The Admin container reads this bind-mounted driver as UID 10001.
+chmod 0644 "$download"
 mv "$download" "$driver_dir/mysql-connector.jar"
 
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema/schema.sql
