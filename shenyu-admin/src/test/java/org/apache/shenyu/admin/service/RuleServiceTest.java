@@ -94,6 +94,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -621,6 +622,56 @@ public final class RuleServiceTest {
     }
 
     @Test
+    public void testUpdateRejectsMovingRuleToSelectorOfAnotherPlugin() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setSelectorId("target-selector");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(selectorMapper.selectById("target-selector")).willReturn(SelectorDO.builder().id("target-selector").pluginId("other-plugin").build());
+        given(pluginMapper.selectById("other-plugin")).willReturn(PluginDO.builder().id("other-plugin").name("other").build());
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        assertEquals("a rule cannot be moved to a selector of another plugin", exception.getMessage());
+        verify(ruleMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testUpdateRejectsBlankSelectorId() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setSelectorId("");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        assertEquals("rule selector is not found", exception.getMessage());
+        verify(ruleMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testUpdateAllowsMovingRuleToSelectorOfSamePlugin() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setSelectorId("target-selector");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(selectorMapper.selectById("target-selector")).willReturn(SelectorDO.builder().id("target-selector").pluginId("789").build());
+        given(ruleMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(dto));
+        ArgumentCaptor<RuleDO> captor = ArgumentCaptor.forClass(RuleDO.class);
+        verify(ruleMapper).updateSelective(captor.capture());
+        assertEquals("target-selector", captor.getValue().getSelectorId());
+    }
+
+    @Test
+    public void testUpdateWithUnchangedSelectorSkipsSelectorPluginComparison() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(ruleMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(dto));
+        // one lookup each from validateRuleHandle and validateCanaryConfig; the plugin comparison adds none
+        verify(selectorMapper, times(2)).selectById("456");
+        verify(ruleMapper).updateSelective(any());
+    }
+
+    @Test
     public void testSaveAllowsDisabledCanaryWithDisjointPools() {
         configureDivideSelector();
         RuleDTO dto = buildRuleDTO("");
@@ -774,7 +825,7 @@ public final class RuleServiceTest {
 
     private void testUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(RuleDO.builder().id("123").build());
+        given(this.ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
         given(this.ruleMapper.updateSelective(any())).willReturn(1);
         assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
     }
