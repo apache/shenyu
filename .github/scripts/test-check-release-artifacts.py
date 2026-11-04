@@ -68,6 +68,16 @@ class ReleaseArtifactsTest(unittest.TestCase):
             with self.assertRaises(KeyError):
                 CHECKS["check_source"](path, root)
 
+    def test_standalone_admin_jar_requires_dashboard_terms(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "shenyu-admin-2.7.2.jar"
+            with zipfile.ZipFile(path, "w") as jar:
+                jar.writestr("META-INF/LICENSE", LICENSE)
+                jar.writestr("META-INF/NOTICE", NOTICE)
+                jar.writestr("static/index.html", '<script src="index.js"></script>')
+            with self.assertRaisesRegex(ValueError, "LICENSE-dashboard.txt"):
+                CHECKS["check_jar"](path, NOTICE)
+
 
 if __name__ == "__main__":
     unittest.main()

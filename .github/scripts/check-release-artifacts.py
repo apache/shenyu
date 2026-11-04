@@ -37,6 +37,10 @@ def check_jar(path, notice):
             raise ValueError(f"{path}: missing project Apache 2.0 license")
         if notice.strip() not in notice_text:
             raise ValueError(f"{path}: missing project NOTICE attribution")
+        if "static/index.html" in names:
+            for name in ("META-INF/licenses/LICENSE-dashboard.txt", "META-INF/licenses/NOTICE-dashboard.txt"):
+                if name not in names or not jar.read(name).strip():
+                    raise ValueError(f"{path}: bundled dashboard is missing {name}")
         if "apollo" in path.name and not any(c in path.name for c in ("-sources", "-javadoc")):
             for name in ("META-INF/LICENSE-shaded-dependencies.txt", "META-INF/NOTICE-shaded-dependencies.txt"):
                 if name not in names:
