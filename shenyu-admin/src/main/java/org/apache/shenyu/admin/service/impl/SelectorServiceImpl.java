@@ -261,7 +261,7 @@ public class SelectorServiceImpl implements SelectorService {
     public int update(final SelectorDTO selectorDTO) {
         registrationFencingGuard.assertSelectorWriteAllowed(selectorDTO.getId());
         final SelectorDO before = selectorMapper.selectById(selectorDTO.getId());
-        
+
         if (Objects.isNull(before)) {
             throw new ShenyuAdminException("the updated selector is not found");
         }
