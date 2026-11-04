@@ -321,9 +321,9 @@ jobs:
           unzip -q "$source_archive" -d "$source_root"
           cd "${source_root}/apache-shenyu-${version}-src"
           bash "${GITHUB_WORKSPACE}/.github/scripts/maven-with-retry.sh" ./mvnw -B -ntp install -Djacoco.skip=true -Dmaven.javadoc.skip=true
-          # Reproduce the reviewer's repeated test scenario after the full source build.
+          # Repeat the counter synchronization and registry callback regressions after the full source build.
           for attempt in {1..10}; do
-            ./mvnw -B -ntp -pl shenyu-admin test -Dtest=ShenyuClusterServiceTest -Djacoco.skip=true -Dmaven.javadoc.skip=true
+            ./mvnw -B -ntp -pl shenyu-admin test -Dtest=ShenyuClusterServiceTest,ZookeeperClientDiscoveryIntegrationTest -Djacoco.skip=true -Dmaven.javadoc.skip=true
           done
           python3 - <<'PYTHON'
           from pathlib import Path

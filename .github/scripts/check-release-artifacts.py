@@ -25,6 +25,13 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 
+SHADED_ARTIFACTS = (
+    "shenyu-admin-listener-apollo",
+    "shenyu-registry-apollo",
+    "shenyu-spring-boot-starter-sync-data-apollo",
+)
+
+
 def check_jar(path, notice):
     with zipfile.ZipFile(path) as jar:
         names = jar.namelist()
@@ -41,7 +48,7 @@ def check_jar(path, notice):
             for name in ("META-INF/licenses/LICENSE-dashboard.txt", "META-INF/licenses/NOTICE-dashboard.txt"):
                 if name not in names or not jar.read(name).strip():
                     raise ValueError(f"{path}: bundled dashboard is missing {name}")
-        if "apollo" in path.name and not any(c in path.name for c in ("-sources", "-javadoc")):
+        if any(path.name.startswith(artifact + "-") for artifact in SHADED_ARTIFACTS) and not path.name.endswith(("-sources.jar", "-javadoc.jar")):
             for name in ("META-INF/LICENSE-shaded-dependencies.txt", "META-INF/NOTICE-shaded-dependencies.txt"):
                 if name not in names:
                     raise ValueError(f"{path}: missing shaded dependency terms: {name}")
