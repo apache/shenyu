@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `rule` (
   `match_restful` tinyint(4) NOT NULL COMMENT 'whether to match restful(0 cache, 1 not cache)',
   `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
   `sort_code` int(4) NOT NULL COMMENT 'sort',
-  `handle` varchar(1024) DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
+  `handle` CLOB DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time'
 );
@@ -1647,6 +1647,17 @@ CREATE TABLE IF NOT EXISTS `app_auth_request`  (
 );
 CREATE UNIQUE INDEX uk_app_auth_request ON `app_auth_request` (`caller_key`, `namespace_id`, `request_id`);
 CREATE INDEX idx_app_auth_request_auth ON `app_auth_request` (`auth_id`);
+
+-- Admin-only import ownership; no runtime synchronization or backend credentials.
+CREATE TABLE IF NOT EXISTS `agent_gateway_import` (
+  `id` varchar(128) NOT NULL COMMENT 'primary key id' PRIMARY KEY,
+  `rule_id` varchar(128) NOT NULL COMMENT 'target agent gateway rule id',
+  `namespace_id` varchar(50) NOT NULL COMMENT 'namespace id',
+  `manifest` CLOB NOT NULL COMMENT 'per-source import ownership manifest',
+  `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time'
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_agent_gateway_import_rule ON `agent_gateway_import` (`rule_id`);
 
 -- app auth lifecycle button resources
 INSERT INTO `resource` (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');

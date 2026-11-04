@@ -52,6 +52,18 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE public.mock_request_record ALTER COLUMN header TYPE TEXT;
 
+-- Agent Gateway OpenAPI import ownership: Admin-only provenance, never synchronized to gateways.
+CREATE TABLE "public"."agent_gateway_import" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "rule_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "manifest" text COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "uk_agent_gateway_import_rule" ON "public"."agent_gateway_import" USING btree ("rule_id");
+
 
 CREATE TABLE IF NOT EXISTS registration_fencing_target (
     id varchar(128) NOT NULL PRIMARY KEY,

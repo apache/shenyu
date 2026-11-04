@@ -4,6 +4,28 @@
 
 ## To Shenyu Users
 
+### Agent Gateway OpenAPI import provenance in 2.7.3
+
+The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts add the Admin-only
+`agent_gateway_import` table and widen `rule.handle` to `CLOB` (H2) and
+`MEDIUMTEXT` (MySQL/OceanBase); PostgreSQL/openGauss already use unlimited
+`TEXT` and Oracle already uses `CLOB`. The same MySQL/OceanBase scripts widen
+`operation_record_log.context` to `MEDIUMTEXT`, because a rule update snapshots
+the complete handle into the operation log. Generated `mcp.httpTools` plans and
+the per-rule import manifest can exceed the previous H2 `VARCHAR(1024)` and
+MySQL `TEXT` (65,535-byte) limits, so existing deployments must run this
+migration before calling `POST /agent-gateway/openapi/preview` or `/apply`.
+
+Stop Admin writers and back up `rule` before applying the script. The table
+stores one row per target Agent Gateway rule with all source ownership maps.
+It is Admin-only bookkeeping: it is never synchronized to gateways and is not
+read on the request path. Deleting a target rule does not cascade to this table
+(there is no foreign key, matching the existing Admin storage style), so remove
+orphan rows manually if a rule is retired and its ID will not be reused.
+Fresh installations create the table and the wide column directly; an existing
+persistent H2 database requires `2.7.2-upgrade-2.7.3-h2.sql`. No gateway change
+is required.
+
 ### API-debug request headers in 2.7.3
 
 Stop Admin writers and back up `mock_request_record` before applying the
