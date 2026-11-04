@@ -78,6 +78,14 @@ class ReleaseArtifactsTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "LICENSE-dashboard.txt"):
                 CHECKS["check_jar"](path, NOTICE)
 
+    def test_unshaded_apollo_adapter_needs_only_its_own_project_terms(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "shenyu-sync-data-apollo-2.7.2.jar"
+            with zipfile.ZipFile(path, "w") as jar:
+                jar.writestr("META-INF/LICENSE", LICENSE)
+                jar.writestr("META-INF/NOTICE", NOTICE)
+            self.assertTrue(CHECKS["check_jar"](path, NOTICE)["project_notice"])
+
 
 if __name__ == "__main__":
     unittest.main()
