@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -55,17 +56,11 @@ public final class UUIDUtilsTest {
         Class<?>[] p = {long.class, long.class, long.class};
         Constructor<?> constructor = uUIDUtilsClass.getDeclaredConstructor(p);
         constructor.setAccessible(true);
-        try {
-            constructor.newInstance(-1L, 10L, 10L);
-        } catch (InvocationTargetException ex) {
-            assertTrue(ex.getCause().getMessage().startsWith("worker Id can't be greater than"));
-        }
+        InvocationTargetException workerIdException = assertThrows(InvocationTargetException.class, () -> constructor.newInstance(-1L, 10L, 10L));
+        assertTrue(workerIdException.getCause().getMessage().startsWith("worker Id can't be greater than"));
 
-        try {
-            constructor.newInstance(10L, -1L, 10L);
-        } catch (InvocationTargetException ex) {
-            assertTrue(ex.getCause().getMessage().startsWith("datacenter Id can't be greater than"));
-        }
+        InvocationTargetException dataCenterIdException = assertThrows(InvocationTargetException.class, () -> constructor.newInstance(10L, -1L, 10L));
+        assertTrue(dataCenterIdException.getCause().getMessage().startsWith("datacenter Id can't be greater than"));
     }
 
     @Test
@@ -85,14 +80,16 @@ public final class UUIDUtilsTest {
         Class<?> uUIDUtilsClass = uuidUtils.getClass();
         Field field = uUIDUtilsClass.getDeclaredField("lastTimestamp");
         field.setAccessible(true);
-        field.set(uuidUtils, 1617757060000L);
-
-        Method method = uUIDUtilsClass.getDeclaredMethod("nextId");
-        method.setAccessible(true);
+        Object lastTimestamp = field.get(uuidUtils);
+        // a last timestamp in the future makes the clock look like it moved backwards
+        field.set(uuidUtils, System.currentTimeMillis() + 60_000L);
         try {
-            method.invoke(UUIDUtils.getInstance());
-        } catch (InvocationTargetException ex) {
+            Method method = uUIDUtilsClass.getDeclaredMethod("nextId");
+            method.setAccessible(true);
+            InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> method.invoke(uuidUtils));
             assertTrue(ex.getCause().getMessage().startsWith("Clock moved backwards."));
+        } finally {
+            field.set(uuidUtils, lastTimestamp);
         }
     }
 

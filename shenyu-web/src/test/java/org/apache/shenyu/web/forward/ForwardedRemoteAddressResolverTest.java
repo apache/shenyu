@@ -32,6 +32,7 @@ import java.util.Collections;
 
 import static org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver.X_FORWARDED_FOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,11 +45,8 @@ public final class ForwardedRemoteAddressResolverTest {
 
     @Test
     public void testNewInstance() {
-        try {
-            ForwardedRemoteAddressResolver.maxTrustedIndex(0);
-        } catch (Exception e) {
-            assertEquals(e.getMessage(), "An index greater than 0 is required");
-        }
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> ForwardedRemoteAddressResolver.maxTrustedIndex(0));
+        assertEquals("An index greater than 0 is required", ex.getMessage());
 
         ForwardedRemoteAddressResolver instance = ForwardedRemoteAddressResolver.maxTrustedIndex(5);
         int maxTrustedIndex = (int) ReflectionTestUtils.getField(instance, "maxTrustedIndex");

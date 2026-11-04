@@ -63,6 +63,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -79,6 +80,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -238,16 +240,12 @@ public final class HttpLongPollingDataChangedListenerTest {
      * test Constructor.
      */
     @Test
-    public void testConstructor() {
+    public void testConstructor() throws Exception {
         assertNotNull(listener);
-        try {
-            Field schedulerField = HttpLongPollingDataChangedListener.class.getDeclaredField("scheduler");
-            schedulerField.setAccessible(true);
-            Object scheduler = schedulerField.get(listener);
-            assertNotNull(scheduler);
-        } catch (Exception e) {
-            // expected
-        }
+        Field schedulerField = HttpLongPollingDataChangedListener.class.getDeclaredField("scheduler");
+        schedulerField.setAccessible(true);
+        Object scheduler = schedulerField.get(listener);
+        assertNotNull(scheduler);
     }
 
     /**
@@ -257,13 +255,10 @@ public final class HttpLongPollingDataChangedListenerTest {
     public void testCompareChangedGroupInvalidParams() throws Exception {
         // Only set PLUGIN with invalid value; all other group params are null → first null triggers exception
         this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "invalid");
-        try {
-            invokeCompareChangedGroup(this.httpServletRequest);
-        } catch (Exception e) {
-            assertNotNull(e.getCause());
-            // The first group without a valid param will trigger the exception
-            assertNotNull(e.getCause().getMessage());
-        }
+        InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> invokeCompareChangedGroup(this.httpServletRequest));
+        assertNotNull(ex.getCause());
+        // The first group without a valid param will trigger the exception
+        assertNotNull(ex.getCause().getMessage());
     }
 
     /**
@@ -276,12 +271,9 @@ public final class HttpLongPollingDataChangedListenerTest {
         setAllGroupParamsDefault(this.httpServletRequest);
         // Override PLUGIN with invalid value (only one comma-part)
         this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "invalid");
-        try {
-            invokeCompareChangedGroup(this.httpServletRequest);
-        } catch (Exception e) {
-            assertNotNull(e.getCause());
-            assertEquals("group param invalid:invalid", e.getCause().getMessage());
-        }
+        InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> invokeCompareChangedGroup(this.httpServletRequest));
+        assertNotNull(ex.getCause());
+        assertEquals("group param invalid:invalid", ex.getCause().getMessage());
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
     }
 
