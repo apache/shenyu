@@ -63,6 +63,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfigValidator;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.sticky.StickySessionConfigValidator;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
@@ -170,7 +171,7 @@ public class RuleServiceImpl implements RuleService {
             return "";
         }
         validateRuleHandle(ruleDTO);
-        validateCanaryConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+        validateDivideHandle(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleMapper.insertSelective(ruleDO);
@@ -196,7 +197,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public int create(final RuleDTO ruleDTO) {
         validateRuleHandle(ruleDTO);
-        validateCanaryConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+        validateDivideHandle(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.insertSelective(ruleDO);
         addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -211,7 +212,7 @@ public class RuleServiceImpl implements RuleService {
         validateRuleHandle(ruleDTO);
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
-        validateCanaryConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
+        validateDivideHandle(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
 
@@ -247,7 +248,7 @@ public class RuleServiceImpl implements RuleService {
         return ruleCount;
     }
 
-    private void validateCanaryConfig(final String selectorId, final String handle) {
+    private void validateDivideHandle(final String selectorId, final String handle) {
         if (StringUtils.isBlank(handle)) {
             return;
         }
@@ -264,6 +265,9 @@ public class RuleServiceImpl implements RuleService {
             if (Objects.nonNull(divide) && Objects.nonNull(divide.getCanary())) {
                 CanaryConfigValidator.validateExtensions(divide.getCanary(),
                         name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
+            }
+            if (Objects.nonNull(divide)) {
+                StickySessionConfigValidator.validate(divide.getSticky());
             }
         } catch (IllegalArgumentException ex) {
             throw new ShenyuAdminException(ex.getMessage(), ex);
@@ -361,7 +365,7 @@ public class RuleServiceImpl implements RuleService {
             return ConfigImportResult.success();
         }
 
-        ruleList.forEach(rule -> validateCanaryConfig(rule.getSelectorId(), rule.getHandle()));
+        ruleList.forEach(rule -> validateDivideHandle(rule.getSelectorId(), rule.getHandle()));
         Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
                 .selectAll()
                 .stream()
@@ -408,7 +412,7 @@ public class RuleServiceImpl implements RuleService {
         }
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         ruleList.stream().filter(rule -> selectorIdMapping.containsKey(rule.getSelectorId()))
-                .forEach(rule -> validateCanaryConfig(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
+                .forEach(rule -> validateDivideHandle(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
         Map<String, Set<String>> selectorRuleMap = ruleMapper
                 .selectAllByNamespaceId(namespace)
                 .stream()

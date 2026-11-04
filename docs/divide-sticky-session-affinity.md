@@ -84,3 +84,39 @@ Cookies under an explicitly configured name are unaffected.
 - Rule-ID scoping of the signed payload, so a cookie of another rule is a miss.
 - Candidate admission: a binding is honored only when its target is still in the
   filtered candidate set.
+
+## Management validation
+
+The admin validates the sticky section of a divide rule handle at save time and
+rejects an **enabled** configuration that cannot work at runtime, with an error
+naming the offending field (`sticky.…`):
+
+- `onUnavailable` must be exactly `REBIND` or `STRICT` — the runtime compares the
+  policy case-sensitively, so any other spelling (including `strict`) would silently
+  behave as `REBIND` and is rejected instead.
+- `maxAgeSeconds` must be a positive number.
+- `cookieName` must not be blank; omit it to use the rule-scoped default.
+- An enabled configuration requires at least one non-blank key in `secrets`.
+- A configured `key` (deterministic key) requires a non-blank `name`.
+
+A disabled configuration is not validated: the runtime activation checks ignore it
+entirely, so none of its values can affect a request. Rejecting it would stop an
+operator from editing an unrelated field of an already stored rule.
+
+The gateway runtime itself stays tolerant: a malformed configuration that was
+persisted before this validation (or edited directly in the store) degrades to
+plain load balancing through the runtime activation checks, so an upgrade never
+turns a stored bad rule into a request failure.
+
+## Cross-replica operation
+
+Bindings are HMAC-signed cookies, so affinity works across gateway replicas only
+when they share the same rule's `secrets` (at least one key in common). A replica
+verifies and honors a binding signed by another replica without any shared state;
+during a key rollout, a replica that already holds the new key keeps validating
+bindings signed by replicas that still sign with the old one, because every
+configured key verifies. The reverse does not hold: a replica that still holds only
+the old key cannot verify a binding signed with the new one, so it treats the
+request as a new session and allocates a target again. Replicas that do not share
+a key reject each other's bindings as if they were foreign — configure identical
+(or overlapping) secret lists for every gateway instance serving the same rule.

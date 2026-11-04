@@ -726,6 +726,65 @@ public final class RuleServiceTest {
         verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
     }
 
+    /**
+     * A sticky section that cannot work at runtime must be rejected before the rule is
+     * written or published (#8037).
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"enabled\":true,\"secrets\":[\"secret\"],\"onUnavailable\":\"strict\"}",
+        "{\"enabled\":true,\"secrets\":[\"secret\"],\"maxAgeSeconds\":0}",
+        "{\"enabled\":true,\"secrets\":[]}",
+        "{\"enabled\":true,\"secrets\":[\"secret\"],\"cookieName\":\" \"}",
+        "{\"enabled\":true,\"secrets\":[\"secret\"],\"key\":{}}"})
+    public void testInvalidStickyNeverWritesOrPublishes(final String stickyPatch) {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(stickyHandle(stickyPatch));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        dto.setId("123");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.registerDefault(dto));
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleMapper, never()).updateSelective(any());
+        verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
+    }
+
+    /**
+     * A valid sticky section is stored unchanged, so the management plane accepts what the
+     * runtime can execute (#8037).
+     */
+    @Test
+    public void testValidStickyIsSavedUnchanged() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(stickyHandle("{\"enabled\":true,\"secrets\":[\"secret\"],\"onUnavailable\":\"STRICT\"}"));
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        try (MockedStatic<JwtUtils> jwt = mockStatic(JwtUtils.class)) {
+            jwt.when(JwtUtils::getUserInfo).thenReturn(UserInfo.builder().userId("1").userName("admin").build());
+            assertEquals(1, ruleService.createOrUpdate(dto));
+        }
+        ArgumentCaptor<RuleDO> saved = ArgumentCaptor.forClass(RuleDO.class);
+        verify(ruleMapper).insertSelective(saved.capture());
+        assertEquals(dto.getHandle(), saved.getValue().getHandle());
+    }
+
+    /**
+     * A disabled sticky section is inert at runtime, so it must not block the write of an
+     * unrelated rule change (#8037).
+     */
+    @Test
+    public void testDisabledStickyIsNotRejected() {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(stickyHandle("{\"enabled\":false,\"maxAgeSeconds\":0,\"onUnavailable\":\"strict\"}"));
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        try (MockedStatic<JwtUtils> jwt = mockStatic(JwtUtils.class)) {
+            jwt.when(JwtUtils::getUserInfo).thenReturn(UserInfo.builder().userId("1").userName("admin").build());
+            assertEquals(1, ruleService.createOrUpdate(dto));
+        }
+    }
+
     private ShenyuDictDO dictionary(final String value, final boolean enabled) {
         ShenyuDictDO dict = new ShenyuDictDO();
         dict.setDictValue(value);
@@ -739,6 +798,13 @@ public final class RuleServiceTest {
         JsonParser.parseString(patch).getAsJsonObject().entrySet().forEach(entry -> config.add(entry.getKey(), entry.getValue()));
         JsonObject handle = new JsonObject();
         handle.add("canary", config);
+        return handle.toString();
+    }
+
+    private String stickyHandle(final String patch) {
+        JsonObject handle = new JsonObject();
+        handle.addProperty("timeout", 5000);
+        handle.add("sticky", JsonParser.parseString(patch));
         return handle.toString();
     }
 
