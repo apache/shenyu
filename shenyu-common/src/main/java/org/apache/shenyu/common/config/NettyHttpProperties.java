@@ -34,6 +34,8 @@ public class NettyHttpProperties {
 
     private Boolean accessLog = false;
 
+    private Integer additionalHttpPort;
+
     private ServerSocketChannelProperties serverSocketChannel = new ServerSocketChannelProperties();
 
     private SocketChannelProperties socketChannel = new SocketChannelProperties();
@@ -167,6 +169,24 @@ public class NettyHttpProperties {
      */
     public void setAccessLog(final Boolean accessLog) {
         this.accessLog = accessLog;
+    }
+
+    /**
+     * Get the optional HTTP port served alongside HTTPS.
+     *
+     * @return additional HTTP port, or null when disabled
+     */
+    public Integer getAdditionalHttpPort() {
+        return additionalHttpPort;
+    }
+
+    /**
+     * Set the optional HTTP port served alongside HTTPS.
+     *
+     * @param additionalHttpPort HTTP port, with zero selecting an ephemeral port
+     */
+    public void setAdditionalHttpPort(final Integer additionalHttpPort) {
+        this.additionalHttpPort = additionalHttpPort;
     }
 
     /**

@@ -173,6 +173,7 @@ CREATE TABLE "public"."dashboard_user" (
   "role" int4 NOT NULL,
   "enabled" int2 NOT NULL,
   "client_id" varchar(32) COLLATE "pg_catalog"."default",
+  "token_version" int4 NOT NULL DEFAULT 0,
   "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
   "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
 )
@@ -182,13 +183,14 @@ COMMENT ON COLUMN "public"."dashboard_user"."user_name" IS 'user name';
 COMMENT ON COLUMN "public"."dashboard_user"."password" IS 'user password';
 COMMENT ON COLUMN "public"."dashboard_user"."role" IS 'role';
 COMMENT ON COLUMN "public"."dashboard_user"."enabled" IS 'delete or not (0 close, 1 open) ';
+COMMENT ON COLUMN "public"."dashboard_user"."token_version" IS 'token version used to revoke issued JWTs';
 COMMENT ON COLUMN "public"."dashboard_user"."date_created" IS 'create time';
 COMMENT ON COLUMN "public"."dashboard_user"."date_updated" IS 'update time';
 
 -- ----------------------------
 -- Records of dashboard_user
 -- ----------------------------
-INSERT INTO "public"."dashboard_user" VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
+INSERT INTO "public"."dashboard_user" ("id", "user_name", "password", "role", "enabled", "client_id", "date_created", "date_updated") VALUES ('1', 'admin', '$2b$12$VRoSQ/.z8C/ldOO9TBfclesgVQ8BxyQK/4Rg/e.DNCisEd.gSyCBG', 1, 1, null, '2022-05-25 18:08:01', '2022-05-25 18:08:01');
 
 -- ----------------------------
 -- Table structure for data_permission
@@ -3009,3 +3011,32 @@ INSERT INTO "public"."permission" VALUES ('1953048313980117951', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+CREATE TABLE IF NOT EXISTS "public"."registration_fencing_target" (
+    "id" varchar(128) NOT NULL PRIMARY KEY,
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "domain_id" varchar(128) NOT NULL,
+    "namespace_id" varchar(64) NOT NULL,
+    "selector_id" varchar(128) NOT NULL,
+    "plugin_id" varchar(128) NOT NULL,
+    "protocol" varchar(32) NOT NULL,
+    "host" varchar(255) NOT NULL,
+    "port" integer NOT NULL,
+    "principal_id" varchar(128) NOT NULL,
+    "enabled" smallint NOT NULL,
+    "state" varchar(16) NOT NULL,
+    "generation" bigint NOT NULL,
+    "owner_startup_id" varchar(64),
+    "session_id" varchar(128),
+    "last_sequence" bigint NOT NULL,
+    "last_payload" text,
+    "last_result" text,
+    "last_request_id" varchar(64),
+    "last_request_payload" text,
+    "retired_startups" text,
+    CONSTRAINT "uk_registration_fencing_target_address" UNIQUE ("selector_id", "host", "port")
+);
+CREATE INDEX IF NOT EXISTS idx_registration_fencing_target_address
+    ON "public"."registration_fencing_target" ("namespace_id", "host", "port");
+CREATE INDEX IF NOT EXISTS idx_fencing_domain_session
+    ON "public"."registration_fencing_target" ("domain_id", "session_id");

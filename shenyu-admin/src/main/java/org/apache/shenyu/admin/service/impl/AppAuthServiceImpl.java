@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.aspect.annotation.Pageable;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
@@ -597,9 +599,9 @@ public class AppAuthServiceImpl implements AppAuthService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @Pageable
     public CommonPager<AppAuthListVO> listByPage(final AppAuthQuery appAuthQuery) {
         return PageResultUtils.result(appAuthQuery.getPageParameter(),
-                () -> appAuthMapper.countByQuery(appAuthQuery),
                 () -> appAuthMapper.selectByQuery(appAuthQuery)
                         .stream()
                         .map(AppAuthTransfer.INSTANCE::mapToListVO)

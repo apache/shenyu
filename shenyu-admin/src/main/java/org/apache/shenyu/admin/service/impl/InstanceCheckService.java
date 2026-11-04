@@ -19,21 +19,26 @@ package org.apache.shenyu.admin.service.impl;
 
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualLineVO;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.utils.InstanceInfoUtils;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,6 +74,8 @@ public class InstanceCheckService {
 
     private final int scheduledTime;
 
+    private final Clock clock;
+
     private ConcurrentHashMap<String, InstanceInfoVO> instanceHealthBeatInfo;
 
     private long instanceHeartBeatTimeOut;
@@ -76,6 +83,8 @@ public class InstanceCheckService {
     private long deleteTimeout;
 
     private InstanceInfoService instanceInfoService;
+
+    private final RegistrationFencingGuard registrationFencingGuard;
 
     private final InstanceRetentionProperties instanceRetentionProperties;
 
@@ -89,13 +98,24 @@ public class InstanceCheckService {
 
     private volatile long lastDbCleanupTime;
 
+    @Autowired
     public InstanceCheckService(final InstanceInfoService instanceInfoService,
+                                final RegistrationFencingGuard registrationFencingGuard,
                                 final InstanceRetentionProperties instanceRetentionProperties) {
+        this(instanceInfoService, registrationFencingGuard, instanceRetentionProperties, Clock.systemDefaultZone());
+    }
+
+    // Visible for tests that need a controlled clock.
+    InstanceCheckService(final InstanceInfoService instanceInfoService,
+                         final RegistrationFencingGuard registrationFencingGuard,
+                         final InstanceRetentionProperties instanceRetentionProperties, final Clock clock) {
         this.scheduledTime = 10;
+        this.clock = clock;
         this.instanceHealthBeatInfo = new ConcurrentHashMap<>();
         this.instanceHeartBeatTimeOut = 1000 * 20;
         this.deleteTimeout = 1000 * 60;
         this.instanceInfoService = instanceInfoService;
+        this.registrationFencingGuard = registrationFencingGuard;
         this.instanceRetentionProperties = instanceRetentionProperties;
         this.stateHistoryMap = new ConcurrentHashMap<>();
         this.namespaceStateHistoryMap = new HashMap<>();
@@ -131,6 +151,10 @@ public class InstanceCheckService {
             if (Objects.isNull(instanceInfoVO.getInstanceState())) {
                 instanceInfoVO.setInstanceState(InstanceStatusEnum.DELETED.getCode());
             }
+            if (isProtectedClientObservation(instanceInfoVO.getNamespaceId(), instanceInfoVO.getInstanceIp(),
+                    instanceInfoVO.getInstancePort(), instanceInfoVO.getInstanceType())) {
+                return;
+            }
             String instanceKey = getInstanceKey(instanceInfoVO);
             // a persisted observation is older than any heartbeat already accepted in the live map
             // (heartbeat time is not persisted), so only fill identities that have no live entry
@@ -154,6 +178,24 @@ public class InstanceCheckService {
         return instanceHealthBeatInfo.get(instanceKey);
     }
 
+    /**
+     * Fenced business addresses are excluded from the address-only diagnostic cache.
+     *
+     * @param namespaceId namespace id
+     * @param instanceIp instance ip
+     * @param instancePort instance port
+     * @param instanceType instance type
+     * @return whether the observation belongs to a protected business target
+     */
+    private boolean isProtectedClientObservation(final String namespaceId, final String instanceIp,
+                                                 final String instancePort, final String instanceType) {
+        if (!InstanceTypeConstants.CLIENT_INSTANCE_TYPE.equals(instanceType)) {
+            return false;
+        }
+        int port = NumberUtils.toInt(instancePort, -1);
+        return port > 0 && registrationFencingGuard.isProtectedAddress(namespaceId, instanceIp, port);
+    }
+
     public boolean handleBeatInfo(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         // every in-repo producer defaults a blank namespace, so treat it as the default namespace
         // rather than an incomplete identity (review feedback on #7776)
@@ -164,10 +206,16 @@ public class InstanceCheckService {
                     instanceBeatInfoDTO.getInstanceType(), instanceBeatInfoDTO.getNamespaceId());
             return false;
         }
+        if (isProtectedClientObservation(instanceBeatInfoDTO.getNamespaceId(), instanceBeatInfoDTO.getInstanceIp(),
+                instanceBeatInfoDTO.getInstancePort(), instanceBeatInfoDTO.getInstanceType())) {
+            // Fenced business instances are observed through their boot session, not the address cache.
+            return true;
+        }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
+        long currentTime = clock.millis();
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
-            instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
+            instanceInfoVO.setLastHeartBeatTime(currentTime);
             if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
                 instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             }
@@ -177,7 +225,7 @@ public class InstanceCheckService {
             instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
             instanceInfoVO.setInstanceType(instanceBeatInfoDTO.getInstanceType());
-            instanceInfoVO.setLastHeartBeatTime(System.currentTimeMillis());
+            instanceInfoVO.setLastHeartBeatTime(currentTime);
             instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
@@ -205,8 +253,9 @@ public class InstanceCheckService {
     }
 
     private void doCheck() {
+        long currentTime = clock.millis();
         instanceHealthBeatInfo.values().forEach(instance -> {
-            if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
+            if (currentTime - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
                 if (Objects.equals(InstanceStatusEnum.ONLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
@@ -217,7 +266,7 @@ public class InstanceCheckService {
                         instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                 instance.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             }
-            if (System.currentTimeMillis() - instance.getLastHeartBeatTime() > deleteTimeout) {
+            if (currentTime - instance.getLastHeartBeatTime() > deleteTimeout) {
                 if (Objects.equals(InstanceStatusEnum.OFFLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} deleted!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
@@ -317,6 +366,10 @@ public class InstanceCheckService {
         try {
             List<InstanceInfoVO> snapshot = new ArrayList<>(instanceHealthBeatInfo.values());
             for (InstanceInfoVO vo : snapshot) {
+                if (isProtectedClientObservation(vo.getNamespaceId(), vo.getInstanceIp(),
+                        vo.getInstancePort(), vo.getInstanceType())) {
+                    continue;
+                }
                 try {
                     instanceInfoService.createOrUpdate(copyInstanceInfoVO(vo));
                 } catch (Exception e) {

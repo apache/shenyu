@@ -27,7 +27,13 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
@@ -133,6 +139,71 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
 
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
+    }
+
+    @Test
+    public void testTokenVersionRoundTrip() {
+        DashboardUserDO record = buildDashboardUserDO();
+        int count = dashboardUserMapper.insertSelective(record);
+        assertThat(count, comparesEqualTo(1));
+
+        // a newly created account starts at the legacy version
+        assertEquals(0L, dashboardUserMapper.selectById(record.getId()).getTokenVersion());
+
+        DashboardUserDO update = DashboardUserDO.builder()
+                .id(record.getId())
+                .tokenVersion(2L)
+                .build();
+        int result = dashboardUserMapper.updateSelective(update);
+        assertThat(result, comparesEqualTo(1));
+        assertEquals(2L, dashboardUserMapper.selectById(record.getId()).getTokenVersion());
+
+        int delete = dashboardUserMapper.delete(record.getId());
+        assertEquals(1, delete);
+    }
+
+    @Test
+    public void testIncrementTokenVersion() {
+        DashboardUserDO record = buildDashboardUserDO();
+        assertThat(dashboardUserMapper.insertSelective(record), comparesEqualTo(1));
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        assertEquals(1, dashboardUserMapper.incrementTokenVersion(record.getId(), now));
+        assertEquals(1, dashboardUserMapper.incrementTokenVersion(record.getId(), now));
+        assertEquals(2L, dashboardUserMapper.selectById(record.getId()).getTokenVersion());
+
+        assertEquals(1, dashboardUserMapper.delete(record.getId()));
+    }
+
+    @Test
+    public void testConcurrentIncrementsAreAtomic() throws Exception {
+        DashboardUserDO record = buildDashboardUserDO();
+        assertThat(dashboardUserMapper.insertSelective(record), comparesEqualTo(1));
+
+        final int threads = 8;
+        final int incrementsPerThread = 5;
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<?>> futures = new ArrayList<>();
+        for (int i = 0; i < threads; i++) {
+            futures.add(pool.submit(() -> {
+                start.await();
+                for (int j = 0; j < incrementsPerThread; j++) {
+                    dashboardUserMapper.incrementTokenVersion(record.getId(), new Timestamp(System.currentTimeMillis()));
+                }
+                return null;
+            }));
+        }
+        start.countDown();
+        for (Future<?> future : futures) {
+            future.get(30, TimeUnit.SECONDS);
+        }
+        pool.shutdown();
+        // every increment must land: a lost update here would silently revive a revoked token
+        assertEquals((long) threads * incrementsPerThread,
+                dashboardUserMapper.selectById(record.getId()).getTokenVersion());
+
+        assertEquals(1, dashboardUserMapper.delete(record.getId()));
     }
 
     @Test

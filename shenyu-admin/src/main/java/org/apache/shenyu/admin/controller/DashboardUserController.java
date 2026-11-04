@@ -178,6 +178,23 @@ public class DashboardUserController {
         dashboardUserModifyPasswordDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.modifyPassword(dashboardUserModifyPasswordDTO));
     }
+
+    /**
+     * revoke every token issued to the given dashboard user.
+     *
+     * <p>Unlike a password change, this does not alter the credential: the
+     * account keeps its password and simply has to log in again.</p>
+     *
+     * @param id primary key.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/revoke/{id}")
+    @RequiresPermissions("system:manager:edit")
+    public ShenyuAdminResult revokeTokens(@PathVariable("id")
+                                          @Existed(provider = DashboardUserMapper.class,
+                                                  message = "user is not found") final String id) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.revokeTokens(id));
+    }
     
     /**
      * check current user password.

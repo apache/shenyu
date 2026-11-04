@@ -107,6 +107,8 @@ shenyu:
       selectCount: 1
       workerCount: 8
       accessLog: false
+      # Optional HTTP listener alongside server.ssl or SNI HTTPS; shares the gateway handler without redirecting.
+      # additionalHttpPort: 9196
       serverSocketChannel:
         soBackLog: 128
         soReuseAddr: true

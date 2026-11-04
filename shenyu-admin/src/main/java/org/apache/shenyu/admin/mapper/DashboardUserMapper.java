@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.query.DashboardUserQuery;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Set;
 
@@ -113,7 +114,19 @@ public interface DashboardUserMapper extends ExistProvider {
      * @return rows
      */
     int updateSelective(DashboardUserDO dashboardUserDO);
-    
+
+    /**
+     * increment the token version of a dashboard user in a single statement.
+     *
+     * <p>Incrementing in SQL keeps concurrent password changes and revocations
+     * from overwriting each other with a stale read-modify-write value.</p>
+     *
+     * @param id primary key
+     * @param dateUpdated update time
+     * @return rows
+     */
+    int incrementTokenVersion(@Param("id") String id, @Param("dateUpdated") Timestamp dateUpdated);
+
     /**
      * delete dashboard user.
      *
