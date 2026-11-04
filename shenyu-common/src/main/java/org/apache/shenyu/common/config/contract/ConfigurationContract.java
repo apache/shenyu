@@ -70,7 +70,7 @@ public record ConfigurationContract(String plugin, ConfigurationScope scope, Str
      * @param sensitive whether tooling must omit supplied values
      * @param minimum optional inclusive numeric lower bound
      * @param maximum optional inclusive numeric upper bound
-     * @param values optional closed string enumeration (never inferred for SPI names)
+     * @param values optional closed string enumeration; null means unrestricted (never inferred for SPI names)
      */
     public record Field(Type type, boolean required, boolean nullable, String effectiveDefault, String unit,
                         boolean sensitive, Long minimum, Long maximum, List<String> values) {
@@ -78,7 +78,7 @@ public record ConfigurationContract(String plugin, ConfigurationScope scope, Str
         public Field {
             Objects.requireNonNull(type);
             unit = Objects.requireNonNullElse(unit, "");
-            values = List.copyOf(values);
+            values = Objects.isNull(values) ? List.of() : List.copyOf(values);
             if (values.size() > 64 || Objects.nonNull(minimum) && Objects.nonNull(maximum) && minimum > maximum) {
                 throw new IllegalArgumentException("Invalid configuration field constraints");
             }

@@ -43,6 +43,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConfigurationContractRegistryTest {
 
+    @Test
+    void absentEnumerationIsOptional() {
+        ConfigurationContract.Field shortForm = new ConfigurationContract.Field(STRING, false, false, null, null, false, null, null, null);
+        assertEquals(List.of(), shortForm.values());
+        assertThrows(UnsupportedOperationException.class, () -> shortForm.values().add("changed"));
+    }
+
+    @Test
+    void suppliedEnumerationRemainsAnImmutableDefensiveCopy() {
+        List<String> values = new ArrayList<>(List.of("a"));
+        ConfigurationContract.Field field = new ConfigurationContract.Field(STRING, false, false, null, null, false, null, null, values);
+        values.add("b");
+        assertEquals(List.of("a"), field.values());
+        assertThrows(UnsupportedOperationException.class, () -> field.values().add("changed"));
+        assertThrows(NullPointerException.class, () -> new ConfigurationContract.Field(
+                STRING, false, false, null, null, false, null, null, java.util.Arrays.asList((String) null)));
+    }
+
+
     @ParameterizedTest
     @EnumSource(ConfigurationScope.class)
     void selectsAllThreeScopesAndPreservesInput(final ConfigurationScope scope) {
