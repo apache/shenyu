@@ -16,13 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+
 mkdir -p /tmp/shenyu-e2e/mysql/schema
 mkdir -p /tmp/shenyu-e2e/mysql/driver
 
-wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-  https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar || \
-  wget -O /tmp/shenyu-e2e/mysql/driver/mysql-connector.jar \
-    https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
+driver_dir=/tmp/shenyu-e2e/mysql/driver
+artifact=mysql/mysql-connector-java/8.0.29/mysql-connector-java-8.0.29.jar
+download=$(mktemp "$driver_dir/mysql-connector.XXXXXX")
+trap 'rm -f "$download"' EXIT
+wget -O "$download" "https://repo.maven.apache.org/maven2/$artifact" || \
+  wget -O "$download" "https://repo1.maven.org/maven2/$artifact"
+mv "$download" "$driver_dir/mysql-connector.jar"
 
 cp db/init/mysql/schema.sql /tmp/shenyu-e2e/mysql/schema/schema.sql
 
