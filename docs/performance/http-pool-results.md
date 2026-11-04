@@ -70,6 +70,18 @@ Peaks are sampled every 20 ms and then summarized across repetitions. Idle reusa
 - The direct control and AI-construction stream control prevent attributing upstream or generator limits to the new HTTP pool. The AI control is not an end-to-end AI transport or model benchmark.
 - Pending lifetimes in the raw data measure queue residence, including timeout/cancellation; the production acquisition timer additionally includes connection establishment.
 - Heap peaks are sampled live heap, not retained-heap/leak measurements. Direct-buffer peaks and open connections are separate quantities. This short run cannot establish long-term memory stability.
-- Windows has no POSIX FD counter here (`peakFileDescriptors: -1`). Native process-handle counts are retained separately. Linux FD validation remains an explicit follow-up; these handle counts must not be represented as FD measurements.
+- Windows has no POSIX FD counter here (`peakFileDescriptors: -1`). Native process-handle counts are retained separately. The Linux follow-up below measures file descriptors separately.
 - JFR `profile` recordings for the first fixed-overload repetition of each arm and complete k6 point streams remain in the runner output directories. They are local diagnostic artifacts; the checked-in JSON retains primary latency/queue samples, summaries and resource counters.
-- Longer isolated runs, a stated p99/error SLO rate sweep, separate generator/upstream hosts, Linux FD measurement and full gateway/TLS/AI-engine validation remain necessary before deployment sizing or maximum-throughput claims. These are not claimed complete by this local report.
+- Longer isolated runs, a stated p99/error SLO rate sweep, separate generator/upstream hosts, a matched Linux baseline and full gateway/TLS/AI-engine validation remain necessary before deployment sizing or maximum-throughput claims. These are not claimed complete by this local report.
+
+## Linux ELASTIC overload check (2026-11-04)
+
+Three fresh JVMs ran the existing `elastic-overload` case at commit `8f682ba3cb1b5a959c694a83586fde6d9989bb81` on Linux x86-64 with OpenJDK 17.0.20 and k6 1.0.0. Each run used 8 connections, 4 pending acquisitions, a 250 ms acquire timeout, keep-alive and a 100 ms upstream delay. After 5 s of warmup the fixture reset its counters and k6 offered 160 requests/s for 8 s.
+
+| Run | Peak open upstream connections | Peak pending acquisitions | Peak JVM file descriptors | HTTP 200 | Other responses |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | 8 | 4 | 229 | 640 | 641 |
+| 2 | 8 | 4 | 229 | 638 | 643 |
+| 3 | 8 | 4 | 229 | 636 | 644 |
+
+The JVM samples open file descriptors every 20 ms. The measurement includes the forwarder and its local upstream in the same JVM. All three runs reached the configured connection and pending limits under load. These shared-host candidate measurements establish neither a before/after FD reduction nor a deployment throughput target.
