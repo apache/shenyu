@@ -1,4 +1,4 @@
-## Unreleased
+## 2.7.2
 
 ### Dependency Upgrade Notes
 

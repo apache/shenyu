@@ -94,7 +94,7 @@
         <url>https://github.com/apache/shenyu</url>
         <connection>scm:git:https://github.com/apache/shenyu.git</connection>
         <developerConnection>scm:git:https://github.com/apache/shenyu.git</developerConnection>
-        <tag>v2.7.2-RC3</tag>
+        <tag>v2.7.2-RC4</tag>
     </scm>
 
     <mailingLists>
@@ -1012,6 +1012,34 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>project-release-notice</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Use the project attribution in every Maven classifier, including shaded JARs. -->
+                            <outputDirectory>${project.build.directory}/maven-shared-archive-resources/META-INF</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>NOTICE</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
@@ -1027,6 +1055,8 @@
                     <sourcepath>src/main/java</sourcepath>
                     <detectJavaApiLink>false</detectJavaApiLink>
                     <detectOfflineLinks>false</detectOfflineLinks>
+                    <!-- Javadoc's own legal/LICENSE does not license the ShenYu artifact. -->
+                    <javadocDirectory>${project.build.directory}/maven-shared-archive-resources</javadocDirectory>
                 </configuration>
                 <executions>
                     <execution>

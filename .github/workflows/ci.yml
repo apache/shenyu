@@ -69,6 +69,7 @@ jobs:
           python3 -B .github/scripts/test-resolve-example-projects.py
           python3 -B .github/scripts/test-actions-timings.py
           python3 -B .github/scripts/test-restore-shenyu-local-repo.py
+          python3 -B .github/scripts/test-check-release-artifacts.py
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
       - name: Test Maven transfer retries
@@ -199,7 +200,7 @@ jobs:
         env:
           RELEASE_CANDIDATE: ${{ github.event_name == 'workflow_dispatch' && inputs.release_candidate || false }}
         run: |
-          release_args=(-Prelease -Dmaven.javadoc.skip=true)
+          release_args=(-Prelease -Dmaven.javadoc.skip=true -DskipRemoteResources=true)
           if [[ "$RELEASE_CANDIDATE" == "true" ]]; then
             python3 - <<'PYTHON'
           import xml.etree.ElementTree as ET
@@ -209,9 +210,9 @@ jobs:
               raise SystemExit('Release candidates require a non-SNAPSHOT project version')
           print('Building unsigned release candidate:', version)
           PYTHON
-            release_args=(-Prelease,apache-release -Dmaven.javadoc.skip=false -Dgpg.skip=true)
+            release_args=(-Prelease,apache-release -Dmaven.javadoc.skip=false -Dgpg.skip=true -DskipRemoteResources=false)
           fi
-          ./mvnw -B -ntp -T 1C install "${release_args[@]}" -DskipTests -DskipRemoteResources=true \
+          ./mvnw -B -ntp -T 1C install "${release_args[@]}" -DskipTests \
             -Djacoco.skip=true -Drat.skip=true
 
           mkdir -p /tmp/shenyu-m2
@@ -229,6 +230,9 @@ jobs:
             tar -czf /tmp/shenyu-m2/repository.tar.gz -C "${HOME}/.m2/repository" org/apache/shenyu
           fi
           cp .mvn/wrapper/maven-wrapper.jar /tmp/shenyu-m2/maven-wrapper.jar
+      - name: Check every candidate Maven JAR and both source distributions
+        if: github.event_name == 'workflow_dispatch' && inputs.release_candidate
+        run: python3 .github/scripts/check-release-artifacts.py --repository "${HOME}/.m2/repository/org/apache/shenyu"
       - name: Resolve distribution runtime dependencies
         run: |
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-bootstrap,shenyu-dist/shenyu-admin-dist,shenyu-dist/shenyu-bootstrap-dist dependency:list \
@@ -289,6 +293,59 @@ jobs:
           compression-level: 0
           if-no-files-found: error
           retention-days: 1
+
+  source_release_check:
+    needs: build_local_repo
+    if: github.repository == 'apache/shenyu' && github.event_name == 'workflow_dispatch' && inputs.release_candidate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/setup-java-with-retry
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+      - uses: actions/download-artifact@v4
+        with:
+          name: shenyu-local-maven-repository
+          path: /tmp/shenyu-m2
+      - name: Restore release artifacts
+        run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      - name: Rebuild the source distribution and run the complete default reactor tests
+        shell: bash
+        run: |
+          version="$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('pom.xml').getroot().findtext('{http://maven.apache.org/POM/4.0.0}version'))")"
+          source_archive="${HOME}/.m2/repository/org/apache/shenyu/shenyu-src-dist/${version}/shenyu-src-dist-${version}-src.zip"
+          source_root="${RUNNER_TEMP}/shenyu-source-check"
+          mkdir -p "$source_root"
+          unzip -q "$source_archive" -d "$source_root"
+          cd "${source_root}/apache-shenyu-${version}-src"
+          bash "${GITHUB_WORKSPACE}/.github/scripts/maven-with-retry.sh" ./mvnw -B -ntp install -Djacoco.skip=true -Dmaven.javadoc.skip=true
+          # Reproduce the reviewer's repeated test scenario after the full source build.
+          for attempt in {1..10}; do
+            ./mvnw -B -ntp -pl shenyu-admin test -Dtest=ShenyuClusterServiceTest -Djacoco.skip=true -Dmaven.javadoc.skip=true
+          done
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          import re
+          import zipfile
+          with zipfile.ZipFile('shenyu-admin/target/shenyu-admin.jar') as jar:
+              html = jar.read('static/index.html').decode()
+              for reference in re.findall(r'(?:src|href)=["\x27]([^"\x27]+\.(?:js|css))["\x27]', html):
+                  assert jar.read('static/' + reference.removeprefix('./')), reference
+              assert 'Apache ShenYu' in jar.read('META-INF/NOTICE').decode()
+          print('Source-built Admin contains all referenced dashboard JS/CSS and project NOTICE')
+          PYTHON
+      - name: Upload source build test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shenyu-source-release-validation
+          path: |
+            ${{ runner.temp }}/shenyu-source-check/**/target/surefire-reports/*.xml
+            ${{ runner.temp }}/shenyu-source-check/**/target/rat.txt
+          if-no-files-found: warn
+          retention-days: 7
 
   test_group:
     needs:
@@ -437,11 +494,15 @@ jobs:
       - build_local_repo
       - test_group
       - compat_java21
+      - source_release_check
     runs-on: ubuntu-latest
     steps:
       - name: checking job status
         run: |
           [[ "${{ needs.changes.result }}" == "success" ]] || exit 1
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.release_candidate }}" == "true" ]]; then
+            [[ "${{ needs.source_release_check.result }}" == "success" ]] || exit 1
+          fi
           if [[ "${{ needs.changes.outputs.code }}" == "true" ]]; then
             [[ "${{ needs.registry_dependencies.result }}" == "success" ]] || exit 1
             [[ "${{ needs.agent_gateway_migrations.result }}" == "success" ]] || exit 1
