@@ -22,6 +22,8 @@ import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.common.metrics.AiAttemptRoute;
+import org.apache.shenyu.common.metrics.AiUsage;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,6 +31,7 @@ import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,8 +46,9 @@ class AgentInvocationAuditBridgeTest {
         List<AgentInvocationAuditEvent> records = new CopyOnWriteArrayList<>();
         AiRequestObservation observation = new AiRequestObservation(AgentInvocationAuditBridge.ai(null, records::add), context("one"));
         AiRequestObservation.Attempt primary = observation.startAttempt(observation.getContext().withTarget("primary", "chat", null),
-                AiAttemptEvent.Kind.PRIMARY, "openai", "chat", false);
+                AiAttemptEvent.Kind.PRIMARY, new AiAttemptRoute("openai", "openai-responses", "openai-chat", "client-model", "upstream-model"), false);
         primary.status(503);
+        primary.usage(new AiUsage(3L, null, null, null, Map.of(), AiUsage.Status.REPORTED));
         primary.finish(SignalType.ON_ERROR, AiCallOutcome.ERROR);
         primary.finish(SignalType.ON_ERROR, AiCallOutcome.ERROR);
         AiRequestObservation.Attempt fallback = observation.startAttempt(observation.getContext().withTarget("fallback", "chat", null),
@@ -58,6 +62,13 @@ class AgentInvocationAuditBridgeTest {
         assertEquals(1, records.stream().filter(event -> event.getRecordType() == AgentInvocationAuditEvent.RecordType.LOGICAL).count());
         assertTrue(records.stream().allMatch(event -> event.getApiKeyId().orElseThrow().equals("key-id-one")));
         assertEquals("fallback", records.get(2).getTarget().orElseThrow());
+        assertEquals("openai", records.get(0).getProvider().orElseThrow());
+        assertEquals("openai-responses", records.get(0).getClientProtocol().orElseThrow());
+        assertEquals("openai-chat", records.get(0).getTargetProtocol().orElseThrow());
+        assertEquals("client-model", records.get(0).getRequestedModel().orElseThrow());
+        assertEquals("upstream-model", records.get(0).getResolvedModel().orElseThrow());
+        assertEquals(3L, records.get(0).getUsage().orElseThrow().promptTokens());
+        assertEquals(1, records.get(2).getUsageTotals().orElseThrow().reportedAttemptCount());
     }
 
     @Test

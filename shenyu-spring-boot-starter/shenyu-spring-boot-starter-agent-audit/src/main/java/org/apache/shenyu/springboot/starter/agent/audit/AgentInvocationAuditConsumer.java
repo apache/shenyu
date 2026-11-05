@@ -36,11 +36,14 @@ public interface AgentInvocationAuditConsumer {
     private static void log(final List<AgentInvocationAuditEvent> events) {
         Logger logger = LoggerFactory.getLogger("org.apache.shenyu.agent.invocation.audit");
         events.forEach(event -> logger.info("schema={} type={} request={} tenant={} subject={} apiKeyId={} selector={} rule={} "
-                        + "configuration={} policy={} target={} decision={} outcome={} reason={} status={} attempt={} elapsedMs={} timestamp={}",
+                        + "configuration={} policy={} target={} decision={} outcome={} reason={} status={} attempt={} elapsedMs={} "
+                        + "provider={} clientProtocol={} targetProtocol={} requestedModel={} resolvedModel={} usage={} usageTotals={} timestamp={}",
                 event.getSchemaVersion(), event.getRecordType(), event.getRequestId(), event.getTenant().orElse(null),
                 event.getSubject().orElse(null), event.getApiKeyId().orElse(null), event.getSelectorId().orElse(null),
                 event.getRuleId().orElse(null), event.getConfigurationVersion(), event.getPolicyVersion(), event.getTarget().orElse(null),
                 event.getDecision(), event.getOutcome(), event.getReason(), event.getHttpStatus().orElse(null), event.getAttempt().orElse(null),
-                event.getElapsedMillis(), event.getTimestamp()));
+                event.getElapsedMillis(), event.getProvider().orElse(null), event.getClientProtocol().orElse(null),
+                event.getTargetProtocol().orElse(null), event.getRequestedModel().orElse(null), event.getResolvedModel().orElse(null),
+                event.getUsage().orElse(null), event.getUsageTotals().orElse(null), event.getTimestamp()));
     }
 }

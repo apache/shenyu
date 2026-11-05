@@ -28,7 +28,8 @@ enters governance at order 169 before AI Prompt (170), Token Limiter (171) and
 AI Proxy (199), and connects the gateway SERVER span to the MCP logical-call span.
 MCP tools/call and AI outbound tracing use request-local W3C context without
 forwarding identity or baggage. AI usage is observed from the existing response
-subscription, with separate attempt events and one logical terminal.
+subscription, with separate attempt events and one logical terminal. Its shared
+contract and coverage matrix live in [AI usage metering](agent-gateway-ai-usage-metering.md).
 
 Node-local configuration generation is not an authorization-policy revision. No
 revision is invented when the identity source provides none. Trace IDs are not

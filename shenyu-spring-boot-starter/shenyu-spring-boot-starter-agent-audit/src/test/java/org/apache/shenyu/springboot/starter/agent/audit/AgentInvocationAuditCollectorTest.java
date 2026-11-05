@@ -54,7 +54,7 @@ class AgentInvocationAuditCollectorTest {
             await().atMost(Duration.ofSeconds(5)).until(() -> !messages.isEmpty());
             assertTrue(messages.get(0).contains("request=audit-request"));
             assertTrue(messages.get(0).contains("apiKeyId=internal-id"));
-            assertTrue(messages.get(0).contains("schema=1"));
+            assertTrue(messages.get(0).contains("schema=2"));
             assertTrue(messages.stream().noneMatch(message -> message.contains("Authorization") || message.contains("requestBody")));
         } finally {
             logger.detachAppender(appender);

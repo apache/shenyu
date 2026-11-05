@@ -23,6 +23,8 @@ import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
+import org.apache.shenyu.common.metrics.AiUsage;
+import org.apache.shenyu.common.metrics.AiUsageSummary;
 
 import java.util.Objects;
 
@@ -45,7 +47,8 @@ public final class AgentInvocationAuditBridge {
         return new AiCallObserver() {
             @Override
             public void record(final AiTerminalEvent event) {
-                safely(() -> emit(audit, event.context(), event.outcome().name(), event.httpStatus(), event.elapsedMillis(), null));
+                safely(() -> emit(audit, event.context(), event.outcome().name(), event.httpStatus(), event.elapsedMillis(),
+                        null, null, null, null, null, null, event.usage(), event.usageTotals()));
                 if (Objects.nonNull(existing)) {
                     safely(() -> existing.record(event));
                 }
@@ -53,7 +56,9 @@ public final class AgentInvocationAuditBridge {
 
             @Override
             public void recordAttempt(final AiAttemptEvent event) {
-                safely(() -> emit(audit, event.context(), event.outcome().name(), event.httpStatus(), event.elapsedMillis(), event.attemptNumber()));
+                safely(() -> emit(audit, event.context(), event.outcome().name(), event.httpStatus(), event.elapsedMillis(),
+                        event.attemptNumber(), event.provider(), event.clientProtocol(), event.targetProtocol(),
+                        event.requestedModel(), event.resolvedModel(), event.usage(), null));
                 if (Objects.nonNull(existing)) {
                     safely(() -> existing.recordAttempt(event));
                 }
@@ -74,7 +79,8 @@ public final class AgentInvocationAuditBridge {
         return new AgentMcpTerminalObserver() {
             @Override
             public void record(final AgentMcpTerminalEvent event) {
-                safely(() -> emit(audit, event.getContext(), event.getOutcome().name(), event.getHttpStatus(), event.getElapsedMillis(), null));
+                safely(() -> emit(audit, event.getContext(), event.getOutcome().name(), event.getHttpStatus(), event.getElapsedMillis(),
+                        null, null, null, null, null, null, null, null));
                 if (Objects.nonNull(existing)) {
                     safely(() -> existing.record(event));
                 }
@@ -82,7 +88,8 @@ public final class AgentInvocationAuditBridge {
 
             @Override
             public void recordAttempt(final AgentMcpTerminalEvent event) {
-                safely(() -> emit(audit, event.getContext(), event.getOutcome().name(), event.getHttpStatus(), event.getElapsedMillis(), 1));
+                safely(() -> emit(audit, event.getContext(), event.getOutcome().name(), event.getHttpStatus(), event.getElapsedMillis(),
+                        1, null, null, null, null, null, null, null));
                 if (Objects.nonNull(existing)) {
                     safely(() -> existing.recordAttempt(event));
                 }
@@ -91,7 +98,9 @@ public final class AgentInvocationAuditBridge {
     }
 
     private static void emit(final AgentInvocationAuditObserver sink, final AgentRequestContext context, final String outcome,
-                             final Integer status, final long elapsed, final Integer attempt) {
+                             final Integer status, final long elapsed, final Integer attempt, final String provider,
+                             final String clientProtocol, final String targetProtocol, final String requestedModel,
+                             final String resolvedModel, final AiUsage usage, final AiUsageSummary usageTotals) {
         AgentInvocationAuditEvent.Builder builder = Objects.isNull(attempt) ? AgentInvocationAuditEvent.logical() : AgentInvocationAuditEvent.attempt(attempt);
         sink.record(builder.requestId(context.getRequestId()).tenant(context.getTenant()).subject(context.getSubject()).apiKeyId(context.getApiKeyId())
                 .selectorId(context.getSelectorId()).ruleId(context.getRuleId()).target(auditTarget(context.getTarget()))
@@ -102,7 +111,9 @@ public final class AgentInvocationAuditBridge {
                 .outcome("ERROR".equals(outcome) ? "SERVER_ERROR" : outcome)
                 .reason("CANCELLED".equals(outcome) ? "DOWNSTREAM_CANCELLED" : "TIMEOUT".equals(outcome) ? "DEADLINE_EXCEEDED"
                         : "TOOL_ERROR".equals(outcome) ? "TOOL_REPORTED_ERROR" : Objects.isNull(status) ? "NO_RESPONSE" : "HTTP_" + status)
-                .httpStatus(status).elapsedMillis(elapsed).build());
+                .httpStatus(status).elapsedMillis(elapsed).provider(provider).clientProtocol(clientProtocol)
+                .targetProtocol(targetProtocol).requestedModel(requestedModel).resolvedModel(resolvedModel)
+                .usage(usage).usageTotals(usageTotals).build());
     }
 
     private static String auditTarget(final String value) {
