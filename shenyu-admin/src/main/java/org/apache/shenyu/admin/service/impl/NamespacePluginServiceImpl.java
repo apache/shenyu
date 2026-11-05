@@ -43,6 +43,7 @@ import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.NamespacePluginImportResolver;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -272,21 +273,19 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         if (CollectionUtils.isEmpty(namespacePluginList)) {
             return ConfigImportResult.success();
         }
-        Map<String, NamespacePluginRelDO> existPluginMap = namespacePluginRelMapper.listByNamespaceId(namespace)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(NamespacePluginRelDO::getPluginId, x -> x));
+        NamespacePluginImportResolver resolver = NamespacePluginImportResolver.from(namespacePluginRelMapper, namespace, context.getPluginTemplateIdMapping());
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         for (NamespacePluginDTO namespacePluginDTO : namespacePluginList) {
-            String pluginId = context.getPluginTemplateIdMapping().get(namespacePluginDTO.getPluginId());
+            NamespacePluginImportResolver.Resolution resolution = resolver.resolve(namespacePluginDTO);
+            String pluginId = resolution.mappedPluginId();
             AgentGatewayPluginConfigValidator.validate(namespacePluginDTO.getName(), namespacePluginDTO.getConfig());
             PluginDO template = pluginMapper.selectById(pluginId);
             if (Objects.nonNull(template)) {
                 AgentGatewayPluginConfigValidator.validate(template.getName(), namespacePluginDTO.getConfig());
             }
             // check plugin base info
-            if (existPluginMap.containsKey(pluginId)) {
+            if (Objects.nonNull(resolution.existing())) {
                 errorMsgBuilder
                         .append(pluginId)
                         .append(",");

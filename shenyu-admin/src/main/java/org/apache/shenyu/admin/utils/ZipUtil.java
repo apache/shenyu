@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.utils;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +26,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -135,6 +138,77 @@ public final class ZipUtil {
             LOG.error("unzip error", e);
         }
         return new UnZipResult(itemList);
+    }
+
+    /**
+     * Unzip with the same limits as {@link #unzip(byte[], long, long, int)} but reject
+     * malformed archives, duplicate entry names and blank entry names.
+     *
+     * @param source source
+     * @param maxEntrySize max entry size
+     * @param maxTotalSize max total size
+     * @param maxEntryCount max entry count
+     * @return unzip result
+     */
+    public static UnZipResult unzipStrict(final byte[] source, final long maxEntrySize,
+                                          final long maxTotalSize, final int maxEntryCount) {
+        if (Objects.isNull(source) || source.length < 4 || source[0] != 'P' || source[1] != 'K') {
+            throw new IllegalArgumentException("malformed zip archive");
+        }
+        List<ZipItem> itemList = Lists.newArrayList();
+        Set<String> entryNames = new HashSet<>();
+        long totalSize = 0L;
+        int entryCount = 0;
+        boolean sawEntry = false;
+        try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(source))) {
+            ZipEntry entry;
+            while (Objects.nonNull(entry = zipIn.getNextEntry())) {
+                sawEntry = true;
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                String entryName = entry.getName();
+                if (StringUtils.isBlank(entryName)) {
+                    throw new IllegalArgumentException("zip entry name is empty");
+                }
+                if (!entryNames.add(entryName)) {
+                    throw new IllegalArgumentException("duplicate zip entry: "
+                            + PreviewTextSanitizer.sanitize(entryName, 128));
+                }
+                entryCount++;
+                if (entryCount > maxEntryCount) {
+                    throw new IllegalArgumentException("entry count exceeds maximum of " + maxEntryCount);
+                }
+                try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    byte[] buffer = new byte[1024];
+                    int offset;
+                    long entrySize = 0L;
+                    while ((offset = zipIn.read(buffer)) != -1) {
+                        entrySize += offset;
+                        totalSize += offset;
+                        if (entrySize > maxEntrySize) {
+                            throw new IllegalArgumentException("entry size exceeds maximum allowed value.");
+                        }
+                        if (totalSize > maxTotalSize) {
+                            throw new IllegalArgumentException("total size exceeds maximum allowed value.");
+                        }
+                        out.write(buffer, 0, offset);
+                    }
+                    itemList.add(new ZipItem(entryName, out.toString(StandardCharsets.UTF_8)));
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("malformed zip archive", e);
+        }
+        if (!sawEntry && !isEmptyZip(source)) {
+            throw new IllegalArgumentException("malformed zip archive");
+        }
+        return new UnZipResult(itemList);
+    }
+
+    private static boolean isEmptyZip(final byte[] source) {
+        return source.length >= 4 && source[0] == 'P' && source[1] == 'K'
+                && ((source[2] == 5 && source[3] == 6) || (source[2] == 6 && source[3] == 6));
     }
 
     public static class ZipItem {

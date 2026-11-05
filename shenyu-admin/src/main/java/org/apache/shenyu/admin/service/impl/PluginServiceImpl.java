@@ -35,6 +35,9 @@ import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.ConfigImportAction;
+import org.apache.shenyu.admin.service.configs.plan.ConfigImportDecision;
+import org.apache.shenyu.admin.service.configs.plan.PluginTemplateImportResolver;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -48,7 +51,6 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.JarDependencyUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.LogUtils;
-import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -56,8 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -251,25 +253,20 @@ public class PluginServiceImpl implements PluginService {
         if (CollectionUtils.isEmpty(pluginList)) {
             return ConfigImportResult.success();
         }
-        Map<String, PluginDO> existPluginMap = pluginMapper.selectAll()
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(PluginDO::getName, x -> x));
+        PluginTemplateImportResolver resolver = PluginTemplateImportResolver.from(pluginMapper,
+                Objects.isNull(context) ? new HashMap<>() : context.getPluginTemplateIdMapping());
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         for (PluginDTO pluginDTO : pluginList) {
             String pluginName = pluginDTO.getName();
             AgentGatewayPluginConfigValidator.validate(pluginName, pluginDTO.getConfig());
-            // check plugin base info
-            if (existPluginMap.containsKey(pluginName)) {
+            ConfigImportDecision decision = resolver.resolve(pluginDTO);
+            if (decision.action() == ConfigImportAction.REUSE) {
                 errorMsgBuilder
                         .append(pluginName)
                         .append(",");
-                Optional.ofNullable(context).ifPresent(c -> c.getPluginTemplateIdMapping().put(pluginDTO.getId(), existPluginMap.get(pluginName).getId()));
             } else {
-                String pluginId = UUIDUtils.getInstance().generateShortUuid();
-                Optional.ofNullable(context).ifPresent(c -> c.getPluginTemplateIdMapping().put(pluginDTO.getId(), pluginId));
-                pluginDTO.setId(pluginId);
+                pluginDTO.setId(decision.targetId());
                 PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
                 if (pluginMapper.insertSelective(pluginDO) > 0) {
                     // publish create event. init plugin data
