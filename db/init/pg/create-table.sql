@@ -3000,6 +3000,20 @@ CREATE TABLE "public"."app_auth_request" (
 CREATE UNIQUE INDEX "uk_app_auth_request" ON "public"."app_auth_request" USING btree ("caller_key", "namespace_id", "request_id");
 CREATE INDEX "idx_app_auth_request_auth" ON "public"."app_auth_request" USING btree ("auth_id");
 
+-- Admin-only import ownership; no runtime synchronization or backend credentials.
+DROP TABLE IF EXISTS "public"."agent_gateway_import";
+CREATE TABLE "public"."agent_gateway_import" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "rule_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "manifest" text COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  PRIMARY KEY ("id")
+)
+;
+CREATE UNIQUE INDEX "uk_agent_gateway_import_rule" ON "public"."agent_gateway_import" USING btree ("rule_id");
+
 -- app auth lifecycle button resources
 INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, '2026-10-20 00:00:00', '2026-10-20 00:00:00');
@@ -3011,3 +3025,32 @@ INSERT INTO "public"."permission" VALUES ('1953048313980117951', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
 INSERT INTO "public"."permission" VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', '2026-10-20 00:00:00', '2026-10-20 00:00:00');
+CREATE TABLE IF NOT EXISTS "public"."registration_fencing_target" (
+    "id" varchar(128) NOT NULL PRIMARY KEY,
+    "date_created" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "domain_id" varchar(128) NOT NULL,
+    "namespace_id" varchar(64) NOT NULL,
+    "selector_id" varchar(128) NOT NULL,
+    "plugin_id" varchar(128) NOT NULL,
+    "protocol" varchar(32) NOT NULL,
+    "host" varchar(255) NOT NULL,
+    "port" integer NOT NULL,
+    "principal_id" varchar(128) NOT NULL,
+    "enabled" smallint NOT NULL,
+    "state" varchar(16) NOT NULL,
+    "generation" bigint NOT NULL,
+    "owner_startup_id" varchar(64),
+    "session_id" varchar(128),
+    "last_sequence" bigint NOT NULL,
+    "last_payload" text,
+    "last_result" text,
+    "last_request_id" varchar(64),
+    "last_request_payload" text,
+    "retired_startups" text,
+    CONSTRAINT "uk_registration_fencing_target_address" UNIQUE ("selector_id", "host", "port")
+);
+CREATE INDEX IF NOT EXISTS idx_registration_fencing_target_address
+    ON "public"."registration_fencing_target" ("namespace_id", "host", "port");
+CREATE INDEX IF NOT EXISTS idx_fencing_domain_session
+    ON "public"."registration_fencing_target" ("domain_id", "session_id");

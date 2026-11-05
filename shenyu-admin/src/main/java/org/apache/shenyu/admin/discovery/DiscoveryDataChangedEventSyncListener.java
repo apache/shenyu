@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
 import org.apache.shenyu.admin.model.event.discovery.DiscoveryStreamUpdatedEvent;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -65,16 +66,38 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private final String discoveryId;
 
+    private final RegistrationFencingGuard registrationFencingGuard;
+
     public DiscoveryDataChangedEventSyncListener(final ApplicationEventPublisher eventPublisher,
                                                  final DiscoveryUpstreamMapper discoveryUpstreamMapper,
                                                  final KeyValueParser keyValueParser,
                                                  final DiscoverySyncData contextInfo,
                                                  final String discoveryId) {
+        this(eventPublisher, discoveryUpstreamMapper, keyValueParser, contextInfo, discoveryId, null);
+    }
+
+    /**
+     * Create a provider listener with a selector write guard.
+     *
+     * @param eventPublisher event publisher
+     * @param discoveryUpstreamMapper discovery upstream mapper
+     * @param keyValueParser provider value parser
+     * @param contextInfo listener context
+     * @param discoveryId discovery id
+     * @param registrationFencingGuard selector write guard
+     */
+    public DiscoveryDataChangedEventSyncListener(final ApplicationEventPublisher eventPublisher,
+                                                 final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                                 final KeyValueParser keyValueParser,
+                                                 final DiscoverySyncData contextInfo,
+                                                 final String discoveryId,
+                                                 final RegistrationFencingGuard registrationFencingGuard) {
         this.discoverySyncDataList = new CopyOnWriteArrayList<>();
         this.eventPublisher = eventPublisher;
         this.keyValueParser = keyValueParser;
         this.discoveryId = discoveryId;
         this.discoveryUpstreamMapper = discoveryUpstreamMapper;
+        this.registrationFencingGuard = registrationFencingGuard;
         discoverySyncDataList.add(contextInfo);
     }
 
@@ -95,6 +118,9 @@ public class DiscoveryDataChangedEventSyncListener implements DataChangedEventLi
 
     private void syncData0(final DiscoveryDataChangedEvent event, final DiscoverySyncData discoverySyncData, final DiscoveryDataChangedEvent.Event currentEvent) {
         final DiscoverySyncData syncData = buildProxySelectorData(discoverySyncData, event.getValue());
+        if (Objects.nonNull(registrationFencingGuard)) {
+            registrationFencingGuard.assertSelectorWriteAllowed(syncData.getSelectorId());
+        }
         final List<DiscoveryUpstreamData> upstreamDataList = syncData.getUpstreamDataList();
         if (CollectionUtils.isEmpty(upstreamDataList)) {
             LOG.warn("Discover EventSync proxySelectorData discoveryUpstreamList is empty syncData {}", syncData);

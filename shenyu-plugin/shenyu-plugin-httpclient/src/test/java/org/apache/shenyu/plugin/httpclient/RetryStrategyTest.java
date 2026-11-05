@@ -184,7 +184,9 @@ public class RetryStrategyTest {
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol(protocol).url(url).build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        // The cache publishes a fully immutable List.copyOf snapshot, so the failover path is driven
+        // with List.of rather than the half-mutable Arrays.asList, which would tolerate set().
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(List.of(failed, standby));
         when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
         when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
 
@@ -265,7 +267,7 @@ public class RetryStrategyTest {
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(List.of(failed, standby));
         when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
         AtomicLong inflightDuringResend = new AtomicLong();
         when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.defer(() -> {
@@ -313,7 +315,7 @@ public class RetryStrategyTest {
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(List.of(failed, standby));
         final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
         UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
         for (int i = 0; i < 3; i++) {
@@ -338,7 +340,7 @@ public class RetryStrategyTest {
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(List.of(failed, standby));
         when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
         when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.error(new TimeoutException("resend failed")));
         final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
@@ -365,7 +367,7 @@ public class RetryStrategyTest {
         Upstream failed = Upstream.builder().url("localhost:8080").build();
         Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
-        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(Arrays.asList(failed, standby));
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(List.of(failed, standby));
         when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
         when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.just("success"));
         final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
@@ -506,7 +508,7 @@ public class RetryStrategyTest {
         Upstream healthy = Upstream.builder().url("localhost:8082").build();
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
         when(cacheManager.findUpstreamListBySelectorId(type + "-failover"))
-                .thenReturn(Arrays.asList(primary, standby), Arrays.asList(primary, standby, healthy));
+                .thenReturn(List.of(primary, standby), List.of(primary, standby, healthy));
 
         try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
             cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);

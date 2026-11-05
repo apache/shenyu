@@ -22,6 +22,8 @@ import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.vo.InstanceDataVisualVO;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
+import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
@@ -87,13 +89,16 @@ public final class InstanceCheckServiceTest {
     private InstanceInfoService instanceInfoService;
 
     @Mock
+    private RegistrationFencingGuard registrationFencingGuard;
+
+    @Mock
     private InstanceRetentionProperties instanceRetentionProperties;
 
     private InstanceInfoVO vo;
 
     @BeforeEach
     void setUp() {
-        instanceCheckService = new InstanceCheckService(instanceInfoService, instanceRetentionProperties);
+        instanceCheckService = new InstanceCheckService(instanceInfoService, registrationFencingGuard, instanceRetentionProperties);
         vo = buildVO("127.0.0.1", "8080", "grpc", "ns");
     }
 
@@ -101,6 +106,7 @@ public final class InstanceCheckServiceTest {
     void testSpringCreatesServiceWithProductionClock() {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.registerBean(InstanceInfoService.class, () -> instanceInfoService);
+            context.registerBean(RegistrationFencingGuard.class, () -> registrationFencingGuard);
             context.registerBean(InstanceRetentionProperties.class, InstanceRetentionProperties::new);
             context.register(InstanceCheckService.class);
             context.refresh();
@@ -205,6 +211,42 @@ public final class InstanceCheckServiceTest {
     }
 
     @Test
+    void testFetchInstanceDataSkipsProtectedClientObservation() {
+        InstanceInfoVO protectedInstance = buildVO("10.1.1.2", "9091", InstanceTypeConstants.CLIENT_INSTANCE_TYPE, "ns2");
+        when(instanceInfoService.list()).thenReturn(Collections.singletonList(protectedInstance));
+        when(registrationFencingGuard.isProtectedAddress("ns2", "10.1.1.2", 9091)).thenReturn(true);
+
+        instanceCheckService.fetchInstanceData();
+
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo("10.1.1.2:9091@client#ns2"));
+    }
+
+    @Test
+    void testProtectedClientHeartbeatIsNotCachedOrPersisted() {
+        InstanceBeatInfoDTO protectedHeartbeat = buildDTO("10.1.1.3", "9092", InstanceTypeConstants.CLIENT_INSTANCE_TYPE, "ns2");
+        when(registrationFencingGuard.isProtectedAddress("ns2", "10.1.1.3", 9092)).thenReturn(true);
+
+        assertTrue(instanceCheckService.handleBeatInfo(protectedHeartbeat));
+        assertNull(instanceCheckService.getInstanceHealthBeatInfo(protectedHeartbeat));
+
+        instanceCheckService.syncDB();
+
+        verify(instanceInfoService, never()).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
+    void testSyncDBSkipsClientObservationThatBecameProtected() {
+        InstanceBeatInfoDTO heartbeat = buildDTO("10.1.1.4", "9093", InstanceTypeConstants.CLIENT_INSTANCE_TYPE, "ns2");
+        when(registrationFencingGuard.isProtectedAddress("ns2", "10.1.1.4", 9093)).thenReturn(false, true);
+        assertTrue(instanceCheckService.handleBeatInfo(heartbeat));
+        assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(heartbeat));
+
+        instanceCheckService.syncDB();
+
+        verify(instanceInfoService, never()).createOrUpdate(any(InstanceInfoVO.class));
+    }
+
+    @Test
     void testHandleBeatInfoIgnoresIncompleteIdentity() {
         InstanceBeatInfoDTO blankIp = buildDTO("", "8080", "grpc", "ns");
         InstanceBeatInfoDTO blankPort = buildDTO("127.0.0.1", "", "grpc", "ns");
@@ -262,7 +304,7 @@ public final class InstanceCheckServiceTest {
     void testHandleBeatInfoNewAndExisting() {
         Clock clock = mock(Clock.class);
         when(clock.millis()).thenReturn(1000L, 2000L);
-        InstanceCheckService controlledService = new InstanceCheckService(instanceInfoService, instanceRetentionProperties, clock);
+        InstanceCheckService controlledService = new InstanceCheckService(instanceInfoService, registrationFencingGuard, instanceRetentionProperties, clock);
         InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8080", "grpc", "ns");
         controlledService.handleBeatInfo(dto);
         InstanceInfoVO first = controlledService.getInstanceHealthBeatInfo(dto);
