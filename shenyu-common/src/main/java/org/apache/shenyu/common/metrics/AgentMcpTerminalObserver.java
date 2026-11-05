@@ -31,4 +31,11 @@ public interface AgentMcpTerminalObserver {
      * @param event immutable, body-free per-subscription snapshot
      */
     void record(AgentMcpTerminalEvent event);
+
+    /**
+     * Record an actual tool execution separately from the logical completion.
+     * @param event trusted terminal snapshot
+     */
+    default void recordAttempt(final AgentMcpTerminalEvent event) {
+    }
 }

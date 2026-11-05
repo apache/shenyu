@@ -22,6 +22,8 @@ import java.util.Objects;
 /** ProxyApiKeyData for syncing proxy->real API key mappings to gateway. */
 public class ProxyApiKeyData {
 
+    private String id;
+
     private String realApiKey;
 
     private String proxyApiKey;
@@ -41,6 +43,7 @@ public class ProxyApiKeyData {
     }
 
     private ProxyApiKeyData(final Builder builder) {
+        this.id = builder.id;
         this.realApiKey = builder.realApiKey;
         this.proxyApiKey = builder.proxyApiKey;
         this.description = builder.description;
@@ -51,6 +54,14 @@ public class ProxyApiKeyData {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(final String id) {
+        this.id = id;
     }
 
     public String getRealApiKey() {
@@ -110,7 +121,7 @@ public class ProxyApiKeyData {
             return false;
         }
         ProxyApiKeyData that = (ProxyApiKeyData) o;
-        return Objects.equals(realApiKey, that.realApiKey)
+        return Objects.equals(id, that.id) && Objects.equals(realApiKey, that.realApiKey)
                 && Objects.equals(proxyApiKey, that.proxyApiKey)
                 && Objects.equals(description, that.description)
                 && Objects.equals(enabled, that.enabled)
@@ -120,10 +131,12 @@ public class ProxyApiKeyData {
 
     @Override
     public int hashCode() {
-        return Objects.hash(realApiKey, proxyApiKey, description, enabled, namespaceId, selectorId);
+        return Objects.hash(id, realApiKey, proxyApiKey, description, enabled, namespaceId, selectorId);
     }
 
     public static final class Builder {
+        private String id;
+
         private String realApiKey;
 
         private String proxyApiKey;
@@ -137,6 +150,11 @@ public class ProxyApiKeyData {
         private String selectorId;
 
         private Builder() {
+        }
+
+        public Builder id(final String id) {
+            this.id = id;
+            return this;
         }
 
         public Builder realApiKey(final String realApiKey) {

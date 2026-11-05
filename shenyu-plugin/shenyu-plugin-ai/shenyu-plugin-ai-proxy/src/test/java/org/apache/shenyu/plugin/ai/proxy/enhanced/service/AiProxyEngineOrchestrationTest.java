@@ -811,15 +811,18 @@ class AiProxyEngineOrchestrationTest {
     void cancellationDuringFallbackReachesOnlyTheActiveBody() {
         AtomicInteger calls = new AtomicInteger();
         AtomicBoolean cancelled = new AtomicBoolean();
+        AtomicBoolean bodySubscribed = new AtomicBoolean();
         AiProxyEngine engine = engine(request -> {
             if (calls.incrementAndGet() <= 2) {
                 return Mono.error(networkFailure());
             }
             return Mono.just(response(200, Flux.just(bytes("data: {\"fallback\":true}\n\n"))
-                    .concatWith(Flux.never()).doOnCancel(() -> cancelled.set(true))));
+                    .concatWith(Flux.never()).doOnSubscribe(subscription -> bodySubscribed.set(true))
+                    .doOnCancel(() -> cancelled.set(true))));
         });
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
-                .thenAwait(Duration.ofMillis(30)).thenCancel().verify(Duration.ofSeconds(3));
+                .then(() -> await().atMost(Duration.ofSeconds(5)).untilTrue(bodySubscribed))
+                .thenCancel().verify(Duration.ofSeconds(10));
         assertEquals(3, calls.get());
         await().atMost(Duration.ofSeconds(5)).untilTrue(cancelled);
     }
