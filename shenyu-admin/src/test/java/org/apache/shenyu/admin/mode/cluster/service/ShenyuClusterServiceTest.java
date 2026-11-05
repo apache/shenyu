@@ -37,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -234,7 +235,7 @@ public final class ShenyuClusterServiceTest {
 
         clusterService.start("127.0.0.1", 9195, "/shenyu");
         assertTrue(errorsOccurred.await(5, TimeUnit.SECONDS));
-        assertTrue(clusterService.getSelectMasterErrorCount() >= 2);
+        await().atMost(AWAIT_MILLIS, TimeUnit.MILLISECONDS).untilAsserted(() -> assertTrue(clusterService.getSelectMasterErrorCount() >= 2));
 
         clusterService.shutdown();
     }

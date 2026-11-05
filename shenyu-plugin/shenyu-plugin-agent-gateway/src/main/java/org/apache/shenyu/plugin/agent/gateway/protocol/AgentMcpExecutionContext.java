@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Immutable authorization input supplied exclusively by a trusted server-side adapter.
@@ -58,6 +59,10 @@ public final class AgentMcpExecutionContext {
     private final AgentGatewayHttpToolConfig httpTools;
 
     private final AgentHttpToolInvoker httpInvoker;
+
+    private final Runnable attemptListener;
+
+    private final AtomicBoolean attemptRecorded = new AtomicBoolean();
 
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
                                     final Set<String> ruleTools, final Set<String> securityGrants) {
@@ -112,7 +117,7 @@ public final class AgentMcpExecutionContext {
                                     final AgentGatewayResultFilterConfig resultFilters, final AgentGatewayHttpToolConfig httpTools,
                                     final AgentHttpToolInvoker httpInvoker, final String tenant) {
         this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
-                Set.of(), Set.of(), httpTools, httpInvoker, tenant);
+                Set.of(), Set.of(), httpTools, httpInvoker, tenant, null);
     }
 
     public AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
@@ -120,10 +125,20 @@ public final class AgentMcpExecutionContext {
                                     final AgentGatewayResultFilterConfig resultFilters, final Set<String> ruleResources,
                                     final Set<String> resourceGrants, final AgentGatewayHttpToolConfig httpTools,
                                     final AgentHttpToolInvoker httpInvoker, final String tenant) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
+                ruleResources, resourceGrants, httpTools, httpInvoker, tenant, null);
+    }
+
+    AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                            final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                            final AgentGatewayResultFilterConfig resultFilters, final Set<String> ruleResources,
+                            final Set<String> resourceGrants, final AgentGatewayHttpToolConfig httpTools,
+                            final AgentHttpToolInvoker httpInvoker, final String tenant, final Runnable attemptListener) {
         this.tenant = Objects.isNull(tenant) ? null : requireText(tenant, "tenant");
         this.deadline = Objects.requireNonNull(deadline, "deadline");
         this.httpTools = Objects.requireNonNull(httpTools, "httpTools");
         this.httpInvoker = httpInvoker;
+        this.attemptListener = attemptListener;
         this.resultFilters = Objects.requireNonNull(resultFilters, "resultFilters");
         this.requestId = requireText(requestId, "requestId");
         this.subject = requireText(subject, "subject");
@@ -192,6 +207,12 @@ public final class AgentMcpExecutionContext {
 
     public AgentHttpToolInvoker getHttpInvoker() {
         return httpInvoker;
+    }
+
+    void notifyAttempt() {
+        if (Objects.nonNull(attemptListener) && attemptRecorded.compareAndSet(false, true)) {
+            attemptListener.run();
+        }
     }
 
     private String requireText(final String value, final String name) {

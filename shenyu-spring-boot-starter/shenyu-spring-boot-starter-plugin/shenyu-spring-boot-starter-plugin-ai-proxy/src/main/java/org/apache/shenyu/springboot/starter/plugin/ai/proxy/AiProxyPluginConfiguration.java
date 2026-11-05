@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
+
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
@@ -71,17 +74,19 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyEngine        the aiProxyEngine
      * @param aiProxyPluginHandler the aiProxyPluginHandler
      * @param observers optional application terminal sink
+     * @param auditors optional unified audit sink
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
-            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers) {
+            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers,
+            final ObjectProvider<AgentInvocationAuditObserver> auditors) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler, observer(observers));
+                aiProxyPluginHandler, AgentInvocationAuditBridge.ai(observer(observers), auditors.getIfAvailable()));
     }
 
     /**
