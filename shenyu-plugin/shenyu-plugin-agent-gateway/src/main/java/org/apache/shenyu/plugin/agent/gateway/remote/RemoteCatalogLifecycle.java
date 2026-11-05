@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -51,6 +52,8 @@ public final class RemoteCatalogLifecycle {
     private final Sinks.Empty<Void> drained = Sinks.empty();
 
     private final List<String> cleanupFailures = new ArrayList<>();
+
+    private final Set<RemoteMcpEndpoint> cleanupQuarantine = Collections.newSetFromMap(new WeakHashMap<>());
 
     private final int maxGenerations;
 
@@ -167,7 +170,7 @@ public final class RemoteCatalogLifecycle {
                     .timeout(Duration.ofSeconds(5))
                     .map(directory -> {
                         synchronized (lock) {
-                            if (closed || candidate.retired || !stillCurrent.getAsBoolean() || !cleanupFailures.isEmpty()) {
+                            if (closed || candidate.retired || !stillCurrent.getAsBoolean()) {
                                 throw new CatalogUnavailableException();
                             }
                             candidate.directory = directory;
@@ -187,7 +190,7 @@ public final class RemoteCatalogLifecycle {
             if (!stillCurrent.getAsBoolean()) {
                 return null;
             }
-            if (closed || Objects.nonNull(updatingGeneration) || !cleanupFailures.isEmpty() || generations.size() >= maxGenerations) {
+            if (closed || Objects.nonNull(updatingGeneration) || generations.size() >= maxGenerations) {
                 throw new CatalogUnavailableException();
             }
             Generation candidate = new Generation(++sequence);
@@ -212,7 +215,7 @@ public final class RemoteCatalogLifecycle {
                 Mono.defer(() -> {
                     RemoteMcpEndpoint client;
                     synchronized (lock) {
-                        if (closed || candidate.retired || !generations.contains(candidate) || !cleanupFailures.isEmpty()) {
+                        if (closed || candidate.retired || !generations.contains(candidate)) {
                             return Mono.error(new CatalogUnavailableException());
                         }
                         // Managed factories are local, non-blocking constructors; allocation and ownership are atomic.
@@ -223,6 +226,9 @@ public final class RemoteCatalogLifecycle {
                         }
                         if (owners.containsKey(client)) {
                             return Mono.error(new IllegalStateException("Client already owned"));
+                        }
+                        if (cleanupQuarantine.contains(client)) {
+                            return Mono.error(new IllegalStateException("Quarantined client reuse"));
                         }
                         candidate.clients.add(client);
                         owners.put(client, candidate);
@@ -357,7 +363,10 @@ public final class RemoteCatalogLifecycle {
                                         .onErrorResume(error -> {
                                             synchronized (lock) {
                                                 generation.cleanupFailed = true;
-                                                cleanupFailures.add("generation " + generation.version + ": " + error.getClass().getSimpleName());
+                                                if (cleanupFailures.size() < 16) {
+                                                    cleanupFailures.add("generation " + generation.version + ": " + error.getClass().getSimpleName());
+                                                }
+                                                cleanupQuarantine.add(client);
                                             }
                                             return Mono.empty();
                                         }),
@@ -366,13 +375,10 @@ public final class RemoteCatalogLifecycle {
                             .then()
                             .doOnTerminate(() -> {
                                 synchronized (lock) {
-                                    // Failed closes stay quarantined and consume budget, never silently reused.
-                                    if (!generation.cleanupFailed) {
-                                        generations.remove(generation);
-                                        for (RemoteMcpEndpoint client : clients) {
-                                            owners.remove(client);
-                                        }
-                                    }
+                                    // A failed close stays quarantined, but successful siblings and the completed
+                                    // generation are released so one endpoint cannot consume the whole budget.
+                                    generations.remove(generation);
+                                    owners.keySet().removeAll(clients);
                                     signalDrain();
                                 }
                             })
@@ -470,7 +476,9 @@ public final class RemoteCatalogLifecycle {
                 .then(
                     Mono.defer(() -> {
                         synchronized (lock) {
-                            return cleanupFailures.isEmpty() ? drained.asMono() : Mono.error(new IllegalStateException("Client cleanup failed"));
+                            return cleanupFailures.isEmpty()
+                                    ? drained.asMono()
+                                    : Mono.error(new IllegalStateException("Client cleanup failed"));
                         }
                     })
                 )

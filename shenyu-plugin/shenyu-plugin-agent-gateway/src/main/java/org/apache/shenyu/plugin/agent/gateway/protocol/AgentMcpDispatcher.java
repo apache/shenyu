@@ -31,9 +31,10 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolDefinition;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolExecutionException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
-import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolProvider;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
+import org.apache.shenyu.plugin.agent.gateway.remote.RemoteSessionExpiredException;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -127,12 +128,17 @@ public final class AgentMcpDispatcher {
                 return error;
             }
             if (error instanceof HttpTimeoutException) {
-                TimeoutException timeout = new TimeoutException("Upstream request timed out");
-                timeout.initCause(error);
-                return timeout;
+                return timeout("Upstream request timed out", error);
             }
             if (error instanceof AgentMcpProtocolException) {
                 return error;
+            }
+            if (hasRemoteSessionExpired(error)) {
+                AgentMcpProtocolException expired = failure(request, 502, -32026, "Remote tool outcome is unknown after session expiry");
+                if (error instanceof RemoteSessionExpiredException) {
+                    expired.initCause(error);
+                }
+                return expired;
             }
             if (error instanceof AgentMcpRemoteCatalog.CatalogUnavailableException) {
                 AgentMcpProtocolException failure = failure(request, AgentMcpRemoteCatalog.CatalogUnavailableException.HTTP_STATUS,
@@ -144,6 +150,23 @@ public final class AgentMcpDispatcher {
             failure.initCause(error);
             return failure;
         });
+    }
+
+    private static TimeoutException timeout(final String message, final Throwable cause) {
+        TimeoutException timeout = new TimeoutException(message);
+        timeout.initCause(cause);
+        return timeout;
+    }
+
+    private boolean hasRemoteSessionExpired(final Throwable error) {
+        Throwable current = error;
+        while (Objects.nonNull(current)) {
+            if (current instanceof RemoteSessionExpiredException) {
+                return true;
+            }
+            current = current.getCause() == current ? null : current.getCause();
+        }
+        return false;
     }
 
     private Mono<ObjectNode> routeWithRemote(final AgentMcpRequest request, final AgentMcpExecutionContext context,

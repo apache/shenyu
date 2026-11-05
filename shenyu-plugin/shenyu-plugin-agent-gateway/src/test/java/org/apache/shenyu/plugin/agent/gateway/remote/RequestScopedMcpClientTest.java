@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpServer;
@@ -73,6 +74,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -125,9 +127,10 @@ class RequestScopedMcpClientTest {
                 StepVerifier.create(client.initialize()).expectErrorMatches(error -> error instanceof IllegalArgumentException
                         && "Invalid notification acknowledgement".equals(error.getMessage())).verify(WAIT);
             }
-            StepVerifier.create(client.listTools(null)).expectError(IllegalStateException.class).verify(WAIT);
+            StepVerifier.create(client.listTools(null)).expectError(IllegalArgumentException.class).verify(WAIT);
             StepVerifier.create(client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of())))
-                    .expectError(IllegalStateException.class).verify(WAIT);
+                    .expectError(IllegalArgumentException.class).verify(WAIT);
+            StepVerifier.create(client.initialize()).expectError(IllegalArgumentException.class).verify(WAIT);
             awaitIdle(client);
             assertEquals(2, fixture.requests.size());
             assertEquals(1, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
@@ -497,6 +500,187 @@ class RequestScopedMcpClientTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    void sessionExpiryFailsOnceWithoutReplayAndReinitializesOnlyTheNextCall(final boolean sse) throws Exception {
+        try (Fixture fixture = new Fixture(sse)) {
+            fixture.uniqueSessions = true;
+            RequestScopedMcpClient client = fixture.client();
+            client.initialize().block(WAIT);
+            assertEquals("expired", call(client, "expired", 0, "a").block(WAIT).path("structuredContent").path("token").textValue());
+            fixture.expireSessions();
+            final String oldSession = client.currentSessionForTest();
+            StepVerifier.create(call(client, "expired", 0, "b"))
+                    .expectErrorMatches(error -> error instanceof RemoteSessionExpiredException
+                            && "Remote MCP session expired".equals(error.getMessage()))
+                    .verify(WAIT);
+            assertEquals(2, fixture.requests.stream()
+                    .filter(request -> "tools/call".equals(request.get("method")) && request.get("token").equals("expired"))
+                    .count());
+            assertTrue(Objects.isNull(client.currentSessionForTest()) || !client.currentSessionForTest().equals(oldSession));
+            assertEquals("peer", call(client, "peer", 0, "c").block(WAIT).path("structuredContent").path("token").textValue());
+            assertEquals(2, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count(),
+                    fixture.requests.toString());
+            client.closeGracefully().block(WAIT);
+            assertEquals(1, fixture.deletes);
+            assertEquals(2, fixture.requests.stream()
+                    .filter(request -> "tools/call".equals(request.get("method")) && request.get("token").equals("expired"))
+                    .count());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void gatewayReturnsAnUnknownOutcomeAfterRemoteSessionExpiry(final boolean sse) throws Exception {
+        try (Fixture fixture = new Fixture(sse)) {
+            AgentMcpRemoteCatalog.Snapshot snapshot = new AgentMcpRemoteCatalog.Snapshot() {
+                @Override
+                public Map<String, ObjectNode> definitions() {
+                    ObjectNode tool = new ObjectMapper().createObjectNode().put("name", "orders.lookup").put("description", "Read fixture");
+                    tool.putObject("inputSchema").put("type", "object");
+                    return Map.of("orders.lookup", tool);
+                }
+
+                @Override
+                public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
+                    return Mono.error(new RemoteSessionExpiredException());
+                }
+            };
+            AgentMcpRemoteCatalog catalog = operation -> operation.apply(snapshot);
+            AgentMcpHttpHandler handler = new AgentMcpHttpHandler(
+                    new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1", catalog),
+                    ignored -> Mono.just(new AgentMcpIdentity("fixture", Set.of("orders.lookup"))));
+            AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString(
+                    "{\"allowedTools\":[\"orders.lookup\"],\"timeoutMs\":5000,\"responseMode\":\"json\"}").getAsJsonObject(), true);
+            MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/mcp")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Accept", "application/json, text/event-stream")
+                    .header("Mcp-Protocol-Version", "2026-07-28")
+                    .header("Mcp-Method", "tools/call")
+                    .header("Mcp-Name", "orders.lookup")
+                    .body("{\"jsonrpc\":\"2.0\",\"id\":\"expired\",\"method\":\"tools/call\",\"params\":{\"name\":\"orders.lookup\",\"arguments\":{},"
+                            + "\"_meta\":{\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\","
+                            + "\"io.modelcontextprotocol/clientCapabilities\":{}}}}"));
+            StepVerifier.create(handler.handle(exchange, config, new AgentTrafficContext("request", "mcp", "selector", "rule"), 1)).verifyComplete();
+            JsonNode response = new ObjectMapper().readTree(exchange.getResponse().getBodyAsString().block(WAIT));
+            assertEquals(502, exchange.getResponse().getStatusCode().value(), response.toString());
+            assertEquals(-32026, response.path("error").path("code").asInt());
+            assertEquals("Remote tool outcome is unknown after session expiry", response.path("error").path("message").textValue());
+            assertEquals(0, fixture.requests.stream().filter(request -> "tools/call".equals(request.get("method"))).count());
+        }
+    }
+
+    @Test
+    void concurrentExpiryFailsEachCallOnceAndCoalescesReinitialization() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.uniqueSessions = true;
+            fixture.blockConcurrentCalls = true;
+            RequestScopedMcpClient client = fixture.client();
+            client.initialize().block(WAIT);
+            CountDownLatch finished = new CountDownLatch(4);
+            for (int index = 0; index < 4; index++) {
+                call(client, "expired", 0, "concurrent-" + index).subscribe(ignored -> finished.countDown(),
+                        error -> finished.countDown(), finished::countDown);
+            }
+            assertTrue(fixture.concurrentCalls.await(WAIT.toMillis(), TimeUnit.MILLISECONDS), fixture.requests.toString());
+            fixture.expireSessions();
+            fixture.allowConcurrentCalls();
+            assertTrue(finished.await(WAIT.toMillis(), TimeUnit.MILLISECONDS));
+            assertEquals(4, fixture.requests.stream()
+                    .filter(request -> "tools/call".equals(request.get("method")) && request.get("token").equals("expired"))
+                    .count());
+            assertEquals("peer", call(client, "peer", 0, "peer").block(WAIT).path("structuredContent").path("token").textValue());
+            assertEquals(2, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+            client.closeGracefully().block(WAIT);
+        }
+    }
+
+    @Test
+    void idleSessionIsDeletedAndReinitializedOnceBeforeTheNextCall() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.uniqueSessions = true;
+            RequestScopedMcpClient client = fixture.client(Duration.ofMillis(25));
+            client.initialize().block(WAIT);
+            Thread.sleep(50);
+            assertEquals("peer", call(client, "peer", 0, "peer").block(WAIT).path("structuredContent").path("token").textValue());
+            assertEquals(2, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+            assertEquals(1, fixture.deletes);
+            client.closeGracefully().block(WAIT);
+            assertEquals(2, fixture.deletes);
+        }
+    }
+
+    @Test
+    void failedIdleDeleteRetriesOnlyThePendingCleanupBeforeRecovery() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.uniqueSessions = true;
+            RequestScopedMcpClient client = fixture.client(Duration.ofMillis(25));
+            client.initialize().block(WAIT);
+            Thread.sleep(50);
+            fixture.deleteStatus = 503;
+            assertEquals("first-recovery", call(client, "first-recovery", 0, "a").block(WAIT)
+                    .path("structuredContent").path("token").textValue());
+            assertTrue(client.sessionInitializedForTest());
+            fixture.deleteStatus = 204;
+            assertEquals("peer", call(client, "peer", 0, "b").block(WAIT).path("structuredContent").path("token").textValue());
+            assertEquals(2, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+            assertEquals(2, fixture.deletes);
+            client.closeGracefully().block(WAIT);
+            assertEquals(3, fixture.deletes);
+        }
+    }
+
+    @Test
+    void hangingIdleDeleteIsBoundedAndDoesNotBlockRecovery() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.uniqueSessions = true;
+            RequestScopedMcpClient client = fixture.client(Duration.ofMillis(25));
+            client.initialize().block(WAIT);
+            Thread.sleep(50);
+            fixture.deleteDelayMillis = 3000;
+            long start = System.nanoTime();
+            assertEquals("peer", call(client, "peer", 0, "a").block(WAIT).path("structuredContent").path("token").textValue());
+            assertTrue(Duration.ofNanos(System.nanoTime() - start).compareTo(Duration.ofSeconds(3)) < 0);
+            assertEquals(1, fixture.deletes);
+        }
+    }
+
+    @Test
+    void statelessHttp404RemainsAnOrdinaryUpstreamErrorWithoutInventedSession() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.stateless = true;
+            fixture.uniqueSessions = true;
+            RequestScopedMcpClient client = fixture.client();
+            client.initialize().block(WAIT);
+            assertTrue(Objects.isNull(client.currentSessionForTest()));
+            assertThrows(IllegalStateException.class, () -> call(client, "stateless-404", 0, "a").block(WAIT));
+            assertTrue(Objects.isNull(client.currentSessionForTest()));
+            assertEquals("peer", call(client, "peer", 0, "b").block(WAIT).path("structuredContent").path("token").textValue());
+            assertEquals(1, fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+            client.closeGracefully().block(WAIT);
+            assertEquals(0, fixture.deletes);
+        }
+    }
+
+    @Test
+    void staleSession404DoesNotInvalidateANewerSession() throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.uniqueSessions = true;
+            RequestScopedMcpClient client = fixture.client();
+            client.initialize().block(WAIT);
+            final String first = client.currentSessionForTest();
+            fixture.expireSessions();
+            assertThrows(RuntimeException.class, () -> call(client, "expired", 0, "a").block(WAIT));
+            fixture.acceptSessions();
+            assertEquals("peer", call(client, "peer", 0, "b").block(WAIT).path("structuredContent").path("token").textValue());
+            String second = client.currentSessionForTest();
+            assertTrue(!first.equals(second));
+            client.invalidateSessionForTest(first, 0);
+            assertTrue(Objects.nonNull(client.currentSessionForTest()));
+            assertEquals(second, client.currentSessionForTest());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     void repeatedCancellationPreservesPeerErrorsWithoutDroppedSignals(final boolean sse) throws Exception {
         List<Throwable> dropped = new CopyOnWriteArrayList<>();
         Hooks.onErrorDropped(dropped::add);
@@ -526,9 +710,12 @@ class RequestScopedMcpClientTest {
 
     private static Mono<ObjectNode> call(final RequestScopedMcpClient client, final String token, final int delay, final String subject) {
         return client.callRaw(new McpSchema.CallToolRequest("lookup", Map.of("token", token, "delay", delay)))
-                .transformDeferredContextual((response, context) -> response.doOnNext(ignored ->
-                        assertEquals(subject, ((McpTransportContext) context.get(McpTransportContext.KEY)).get("subject"))))
                 .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("subject", subject))));
+    }
+
+    private static Mono<ObjectNode> tracedCall(final RequestScopedMcpClient client, final String token, final int delay, final String subject) {
+        return call(client, token, delay, subject).transformDeferredContextual((response, context) -> response.doOnNext(ignored ->
+                assertEquals(subject, ((McpTransportContext) context.get(McpTransportContext.KEY)).get("subject"))));
     }
 
     private static void awaitIdle(final RequestScopedMcpClient client) throws InterruptedException {
@@ -553,7 +740,15 @@ class RequestScopedMcpClientTest {
 
         private final CountDownLatch delayed = new CountDownLatch(1);
 
+        private final CountDownLatch concurrentCalls = new CountDownLatch(4);
+
+        private final CountDownLatch concurrentCallsRelease = new CountDownLatch(1);
+
+        private volatile boolean blockConcurrentCalls;
+
         private volatile int deleteStatus = 204;
+
+        private volatile int deleteDelayMillis;
 
         private volatile int initializedStatus = 202;
 
@@ -562,6 +757,16 @@ class RequestScopedMcpClientTest {
         private volatile int deletes;
 
         private volatile boolean cleanupHadTrace;
+
+        private volatile boolean sessionsExpired;
+
+        private volatile boolean stateless;
+
+        private volatile boolean uniqueSessions;
+
+        private volatile boolean rejectExpiredSession;
+
+        private final AtomicInteger sessionCounter = new AtomicInteger();
 
         private Fixture(final boolean sse) throws Exception {
             server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
@@ -576,6 +781,18 @@ class RequestScopedMcpClientTest {
                     if ("DELETE".equals(exchange.getRequestMethod())) {
                         cleanupHadTrace = exchange.getRequestHeaders().containsKey("traceparent") || exchange.getRequestHeaders().containsKey("tracestate");
                         deletes++;
+                        if (deleteDelayMillis > 0) {
+                            Thread.sleep(deleteDelayMillis);
+                        }
+                        String deletedSession = exchange.getRequestHeaders().getFirst("MCP-Session-Id");
+                        if (rejectExpiredSession && Objects.nonNull(deletedSession) && deletedSession.endsWith("-1")) {
+                            exchange.sendResponseHeaders(404, -1);
+                            return;
+                        }
+                        if (sessionsExpired) {
+                            exchange.sendResponseHeaders(404, -1);
+                            return;
+                        }
                         exchange.sendResponseHeaders(deleteStatus, -1);
                         return;
                     }
@@ -589,6 +806,14 @@ class RequestScopedMcpClientTest {
                             "tracestate", Objects.toString(exchange.getRequestHeaders().getFirst("tracestate"), ""),
                             "baggage", Objects.toString(exchange.getRequestHeaders().getFirst("baggage"), ""),
                             "token", request.path("params").path("arguments").path("token").asText()));
+                    if (blockConcurrentCalls && "tools/call".equals(method)
+                            && "expired".equals(request.path("params").path("arguments").path("token").textValue())
+                            && Objects.nonNull(exchange.getRequestHeaders().getFirst("MCP-Session-Id"))) {
+                        concurrentCalls.countDown();
+                        if (!concurrentCallsRelease.await(WAIT.toMillis(), TimeUnit.MILLISECONDS)) {
+                            throw new IllegalStateException("Concurrent calls were not released");
+                        }
+                    }
                     if ("notifications/initialized".equals(method)) {
                         responseBytes.put(request.path("id").asText(), 0);
                         exchange.sendResponseHeaders(initializedStatus, initializedBody.length == 0 ? -1 : initializedBody.length);
@@ -599,7 +824,10 @@ class RequestScopedMcpClientTest {
                     }
                     ObjectNode result = json.createObjectNode();
                     if ("initialize".equals(method)) {
-                        exchange.getResponseHeaders().set("MCP-Session-Id", "unit-session");
+                        if (!stateless) {
+                            exchange.getResponseHeaders().set("MCP-Session-Id",
+                                    uniqueSessions ? "unit-session-" + sessionCounter.incrementAndGet() : "unit-session");
+                        }
                         result.put("protocolVersion", "2025-06-18");
                         result.putObject("capabilities").putObject("tools");
                         result.putObject("serverInfo").put("name", "unit").put("version", "1");
@@ -618,7 +846,24 @@ class RequestScopedMcpClientTest {
                             Thread.sleep(delay);
                         }
                         result.putArray("content").addObject().put("type", "text").put("text", "native");
-                        result.putObject("structuredContent").put("token", request.path("params").path("arguments").path("token").textValue());
+                        String token = request.path("params").path("arguments").path("token").textValue();
+                        String session = exchange.getRequestHeaders().getFirst("MCP-Session-Id");
+                        if ("expired".equals(token) && rejectExpiredSession && Objects.nonNull(session) && session.endsWith("-1")) {
+                            responseBytes.put(request.path("id").asText(), 0);
+                            exchange.sendResponseHeaders(404, -1);
+                            return;
+                        }
+                        if ("stateless-404".equals(token)) {
+                            responseBytes.put(request.path("id").asText(), 0);
+                            exchange.sendResponseHeaders(404, -1);
+                            return;
+                        }
+                        if ("expired".equals(token) && sessionsExpired) {
+                            responseBytes.put(request.path("id").asText(), 0);
+                            exchange.sendResponseHeaders(404, -1);
+                            return;
+                        }
+                        result.putObject("structuredContent").put("token", "expired".equals(token) ? "expired" : token);
                         result.put("isError", true).put("extension", "native-extension");
                         result.putObject("_meta").put("Authorization", "opaque");
                     }
@@ -653,6 +898,31 @@ class RequestScopedMcpClientTest {
             RemoteServerBinding.Config target = new RemoteServerBinding.Config("orders", uri, "service/orders", "v1");
             return new RequestScopedMcpClient(RemoteServerBinding.resolve(target, Set.of(uri),
                     ignored -> new RemoteServerBinding.Credential(target, "fixed-test-token")), observer);
+        }
+
+        private RequestScopedMcpClient client(final Duration sessionIdleTtl) {
+            URI uri = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/mcp");
+            RemoteServerBinding.Config target = new RemoteServerBinding.Config("orders", uri, "service/orders", "v1");
+            return new RequestScopedMcpClient(RemoteServerBinding.resolve(target, Set.of(uri),
+                    ignored -> new RemoteServerBinding.Credential(target, "fixed-test-token")), ignored -> { }, null, sessionIdleTtl);
+        }
+
+        private void expireSessions() {
+            sessionsExpired = true;
+        }
+
+        private void releaseConcurrentCalls() {
+            concurrentCallsRelease.countDown();
+        }
+
+        private void allowConcurrentCalls() {
+            blockConcurrentCalls = false;
+            releaseConcurrentCalls();
+        }
+
+        private void acceptSessions() {
+            sessionsExpired = false;
+            rejectExpiredSession = true;
         }
 
         @Override

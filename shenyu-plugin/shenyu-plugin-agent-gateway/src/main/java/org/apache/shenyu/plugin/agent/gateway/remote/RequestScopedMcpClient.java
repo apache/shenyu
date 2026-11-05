@@ -71,6 +71,8 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private static final int MAX_IN_FLIGHT = 64;
 
+    private static final Duration DEFAULT_SESSION_IDLE_TTL = Duration.ofMinutes(5);
+
     private final HttpClient http;
 
     private final URI endpoint;
@@ -91,11 +93,26 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private volatile String session;
 
-    private volatile boolean initialized;
-
     private volatile boolean closed;
 
-    private final Mono<McpSchema.InitializeResult> initialization;
+    private final Object sessionLock = new Object();
+
+    private final AtomicReference<Mono<McpSchema.InitializeResult>> handshake = new AtomicReference<>();
+
+    private final AtomicLong sessionEpoch = new AtomicLong();
+
+    private final Duration sessionIdleTtl;
+
+    private volatile Instant lastUse;
+
+    private volatile boolean handshakeReady;
+
+    private final Object cleanupLock = new Object();
+
+    private String abandonedSession;
+
+    private Mono<Void> abandonedCleanup;
+
     // Client shutdown is owned/cached; repeat subscribers see the same cleanup failure, not false success.
 
     private final Mono<Void> shutdown = Mono.defer(this::terminate).cache();
@@ -110,6 +127,14 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     RequestScopedMcpClient(final RemoteServerBinding binding, final java.util.function.Consumer<Map<String, Object>> observer, final javax.net.ssl.SSLContext testContext) {
+        this(binding, observer, testContext, DEFAULT_SESSION_IDLE_TTL);
+    }
+
+    RequestScopedMcpClient(final RemoteServerBinding binding, final java.util.function.Consumer<Map<String, Object>> observer,
+                           final javax.net.ssl.SSLContext testContext, final Duration sessionIdleTtl) {
+        if (Objects.isNull(sessionIdleTtl) || sessionIdleTtl.isZero() || sessionIdleTtl.isNegative()) {
+            throw new IllegalArgumentException("Session idle TTL");
+        }
         HttpClient.Builder builder = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).proxy(RemoteTransportPolicy.directOnly())
                 .followRedirects(HttpClient.Redirect.NEVER).connectTimeout(Duration.ofSeconds(2));
         if (Objects.nonNull(testContext)) {
@@ -120,7 +145,12 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         this.name = binding.config().name();
         this.authorization = binding.authorization();
         this.observer = observer;
-        initialization = request("initialize", Map.of("protocolVersion", VERSION, "capabilities", Map.of(),
+        this.sessionIdleTtl = sessionIdleTtl;
+        handshake.set(createHandshake().cache());
+    }
+
+    private Mono<McpSchema.InitializeResult> createHandshake() {
+        return request("initialize", Map.of("protocolVersion", VERSION, "capabilities", Map.of(),
                 "clientInfo", Map.of("name", "shenyu-agent-gateway", "version", "2.7.2-SNAPSHOT")), false)
             .map(result -> {
                 if (!VERSION.equals(result.path("protocolVersion").asText())) {
@@ -129,15 +159,30 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 return JSON.convertValue(result, McpSchema.InitializeResult.class);
             })
             .flatMap(result -> request("notifications/initialized", Map.of(), true).thenReturn(result))
-            .doOnSuccess(ignored -> initialized = true)
             // Session handshake uses fixed service configuration, never the first Agent's context.
             .contextWrite(context -> context.delete(McpTransportContext.KEY).delete(AgentTraceContext.HEADERS_KEY))
-            .cache();
+            .doOnSuccess(ignored -> {
+                handshakeReady = true;
+                lastUse = Instant.now();
+            });
     }
 
     @Override
     public Mono<McpSchema.InitializeResult> initialize() {
-        return initialization;
+        return Mono.defer(() -> {
+            synchronized (sessionLock) {
+                if (closed) {
+                    return Mono.error(new IllegalStateException("Client closed"));
+                }
+                Mono<McpSchema.InitializeResult> current = handshake.get();
+                if (Objects.nonNull(current)) {
+                    return current;
+                }
+                Mono<McpSchema.InitializeResult> candidate = createHandshake().cache();
+                handshake.set(candidate);
+                return candidate;
+            }
+        });
     }
 
     @Override
@@ -191,7 +236,43 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     private Mono<Void> ready() {
-        return Mono.defer(() -> initialized && !closed ? Mono.empty() : Mono.error(new IllegalStateException("Client not ready")));
+        return Mono.defer(() -> {
+            if (closed) {
+                return Mono.error(new IllegalStateException("Client closed"));
+            }
+            String abandoned;
+            synchronized (cleanupLock) {
+                abandoned = abandonedSession;
+            }
+            if (Objects.nonNull(abandoned)) {
+                return reclaimAbandonedSession(abandoned).onErrorResume(ignored -> Mono.empty())
+                        .then(Mono.defer(() -> Objects.isNull(session) ? initialize().then() : Mono.empty()));
+            }
+            String current = session;
+            Instant used = lastUse;
+            if (Objects.nonNull(current) && handshakeReady && (Objects.isNull(used)
+                    || Duration.between(used, Instant.now()).compareTo(sessionIdleTtl) < 0)) {
+                return Mono.empty();
+            }
+            synchronized (sessionLock) {
+                current = session;
+                used = lastUse;
+                if (Objects.nonNull(current) && handshakeReady && Objects.nonNull(used)
+                        && Duration.between(used, Instant.now()).compareTo(sessionIdleTtl) >= 0) {
+                    session = null;
+                    handshake.set(null);
+                    handshakeReady = false;
+                    sessionEpoch.incrementAndGet();
+                    synchronized (cleanupLock) {
+                        abandonedSession = current;
+                        abandonedCleanup = null;
+                    }
+                    return reclaimAbandonedSession(current).onErrorResume(ignored -> Mono.empty())
+                            .then(Mono.defer(() -> Objects.isNull(session) ? initialize().then() : Mono.empty()));
+                }
+            }
+            return initialize().then();
+        });
     }
 
     private Mono<ObjectNode> request(final String method, final Object params, final boolean notification) {
@@ -222,8 +303,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 .header("Authorization", authorization)
                 .header("MCP-Protocol-Version", VERSION)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(requestBytes));
-            if (Objects.nonNull(session) && !"initialize".equals(method)) {
-                builder.header("MCP-Session-Id", session);
+            final String usedSession = session;
+            final long usedEpoch = sessionEpoch.get();
+            if (Objects.nonNull(usedSession) && !"initialize".equals(method)) {
+                builder.header("MCP-Session-Id", usedSession);
             }
             // A shared handshake, directory refresh or session cleanup never belongs to an Agent call.
             if ("tools/call".equals(method)) {
@@ -245,7 +328,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 return requestSignal(future);
             })
                 .timeout(budget)
-                .map(response -> decodeResponse(response, method, id, notification))
+                .map(response -> decodeResponse(response, method, id, notification, usedSession, usedEpoch))
                 .doFinally(ignored -> {
                     CompletableFuture<?> future = owned.get();
                     if (Objects.nonNull(future)) {
@@ -257,14 +340,20 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         });
     }
 
-    private ObjectNode decodeResponse(final HttpResponse<byte[]> response, final String method, final String id, final boolean notification) {
+    private ObjectNode decodeResponse(final HttpResponse<byte[]> response, final String method, final String id,
+                                      final boolean notification, final String usedSession, final long usedEpoch) {
         observer.accept(Map.of("event", "http-response", "server", name, "method", method, "id", id,
                 "status", response.statusCode(), "contentType", response.headers().firstValue("Content-Type").orElse(""), "bytes", response.body().length));
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            if (response.statusCode() == 404 && Objects.nonNull(usedSession)) {
+                invalidateSession(usedSession, usedEpoch);
+                throw new RemoteSessionExpiredException();
+            }
             throw new IllegalStateException("Upstream HTTP " + response.statusCode());
         }
         if ("initialize".equals(method)) {
             session = RemoteTransportPolicy.session(response.headers().allValues("MCP-Session-Id"));
+            sessionEpoch.incrementAndGet();
         }
         if (notification) {
             if (response.statusCode() != 202 || response.body().length != 0) {
@@ -283,6 +372,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         if (!envelope.path("result").isObject()) {
             throw new IllegalArgumentException("Invalid result shape");
         }
+        lastUse = Instant.now();
         return ((ObjectNode) envelope.get("result")).deepCopy();
     }
 
@@ -334,6 +424,71 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         }
     }
 
+    private Mono<Void> reclaimAbandonedSession(final String expired) {
+        return Mono.defer(() -> {
+            Mono<Void> cleanup;
+            synchronized (cleanupLock) {
+                if (!Objects.equals(abandonedSession, expired)) {
+                    return Mono.empty();
+                }
+                cleanup = abandonedCleanup;
+                if (Objects.isNull(cleanup)) {
+                    AtomicReference<Mono<Void>> created = new AtomicReference<>();
+                    cleanup = discardSession(expired)
+                        .doOnError(ignored -> {
+                            synchronized (cleanupLock) {
+                                if (Objects.equals(abandonedSession, expired) && abandonedCleanup == created.get()) {
+                                    abandonedCleanup = null;
+                                }
+                            }
+                        })
+                        .cache();
+                    created.set(cleanup);
+                    abandonedCleanup = cleanup;
+                }
+            }
+            return cleanup.then(Mono.defer(() -> {
+                synchronized (cleanupLock) {
+                    if (Objects.equals(abandonedSession, expired)) {
+                        abandonedSession = null;
+                        abandonedCleanup = null;
+                    }
+                }
+                return Mono.empty();
+            }));
+        });
+    }
+
+    private void invalidateSession(final String expired, final long expiredEpoch) {
+        synchronized (sessionLock) {
+            if (!Objects.equals(session, expired) || sessionEpoch.get() != expiredEpoch) {
+                return;
+            }
+            session = null;
+            handshake.set(null);
+            handshakeReady = false;
+            sessionEpoch.incrementAndGet();
+        }
+    }
+
+    private Mono<Void> discardSession(final String expired) {
+        HttpRequest request = HttpRequest.newBuilder(endpoint)
+            .timeout(Duration.ofSeconds(2))
+            .header("MCP-Session-Id", expired)
+            .header("Authorization", authorization)
+            .header("MCP-Protocol-Version", VERSION)
+            .DELETE()
+            .build();
+        return Mono.defer(() -> {
+            var future = http.sendAsync(request, HttpResponse.BodyHandlers.discarding());
+            return requestSignal(future).doFinally(ignored -> future.cancel(true));
+        })
+            .timeout(Duration.ofSeconds(2))
+            .flatMap(response -> response.statusCode() == 404 || response.statusCode() >= 200 && response.statusCode() < 300
+                    ? Mono.<Void>empty()
+                    : Mono.error(new IllegalStateException("Idle session cleanup HTTP " + response.statusCode())));
+    }
+
     @Override
     public int pending() {
         return active.get();
@@ -344,18 +499,42 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         return shutdown;
     }
 
+    String currentSessionForTest() {
+        return session;
+    }
+
+    Mono<McpSchema.InitializeResult> initializationForTest() {
+        return initialize();
+    }
+
+    void invalidateSessionForTest(final String expired, final long expiredEpoch) {
+        invalidateSession(expired, expiredEpoch);
+    }
+
+    boolean handshakeReadyForTest() {
+        return handshakeReady;
+    }
+
+    boolean sessionInitializedForTest() {
+        return Objects.nonNull(session);
+    }
+
     private Mono<Void> terminate() {
         closed = true;
+        synchronized (sessionLock) {
+            handshake.set(null);
+        }
         // Whole-client close is shutdown only, never the individual request cancellation path.
         for (CompletableFuture<?> future : inFlight) {
             future.cancel(true);
         }
-        if (Objects.isNull(session)) {
+        String currentSession = session;
+        if (Objects.isNull(currentSession)) {
             return Mono.empty();
         }
         HttpRequest request = HttpRequest.newBuilder(endpoint)
             .timeout(Duration.ofSeconds(2))
-            .header("MCP-Session-Id", session)
+            .header("MCP-Session-Id", currentSession)
             .header("Authorization", authorization)
             .header("MCP-Protocol-Version", VERSION)
             .DELETE()
@@ -367,10 +546,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         })
             .timeout(Duration.ofSeconds(2))
             .flatMap(response ->
-                response.statusCode() >= 200 && response.statusCode() < 300
+                response.statusCode() == 404 || response.statusCode() >= 200 && response.statusCode() < 300
                     ? Mono.<Void>empty()
-                    : Mono.error(new IllegalStateException("Session cleanup HTTP " + response.statusCode()))
-            );
+                    : Mono.error(new IllegalStateException("Session cleanup HTTP " + response.statusCode())));
     }
 
     static <T> Mono<T> requestSignal(final CompletableFuture<T> request) {

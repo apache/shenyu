@@ -111,21 +111,38 @@ class RemoteCatalogLifecycleTest {
     }
 
     @Test
-    void failedCleanupQuarantineUsesUnavailableContractWithoutClosingTheManager() {
+    void failedCleanupIsReportedWithoutClosingTheManagerOrBlockingReplacement() {
         RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
         Fake client = new Fake("quarantined");
         client.failClose = true;
         manager.refresh(List.of(config(client))).block(WAIT);
         manager.withdraw();
-        assertThrows(CatalogUnavailableException.class, () -> manager.refresh(List.of()).block(WAIT));
         var state = manager.diagnosticsState();
         assertFalse(state.closed());
-        assertFalse(state.cleanupFailures().isEmpty());
+        assertTrue(state.cleanupFailures().isEmpty());
         assertThrows(UnsupportedOperationException.class, () -> state.cleanupFailures().clear());
-        assertThrows(CatalogUnavailableException.class, () -> manager.refresh(List.of(config(new Fake("next")))).block(WAIT));
-        assertThrows(CatalogUnavailableException.class, () -> manager.withSnapshot(directory -> Mono.just(true)).block(WAIT));
+        assertEquals(2L, manager.refresh(List.of(config(new Fake("next")))).block(WAIT));
+        assertTrue(manager.withSnapshot(directory -> Mono.just(true)).block(WAIT));
         assertEquals(1, client.closes.get());
         assertThrows(RuntimeException.class, () -> manager.closeGracefully().block(WAIT));
+    }
+
+    @Test
+    void transientCleanupFailureDoesNotPoisonUnrelatedTargetsForever() {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
+        Fake failing = new Fake("failing");
+        failing.failClose = true;
+        manager.refresh(List.of(config(failing))).block(WAIT);
+        manager.withdraw();
+        assertThrows(CatalogUnavailableException.class, () -> manager.withSnapshot(directory -> Mono.just(true)).block(WAIT));
+
+        // The failed close remains isolated; it must not prevent a new generation from being
+        // built after the quarantined endpoint is no longer owned by the lifecycle.
+        Fake replacement = new Fake("replacement");
+        manager.refresh(List.of(config(replacement))).block(WAIT);
+        assertEquals("replacement", manager.callRaw("orders.lookup", TOOLS, TOOLS, Map.of()).block(WAIT).path("version").textValue());
+        assertThrows(RuntimeException.class, () -> manager.closeGracefully().block(WAIT));
+        assertEquals(1, replacement.closes.get());
     }
 
     @Test
@@ -266,8 +283,6 @@ class RemoteCatalogLifecycleTest {
         manager.refresh(List.of(config(client))).block(WAIT);
         manager.withdraw();
         assertThrows(RuntimeException.class, () -> manager.closeGracefully().block(WAIT));
-        assertEquals(1, manager.diagnosticsState().clients());
-        assertThrows(RuntimeException.class, () -> manager.refresh(List.of(config(new Fake("next")))).block(WAIT));
         assertEquals(1, client.closes.get());
     }
 
