@@ -106,6 +106,7 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
         }
     }
 
+
     /**
      * Check the key.
      * @param exchange exchange

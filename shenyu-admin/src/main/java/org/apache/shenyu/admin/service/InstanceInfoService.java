@@ -50,4 +50,14 @@ public interface InstanceInfoService extends PageService<InstanceQueryCondition,
      */
     InstanceInfoVO findById(String id);
 
+    /**
+     * Delete expired instance records from the database.
+     * Only rows that are still in the DELETED state and have not beaten after the cutoff are removed,
+     * so a concurrently renewed identity is preserved and only the retention policy is applied.
+     *
+     * @param cutoff only rows whose last heartbeat is older than this epoch millisecond cutoff are deleted
+     * @return the number of deleted rows
+     */
+    int deleteExpired(long cutoff);
+
 }

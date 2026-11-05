@@ -60,6 +60,11 @@ public final class DashboardUserDO extends BaseDO {
     private String clientId;
 
     /**
+     * token version used to revoke previously issued JWTs.
+     */
+    private Long tokenVersion;
+
+    /**
      * current role list.
      */
     private List<String> roles;
@@ -154,6 +159,24 @@ public final class DashboardUserDO extends BaseDO {
      */
     public void setClientId(final String clientId) {
         this.clientId = clientId;
+    }
+
+    /**
+     * Gets the value of tokenVersion.
+     *
+     * @return the value of tokenVersion
+     */
+    public Long getTokenVersion() {
+        return tokenVersion;
+    }
+
+    /**
+     * Sets the tokenVersion.
+     *
+     * @param tokenVersion tokenVersion
+     */
+    public void setTokenVersion(final Long tokenVersion) {
+        this.tokenVersion = tokenVersion;
     }
 
     /**
@@ -253,12 +276,13 @@ public final class DashboardUserDO extends BaseDO {
                 && Objects.equals(password, that.password)
                 && Objects.equals(role, that.role)
                 && Objects.equals(enabled, that.enabled)
+                && Objects.equals(tokenVersion, that.tokenVersion)
                 && Objects.equals(roles, that.roles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), userName, password, role, enabled, roles);
+        return Objects.hash(super.hashCode(), userName, password, role, enabled, tokenVersion, roles);
     }
 
     public static final class DashboardUserDOBuilder {
@@ -278,6 +302,8 @@ public final class DashboardUserDO extends BaseDO {
         private Boolean enabled;
 
         private String clientId;
+
+        private Long tokenVersion;
 
         private List<String> roles;
 
@@ -373,6 +399,17 @@ public final class DashboardUserDO extends BaseDO {
         }
 
         /**
+         * tokenVersion.
+         *
+         * @param tokenVersion the tokenVersion.
+         * @return DashboardUserDOBuilder.
+         */
+        public DashboardUserDOBuilder tokenVersion(final Long tokenVersion) {
+            this.tokenVersion = tokenVersion;
+            return this;
+        }
+
+        /**
          * roles.
          *
          * @param roles the roles.
@@ -397,6 +434,7 @@ public final class DashboardUserDO extends BaseDO {
             dashboardUserDO.setPassword(password);
             dashboardUserDO.setRole(role);
             dashboardUserDO.setClientId(clientId);
+            dashboardUserDO.setTokenVersion(tokenVersion);
             dashboardUserDO.setEnabled(enabled);
             dashboardUserDO.setRoles(roles);
             return dashboardUserDO;

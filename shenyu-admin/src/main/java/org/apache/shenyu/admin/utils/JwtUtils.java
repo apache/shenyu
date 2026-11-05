@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.utils;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
@@ -36,6 +37,16 @@ import java.util.Optional;
  * JWT tools.
  */
 public final class JwtUtils {
+
+    /**
+     * Claim carrying the token version the token was issued for.
+     */
+    public static final String TOKEN_VERSION_CLAIM = "tokenVersion";
+
+    /**
+     * Version reported for tokens issued before token versioning existed.
+     */
+    public static final long LEGACY_TOKEN_VERSION = 0L;
 
     private static final Logger LOG = LoggerFactory.getLogger(JwtUtils.class);
 
@@ -76,6 +87,22 @@ public final class JwtUtils {
     }
 
     /**
+     * according to token to get the token version it was issued for.
+     *
+     * <p>Tokens issued before token versioning have no version claim and are
+     * reported as {@link #LEGACY_TOKEN_VERSION}.</p>
+     *
+     * @param token token
+     * @return token version
+     */
+    public static long getTokenVersion(final String token) {
+        DecodedJWT jwt = JWT.decode(token);
+        return Optional.ofNullable(jwt.getClaim(TOKEN_VERSION_CLAIM))
+                .map(claim -> claim.asLong())
+                .orElse(LEGACY_TOKEN_VERSION);
+    }
+
+    /**
      * generate jwt token.
      *
      * @param userName login's userName
@@ -97,12 +124,30 @@ public final class JwtUtils {
      * @return token
      */
     public static String generateToken(final String userName, final String key, final String clientId, final Long expireSeconds) {
+        return generateToken(userName, key, clientId, null, expireSeconds);
+    }
+
+    /**
+     * generate jwt token bound to a user token version.
+     *
+     * @param userName      login's userName
+     * @param key           secretKey
+     * @param clientId      clientId
+     * @param tokenVersion  the user's current token version, or null to omit the claim
+     * @param expireSeconds expireSeconds
+     * @return token
+     */
+    public static String generateToken(final String userName, final String key, final String clientId,
+                                       final Long tokenVersion, final Long expireSeconds) {
         try {
-            return JWT.create()
+            JWTCreator.Builder builder = JWT.create()
                     .withClaim("userName", userName)
                     .withClaim("clientId", clientId)
-                    .withExpiresAt(new Date(System.currentTimeMillis() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)))
-                    .sign(Algorithm.HMAC256(key));
+                    .withExpiresAt(new Date(System.currentTimeMillis() + Optional.ofNullable(expireSeconds).orElse(TOKEN_EXPIRE_SECONDS)));
+            if (Optional.ofNullable(tokenVersion).isPresent()) {
+                builder.withClaim(TOKEN_VERSION_CLAIM, tokenVersion);
+            }
+            return builder.sign(Algorithm.HMAC256(key));
         } catch (IllegalArgumentException | JWTCreationException e) {
             LOG.error("JWTToken generate fail ", e);
         }

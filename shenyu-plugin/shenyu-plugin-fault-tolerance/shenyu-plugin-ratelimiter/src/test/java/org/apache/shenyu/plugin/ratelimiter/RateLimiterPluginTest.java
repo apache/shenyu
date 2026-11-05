@@ -47,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -107,6 +109,38 @@ public final class RateLimiterPluginTest {
     }
 
     /**
+     * rateLimiterPlugin doExecute, backend failure with the opt-in reject policy.
+     */
+    @Test
+    public void doExecuteRejectOnBackendFailureTest() {
+        RateLimiterHandle rateLimiterHandle = doExecutePreInit();
+        rateLimiterHandle.setBackendFailurePolicy(RateLimiterHandle.BACKEND_FAILURE_POLICY_REJECT);
+        when(redisRateLimiter.isAllowed(anyString(), any(RateLimiterHandle.class))).thenReturn(
+                Mono.just(new RateLimiterResponse(true, -1, null, true)));
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        SpringBeanUtils.getInstance().setApplicationContext(context);
+        Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exchange.getResponse().getStatusCode());
+        verify(chain, never()).execute(any());
+    }
+
+    /**
+     * rateLimiterPlugin doExecute, backend failure with the explicit allow policy.
+     */
+    @Test
+    public void doExecuteAllowOnBackendFailureTest() {
+        RateLimiterHandle rateLimiterHandle = doExecutePreInit();
+        rateLimiterHandle.setBackendFailurePolicy(RateLimiterHandle.BACKEND_FAILURE_POLICY_ALLOW);
+        when(redisRateLimiter.isAllowed(anyString(), any(RateLimiterHandle.class))).thenReturn(
+                Mono.just(new RateLimiterResponse(true, -1, null, true)));
+        Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+        verify(chain).execute(exchange);
+    }
+
+    /**
      * named default value test case.
      */
     @Test
@@ -125,10 +159,11 @@ public final class RateLimiterPluginTest {
     /**
      * rateLimiterPlugin doExecute Test prev init.
      */
-    private void doExecutePreInit() {
+    private RateLimiterHandle doExecutePreInit() {
         RateLimiterHandle rateLimiterHandle = mockRateLimiterHandler();
         when(chain.execute(any())).thenReturn(Mono.empty());
         RateLimiterPluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
+        return rateLimiterHandle;
     }
 
     /**

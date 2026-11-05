@@ -148,7 +148,7 @@ class AppAuthRevokeTest {
         ghost.setRequestId("req-revoke");
         ghost.setState("CREATED");
         requestMapper.reserveIfAbsent(ghost);
-        requestMapper.completeCreated("ghost-r", "auth-nowhere");
+        requestMapper.completeCreated("ghost-r", "auth-nowhere", "CREATED");
 
         assertThrows(ShenyuAdminException.class, () -> txService.revoke("svc-a", revokeRequest()));
         final AppAuthRequestDO record = requestMapper.selectByKey("svc-a", "ns-demo", "req-revoke");

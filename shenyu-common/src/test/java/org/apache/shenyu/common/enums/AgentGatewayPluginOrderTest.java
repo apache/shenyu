@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -137,10 +138,13 @@ class AgentGatewayPluginOrderTest {
                 + "\\s+WHERE\\s+[`\"]?sort[`\"]?\\s*=\\s*198\\s+AND\\s+[`\"]?plugin_id[`\"]?\\s+IN\\s*\\(\\s*SELECT\\s+[`\"]?id[`\"]?\\s+FROM\\s+"
                 + "(?:\"public\"\\s*\\.\\s*)?[`\"]?plugin[`\"]?\\s+WHERE\\s+[`\"]?name[`\"]?\\s*=\\s*'agentGateway'",
                 Pattern.CASE_INSENSITIVE);
-        assertTrue(plugin.matcher(statements).find(), script + ": plugin order migration");
+        Matcher pluginMatcher = plugin.matcher(statements);
+        assertTrue(pluginMatcher.find(), script + ": plugin order migration");
         assertTrue(namespace.matcher(statements).find(), script + ": namespace order migration");
-        assertFalse(statements.contains("enabled"));
-        assertFalse(statements.contains("config"));
+        // Seed inserts legitimately use the dictionary's enabled column; only the order migration must not change plugin flags.
+        String pluginMigration = pluginMatcher.group();
+        assertFalse(pluginMigration.contains("enabled"));
+        assertFalse(pluginMigration.contains("config"));
     }
 
     private Path repositoryRoot() {
