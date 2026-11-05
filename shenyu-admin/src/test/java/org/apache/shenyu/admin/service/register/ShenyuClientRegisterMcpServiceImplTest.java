@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -72,11 +73,15 @@ public final class ShenyuClientRegisterMcpServiceImplTest {
     @Mock
     private NamespacePluginRelMapper namespacePluginRelMapper;
 
+    @Mock
+    private RegistrationFencingGuard registrationFencingGuard;
+
     @Test
     public void testRpcTypeAndRegisterTools() {
         ReflectionTestUtils.setField(service, "metaDataService", metaDataService);
         ReflectionTestUtils.setField(service, "selectorService", selectorService);
         ReflectionTestUtils.setField(service, "ruleService", ruleService);
+        ReflectionTestUtils.setField(service, "registrationFencingGuard", registrationFencingGuard);
         ShenyuClientRegisterMcpServiceImpl spy = org.mockito.Mockito.spy(service);
         doNothing().when(spy).checkNamespacePluginRel(anyString(), anyString());
         MetaDataRegisterDTO metadata = MetaDataRegisterDTO.builder().path("/tool").ruleName("tool")
@@ -124,6 +129,7 @@ public final class ShenyuClientRegisterMcpServiceImplTest {
         ReflectionTestUtils.setField(service, "metaDataService", metaDataService);
         ReflectionTestUtils.setField(service, "selectorService", selectorService);
         ReflectionTestUtils.setField(service, "ruleService", ruleService);
+        ReflectionTestUtils.setField(service, "registrationFencingGuard", registrationFencingGuard);
         ShenyuClientRegisterMcpServiceImpl spy = org.mockito.Mockito.spy(service);
         doNothing().when(spy).checkNamespacePluginRel(anyString(), anyString());
         doNothing().when(spy).registerContextPath(any());
