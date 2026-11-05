@@ -41,6 +41,7 @@ public final class LedgerPriceBook {
 
     /**
      * Install a complete validated price snapshot, preserving already recorded estimates.
+     * Clearing the active snapshot retains revision history, so a version cannot be rewritten.
      * @param replacement trusted operator schedules
      */
     public synchronized void replace(final List<Price> replacement) {

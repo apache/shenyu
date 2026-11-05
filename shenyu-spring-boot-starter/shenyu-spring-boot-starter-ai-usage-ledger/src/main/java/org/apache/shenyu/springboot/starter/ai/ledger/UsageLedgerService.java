@@ -50,14 +50,14 @@ public final class UsageLedgerService {
      * Export a bounded retained view, explicitly indicating truncation.
      * @param scope application-authorized scope
      * @param limit maximum exported rows, at most 1000
-     * @return records and exact retained match count for this bounded sink
+     * @return records and observed match count; a capped view is explicitly incomplete
      */
     public Export export(final UsageLedgerStore.Scope scope, final int limit) {
-        if (limit < 1 || limit > 1000) {
+        if (limit < 1 || limit > UsageLedgerStore.MAX_QUERY_LIMIT) {
             throw new IllegalArgumentException("Export limit must be between 1 and 1000");
         }
-        List<LedgerRecord> rows = store.query(scope, 32768);
-        boolean complete = rows.size() < 32768;
+        List<LedgerRecord> rows = store.query(scope, UsageLedgerStore.MAX_QUERY_LIMIT);
+        boolean complete = rows.size() < UsageLedgerStore.MAX_QUERY_LIMIT;
         return new Export(rows.stream().limit(limit).toList(), rows.size(), rows.size() > limit || !complete,
                 complete, store.diagnostics().epoch(), summary(rows, complete));
     }
@@ -150,8 +150,8 @@ public final class UsageLedgerService {
     /**
      * Retained rows, not a claim of complete historical delivery.
      * @param rows bounded metadata records
-     * @param matchedRetainedRecords total scoped retained records
-     * @param truncated whether export rows omit other retained rows
+     * @param matchedRetainedRecords observed scoped retained records; a lower bound when the view is incomplete
+     * @param truncated whether export rows omit other retained rows or the query reached its cap
      * @param retainedViewComplete whether the retained query reached no source cap; not a delivery guarantee
      * @param storeEpoch opaque lifetime marker for reset/crash visibility
      * @param summary original-attempt aggregation over retained rows

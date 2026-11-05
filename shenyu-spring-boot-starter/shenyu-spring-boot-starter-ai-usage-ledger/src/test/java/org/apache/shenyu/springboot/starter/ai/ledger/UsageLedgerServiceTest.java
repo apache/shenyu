@@ -21,6 +21,8 @@ import org.apache.shenyu.common.ledger.LedgerPriceBook;
 import org.apache.shenyu.common.ledger.LedgerRecord;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,8 +34,43 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class UsageLedgerServiceTest {
+
+    @Test
+    void exportUsesTheStoreQueryContract() {
+        UsageLedgerStore store = mock(UsageLedgerStore.class);
+        UsageLedgerStore.Scope scope = LedgerTestFixtures.scope("a");
+        when(store.query(scope, 1000)).thenReturn(List.of());
+        when(store.diagnostics()).thenReturn(new UsageLedgerStore.Diagnostics(0, 2000, 0, 0, 0, 0, 0, LedgerTestFixtures.NOW, "epoch"));
+        UsageLedgerService.Export exported = new UsageLedgerService(store, LedgerTestFixtures.prices(), LedgerTestFixtures.CLOCK).export(scope, 10);
+        verify(store).query(scope, 1000);
+        assertTrue(exported.retainedViewComplete());
+        assertFalse(exported.truncated());
+        assertEquals(0, exported.matchedRetainedRecords());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {999, 1000, 1001})
+    void reachingTheQueryCapCannotClaimACompleteRetainedView(final int count) {
+        InMemoryUsageLedger store = new InMemoryUsageLedger(2000, Duration.ofMinutes(1), () -> 0L);
+        for (int index = 0; index < count; index++) {
+            store.append(LedgerTestFixtures.terminal("request-" + index, "a", 0));
+        }
+        store.append(LedgerTestFixtures.terminal("other-tenant", "b", 0));
+        UsageLedgerService.Export exported = new UsageLedgerService(store, LedgerTestFixtures.prices(), LedgerTestFixtures.CLOCK)
+                .export(LedgerTestFixtures.scope("a"), 1000);
+        assertEquals(Math.min(count, 1000), exported.rows().size());
+        assertEquals(Math.min(count, 1000), exported.matchedRetainedRecords());
+        assertEquals(count < 1000, exported.retainedViewComplete());
+        assertEquals(count >= 1000, exported.truncated());
+        assertEquals(count >= 1000, exported.summary().possibleUnobservedConsumption());
+        assertEquals(Math.min(count, 1000), exported.summary().noOutboundRequests());
+        assertTrue(exported.rows().stream().allMatch(row -> "a".equals(row.facts().tenant())));
+    }
 
     @Test
     void retryAndFallbackTotalsExcludeLogicalRollupsAndKeepTheFallbackSubset() {

@@ -25,6 +25,8 @@ import java.util.List;
 /** Bounded queryable sink; applications may replace it with a durable tenant-authorized backend. */
 public interface UsageLedgerStore {
 
+    int MAX_QUERY_LIMIT = 1000;
+
     /**
      * Atomically deduplicate and append without rewriting an original estimate.
      * @param row immutable event
@@ -35,8 +37,8 @@ public interface UsageLedgerStore {
     /**
      * Read only the scope authorized by the application.
      * @param scope trusted authorization, never a tenant from query parameters
-     * @param limit bounded row limit, maximum 1000
-     * @return immutable ordered page
+     * @param limit bounded row limit, at most {@link #MAX_QUERY_LIMIT}
+     * @return immutable ordered page, containing all matches if fewer than the requested limit
      */
     List<LedgerRecord> query(Scope scope, int limit);
 

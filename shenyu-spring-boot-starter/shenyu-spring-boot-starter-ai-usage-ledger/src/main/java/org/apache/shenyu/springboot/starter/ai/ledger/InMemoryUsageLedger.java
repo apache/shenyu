@@ -91,8 +91,8 @@ public final class InMemoryUsageLedger implements UsageLedgerStore {
     @Override
     public synchronized List<LedgerRecord> query(final Scope scope, final int limit) {
         Objects.requireNonNull(scope, "scope");
-        if (limit < 1 || limit > 32768) {
-            throw new IllegalArgumentException("Ledger query limit must be between 1 and 32768");
+        if (limit < 1 || limit > MAX_QUERY_LIMIT) {
+            throw new IllegalArgumentException("Ledger query limit must be between 1 and " + MAX_QUERY_LIMIT);
         }
         expire();
         List<LedgerRecord> result = new ArrayList<>();

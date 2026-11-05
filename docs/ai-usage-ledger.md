@@ -244,9 +244,13 @@ billing database or crash recovery is not supplied by this starter.
 ## Authorized query/export
 
 `UsageLedgerService.export(scope, limit)` returns at most 1000 rows and summaries
-over at most 32768 retained authorized matches. It returns match count,
-`truncated`, `retainedViewComplete` and store epoch. A capped result is not an
-uncapped historical total. Token subtotals use `BigInteger`, money uses
+over at most 1000 retained authorized matches, respecting the store query cap.
+It returns the observed match count, `truncated`, `retainedViewComplete` and
+store epoch. When the query returns exactly 1000 rows, the count is only a lower
+bound: the view is conservatively incomplete even if the store has no more rows.
+The summary also reports possible unobserved consumption. A shorter query
+result completes the retained view, not the historical delivery record.
+Token subtotals use `BigInteger`, money uses
 `BigDecimal`. Currency groups are never summed through implicit FX.
 `UNPRICED` is a missing-currency group, not an ISO currency.
 

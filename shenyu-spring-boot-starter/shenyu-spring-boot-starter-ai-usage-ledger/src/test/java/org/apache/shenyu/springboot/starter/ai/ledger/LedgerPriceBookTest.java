@@ -81,8 +81,24 @@ class LedgerPriceBookTest {
         assertEquals("new", book.estimate(LedgerTestFixtures.facts("tenant", "main"), LedgerTestFixtures.usage(1, 1), boundary).priceVersion());
         assertThrows(IllegalArgumentException.class, () -> new LedgerPriceBook(List.of(next, LedgerTestFixtures.price("overlap", "main", "2", "10"))));
         assertThrows(IllegalArgumentException.class, () -> book.replace(List.of(LedgerTestFixtures.price("new", "main", "2", "10"))));
+    }
+
+    @Test
+    void clearingActivePricesPreservesRevisionHistoryButAllowsNewVersions() {
+        LedgerPriceBook.Price original = LedgerTestFixtures.price("original", "main", "2", "10");
+        LedgerPriceBook book = new LedgerPriceBook(List.of(original));
         book.replace(List.of());
-        assertThrows(IllegalArgumentException.class, () -> book.replace(List.of(LedgerTestFixtures.price("new", "main", "2", "10"))));
+        assertEquals(LedgerRecord.PriceStatus.UNKNOWN_PRICE,
+                book.estimate(LedgerTestFixtures.facts("tenant", "main"), LedgerTestFixtures.usage(1, 1), LedgerTestFixtures.NOW).status());
+        assertThrows(IllegalArgumentException.class, () -> book.replace(List.of(LedgerTestFixtures.price("original", "main", "4", "20"))));
+        book.replace(List.of(original));
+        assertEquals("original",
+                book.estimate(LedgerTestFixtures.facts("tenant", "main"), LedgerTestFixtures.usage(1, 1), LedgerTestFixtures.NOW).priceVersion());
+        book.replace(List.of());
+        book.replace(List.of(LedgerTestFixtures.price("fresh", "main", "4", "20")));
+        LedgerRecord.Estimate estimate = book.estimate(LedgerTestFixtures.facts("tenant", "main"), LedgerTestFixtures.usage(1, 1), LedgerTestFixtures.NOW);
+        assertEquals("fresh", estimate.priceVersion());
+        assertEquals(0, new BigDecimal("0.000024").compareTo(estimate.amount()));
     }
 
     @ParameterizedTest

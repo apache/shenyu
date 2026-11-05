@@ -33,9 +33,18 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryUsageLedgerTest {
+
+    @Test
+    void queryRejectsLimitsOutsideTheStoreContract() {
+        InMemoryUsageLedger store = new InMemoryUsageLedger(2000, Duration.ofMinutes(1));
+        assertThrows(IllegalArgumentException.class, () -> store.query(LedgerTestFixtures.scope("a"), 0));
+        assertThrows(IllegalArgumentException.class, () -> store.query(LedgerTestFixtures.scope("a"), 1001));
+        assertTrue(store.query(LedgerTestFixtures.scope("a"), 1000).isEmpty());
+    }
 
     @Test
     void concurrentRedeliveryIsAtomicAndDoesNotDuplicateAmounts() throws Exception {
