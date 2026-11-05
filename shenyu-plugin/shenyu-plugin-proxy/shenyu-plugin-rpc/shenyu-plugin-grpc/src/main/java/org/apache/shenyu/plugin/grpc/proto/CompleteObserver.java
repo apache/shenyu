@@ -34,12 +34,16 @@ public class CompleteObserver<T> implements StreamObserver<T> {
 
     @Override
     public synchronized void onCompleted() {
-        doneFuture.set(null);
+        if (!doneFuture.isDone()) {
+            doneFuture.set(null);
+        }
     }
 
     @Override
     public synchronized void onError(final Throwable t) {
-        doneFuture.setException(t);
+        if (!doneFuture.isDone()) {
+            doneFuture.setException(t);
+        }
     }
 
     @Override
