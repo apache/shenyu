@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.protobuf.DynamicMessage;
 import io.grpc.ClientCall;
+import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -64,6 +67,40 @@ public class MessageWriterTest {
     }
 
     @Test
+    public void terminalErrorReleasesPartialResults() {
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> messageWriter = MessageWriter.newInstance(response);
+
+        messageWriter.onNext(jsonMessage("{\"a\":\"1\"}"));
+        messageWriter.onError(new Throwable("transport failed"));
+
+        assertTrue(response.getResults().isEmpty());
+    }
+
+    @Test
+    public void messagesAfterCompletionAreIgnored() {
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> messageWriter = MessageWriter.newInstance(response);
+
+        messageWriter.onCompleted();
+        messageWriter.onNext(jsonMessage("{\"a\":\"1\"}"));
+
+        assertTrue(response.getResults().isEmpty());
+    }
+
+    @Test
+    public void lateErrorAfterCompletionKeepsCompletedResults() {
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> messageWriter = MessageWriter.newInstance(response);
+
+        messageWriter.onNext(jsonMessage("{\"a\":\"1\"}"));
+        messageWriter.onCompleted();
+        messageWriter.onError(new Throwable("late error"));
+
+        assertEquals(1, response.getResults().size());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void unlimitedByDefaultRetainsAllResults() {
         ShenyuGrpcResponse response = new ShenyuGrpcResponse();
@@ -93,6 +130,71 @@ public class MessageWriterTest {
 
         assertEquals(3, response.getResults().size());
         verify(call, never()).cancel(anyString(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void overflowFutureRemainsPendingWithinBudget() {
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> messageWriter = MessageWriter.newInstance(response, 2L, 0L);
+        ClientCall<?, ?> call = mock(ClientCall.class);
+        messageWriter.bindCall(call);
+
+        messageWriter.onNext(jsonMessage("{\"a\":\"1\"}"));
+
+        assertFalse(messageWriter.getOverflowFuture().isDone());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void exceedingCountBudgetCompletesOverflowFuture() {
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> messageWriter = MessageWriter.newInstance(response, 1L, 0L);
+        ClientCall<?, ?> call = mock(ClientCall.class);
+        messageWriter.bindCall(call);
+
+        messageWriter.onNext(jsonMessage("{\"a\":\"1\"}"));
+        messageWriter.onNext(jsonMessage("{\"a\":\"2\"}"));
+
+        ShenyuGrpcException failure = messageWriter.getOverflowFuture().join();
+        assertTrue(failure.getMessage().contains("exceeded budget"));
+        assertTrue(response.getResults().isEmpty());
+        verify(call, times(1)).cancel(anyString(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void singleOversizedPayloadIsRejectedBeforeRetention() {
+        String payload = "{\"a\":\"0123456789\"}";
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> messageWriter = MessageWriter.newInstance(response, 0L, bytes(payload) - 1L);
+        ClientCall<?, ?> call = mock(ClientCall.class);
+        messageWriter.bindCall(call);
+
+        messageWriter.onNext(jsonMessage(payload));
+
+        ShenyuGrpcException failure = messageWriter.getOverflowFuture().join();
+        assertTrue(failure.getMessage().contains("exceeded budget"));
+        assertTrue(response.getResults().isEmpty());
+        verify(call, times(1)).cancel(anyString(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void lateMessagesKeepTheOriginalOverflowFailure() {
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> messageWriter = MessageWriter.newInstance(response, 1L, 0L);
+        ClientCall<?, ?> call = mock(ClientCall.class);
+        messageWriter.bindCall(call);
+
+        messageWriter.onNext(jsonMessage("{\"a\":\"1\"}"));
+        messageWriter.onNext(jsonMessage("{\"a\":\"2\"}"));
+        ShenyuGrpcException failure = messageWriter.getOverflowFuture().join();
+        messageWriter.onNext(jsonMessage("{\"a\":\"3\"}"));
+
+        assertSame(failure, messageWriter.getOverflowFuture().join());
+        assertTrue(response.getResults().isEmpty());
+        verify(call, times(1)).cancel(anyString(), any());
     }
 
     @Test

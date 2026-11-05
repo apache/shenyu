@@ -76,6 +76,14 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIdForUpdate" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM selector
+        WHERE id = #{id, jdbcType=VARCHAR}
+        FOR UPDATE
+    </select>
+
     <select id="selectNamespaceIdById" parameterType="java.lang.String" resultType="java.lang.String">
         SELECT namespace_id
         FROM selector
