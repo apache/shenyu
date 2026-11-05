@@ -18,9 +18,12 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaConfig;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaGovernor;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import io.opentelemetry.api.OpenTelemetry;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -33,7 +36,6 @@ import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceInvocation;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceContent;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.common.dto.PluginData;
-import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import com.google.gson.JsonObject;
@@ -45,11 +47,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
@@ -192,6 +196,72 @@ class AgentGatewayPluginConfigurationTest {
                     assertTrue(context.getBean(ShenyuPlugin.class) instanceof AgentGatewayPlugin);
                     assertTrue(context.getBean("agentGatewayPluginDataHandler") instanceof PluginDataHandler);
                 });
+    }
+
+    @Test
+    void mcpQuotaIsOptInAndRequiresApplicationRedis() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .run(context -> assertFalse(context.containsBean("agentMcpQuotaGovernor")));
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.enabled=true")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void validMcpQuotaPolicyWiresGovernorIntoPlugin() {
+        ReactiveRedisTemplate<String, String> redis = mock(ReactiveRedisTemplate.class);
+        contextRunner.withPropertyValues(
+                        "shenyu.plugins.agent.gateway.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.mode=enforce",
+                        "shenyu.plugins.agent.gateway.mcp-quota.invocation-limit=10",
+                        "shenyu.plugins.agent.gateway.mcp-quota.invocation-window=30s",
+                        "shenyu.plugins.agent.gateway.mcp-quota.concurrency-limit=3",
+                        "shenyu.plugins.agent.gateway.mcp-quota.lease-ttl=45s",
+                        "shenyu.plugins.agent.gateway.mcp-quota.fail-open=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.policy-version=v1")
+                .withBean(ReactiveRedisTemplate.class, () -> redis)
+                .run(context -> {
+                    AgentMcpQuotaGovernor governor = context.getBean(AgentMcpQuotaGovernor.class);
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(
+                            context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    AgentMcpDispatcher dispatcher = (AgentMcpDispatcher) ReflectionTestUtils.getField(handler, "dispatcher");
+                    assertEquals(governor, ReflectionTestUtils.getField(dispatcher, "quotaGovernor"));
+                });
+    }
+
+    @Test
+    void invalidMcpQuotaBoundsFailStartup() {
+        ReactiveRedisTemplate<String, String> redis = mock(ReactiveRedisTemplate.class);
+        contextRunner.withBean(ReactiveRedisTemplate.class, () -> redis)
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.invocation-limit=0")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        contextRunner.withBean(ReactiveRedisTemplate.class, () -> redis)
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.concurrency-limit=0")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        contextRunner.withBean(ReactiveRedisTemplate.class, () -> redis)
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.enabled=true",
+                        "shenyu.plugins.agent.gateway.mcp-quota.policy-version=" + "a".repeat(129))
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void mcpQuotaPropertiesValidateDefaultsAndModeBinding() {
+        AgentMcpQuotaProperties properties = new AgentMcpQuotaProperties();
+        AgentMcpQuotaConfig config = properties.toConfig();
+        assertEquals(AgentMcpQuotaConfig.Mode.SHADOW, config.getMode());
+        assertEquals(1000, config.getInvocationLimit());
+        assertEquals(Duration.ofMinutes(1), config.getInvocationWindow());
+        assertEquals(100, config.getConcurrencyLimit());
+        assertEquals(Duration.ofMinutes(1), config.getLeaseTtl());
+        assertFalse(config.isFailOpen());
+        properties.setMode(AgentMcpQuotaProperties.Mode.ENFORCE);
+        assertEquals(AgentMcpQuotaConfig.Mode.ENFORCE, properties.toConfig().getMode());
     }
 
     @Test

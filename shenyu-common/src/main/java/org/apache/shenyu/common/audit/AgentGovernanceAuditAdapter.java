@@ -44,7 +44,8 @@ public final class AgentGovernanceAuditAdapter {
                 .decision(denied ? AgentInvocationAuditEvent.Decision.REJECTED : AgentInvocationAuditEvent.Decision.ALLOWED)
                 .target(context.getTarget())
                 .outcome(denied ? "REJECTED" : "SUCCESS")
-                .reason(denied ? decision.getReason().name() : "SHADOW_" + decision.getReason().name())
+                .reason(denied || decision.getMode() != AgentGovernanceDecision.Mode.SHADOW
+                        ? decision.getReason().name() : "SHADOW_" + decision.getReason().name())
                 .build();
     }
 }

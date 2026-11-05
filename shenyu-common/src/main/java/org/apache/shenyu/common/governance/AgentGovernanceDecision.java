@@ -114,6 +114,11 @@ public final class AgentGovernanceDecision {
             }
             return Result.ALLOW;
         }
+        if (candidate == Result.ALLOW && reason == Reason.POLICY_ERROR) {
+            // A fail-open adapter explicitly reports an unavailable policy backend while
+            // allowing traffic. It is not an unexplained allow-after-deny.
+            return Result.ALLOW;
+        }
         if (candidate == Result.ALLOW) {
             throw new IllegalArgumentException("deny reason cannot produce ALLOW result");
         }

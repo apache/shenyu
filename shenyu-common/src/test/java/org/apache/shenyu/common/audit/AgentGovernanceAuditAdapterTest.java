@@ -52,6 +52,17 @@ final class AgentGovernanceAuditAdapterTest {
         assertEquals("COST_BUDGET_EXCEEDED", event.getReason());
     }
 
+    @Test
+    void failOpenEnforcePolicyErrorRemainsAnAllowedAudit() {
+        AgentRequestContext context = new AgentRequestContext("request-1", "mcp", "selector-1", "rule-1");
+        AgentInvocationAuditEvent event = AgentGovernanceAuditAdapter.toEvent(context, decision(
+                AgentGovernanceDecision.Mode.ENFORCE, AgentGovernanceDecision.Result.ALLOW,
+                AgentGovernanceDecision.Reason.POLICY_ERROR));
+        assertEquals(AgentInvocationAuditEvent.Decision.ALLOWED, event.getDecision());
+        assertEquals("SUCCESS", event.getOutcome());
+        assertEquals("POLICY_ERROR", event.getReason());
+    }
+
     private AgentGovernanceDecision decision(final AgentGovernanceDecision.Mode mode,
                                              final AgentGovernanceDecision.Result result,
                                              final AgentGovernanceDecision.Reason reason) {

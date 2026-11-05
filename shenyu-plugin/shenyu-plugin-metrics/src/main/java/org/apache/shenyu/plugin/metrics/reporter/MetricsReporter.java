@@ -73,6 +73,15 @@ public final class MetricsReporter {
                 registerHistogram(metric.getName(), metric.getLabelNames(), metric.getDescription(), metric.getBuckets());
             }
         }
+        MetricsReporter.registerCounter(LabelNames.AGENT_REQUESTS_TOTAL, new String[]{"traffic", "outcome", "reason"}, "Terminal Agent request subscriptions including pre-dispatch rejection");
+        MetricsReporter.registerHistogram(LabelNames.AGENT_REQUEST_LATENCY, new String[]{"traffic", "outcome"}, "Agent request terminal latency millis");
+        MetricsReporter.registerGauge(LabelNames.AGENT_REQUESTS_INFLIGHT, new String[]{"traffic"}, "Active Agent logical request subscriptions, not sessions");
+        MetricsReporter.registerCounter(LabelNames.AGENT_AI_ATTEMPTS_TOTAL, new String[]{"kind", "outcome"}, "Actually completed AI upstream attempts");
+        MetricsReporter.registerHistogram(LabelNames.AGENT_AI_ATTEMPT_LATENCY, new String[]{"kind", "outcome"}, "AI upstream attempt latency millis");
+        MetricsReporter.registerCounter(LabelNames.AGENT_CATALOG_OBSERVATIONS_TOTAL, new String[]{"state"}, "Remote catalog availability observed at request lease acquisition");
+        MetricsReporter.registerCounter(LabelNames.AUTHENTICATION_REJECTIONS_TOTAL, new String[]{"source", "reason"}, "Authentication plugin rejections before Agent routing is known");
+        MetricsReporter.registerCounter(LabelNames.AGENT_GOVERNANCE_DECISIONS_TOTAL, new String[]{"consumer", "mode", "result", "reason"}, "Agent governance policy decisions");
+        agentRuntimeMetrics = new AgentRuntimeMetricsReporter(metricsRegister);
     }
 
     /**

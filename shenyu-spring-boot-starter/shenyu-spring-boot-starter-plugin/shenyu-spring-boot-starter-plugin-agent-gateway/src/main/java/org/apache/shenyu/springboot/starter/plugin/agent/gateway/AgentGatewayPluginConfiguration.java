@@ -23,7 +23,11 @@ import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaConfig;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaGovernor;
+import org.apache.shenyu.plugin.agent.gateway.governance.RedisAgentMcpQuotaStore;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
@@ -48,6 +52,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver;
@@ -66,6 +71,7 @@ import reactor.core.publisher.Mono;
  */
 @Configuration
 @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.enabled", havingValue = "true", matchIfMissing = false)
+@EnableConfigurationProperties(AgentMcpQuotaProperties.class)
 public class AgentGatewayPluginConfiguration {
 
     private static final String JWT_SECURITY_RESOLVER_BEAN_NAME = "agentGatewayJwtSecurityResolver";
@@ -83,6 +89,7 @@ public class AgentGatewayPluginConfiguration {
      * @param admissions optional deployment-owned resource admission controller
      * @param environment deployment-controlled tracing opt-in
      * @param beanFactory application bean factory used to verify the conditional JWT resolver
+     * @param quota optional quota governor supplied by the opt-in configuration below
      * @return the plugin
      */
     @Bean
@@ -93,7 +100,8 @@ public class AgentGatewayPluginConfiguration {
                                            final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
                                            final ObjectProvider<AiCallObserver> aiObservers,
                                            final ObjectProvider<AgentInvocationAuditObserver> auditors,
-                                           final Environment environment, final BeanFactory beanFactory) {
+                                           final Environment environment, final BeanFactory beanFactory,
+                                           final ObjectProvider<AgentMcpQuotaGovernor> quota) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
             throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
@@ -117,7 +125,8 @@ public class AgentGatewayPluginConfiguration {
         return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources, admissions.getIfAvailable(),
                 AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditors.getIfAvailable()),
                 AgentInvocationAuditBridge.ai(aiObservers.getIfAvailable(), auditors.getIfAvailable()),
-                environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
+                environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false),
+                quota.getIfAvailable());
     }
 
     private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> candidates,
@@ -125,7 +134,7 @@ public class AgentGatewayPluginConfiguration {
                                       final ObjectProvider<AgentResourceProvider> resources,
                                       final AgentMcpResourceAdmission.ResourceAdmissionController admission,
                                       final AgentMcpTerminalObserver terminalObserver, final AiCallObserver aiObserver,
-                                      final boolean llmIdentityEnabled) {
+                                      final boolean llmIdentityEnabled, final AgentMcpQuotaGovernor quotaGovernor) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
         AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
         if (llmIdentityEnabled && candidates.isEmpty()) {
@@ -136,9 +145,31 @@ public class AgentGatewayPluginConfiguration {
                 java.util.Objects.isNull(catalog) ? AgentMcpResourceAdmission.NOOP : catalog.admission());
         AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
                 AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry,
-                effectiveAdmission);
+                effectiveAdmission, quotaGovernor);
         return new AgentGatewayPlugin(new AgentMcpHttpHandler(dispatcher, resolver, tracer, terminalObserver),
                 llmIdentityEnabled ? resolver : null, aiObserver);
+    }
+
+    /**
+     * Opt-in distributed MCP admission. The application remains the sole owner of Redis
+     * connectivity and metrics/audit observers.
+     *
+     * @param properties deployment-owned immutable policy snapshot
+     * @param redis application-provided reactive Redis template
+     * @return quota governor attached only to actual tools/call execution
+     */
+    @Bean
+    @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.mcp-quota.enabled", havingValue = "true")
+    AgentMcpQuotaGovernor agentMcpQuotaGovernor(final AgentMcpQuotaProperties properties,
+                                                final ObjectProvider<ReactiveRedisTemplate<String, String>> redis,
+                                                final ObjectProvider<AgentInvocationAuditObserver> auditors) {
+        ReactiveRedisTemplate<String, String> template = redis.getIfAvailable();
+        if (java.util.Objects.isNull(template)) {
+            throw new IllegalStateException("Enabled MCP quotas require an application-provided ReactiveRedisTemplate");
+        }
+        AgentMcpQuotaConfig config = properties.toConfig();
+        return new AgentMcpQuotaGovernor(config, new RedisAgentMcpQuotaStore(template),
+                AgentRuntimeMetrics.NOOP, properties.trustedPolicyVersion(), auditors.getIfAvailable());
     }
 
     /**

@@ -25,6 +25,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
+import org.apache.shenyu.common.governance.AgentGovernanceDecision;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaException;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaGovernor;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolArgumentException;
@@ -53,6 +56,8 @@ public final class AgentMcpDispatcher {
     private final AgentMcpRemoteCatalog remoteCatalog;
 
     private final AgentMcpResourceAdmission admission;
+
+    private final AgentMcpQuotaGovernor quotaGovernor;
 
     private final AgentMcpResourceDispatcher resources;
 
@@ -110,11 +115,28 @@ public final class AgentMcpDispatcher {
     public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion,
                               final AgentMcpRemoteCatalog remoteCatalog, final AgentResourceRegistry resourceRegistry,
                               final AgentMcpResourceAdmission admission) {
+        this(registry, serverName, serverVersion, remoteCatalog, resourceRegistry, admission, null);
+    }
+
+    /**
+     * Managed dispatcher with resource admission and distributed MCP business quotas.
+     * @param registry trusted local tool registry
+     * @param serverName server name
+     * @param serverVersion server version
+     * @param remoteCatalog optional remote catalog
+     * @param resourceRegistry explicitly registered local resources
+     * @param admission remote admission policy
+     * @param quotaGovernor optional distributed business quota governor
+     */
+    public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion,
+                              final AgentMcpRemoteCatalog remoteCatalog, final AgentResourceRegistry resourceRegistry,
+                              final AgentMcpResourceAdmission admission, final AgentMcpQuotaGovernor quotaGovernor) {
         this.registry = Objects.requireNonNull(registry, "registry");
         this.remoteCatalog = remoteCatalog;
         this.resourceRegistry = Objects.requireNonNull(resourceRegistry, "resourceRegistry");
         this.resources = new AgentMcpResourceDispatcher(resourceRegistry);
         this.admission = Objects.requireNonNull(admission, "admission");
+        this.quotaGovernor = quotaGovernor;
         if (Objects.requireNonNull(serverName, "serverName").isBlank() || Objects.requireNonNull(serverVersion, "serverVersion").isBlank()) {
             throw new IllegalArgumentException("Server identity must not be blank");
         }
@@ -147,7 +169,7 @@ public final class AgentMcpDispatcher {
                         context.getRuleResources(), context.getAllowedResources(), AgentGatewayHttpToolConfig.empty(), null,
                         context.getTenant().orElse(null), context::notifyAttempt);
                 return new AgentMcpDispatcher(captured, serverName, serverVersion, remoteCatalog,
-                        resourceRegistry, Objects.isNull(remoteCatalog) ? admission : remoteCatalog.admission()).dispatch(request, () -> bound);
+                        resourceRegistry, Objects.isNull(remoteCatalog) ? admission : remoteCatalog.admission(), quotaGovernor).dispatch(request, () -> bound);
             }
             if (Objects.nonNull(remoteCatalog)) {
                 return remoteCatalog.withSnapshot(snapshot -> routeWithRemote(request, context, snapshot))
@@ -186,6 +208,16 @@ public final class AgentMcpDispatcher {
                 AgentResourceAdmission.AgentAdmissionException rejected = (AgentResourceAdmission.AgentAdmissionException) error;
                 AgentMcpProtocolException failure = failure(request, rejected.isTimeout() ? 504 : 429, -32026,
                         rejected.isTimeout() ? "Gateway admission deadline exceeded" : "Gateway resource limit exceeded");
+                failure.initCause(error);
+                return failure;
+            }
+            if (error instanceof AgentMcpQuotaException) {
+                AgentMcpQuotaException rejected = (AgentMcpQuotaException) error;
+                boolean unavailable = rejected.getDecision().getReason() == AgentGovernanceDecision.Reason.POLICY_ERROR;
+                AgentMcpProtocolException failure = failure(request, unavailable ? 503 : 429, -32027,
+                        unavailable ? "MCP quota policy is unavailable"
+                                : rejected.getDecision().getReason() == AgentGovernanceDecision.Reason.MCP_CONCURRENCY_LIMIT
+                                ? "MCP concurrency quota exceeded" : "MCP invocation quota exceeded");
                 failure.initCause(error);
                 return failure;
             }
@@ -239,10 +271,8 @@ public final class AgentMcpDispatcher {
                 final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, definitions.get(name).get("outputSchema"));
                 ObjectNode params = request.getParams();
                 JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
-                return Mono.defer(() -> {
-                    return admission.withRemote(remoteServer(name), context.getDeadline(),
-                            Mono.fromRunnable(context::notifyAttempt).then(snapshot.invoke(name, arguments, context)));
-                })
+                return withQuota(context, Mono.defer(() -> admission.withRemote(remoteServer(name), context.getDeadline(),
+                                Mono.fromRunnable(context::notifyAttempt).then(snapshot.invoke(name, arguments, context)))))
                         .switchIfEmpty(Mono.error(new IllegalStateException("Remote tool completed without a result")))
                         .map(value -> {
                             ObjectNode result = value.deepCopy();
@@ -314,7 +344,7 @@ public final class AgentMcpDispatcher {
         return registry.invoke(name, context.getAllowedTools(),
                 () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
                         context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities), context::notifyAttempt,
-                execution -> admission.withLocal(context.getDeadline(), execution))
+                execution -> admission.withLocal(context.getDeadline(), withQuota(context, execution)))
                 .map(value -> {
                     // Active field policies must not introduce an opaque metadata channel.
                     ObjectNode result = filter.isActive() ? mapper.createObjectNode().put("resultType", "complete") : complete();
@@ -348,6 +378,14 @@ public final class AgentMcpDispatcher {
     private String remoteServer(final String exposedName) {
         int separator = exposedName.indexOf('.');
         return separator > 0 ? exposedName.substring(0, separator) : exposedName;
+    }
+
+    private <T> Mono<T> withQuota(final AgentMcpExecutionContext context, final Mono<T> execution) {
+        if (Objects.isNull(quotaGovernor)) {
+            return execution;
+        }
+        return quotaGovernor.withQuota(context.getTenant().orElse("unknown"), context.getSubject(),
+                context.getRequestId(), context.getConfigurationVersion(), execution);
     }
 
     private AgentMcpResultFilter prepareResultFilter(final AgentMcpRequest request, final AgentMcpExecutionContext context,
