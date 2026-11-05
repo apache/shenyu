@@ -181,7 +181,7 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
         return new ShenyuResponse(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase(),
                 Arrays.stream(response.getAllHeaders()).collect(Collectors.groupingBy(Header::getName, HashMap::new,
                         Collectors.mapping(Header::getValue, Collectors.toCollection(LinkedList::new)))),
-                EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8), request);
+                Objects.isNull(response.getEntity()) ? null : EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8), request);
     }
 
     private HttpResponse waitForResponse(final Future<HttpResponse> responseFuture) throws IOException {

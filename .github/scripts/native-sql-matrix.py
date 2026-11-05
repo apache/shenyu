@@ -108,13 +108,16 @@ def verify_index_rows(rows, postgres=False):
             indexes.setdefault((table, name), []).append((int(position), column))
     if not postgres:
         indexes = {key: [column for _, column in sorted(values)] for key, values in indexes.items()}
-    for table, column in list(REQUIRED.items()) + [("permission", "object_id"), ("permission", "resource_id")]:
+    for table, column in list(REQUIRED.items()) + [("permission", "object_id"), ("permission", "resource_id"),
+                                                   ("registration_fencing_target", "domain_id")]:
         if not any(t == table and columns and columns[0] == column for (t, _), columns in indexes.items()):
             raise AssertionError(f"Missing leading-column index: {table}({column})")
     for table, name, column in [("selector", "idx_selector_plugin_id", "plugin_id"),
                                 ("permission", "idx_permission_resource_id", "resource_id")]:
         if indexes.get((table, name)) != [column]:
             raise AssertionError(f"Wrong index columns: {name}")
+    if indexes.get(("registration_fencing_target", "idx_fencing_domain_session")) != ["domain_id", "session_id"]:
+        raise AssertionError("Wrong index columns: idx_fencing_domain_session")
     return indexes
 
 
