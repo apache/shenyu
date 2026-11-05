@@ -111,7 +111,7 @@ public class AgentGatewayPluginConfiguration {
         }
         return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources,
                 AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditors.getIfAvailable()),
-                AgentInvocationAuditBridge.ai(aiObservers.getIfAvailable(), auditors.getIfAvailable()),
+                AgentInvocationAuditBridge.ai(AiCallObserver.select(aiObservers.stream().toList()), auditors.getIfAvailable()),
                 environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 

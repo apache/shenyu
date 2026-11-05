@@ -36,6 +36,7 @@
         <module>shenyu-spring-boot-starter-sdk</module>
         <module>shenyu-spring-boot-starter-sdk-feign</module>
         <module>shenyu-spring-boot-starter-k8s</module>
+        <module>shenyu-spring-boot-starter-ai-usage-ledger</module>
     </modules>
 
     <dependencies>

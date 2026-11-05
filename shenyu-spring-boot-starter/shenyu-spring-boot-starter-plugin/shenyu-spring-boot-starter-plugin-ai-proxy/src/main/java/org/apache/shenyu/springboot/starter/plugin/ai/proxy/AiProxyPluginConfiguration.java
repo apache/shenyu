@@ -20,7 +20,6 @@ package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
 import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 
-import io.netty.channel.ChannelOption;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
@@ -143,11 +142,7 @@ public class AiProxyPluginConfiguration {
     }
 
     private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
-        List<AiCallObserver> candidates = provider.stream().toList();
-        if (candidates.size() > 1) {
-            throw new IllegalStateException("AI terminal observation requires one unambiguous application sink");
-        }
-        return candidates.isEmpty() ? null : candidates.get(0);
+        return AiCallObserver.select(provider.stream().toList());
     }
 
     /**
