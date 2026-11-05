@@ -3549,6 +3549,19 @@ CREATE TABLE app_auth_request
 );
 CREATE INDEX idx_app_auth_request_auth ON app_auth_request (auth_id);
 
+-- Admin-only import ownership; no runtime synchronization or backend credentials.
+CREATE TABLE agent_gateway_import
+(
+    id             VARCHAR2(128) not null,
+    rule_id        VARCHAR2(128) not null,
+    namespace_id   VARCHAR2(50) not null,
+    manifest       CLOB not null,
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    CONSTRAINT pk_agent_gateway_import PRIMARY KEY (id),
+    CONSTRAINT uk_agent_gateway_import_rule UNIQUE (rule_id)
+);
+
 -- app auth lifecycle button resources
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
@@ -3560,3 +3573,31 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', sysdate, sysdate);
+CREATE TABLE registration_fencing_target (
+    id varchar2(128) NOT NULL,
+    date_created timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    date_updated timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
+    domain_id varchar2(128) NOT NULL,
+    namespace_id varchar2(64) NOT NULL,
+    selector_id varchar2(128) NOT NULL,
+    plugin_id varchar2(128) NOT NULL,
+    protocol varchar2(32) NOT NULL,
+    host varchar2(255) NOT NULL,
+    port number(10) NOT NULL,
+    principal_id varchar2(128) NOT NULL,
+    enabled number(3) NOT NULL,
+    state varchar2(16) NOT NULL,
+    generation number(19) NOT NULL,
+    owner_startup_id varchar2(64),
+    session_id varchar2(128),
+    last_sequence number(19) NOT NULL,
+    last_payload clob,
+    last_result clob,
+    last_request_id varchar2(64),
+    last_request_payload clob,
+    retired_startups clob,
+    CONSTRAINT registration_fencing_target_pk PRIMARY KEY (id),
+    CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
+);
+CREATE INDEX idx_registration_fencing_target_address ON registration_fencing_target (namespace_id, host, port);
+CREATE INDEX idx_fencing_domain_session ON registration_fencing_target (domain_id, session_id);
