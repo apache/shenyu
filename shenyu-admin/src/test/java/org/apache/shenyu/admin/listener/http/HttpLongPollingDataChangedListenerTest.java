@@ -256,9 +256,8 @@ public final class HttpLongPollingDataChangedListenerTest {
         // Only set PLUGIN with invalid value; all other group params are null → first null triggers exception
         this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "invalid");
         InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> invokeCompareChangedGroup(this.httpServletRequest));
-        assertNotNull(ex.getCause());
-        // The first group without a valid param will trigger the exception
-        assertNotNull(ex.getCause().getMessage());
+        // The first group without a valid param (APP_AUTH) will trigger the exception
+        assertEquals("group param invalid:null", ex.getCause().getMessage());
     }
 
     /**
@@ -272,7 +271,6 @@ public final class HttpLongPollingDataChangedListenerTest {
         // Override PLUGIN with invalid value (only one comma-part)
         this.httpServletRequest.setParameter(ConfigGroupEnum.PLUGIN.name(), "invalid");
         InvocationTargetException ex = assertThrows(InvocationTargetException.class, () -> invokeCompareChangedGroup(this.httpServletRequest));
-        assertNotNull(ex.getCause());
         assertEquals("group param invalid:invalid", ex.getCause().getMessage());
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
     }

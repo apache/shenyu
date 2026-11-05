@@ -99,11 +99,15 @@ public final class UUIDUtilsTest {
         Class<?> uUIDUtilsClass = uuidUtils.getClass();
         Field field = uUIDUtilsClass.getDeclaredField("lastTimestamp");
         field.setAccessible(true);
+        Object lastTimestamp = field.get(uuidUtils);
         field.set(uuidUtils, System.currentTimeMillis());
-
-        Method method = uUIDUtilsClass.getDeclaredMethod("nextId");
-        method.setAccessible(true);
-        method.invoke(UUIDUtils.getInstance());
+        try {
+            Method method = uUIDUtilsClass.getDeclaredMethod("nextId");
+            method.setAccessible(true);
+            method.invoke(uuidUtils);
+        } finally {
+            field.set(uuidUtils, lastTimestamp);
+        }
     }
 
 }
