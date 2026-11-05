@@ -23,12 +23,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
+import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AgentCatalogMetrics;
 import org.apache.shenyu.common.tracing.AgentTraceContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
@@ -60,11 +62,15 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private final RemoteCatalogLifecycle lifecycle;
 
-    private final Set<URI> allowedEndpoints;
+    private final RemoteTransportRouteSet routes;
 
     private final Set<String> localNames;
 
     private final RemoteServiceCredentialResolver credentials;
+
+    private final javax.net.ssl.SSLContext verificationTlsContext;
+
+    private final AgentMcpResourceAdmission.ResourceAdmissionController admission;
 
     private final Scheduler scheduler = Schedulers.newBoundedElastic(1, 16, "agent-mcp-config");
 
@@ -81,22 +87,52 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     private volatile boolean closed;
 
     /**
-     * Managed Remote Mcp Catalog.
-     * @param allowedEndpoints trusted allowedEndpoints value
-     * @param localNames trusted localNames value
-     * @param credentials trusted credentials value
+     * Managed catalog compatibility constructor for fixed-IP deployments.
+     * @param allowedEndpoints trusted fixed-IP endpoints
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials) {
-        this(allowedEndpoints, localNames, credentials, false);
+        this(allowedEndpoints, localNames, credentials, AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), false);
     }
 
-    public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
-                                    final boolean resourcesEnabled) {
+    /**
+     * Managed catalog with a shared admission controller.
+     * @param allowedEndpoints trusted fixed-IP endpoints
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param admission shared controller
+     */
+    public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
+                                   final RemoteServiceCredentialResolver credentials,
+                                   final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
+        this(allowedEndpoints, localNames, credentials, admission, false);
+    }
+
+    /**
+     * Managed catalog with shared admission and resource lifecycle configuration.
+     * @param allowedEndpoints trusted fixed-IP endpoints
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param admission shared controller
+     * @param resourcesEnabled whether remote resources are enabled
+     */
+    public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
+                                   final RemoteServiceCredentialResolver credentials,
+                                   final AgentMcpResourceAdmission.ResourceAdmissionController admission, final boolean resourcesEnabled) {
+        this(fixedRoutes(allowedEndpoints), localNames, credentials, admission, resourcesEnabled, null);
+    }
+
+    private ManagedRemoteMcpCatalog(final Set<String> allowedRoutes, final Set<String> localNames,
+                                    final RemoteServiceCredentialResolver credentials,
+                                    final AgentMcpResourceAdmission.ResourceAdmissionController admission,
+                                    final boolean resourcesEnabled, final javax.net.ssl.SSLContext verificationTlsContext) {
         lifecycle = new RemoteCatalogLifecycle(3, resourcesEnabled);
-        this.allowedEndpoints = Set.copyOf(allowedEndpoints);
+        this.routes = RemoteTransportRouteSet.parse(allowedRoutes);
         this.localNames = Set.copyOf(localNames);
         this.credentials = Objects.requireNonNull(credentials, "credentials");
-        this.allowedEndpoints.forEach(RemoteTransportPolicy::endpoint);
+        this.admission = Objects.requireNonNull(admission, "admission");
+        this.verificationTlsContext = verificationTlsContext;
         // The single owned subscription belongs to the control-plane lifecycle, never a request.
         lifecycle.refresh(List.of()).block(Duration.ofSeconds(6));
         worker = updates.asFlux().publishOn(scheduler, 1).concatMap(this::applyUpdate, 1).subscribe();
@@ -110,10 +146,64 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         });
     }
 
+    /**
+     * Create a route-aware managed catalog with default admission.
+     * @param allowedRoutes trusted routes
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @return route-aware catalog
+     */
+    public static ManagedRemoteMcpCatalog forRoutes(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                    final RemoteServiceCredentialResolver credentials) {
+        return forRoutes(allowedRoutes, localNames, credentials, false);
+    }
+
+    /**
+     * Create a route-aware managed catalog with default admission.
+     * @param allowedRoutes trusted routes
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param resourcesEnabled whether remote resources are enabled
+     * @return route-aware catalog
+     */
+    public static ManagedRemoteMcpCatalog forRoutes(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                    final RemoteServiceCredentialResolver credentials, final boolean resourcesEnabled) {
+        return forRoutes(allowedRoutes, localNames, credentials, AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), resourcesEnabled);
+    }
+
+    /**
+     * Create a route-aware managed catalog sharing the gateway admission controller.
+     * @param allowedRoutes trusted routes
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param admission shared controller
+     * @param resourcesEnabled whether remote resources are enabled
+     * @return route-aware catalog
+     */
+    public static ManagedRemoteMcpCatalog forRoutes(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                    final RemoteServiceCredentialResolver credentials,
+                                                    final AgentMcpResourceAdmission.ResourceAdmissionController admission, final boolean resourcesEnabled) {
+        return new ManagedRemoteMcpCatalog(allowedRoutes, localNames, credentials, admission, resourcesEnabled, null);
+    }
+
+    static ManagedRemoteMcpCatalog forRoutesWithVerificationTlsContext(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                                       final RemoteServiceCredentialResolver credentials,
+                                                                       final javax.net.ssl.SSLContext verificationTlsContext) {
+        return new ManagedRemoteMcpCatalog(allowedRoutes, localNames, credentials,
+                AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), false, verificationTlsContext);
+    }
+
+    private static Set<String> fixedRoutes(final Set<URI> allowedEndpoints) {
+        return allowedEndpoints.stream().map(endpoint -> endpoint + "=").collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
     private Mono<Long> applyUpdate(final ControlUpdate update) {
         return Mono.defer(() -> {
             if (update.sequence() != revision.get()) {
                 return Mono.empty();
+            }
+            if (!update.enabled()) {
+                return lifecycle.closeIdle().thenReturn(0L);
             }
             return reload(update.source(), () -> !closed && update.sequence() == revision.get()).doOnSuccess(version -> {
                 recordFailure(update.sequence(), "");
@@ -143,7 +233,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             lastFailure = "ConfigurationByteLimit";
             return;
         }
-        Sinks.EmitResult result = updates.tryEmitNext(new ControlUpdate(sequence, source));
+        Sinks.EmitResult result = updates.tryEmitNext(new ControlUpdate(sequence, source, enabled));
         if (result.isFailure() && !closed) {
             lifecycle.withdraw();
             lastFailure = "ConfigurationQueueRejected";
@@ -167,9 +257,15 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             List<RemoteCatalogLifecycle.Config> targets = new ArrayList<>();
             for (AgentGatewayAggregationConfig.Server server : config.servers()) {
                 RemoteServerBinding.Config reference = new RemoteServerBinding.Config(server.name(), server.endpoint(), server.credentialRef(), server.credentialVersion());
-                targets.add(RemoteServerBinding.resolve(reference, allowedEndpoints, credentials::resolve).lifecycleConfig());
+                RemoteServerBinding binding = RemoteServerBinding.resolve(reference, routes, credentials::resolve);
+                targets.add(binding.lifecycleConfig(routes.route(server.endpoint()), verificationTlsContext));
             }
-            return lifecycle.refresh(targets, List.of(), localNames, stillCurrent);
+            return lifecycle.refresh(targets, List.of(), localNames, stillCurrent)
+                    .doOnSuccess(ignored -> {
+                        if (stillCurrent.getAsBoolean()) {
+                            admission.replace(AgentMcpResourceAdmission.create(config.admission()));
+                        }
+                    });
         });
     }
 
@@ -190,6 +286,19 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         });
     }
 
+    @Override
+    public AgentMcpResourceAdmission admission() {
+        return admission;
+    }
+
+    /**
+     * Current validated admission limits.
+     * @return immutable trusted configuration
+     */
+    public AgentGatewayAdmissionConfig admissionConfig() {
+        return admission.config();
+    }
+
     /**
      * Secret-free lifecycle diagnostics for management and verification.
      * @return immutable diagnostic values
@@ -198,6 +307,10 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         Diagnostics state = diagnosticsState();
         Map<String, Object> result = new LinkedHashMap<>(state.lifecycle().toMap());
         result.put("lastFailure", state.lastFailure());
+        AgentGatewayAdmissionConfig config = admission.config();
+        result.put("admission", Map.of("globalInFlight", config.globalInFlight(), "globalQueued", config.globalQueued(),
+                "localInFlight", config.localInFlight(), "localQueued", config.localQueued(),
+                "remoteInFlight", config.remoteInFlight(), "remoteQueued", config.remoteQueued()));
         return Map.copyOf(result);
     }
 
@@ -223,6 +336,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         return Mono.defer(() -> {
             closed = true;
             catalogMetrics.close();
+            admission.close();
             worker.dispose();
             scheduler.dispose();
             return lifecycle.closeGracefully();
@@ -238,7 +352,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     public record Diagnostics(RemoteCatalogLifecycle.Diagnostics lifecycle, long revision, String lastFailure) {
     }
 
-    private record ControlUpdate(long sequence, String source) {
+    private record ControlUpdate(long sequence, String source, boolean enabled) {
     }
 
     private static final class CatalogSnapshot implements Snapshot {
