@@ -109,16 +109,57 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
     }
 
     /**
-     * Validate the agreed fixed-IP transport boundary at both Admin and gateway.
+     * Validate a fixed IP or an explicitly controlled HTTPS hostname at Admin and gateway.
      * @param endpoint exact configured endpoint, never an Agent-supplied URL
      */
     public static void validateEndpoint(final URI endpoint) {
+        if (Objects.isNull(endpoint) || Objects.isNull(endpoint.getHost())) {
+            throw new IllegalArgumentException("Invalid MCP Server endpoint");
+        }
+        if (endpoint.getHost().matches("(?:0|[1-9][0-9]{0,2})(?:\\.(?:0|[1-9][0-9]{0,2})){3}")) {
+            validateFixedEndpoint(endpoint);
+            return;
+        }
+        validateHttpsHostnameEndpoint(endpoint);
+    }
+
+    /**
+     * Validate the historical fixed-IP transport boundary.
+     * @param endpoint exact configured endpoint, never an Agent-supplied URL
+     */
+    public static void validateFixedEndpoint(final URI endpoint) {
         if (Objects.isNull(endpoint) || Objects.isNull(endpoint.getHost()) || !literalIpv4(endpoint.getHost())
                 || !("https".equals(endpoint.getScheme()) || "http".equals(endpoint.getScheme()) && "127.0.0.1".equals(endpoint.getHost()))
                 || endpoint.getPort() < 1 || endpoint.getPort() > 65535 || Objects.nonNull(endpoint.getRawUserInfo())
                 || Objects.nonNull(endpoint.getRawQuery()) || Objects.nonNull(endpoint.getRawFragment())
                 || !endpoint.normalize().equals(endpoint) || !endpoint.getRawPath().matches("/(?:[A-Za-z0-9._~-]+/)*[A-Za-z0-9._~-]+")) {
             throw new IllegalArgumentException("Invalid fixed-IP MCP Server endpoint");
+        }
+        validatePath(endpoint);
+    }
+
+    /**
+     * Validate an HTTPS hostname target without resolving or approving its address.
+     * @param endpoint exact configured endpoint, never an Agent-supplied URL
+     */
+    public static void validateHttpsHostnameEndpoint(final URI endpoint) {
+        validateHttpsHostnameShape(endpoint);
+    }
+
+    private static void validateHttpsHostnameShape(final URI endpoint) {
+        if (Objects.isNull(endpoint) || Objects.isNull(endpoint.getHost()) || !endpoint.getHost().matches("(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.){0,5}[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
+                || endpoint.getHost().length() > 253 || !"https".equals(endpoint.getScheme())
+                || endpoint.getPort() < 1 || endpoint.getPort() > 65535 || Objects.nonNull(endpoint.getRawUserInfo())
+                || Objects.nonNull(endpoint.getRawQuery()) || Objects.nonNull(endpoint.getRawFragment())
+                || !endpoint.normalize().equals(endpoint)) {
+            throw new IllegalArgumentException("Invalid controlled HTTPS hostname endpoint");
+        }
+        validatePath(endpoint);
+    }
+
+    private static void validatePath(final URI endpoint) {
+        if (Objects.isNull(endpoint.getRawPath()) || !endpoint.getRawPath().matches("/(?:[A-Za-z0-9._~-]+/)*[A-Za-z0-9._~-]+")) {
+            throw new IllegalArgumentException("Invalid MCP Server endpoint path");
         }
         for (String part : endpoint.getRawPath().split("/")) {
             if (Set.of(".", "..").contains(part)) {

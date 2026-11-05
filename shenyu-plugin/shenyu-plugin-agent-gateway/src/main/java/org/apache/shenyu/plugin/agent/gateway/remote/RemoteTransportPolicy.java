@@ -55,8 +55,24 @@ public final class RemoteTransportPolicy {
      * @param uri trusted uri value
      */
     public static void endpoint(final URI uri) {
-        // No DNS: JDK connects to the configured address and validates HTTPS against its IP SAN.
+        // Fixed IP keeps the historical JDK path; controlled hostnames require an approved route.
         org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.validateEndpoint(uri);
+    }
+
+    /**
+     * Validate a historical fixed-IP target.
+     * @param uri trusted uri value
+     */
+    public static void fixedEndpoint(final URI uri) {
+        org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.validateFixedEndpoint(uri);
+    }
+
+    /**
+     * Validate an HTTPS hostname without resolving it.
+     * @param uri trusted uri value
+     */
+    public static void httpsHostname(final URI uri) {
+        org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.validateHttpsHostnameEndpoint(uri);
     }
 
     /**

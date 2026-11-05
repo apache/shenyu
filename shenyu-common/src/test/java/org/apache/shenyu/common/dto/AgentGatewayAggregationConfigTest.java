@@ -33,6 +33,12 @@ class AgentGatewayAggregationConfigTest {
         assertTrue(AgentGatewayAggregationConfig.parsePluginConfig(source).servers().isEmpty());
     }
 
+    @Test
+    void acceptsControlledHttpsHostnameEndpointShape() {
+        String server = "{\"name\":\"orders\",\"endpoint\":\"https://example.com:443/mcp\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
+        assertEquals("https://example.com:443/mcp", AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)).servers().get(0).endpoint().toString());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"[]", "null", "{\"unknown\":1}", "{\"aggregation\":null}",
         "{\"aggregation\":{\"revision\":\"v1\"}}", "{\"aggregation\":{\"revision\":\"v1\",\"servers\":{}}}",
@@ -86,7 +92,7 @@ class AgentGatewayAggregationConfigTest {
     @ParameterizedTest
     @ValueSource(strings = {"http://user:pass@127.0.0.1:8080/mcp", "http://127.0.0.1/mcp", "http://127.0.0.1:8080/a/../mcp",
         "http://127.0.0.1:8080/mcp?key=SECRET", "http://127.0.0.1:8080/mcp#SECRET", "http://127.0.0.1:8080/%2e/mcp",
-        "https://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp", "https://255.255.255.255:443/mcp"})
+        "http://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp", "https://255.255.255.255:443/mcp"})
     void rejectsAmbiguousEndpoints(final String endpoint) {
         String server = "{\"name\":\"orders\",\"endpoint\":\"" + endpoint + "\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)));

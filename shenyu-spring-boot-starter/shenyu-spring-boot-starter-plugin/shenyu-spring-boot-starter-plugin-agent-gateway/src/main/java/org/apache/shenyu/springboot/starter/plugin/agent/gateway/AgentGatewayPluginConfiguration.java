@@ -52,7 +52,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver;
 import org.apache.shenyu.plugin.agent.gateway.remote.FileRemoteServiceCredentialResolver;
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -202,13 +201,25 @@ public class AgentGatewayPluginConfiguration {
     public ManagedRemoteMcpCatalog agentGatewayRemoteCatalog(final Environment environment, final ObjectProvider<AgentToolProvider> tools,
                                                             final ObjectProvider<RemoteServiceCredentialResolver> credentials,
                                                             final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
-        String endpoints = environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.allowed-endpoints");
-        Set<URI> allowed = Arrays.stream(endpoints.split(",")).map(String::trim).map(URI::create).collect(Collectors.toUnmodifiableSet());
+        String fixedEndpoints = environment.getProperty("shenyu.plugins.agent.gateway.aggregation.allowed-endpoints", "");
+        String controlledRoutes = environment.getProperty("shenyu.plugins.agent.gateway.aggregation.allowed-routes", "");
+        Set<String> allowed = java.util.stream.Stream.concat(
+                        declarations(fixedEndpoints, true), declarations(controlledRoutes, false))
+                .collect(Collectors.toUnmodifiableSet());
+        if (allowed.isEmpty()) {
+            throw new IllegalStateException("Agent Gateway aggregation requires an approved transport route");
+        }
         RemoteServiceCredentialResolver resolver = credentials.getIfAvailable(() -> new FileRemoteServiceCredentialResolver(
                 Path.of(environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.credentials-directory"))));
-        return new ManagedRemoteMcpCatalog(allowed,
-                tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver, admission,
+        return ManagedRemoteMcpCatalog.forRoutes(allowed, tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver, admission,
                 environment.getProperty("shenyu.plugins.agent.gateway.aggregation.resources-enabled", Boolean.class, false));
+    }
+
+    private static java.util.stream.Stream<String> declarations(final String value, final boolean fixedEndpoints) {
+        return Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(candidate -> !candidate.isBlank())
+                .map(candidate -> fixedEndpoints ? candidate + "=" : candidate);
     }
 
     private static Mono<Boolean> keyAuthenticationPresent(final org.springframework.web.server.ServerWebExchange exchange) {

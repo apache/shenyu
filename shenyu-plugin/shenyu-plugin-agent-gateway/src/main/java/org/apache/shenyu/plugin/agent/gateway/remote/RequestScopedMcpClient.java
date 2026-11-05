@@ -24,32 +24,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpHost;
 import org.apache.shenyu.common.tracing.AgentTraceContext;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
-import reactor.core.publisher.Sinks;
 
-import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Flow;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -71,7 +68,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private static final int MAX_IN_FLIGHT = 64;
 
-    private final HttpClient http;
+    private final RemoteTransportRoute route;
+
+    private final ApacheRemoteMcpTransport http;
 
     private final URI endpoint;
 
@@ -87,7 +86,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private final AtomicInteger active = new AtomicInteger();
 
-    private final Set<CompletableFuture<?>> inFlight = ConcurrentHashMap.newKeySet();
+    private final Set<Future<?>> inFlight = ConcurrentHashMap.newKeySet();
 
     private volatile String session;
 
@@ -110,12 +109,16 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     RequestScopedMcpClient(final RemoteServerBinding binding, final java.util.function.Consumer<Map<String, Object>> observer, final javax.net.ssl.SSLContext testContext) {
-        HttpClient.Builder builder = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).proxy(RemoteTransportPolicy.directOnly())
-                .followRedirects(HttpClient.Redirect.NEVER).connectTimeout(Duration.ofSeconds(2));
-        if (Objects.nonNull(testContext)) {
-            builder.sslContext(testContext);
+        this(binding, RemoteTransportRoute.fixed(binding.config().endpoint()), observer, testContext);
+    }
+
+    RequestScopedMcpClient(final RemoteServerBinding binding, final RemoteTransportRoute route,
+                           final java.util.function.Consumer<Map<String, Object>> observer, final javax.net.ssl.SSLContext testContext) {
+        if (!binding.config().endpoint().equals(route.endpoint())) {
+            throw new SecurityException("Route does not match the credential binding");
         }
-        http = builder.build();
+        this.route = Objects.requireNonNull(route, "route");
+        http = ApacheRemoteMcpTransport.create(route, testContext);
         this.endpoint = binding.config().endpoint();
         this.name = binding.config().name();
         this.authorization = binding.authorization();
@@ -215,28 +218,16 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             if (requestBytes.length > MAX_REQUEST_BYTES) {
                 return Mono.error(new IllegalArgumentException("Request byte limit"));
             }
-            HttpRequest.Builder builder = HttpRequest.newBuilder(endpoint)
-                .timeout(budget)
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json, text/event-stream")
-                .header("Authorization", authorization)
-                .header("MCP-Protocol-Version", VERSION)
-                .POST(HttpRequest.BodyPublishers.ofByteArray(requestBytes));
-            if (Objects.nonNull(session) && !"initialize".equals(method)) {
-                builder.header("MCP-Session-Id", session);
-            }
-            // A shared handshake, directory refresh or session cleanup never belongs to an Agent call.
-            if ("tools/call".equals(method)) {
-                AgentTraceContext.headers(transportContext.get(AgentTraceContext.HEADERS_KEY)).forEach(builder::setHeader);
-            }
-            HttpRequest outbound = builder.build();
             if (active.incrementAndGet() > MAX_IN_FLIGHT) {
                 active.decrementAndGet();
                 return Mono.error(new IllegalStateException("Client concurrency limit"));
             }
-            var owned = new AtomicReference<CompletableFuture<HttpResponse<byte[]>>>();
+            var owned = new AtomicReference<ApacheRemoteMcpTransport.AsyncRequestHandle<ApacheRemoteHttpResponse>>();
             return Mono.defer(() -> {
-                CompletableFuture<HttpResponse<byte[]>> future = http.sendAsync(outbound, ignored -> new BoundedBody(LIMIT));
+                ApacheRemoteMcpTransport.AsyncRequestHandle<ApacheRemoteHttpResponse> future = http.execute(
+                        new HttpHost(route.endpoint().getHost(), route.endpoint().getPort(), route.endpoint().getScheme()),
+                        outboundRequest(method, requestBytes,
+                                AgentTraceContext.headers(transportContext.get(AgentTraceContext.HEADERS_KEY))), budget.toMillis());
                 owned.set(future);
                 inFlight.add(future);
                 if (closed) {
@@ -245,9 +236,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 return requestSignal(future);
             })
                 .timeout(budget)
+                .onErrorMap(SocketTimeoutException.class, error -> new TimeoutException(error.getMessage()))
                 .map(response -> decodeResponse(response, method, id, notification))
                 .doFinally(ignored -> {
-                    CompletableFuture<?> future = owned.get();
+                    Future<?> future = owned.get();
                     if (Objects.nonNull(future)) {
                         future.cancel(true);
                         inFlight.remove(future);
@@ -257,22 +249,40 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         });
     }
 
-    private ObjectNode decodeResponse(final HttpResponse<byte[]> response, final String method, final String id, final boolean notification) {
+    private HttpRequest outboundRequest(final String method, final byte[] requestBytes, final Map<String, String> traceHeaders) {
+        ApacheRemoteMcpTransport.ConfigurableRequest request = new ApacheRemoteMcpTransport.ConfigurableRequest(method, endpoint.getRawPath());
+        request.setEntity(new org.apache.http.entity.ByteArrayEntity(requestBytes, org.apache.http.entity.ContentType.APPLICATION_JSON));
+        request.setHeader("Host", endpoint.getHost() + ":" + endpoint.getPort());
+        request.setHeader("Content-Type", "application/json");
+        request.setHeader("Accept", "application/json, text/event-stream");
+        request.setHeader("Authorization", authorization);
+        request.setHeader("MCP-Protocol-Version", VERSION);
+        if (Objects.nonNull(session) && !"initialize".equals(method)) {
+            request.setHeader("MCP-Session-Id", session);
+        }
+        // A shared handshake, directory refresh or session cleanup never belongs to an Agent call.
+        if ("tools/call".equals(method)) {
+            traceHeaders.forEach(request::setHeader);
+        }
+        return request;
+    }
+
+    private ObjectNode decodeResponse(final ApacheRemoteHttpResponse response, final String method, final String id, final boolean notification) {
         observer.accept(Map.of("event", "http-response", "server", name, "method", method, "id", id,
-                "status", response.statusCode(), "contentType", response.headers().firstValue("Content-Type").orElse(""), "bytes", response.body().length));
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            throw new IllegalStateException("Upstream HTTP " + response.statusCode());
+                "status", response.status(), "contentType", header(response, "Content-Type"), "bytes", response.body().length));
+        if (response.status() < 200 || response.status() >= 300) {
+            throw new IllegalStateException("Upstream HTTP " + response.status());
         }
         if ("initialize".equals(method)) {
-            session = RemoteTransportPolicy.session(response.headers().allValues("MCP-Session-Id"));
+            session = RemoteTransportPolicy.session(response.headers().getOrDefault("mcp-session-id", List.of()));
         }
         if (notification) {
-            if (response.statusCode() != 202 || response.body().length != 0) {
+            if (response.status() != 202 || response.body().length != 0) {
                 throw new IllegalArgumentException("Invalid notification acknowledgement");
             }
             return JSON.createObjectNode();
         }
-        String contentType = response.headers().firstValue("Content-Type").orElse("").split(";")[0].trim();
+        String contentType = header(response, "Content-Type").split(";")[0].trim();
         ObjectNode envelope = decode(response.body(), contentType);
         if (!"2.0".equals(envelope.path("jsonrpc").asText()) || !id.equals(envelope.path("id").asText())) {
             throw new IllegalArgumentException("Mismatched protocol response id");
@@ -284,6 +294,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             throw new IllegalArgumentException("Invalid result shape");
         }
         return ((ObjectNode) envelope.get("result")).deepCopy();
+    }
+
+    private static String header(final ApacheRemoteHttpResponse response, final String name) {
+        return response.headers().getOrDefault(name.toLowerCase(Locale.ROOT), List.of()).stream().findFirst().orElse("");
     }
 
     private static ObjectNode decode(final byte[] bytes, final String contentType) {
@@ -347,102 +361,43 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     private Mono<Void> terminate() {
         closed = true;
         // Whole-client close is shutdown only, never the individual request cancellation path.
-        for (CompletableFuture<?> future : inFlight) {
+        for (Future<?> future : inFlight) {
             future.cancel(true);
         }
         if (Objects.isNull(session)) {
-            return Mono.empty();
+            return Mono.fromRunnable(this::closeTransport);
         }
-        HttpRequest request = HttpRequest.newBuilder(endpoint)
+        HttpRequest request = outboundRequest("DELETE", new byte[0], Map.of());
+        return Mono.defer(() -> requestSignal(http.execute(
+                        new HttpHost(route.endpoint().getHost(), route.endpoint().getPort(), route.endpoint().getScheme()), request,
+                        Duration.ofSeconds(2).toMillis())))
             .timeout(Duration.ofSeconds(2))
-            .header("MCP-Session-Id", session)
-            .header("Authorization", authorization)
-            .header("MCP-Protocol-Version", VERSION)
-            .DELETE()
-            // Bound completion of the body as well as connection/response headers. Owned future is cancelled on timeout.
-            .build();
-        return Mono.defer(() -> {
-            var future = http.sendAsync(request, HttpResponse.BodyHandlers.discarding());
-            return requestSignal(future).doFinally(ignored -> future.cancel(true));
-        })
-            .timeout(Duration.ofSeconds(2))
-            .flatMap(response ->
-                response.statusCode() >= 200 && response.statusCode() < 300
+            .flatMap(response -> response.status() >= 200 && response.status() < 300
                     ? Mono.<Void>empty()
-                    : Mono.error(new IllegalStateException("Session cleanup HTTP " + response.statusCode()))
-            );
+                    : Mono.error(new IllegalStateException("Session cleanup HTTP " + response.status())))
+            .doFinally(ignored -> closeTransport());
     }
 
-    static <T> Mono<T> requestSignal(final CompletableFuture<T> request) {
-        Sinks.One<T> signal = Sinks.one();
-        request.whenComplete((response, error) -> {
-            Throwable failure = error;
-            while (failure instanceof CompletionException && Objects.nonNull(failure.getCause())) {
-                failure = failure.getCause();
-            }
-            if (Objects.nonNull(failure)) {
-                // Retain active errors, but a detached request has no subscriber to receive late failures.
-                signal.tryEmitError(failure);
-            } else {
-                signal.tryEmitValue(response);
-            }
-        });
-        return signal.asMono().doFinally(type -> {
-            if (type == SignalType.CANCEL) {
-                request.cancel(true);
-            }
-        });
+    static <T> Mono<T> requestSignal(final ApacheRemoteMcpTransport.AsyncRequestHandle<T> request) {
+        return request.signal()
+            .onErrorMap(CompletionException.class, RequestScopedMcpClient::unwrapCompletionException)
+            .doFinally(type -> {
+                if (type == SignalType.CANCEL) {
+                    request.cancel(true);
+                }
+            });
     }
 
-    private static final class BoundedBody implements HttpResponse.BodySubscriber<byte[]> {
+    private static Throwable unwrapCompletionException(final CompletionException error) {
+        return Objects.requireNonNullElseGet(error.getCause(), () -> error);
+    }
 
-        private final int limit;
-
-        private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-
-        private final CompletableFuture<byte[]> result = new CompletableFuture<>();
-
-        private Flow.Subscription subscription;
-
-        private BoundedBody(final int limit) {
-            this.limit = limit;
-        }
-
-        @Override
-        public CompletionStage<byte[]> getBody() {
-            return result;
-        }
-
-        @Override
-        public void onSubscribe(final Flow.Subscription value) {
-            subscription = value;
-            value.request(1);
-        }
-
-        @Override
-        public void onNext(final List<ByteBuffer> parts) {
-            long incoming = parts.stream().mapToLong(ByteBuffer::remaining).sum();
-            if (incoming > limit - bytes.size()) {
-                subscription.cancel();
-                result.completeExceptionally(new IllegalArgumentException("Response byte limit"));
-                return;
-            }
-            for (ByteBuffer part : parts) {
-                byte[] chunk = new byte[part.remaining()];
-                part.get(chunk);
-                bytes.writeBytes(chunk);
-            }
-            subscription.request(1);
-        }
-
-        @Override
-        public void onError(final Throwable error) {
-            result.completeExceptionally(error);
-        }
-
-        @Override
-        public void onComplete() {
-            result.complete(bytes.toByteArray());
+    private void closeTransport() {
+        try {
+            http.close();
+        } catch (Exception error) {
+            throw new IllegalStateException("Remote MCP transport cleanup failed", error);
         }
     }
+
 }

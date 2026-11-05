@@ -62,11 +62,13 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private final RemoteCatalogLifecycle lifecycle;
 
-    private final Set<URI> allowedEndpoints;
+    private final RemoteTransportRouteSet routes;
 
     private final Set<String> localNames;
 
     private final RemoteServiceCredentialResolver credentials;
+
+    private final javax.net.ssl.SSLContext verificationTlsContext;
 
     private final AgentMcpResourceAdmission.ResourceAdmissionController admission;
 
@@ -85,21 +87,21 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     private volatile boolean closed;
 
     /**
-     * Managed Remote Mcp Catalog.
-     * @param allowedEndpoints trusted allowedEndpoints value
-     * @param localNames trusted localNames value
-     * @param credentials trusted credentials value
+     * Managed catalog compatibility constructor for fixed-IP deployments.
+     * @param allowedEndpoints trusted fixed-IP endpoints
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials) {
         this(allowedEndpoints, localNames, credentials, AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), false);
     }
 
     /**
-     * Managed Remote Mcp Catalog with admission configuration.
-     * @param allowedEndpoints trusted allowedEndpoints value
-     * @param localNames trusted localNames value
-     * @param credentials trusted credentials value
-     * @param source complete trusted plugin configuration
+     * Managed catalog with a shared admission controller.
+     * @param allowedEndpoints trusted fixed-IP endpoints
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param admission shared controller
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
                                    final RemoteServiceCredentialResolver credentials,
@@ -108,23 +110,29 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     }
 
     /**
-     * Managed remote catalog with a shared resource admission controller.
-     * @param allowedEndpoints trusted allowedEndpoints value
-     * @param localNames trusted localNames value
-     * @param credentials trusted credentials value
-     * @param admission shared trusted admission controller
+     * Managed catalog with shared admission and resource lifecycle configuration.
+     * @param allowedEndpoints trusted fixed-IP endpoints
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param admission shared controller
      * @param resourcesEnabled whether remote resources are enabled
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
                                    final RemoteServiceCredentialResolver credentials,
-                                   final AgentMcpResourceAdmission.ResourceAdmissionController admission,
-                                   final boolean resourcesEnabled) {
+                                   final AgentMcpResourceAdmission.ResourceAdmissionController admission, final boolean resourcesEnabled) {
+        this(fixedRoutes(allowedEndpoints), localNames, credentials, admission, resourcesEnabled, null);
+    }
+
+    private ManagedRemoteMcpCatalog(final Set<String> allowedRoutes, final Set<String> localNames,
+                                    final RemoteServiceCredentialResolver credentials,
+                                    final AgentMcpResourceAdmission.ResourceAdmissionController admission,
+                                    final boolean resourcesEnabled, final javax.net.ssl.SSLContext verificationTlsContext) {
         lifecycle = new RemoteCatalogLifecycle(3, resourcesEnabled);
-        this.allowedEndpoints = Set.copyOf(allowedEndpoints);
+        this.routes = RemoteTransportRouteSet.parse(allowedRoutes);
         this.localNames = Set.copyOf(localNames);
         this.credentials = Objects.requireNonNull(credentials, "credentials");
         this.admission = Objects.requireNonNull(admission, "admission");
-        this.allowedEndpoints.forEach(RemoteTransportPolicy::endpoint);
+        this.verificationTlsContext = verificationTlsContext;
         // The single owned subscription belongs to the control-plane lifecycle, never a request.
         lifecycle.refresh(List.of()).block(Duration.ofSeconds(6));
         worker = updates.asFlux().publishOn(scheduler, 1).concatMap(this::applyUpdate, 1).subscribe();
@@ -138,10 +146,64 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         });
     }
 
+    /**
+     * Create a route-aware managed catalog with default admission.
+     * @param allowedRoutes trusted routes
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @return route-aware catalog
+     */
+    public static ManagedRemoteMcpCatalog forRoutes(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                    final RemoteServiceCredentialResolver credentials) {
+        return forRoutes(allowedRoutes, localNames, credentials, false);
+    }
+
+    /**
+     * Create a route-aware managed catalog with default admission.
+     * @param allowedRoutes trusted routes
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param resourcesEnabled whether remote resources are enabled
+     * @return route-aware catalog
+     */
+    public static ManagedRemoteMcpCatalog forRoutes(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                    final RemoteServiceCredentialResolver credentials, final boolean resourcesEnabled) {
+        return forRoutes(allowedRoutes, localNames, credentials, AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), resourcesEnabled);
+    }
+
+    /**
+     * Create a route-aware managed catalog sharing the gateway admission controller.
+     * @param allowedRoutes trusted routes
+     * @param localNames local tool names
+     * @param credentials fixed service credential resolver
+     * @param admission shared controller
+     * @param resourcesEnabled whether remote resources are enabled
+     * @return route-aware catalog
+     */
+    public static ManagedRemoteMcpCatalog forRoutes(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                    final RemoteServiceCredentialResolver credentials,
+                                                    final AgentMcpResourceAdmission.ResourceAdmissionController admission, final boolean resourcesEnabled) {
+        return new ManagedRemoteMcpCatalog(allowedRoutes, localNames, credentials, admission, resourcesEnabled, null);
+    }
+
+    static ManagedRemoteMcpCatalog forRoutesWithVerificationTlsContext(final Set<String> allowedRoutes, final Set<String> localNames,
+                                                                       final RemoteServiceCredentialResolver credentials,
+                                                                       final javax.net.ssl.SSLContext verificationTlsContext) {
+        return new ManagedRemoteMcpCatalog(allowedRoutes, localNames, credentials,
+                AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), false, verificationTlsContext);
+    }
+
+    private static Set<String> fixedRoutes(final Set<URI> allowedEndpoints) {
+        return allowedEndpoints.stream().map(endpoint -> endpoint + "=").collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
     private Mono<Long> applyUpdate(final ControlUpdate update) {
         return Mono.defer(() -> {
             if (update.sequence() != revision.get()) {
                 return Mono.empty();
+            }
+            if (!update.enabled()) {
+                return lifecycle.closeIdle().thenReturn(0L);
             }
             return reload(update.source(), () -> !closed && update.sequence() == revision.get()).doOnSuccess(version -> {
                 recordFailure(update.sequence(), "");
@@ -171,7 +233,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             lastFailure = "ConfigurationByteLimit";
             return;
         }
-        Sinks.EmitResult result = updates.tryEmitNext(new ControlUpdate(sequence, source));
+        Sinks.EmitResult result = updates.tryEmitNext(new ControlUpdate(sequence, source, enabled));
         if (result.isFailure() && !closed) {
             lifecycle.withdraw();
             lastFailure = "ConfigurationQueueRejected";
@@ -195,7 +257,8 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             List<RemoteCatalogLifecycle.Config> targets = new ArrayList<>();
             for (AgentGatewayAggregationConfig.Server server : config.servers()) {
                 RemoteServerBinding.Config reference = new RemoteServerBinding.Config(server.name(), server.endpoint(), server.credentialRef(), server.credentialVersion());
-                targets.add(RemoteServerBinding.resolve(reference, allowedEndpoints, credentials::resolve).lifecycleConfig());
+                RemoteServerBinding binding = RemoteServerBinding.resolve(reference, routes, credentials::resolve);
+                targets.add(binding.lifecycleConfig(routes.route(server.endpoint()), verificationTlsContext));
             }
             return lifecycle.refresh(targets, List.of(), localNames, stillCurrent)
                     .doOnSuccess(ignored -> {
@@ -289,7 +352,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     public record Diagnostics(RemoteCatalogLifecycle.Diagnostics lifecycle, long revision, String lastFailure) {
     }
 
-    private record ControlUpdate(long sequence, String source) {
+    private record ControlUpdate(long sequence, String source, boolean enabled) {
     }
 
     private static final class CatalogSnapshot implements Snapshot {

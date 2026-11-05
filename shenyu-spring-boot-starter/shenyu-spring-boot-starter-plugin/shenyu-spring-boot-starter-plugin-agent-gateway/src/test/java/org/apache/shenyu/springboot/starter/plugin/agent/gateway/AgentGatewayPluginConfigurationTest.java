@@ -414,7 +414,7 @@ class AgentGatewayPluginConfigurationTest {
     @Test
     void shouldAssembleOptInCatalogAndWireTrustedPluginSync() {
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
-                        "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://192.0.2.10:443/mcp")
+                        "shenyu.plugins.agent.gateway.aggregation.allowed-routes=https://192.0.2.10:443/mcp=")
                 .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
                     throw new SecurityException("Missing fixture credentials");
                 }).run(context -> {
@@ -429,9 +429,21 @@ class AgentGatewayPluginConfigurationTest {
     }
 
     @Test
+    void fixedEndpointPropertyRemainsCompatible() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
+                        "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://192.0.2.10:443/mcp")
+                .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
+                    throw new SecurityException("Missing fixture credentials");
+                }).run(context -> {
+                    assertTrue(context.containsBean("agentGatewayRemoteCatalog"));
+                    context.getBean(org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog.class).close();
+                });
+    }
+
+    @Test
     void shouldRejectDomainAllowlistWithoutRelaxingTlsPolicy() {
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.aggregation.enabled=true",
-                        "shenyu.plugins.agent.gateway.aggregation.allowed-endpoints=https://example.com:443/mcp")
+                        "shenyu.plugins.agent.gateway.aggregation.allowed-routes=https://example.com:443/mcp")
                 .withBean(org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver.class, () -> reference -> {
                     throw new SecurityException("unused");
                 }).run(context -> assertNotNull(context.getStartupFailure()));

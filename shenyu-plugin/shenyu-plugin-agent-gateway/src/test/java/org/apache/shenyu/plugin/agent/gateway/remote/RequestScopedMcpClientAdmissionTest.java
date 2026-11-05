@@ -180,7 +180,7 @@ class RequestScopedMcpClientAdmissionTest {
         private RequestScopedMcpClient client(final String name) {
             URI uri = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/mcp");
             RemoteServerBinding.Config target = new RemoteServerBinding.Config(name, uri, "service/" + name, "v1");
-            return new RequestScopedMcpClient(RemoteServerBinding.resolve(target, Set.of(uri),
+            return new RequestScopedMcpClient(RemoteServerBinding.resolve(target, RemoteTransportRouteSet.parse(Set.of(uri + "=")),
                     ignored -> new RemoteServerBinding.Credential(target, "fixed-test-token")), ignored -> { });
         }
 

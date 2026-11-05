@@ -107,7 +107,7 @@ class RemoteResourceNetworkTest {
     void cancellingAnActualHttpReadDoesNotCancelItsPeer() throws Exception {
         try (Fixture fixture = new Fixture("orders", false)) {
             RemoteServerBinding.Config target = new RemoteServerBinding.Config("orders", fixture.endpoint(), "service", "v1");
-            RequestScopedMcpClient client = RemoteServerBinding.resolve(target, Set.of(fixture.endpoint()),
+            RequestScopedMcpClient client = RemoteServerBinding.resolve(target, RemoteTransportRouteSet.parse(Set.of(fixture.endpoint() + "=")),
                     reference -> new RemoteServerBinding.Credential(reference, "resources-test-service")).newClient();
             try {
                 client.initialize().block(WAIT);
