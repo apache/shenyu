@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -111,7 +112,7 @@ class SelectorRegistrationConcurrencyTest {
         SelectorServiceImpl target = new SelectorServiceImpl(selectors, mock(SelectorConditionMapper.class), plugins,
                 mock(ApplicationEventPublisher.class), mock(DiscoveryMapper.class), mock(DiscoveryHandlerMapper.class),
                 mock(DiscoveryRelMapper.class), mock(DiscoveryUpstreamMapper.class), mock(DiscoveryProcessorHolder.class),
-                mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class));
+                mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class), mock(RegistrationFencingGuard.class));
         ProxyFactory proxy = new ProxyFactory(target);
         proxy.addAdvice(new TransactionInterceptor(transactions, new AnnotationTransactionAttributeSource()));
         return (SelectorService) proxy.getProxy();
