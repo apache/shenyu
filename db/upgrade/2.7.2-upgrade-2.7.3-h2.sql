@@ -50,3 +50,57 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 
 -- Preserve complete API-debug request headers.
 ALTER TABLE mock_request_record ALTER COLUMN header CLOB;
+
+-- Agent Gateway OpenAPI import ownership: Admin-only provenance, never synchronized to gateways.
+-- Stop Admin writers and back up rule before this one-time migration: handle expands to CLOB.
+CREATE TABLE agent_gateway_import (
+    id VARCHAR(128) NOT NULL PRIMARY KEY,
+    rule_id VARCHAR(128) NOT NULL,
+    namespace_id VARCHAR(50) NOT NULL,
+    manifest CLOB NOT NULL,
+    date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX uk_agent_gateway_import_rule ON agent_gateway_import (rule_id);
+ALTER TABLE rule ALTER COLUMN handle CLOB;
+
+CREATE TABLE IF NOT EXISTS registration_fencing_target (
+    id VARCHAR(128) NOT NULL PRIMARY KEY,
+    date_created TIMESTAMP NOT NULL,
+    date_updated TIMESTAMP NOT NULL,
+    domain_id VARCHAR(128) NOT NULL,
+    namespace_id VARCHAR(64) NOT NULL,
+    selector_id VARCHAR(128) NOT NULL,
+    plugin_id VARCHAR(128) NOT NULL,
+    protocol VARCHAR(32) NOT NULL,
+    host VARCHAR(255) NOT NULL,
+    port INTEGER NOT NULL,
+    principal_id VARCHAR(128) NOT NULL,
+    enabled TINYINT NOT NULL,
+    state VARCHAR(16) NOT NULL,
+    generation BIGINT NOT NULL,
+    owner_startup_id VARCHAR(64),
+    session_id VARCHAR(128),
+    last_sequence BIGINT NOT NULL,
+    last_payload CLOB,
+    last_result CLOB,
+    last_request_id VARCHAR(64),
+    last_request_payload CLOB,
+    retired_startups CLOB,
+    CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
+);
+CREATE INDEX IF NOT EXISTS idx_registration_fencing_target_address
+    ON registration_fencing_target (namespace_id, host, port);
+CREATE INDEX IF NOT EXISTS idx_fencing_domain_session
+    ON registration_fencing_target (domain_id, session_id);
+
+-- Revoke JWTs issued before a password change or an explicit revocation.
+ALTER TABLE dashboard_user ADD COLUMN token_version INT NOT NULL DEFAULT 0;
+
+-- Add the opt-in rate limiter backend-failure policy selector.
+INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
+VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');
+INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`)
+VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1);
+INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`)
+VALUES ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1);

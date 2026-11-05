@@ -111,7 +111,7 @@ class WebsocketMasterRedirectTest {
             other.masterUrl = master.url();
             seeds.add(other.url());
         }
-        createService(seeds);
+        createService(seeds, "127.0.0.1:" + master.getPort());
         awaitModes();
 
         check();
@@ -174,6 +174,7 @@ class WebsocketMasterRedirectTest {
         when(follower.isOpen()).thenReturn(true);
         when(follower.getRunningMode()).thenReturn("CLUSTER");
         when(follower.getMasterUrl()).thenReturn("ws://master:9095/websocket");
+        when(follower.getURI()).thenReturn(URI.create("ws://follower:9095/websocket"));
         ShenyuWebsocketClient master = mock(ShenyuWebsocketClient.class);
         when(master.isOpen()).thenReturn(true);
         when(master.getRunningMode()).thenReturn("CLUSTER");
@@ -203,11 +204,12 @@ class WebsocketMasterRedirectTest {
         }
     }
 
-    private void createService(final List<String> seeds) {
+    private void createService(final List<String> seeds, final String... trustedMasterHosts) {
         WebsocketConfig config = new WebsocketConfig();
         config.setUrls(seeds);
         config.setToken("test-token");
         config.setAllowOrigin("https://gateway.example");
+        config.setTrustedMasterHosts(List.of(trustedMasterHosts));
         ShenyuConfig shenyu = new ShenyuConfig();
         shenyu.setNamespace("cluster-test");
         PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);

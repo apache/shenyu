@@ -103,8 +103,8 @@ public class ShenyuNettyWebServerConfiguration {
                                                                        final ObjectProvider<ShenyuSniAsyncMapping> shenyuSniAsyncMappingProvider,
                                                                        final ObjectProvider<TcpSslContextSpec> tcpSslContextSpecs,
                                                                        final LoopResources loopResources) {
-        NettyReactiveWebServerFactory webServerFactory = new NettyReactiveWebServerFactory();
         NettyHttpProperties nettyHttpProperties = Optional.ofNullable(properties.getIfAvailable()).orElse(new NettyHttpProperties());
+        NettyReactiveWebServerFactory webServerFactory = new ShenyuNettyReactiveWebServerFactory(nettyHttpProperties);
         webServerFactory.addServerCustomizers(new EventLoopNettyCustomizer(nettyHttpProperties, loopResources, httpServer -> {
             HttpServer server = httpServer;
             // Configure sni certificates

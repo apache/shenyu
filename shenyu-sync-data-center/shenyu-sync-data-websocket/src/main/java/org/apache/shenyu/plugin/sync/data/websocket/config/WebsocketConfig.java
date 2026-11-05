@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.config;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,6 +50,19 @@ public class WebsocketConfig {
      * Master check interval in seconds.
      */
     private int masterCheckInterval = 60;
+
+    /**
+     * Additional advertised master origins trusted besides the configured seed origins.
+     * Entries are {@code host}, {@code host:port} or a {@code ws(s)://} URI; an entry
+     * without a port trusts that host on any port.
+     */
+    private List<String> trustedMasterHosts = new ArrayList<>();
+
+    /**
+     * Explicitly allow an advertised plaintext {@code ws} master after a secure {@code wss}
+     * connection. Off by default so a server advertisement cannot silently downgrade transport.
+     */
+    private boolean allowInsecureMasterRedirect;
 
     /**
      * Whether this gateway accepts compact Discovery payloads.
@@ -135,6 +149,42 @@ public class WebsocketConfig {
     }
 
     /**
+     * get additionally trusted advertised master origins.
+     *
+     * @return trusted master origin entries
+     */
+    public List<String> getTrustedMasterHosts() {
+        return trustedMasterHosts;
+    }
+
+    /**
+     * set additionally trusted advertised master origins.
+     *
+     * @param trustedMasterHosts trusted master origin entries
+     */
+    public void setTrustedMasterHosts(final List<String> trustedMasterHosts) {
+        this.trustedMasterHosts = trustedMasterHosts;
+    }
+
+    /**
+     * Whether a wss connection may follow a plaintext ws advertised master.
+     *
+     * @return whether insecure master redirect is explicitly allowed
+     */
+    public boolean isAllowInsecureMasterRedirect() {
+        return allowInsecureMasterRedirect;
+    }
+
+    /**
+     * set whether a wss connection may follow a plaintext ws advertised master.
+     *
+     * @param allowInsecureMasterRedirect whether insecure redirect is allowed
+     */
+    public void setAllowInsecureMasterRedirect(final boolean allowInsecureMasterRedirect) {
+        this.allowInsecureMasterRedirect = allowInsecureMasterRedirect;
+    }
+
+    /**
      * get master check interval in seconds.
      *
      * @return master check interval
@@ -166,12 +216,15 @@ public class WebsocketConfig {
                 && Objects.equals(token, that.token)
                 && initialSyncReadiness == that.initialSyncReadiness
                 && compactDiscoveryPayload == that.compactDiscoveryPayload
-                && masterCheckInterval == that.masterCheckInterval;
+                && masterCheckInterval == that.masterCheckInterval
+                && allowInsecureMasterRedirect == that.allowInsecureMasterRedirect
+                && Objects.equals(trustedMasterHosts, that.trustedMasterHosts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness, compactDiscoveryPayload, masterCheckInterval);
+        return Objects.hash(urls, allowOrigin, token, initialSyncReadiness, compactDiscoveryPayload, masterCheckInterval,
+                trustedMasterHosts, allowInsecureMasterRedirect);
     }
 
     @Override
@@ -186,6 +239,10 @@ public class WebsocketConfig {
                 + ", token='******'"
                 + ", masterCheckInterval="
                 + masterCheckInterval
+                + ", trustedMasterHosts="
+                + trustedMasterHosts
+                + ", allowInsecureMasterRedirect="
+                + allowInsecureMasterRedirect
                 + '}';
     }
 }

@@ -143,7 +143,7 @@ class AppAuthApplyTest {
         tombstone.setRequestId("req-dead");
         tombstone.setState("REVOKED");
         requestMapper.reserveIfAbsent(tombstone);
-        requestMapper.markRevoked("ts-1", "drill");
+        requestMapper.markRevoked("ts-1", "drill", "REVOKED");
 
         assertThrows(ShenyuAdminException.class, () ->
                 txService.apply("svc-a", applyRequest("req-dead", "demo-app", List.of("/api/a")), "hash-x"));

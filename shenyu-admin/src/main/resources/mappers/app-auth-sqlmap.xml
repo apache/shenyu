@@ -111,6 +111,7 @@
                 AND phone = #{phone, jdbcType=VARCHAR}
             </if>
         </where>
+        ORDER BY date_created DESC, id ASC
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.AppAuthQuery" resultType="java.lang.Integer">

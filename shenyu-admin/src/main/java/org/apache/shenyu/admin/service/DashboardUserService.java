@@ -107,6 +107,17 @@ public interface DashboardUserService {
     int modifyPassword(DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO);
 
     /**
+     * revoke every token issued to the given dashboard user.
+     *
+     * <p>The stored token version is incremented so that tokens issued before
+     * this call are rejected on their next request, on every Admin instance.</p>
+     *
+     * @param id primary key of the dashboard user
+     * @return rows
+     */
+    int revokeTokens(String id);
+
+    /**
      * check password.
      *
      * @param userId userId
