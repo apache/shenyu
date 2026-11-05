@@ -735,7 +735,11 @@ public final class RuleServiceTest {
         "{\"enabled\":true,\"secrets\":[\"secret\"],\"maxAgeSeconds\":0}",
         "{\"enabled\":true,\"secrets\":[]}",
         "{\"enabled\":true,\"secrets\":[\"secret\"],\"cookieName\":\" \"}",
-        "{\"enabled\":true,\"secrets\":[\"secret\"],\"key\":{}}"})
+        "{\"enabled\":true,\"secrets\":[\"secret\"],\"cookieName\":null}",
+        "{\"enabled\":true,\"secrets\":[\"secret\"],\"key\":{}}",
+        "{\"enabled\":true,\"secrets\":[\"secret\"],\"key\":{\"name\":\"X\",\"type\":\"cookie\"}}",
+        "{\"enabled\":true,\"secrets\":\"s\"}",
+        "{\"enabled\":true,\"maxAgeSeconds\":1.5}"})
     public void testInvalidStickyNeverWritesOrPublishes(final String stickyPatch) {
         configureDivideSelector();
         RuleDTO dto = buildRuleDTO("");
@@ -745,9 +749,32 @@ public final class RuleServiceTest {
         given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
         assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
         assertThrows(ShenyuAdminException.class, () -> ruleService.registerDefault(dto));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(dto)));
+        ConfigsImportContext context = new ConfigsImportContext();
+        context.getSelectorIdMapping().put("456", "456");
+        assertThrows(ShenyuAdminException.class,
+                () -> ruleService.importData(SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList(dto), context));
         verify(ruleMapper, never()).insertSelective(any());
         verify(ruleMapper, never()).updateSelective(any());
         verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
+    }
+
+    @Test
+    public void testStickyErrorsNameTheField() {
+        assertStickyError("{\"enabled\":true,\"secrets\":\"s\"}", "sticky.secrets must be an array");
+        assertStickyError("{\"enabled\":true,\"secrets\":[\"secret\"],\"cookieName\":null}",
+                "sticky.cookieName must not be blank; omit it to use the default");
+        assertStickyError("{\"enabled\":true,\"secrets\":[\"secret\"],\"key\":{\"name\":\"X\",\"type\":\"cookie\"}}",
+                "sticky.key.type must be HEADER or COOKIE, got: cookie");
+    }
+
+    private void assertStickyError(final String stickyPatch, final String message) {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("");
+        dto.setHandle(stickyHandle(stickyPatch));
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class,
+                () -> ruleService.createOrUpdate(dto));
+        assertEquals(message, exception.getMessage());
     }
 
     /**

@@ -25,6 +25,7 @@ import com.google.re2j.PatternSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.sticky.StickySessionConfigValidator;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -57,6 +58,7 @@ public final class CanaryConfigValidator {
             if (Objects.nonNull(canary) && !canary.isJsonNull()) {
                 validate(object(canary, "canary"));
             }
+            StickySessionConfigValidator.validateJson(root.get("sticky"));
             DivideRuleHandle result = GsonUtils.getInstance().fromJson(root, DivideRuleHandle.class);
             if (Objects.nonNull(result.getCanary()) && result.getRetry() > 0
                     && !RetryEnum.CURRENT.getName().equals(StringUtils.defaultIfEmpty(result.getRetryStrategy(), RetryEnum.CURRENT.getName()))) {

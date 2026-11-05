@@ -171,7 +171,7 @@ public class RuleServiceImpl implements RuleService {
             return "";
         }
         validateRuleHandle(ruleDTO);
-        validateDivideHandle(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleMapper.insertSelective(ruleDO);
@@ -197,7 +197,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public int create(final RuleDTO ruleDTO) {
         validateRuleHandle(ruleDTO);
-        validateDivideHandle(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.insertSelective(ruleDO);
         addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -212,7 +212,7 @@ public class RuleServiceImpl implements RuleService {
         validateRuleHandle(ruleDTO);
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
-        validateDivideHandle(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
+        validateCanaryAndStickyConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
 
@@ -248,7 +248,7 @@ public class RuleServiceImpl implements RuleService {
         return ruleCount;
     }
 
-    private void validateDivideHandle(final String selectorId, final String handle) {
+    private void validateCanaryAndStickyConfig(final String selectorId, final String handle) {
         if (StringUtils.isBlank(handle)) {
             return;
         }
@@ -262,13 +262,11 @@ public class RuleServiceImpl implements RuleService {
         }
         try {
             DivideRuleHandle divide = CanaryConfigValidator.parseHandle(handle);
-            if (Objects.nonNull(divide) && Objects.nonNull(divide.getCanary())) {
+            if (Objects.nonNull(divide.getCanary())) {
                 CanaryConfigValidator.validateExtensions(divide.getCanary(),
                         name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
             }
-            if (Objects.nonNull(divide)) {
-                StickySessionConfigValidator.validate(divide.getSticky());
-            }
+            StickySessionConfigValidator.validate(divide.getSticky());
         } catch (IllegalArgumentException ex) {
             throw new ShenyuAdminException(ex.getMessage(), ex);
         }
@@ -365,7 +363,7 @@ public class RuleServiceImpl implements RuleService {
             return ConfigImportResult.success();
         }
 
-        ruleList.forEach(rule -> validateDivideHandle(rule.getSelectorId(), rule.getHandle()));
+        ruleList.forEach(rule -> validateCanaryAndStickyConfig(rule.getSelectorId(), rule.getHandle()));
         Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
                 .selectAll()
                 .stream()
@@ -412,7 +410,7 @@ public class RuleServiceImpl implements RuleService {
         }
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         ruleList.stream().filter(rule -> selectorIdMapping.containsKey(rule.getSelectorId()))
-                .forEach(rule -> validateDivideHandle(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
+                .forEach(rule -> validateCanaryAndStickyConfig(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
         Map<String, Set<String>> selectorRuleMap = ruleMapper
                 .selectAllByNamespaceId(namespace)
                 .stream()

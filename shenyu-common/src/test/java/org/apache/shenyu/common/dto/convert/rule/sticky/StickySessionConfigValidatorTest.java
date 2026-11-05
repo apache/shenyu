@@ -24,6 +24,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -94,10 +95,17 @@ public final class StickySessionConfigValidatorTest {
 
     @Test
     public void blankCookieNameIsRejected() {
-        StickySessionConfig config = new StickySessionConfig();
-        config.setEnabled(true);
-        config.setSecrets(Collections.singletonList("secret"));
+        StickySessionConfig config = enabledConfig();
         config.setCookieName(" ");
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> StickySessionConfigValidator.validate(config));
+        assertEquals("sticky.cookieName must not be blank; omit it to use the default", ex.getMessage());
+    }
+
+    @Test
+    public void explicitNullCookieNameIsRejected() {
+        StickySessionConfig config = enabledConfig();
+        config.setCookieName(null);
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> StickySessionConfigValidator.validate(config));
         assertEquals("sticky.cookieName must not be blank; omit it to use the default", ex.getMessage());
@@ -136,12 +144,94 @@ public final class StickySessionConfigValidatorTest {
 
     @Test
     public void deterministicKeyWithNamePasses() {
-        StickySessionConfig config = new StickySessionConfig();
-        config.setEnabled(true);
-        config.setSecrets(Collections.singletonList("secret"));
+        StickySessionConfig config = enabledConfig();
         DeterministicKeyConfig key = new DeterministicKeyConfig();
         key.setName("X-User-Id");
         config.setKey(key);
         assertDoesNotThrow(() -> StickySessionConfigValidator.validate(config));
+    }
+
+    @Test
+    public void deterministicKeyWithHeaderTypePasses() {
+        StickySessionConfig config = enabledConfig();
+        DeterministicKeyConfig key = new DeterministicKeyConfig();
+        key.setName("X-User-Id");
+        key.setType(DeterministicKeyConfig.KeyType.HEADER);
+        config.setKey(key);
+        assertDoesNotThrow(() -> StickySessionConfigValidator.validate(config));
+    }
+
+    @Test
+    public void deterministicKeyWithCookieTypePasses() {
+        StickySessionConfig config = enabledConfig();
+        DeterministicKeyConfig key = new DeterministicKeyConfig();
+        key.setName("session");
+        key.setType(DeterministicKeyConfig.KeyType.COOKIE);
+        config.setKey(key);
+        assertDoesNotThrow(() -> StickySessionConfigValidator.validate(config));
+    }
+
+    @Test
+    public void deterministicKeyWithoutTypeIsRejected() {
+        StickySessionConfig config = enabledConfig();
+        DeterministicKeyConfig key = new DeterministicKeyConfig();
+        key.setName("X-User-Id");
+        key.setType(null);
+        config.setKey(key);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> StickySessionConfigValidator.validate(config));
+        assertEquals("sticky.key.type must be HEADER or COOKIE", ex.getMessage());
+    }
+
+    @Test
+    public void enabledValidationAgreesWithRuntimeActivation() {
+        assertValidatorAgreesWithRuntime(enabledConfig());
+
+        StickySessionConfig zeroLifetime = enabledConfig();
+        zeroLifetime.setMaxAgeSeconds(0);
+        assertValidatorAgreesWithRuntime(zeroLifetime);
+
+        StickySessionConfig blankCookie = enabledConfig();
+        blankCookie.setCookieName(" ");
+        assertValidatorAgreesWithRuntime(blankCookie);
+
+        StickySessionConfig nullCookie = enabledConfig();
+        nullCookie.setCookieName(null);
+        assertValidatorAgreesWithRuntime(nullCookie);
+
+        StickySessionConfig missingSecrets = enabledConfig();
+        missingSecrets.setSecrets(null);
+        assertValidatorAgreesWithRuntime(missingSecrets);
+
+        StickySessionConfig emptySecrets = enabledConfig();
+        emptySecrets.setSecrets(Collections.emptyList());
+        assertValidatorAgreesWithRuntime(emptySecrets);
+
+        StickySessionConfig blankSecret = enabledConfig();
+        blankSecret.setSecrets(Arrays.asList("secret", " "));
+        assertValidatorAgreesWithRuntime(blankSecret);
+
+        StickySessionConfig disabled = enabledConfig();
+        disabled.setEnabled(false);
+        assertDoesNotThrow(() -> StickySessionConfigValidator.validate(disabled));
+        assertFalse(disabled.isUsable());
+    }
+
+    private StickySessionConfig enabledConfig() {
+        StickySessionConfig config = new StickySessionConfig();
+        config.setEnabled(true);
+        config.setSecrets(Collections.singletonList("secret"));
+        return config;
+    }
+
+    private void assertValidatorAgreesWithRuntime(final StickySessionConfig config) {
+        boolean accepted;
+        try {
+            StickySessionConfigValidator.validate(config);
+            accepted = true;
+        } catch (IllegalArgumentException ex) {
+            accepted = false;
+        }
+        assertEquals(config.isUsable(), accepted);
     }
 }

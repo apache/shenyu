@@ -95,18 +95,25 @@ naming the offending field (`sticky.…`):
   policy case-sensitively, so any other spelling (including `strict`) would silently
   behave as `REBIND` and is rejected instead.
 - `maxAgeSeconds` must be a positive number.
-- `cookieName` must not be blank; omit it to use the rule-scoped default.
+- `cookieName` must be a non-blank string; omit it to use the rule-scoped default.
+  An explicit JSON `null` is rejected as well: it is not equivalent to omitting the
+  field and would silently disable affinity.
 - An enabled configuration requires at least one non-blank key in `secrets`.
-- A configured `key` (deterministic key) requires a non-blank `name`.
+- A configured `key` (deterministic key) requires a non-blank `name`, and its
+  `type`, when present, must be `HEADER` or `COOKIE`. Gson maps an unknown spelling
+  to `null`, and the extractor then reads a request header, so `"type":"cookie"` is
+  rejected instead of silently reading the wrong request location.
 
-A disabled configuration is not validated: the runtime activation checks ignore it
-entirely, so none of its values can affect a request. Rejecting it would stop an
-operator from editing an unrelated field of an already stored rule.
+JSON structure is checked before Gson can coerce values, so a sticky section that is
+not an object, a non-integer `maxAgeSeconds`, a non-array `secrets` or a non-string
+field fails with a `sticky.…` message instead of the generic `Invalid Divide handle
+JSON`. These structural checks also apply to a disabled section, because those shapes
+cannot be bound at all; the disabled exemption covers value validation only.
 
-The gateway runtime itself stays tolerant: a malformed configuration that was
-persisted before this validation (or edited directly in the store) degrades to
-plain load balancing through the runtime activation checks, so an upgrade never
-turns a stored bad rule into a request failure.
+The gateway runtime keeps its tolerance for values: a semantically unusable
+configuration that was persisted before this validation (or edited directly in the
+store) degrades to plain load balancing through the runtime activation checks.
+Structural JSON type errors are rejected when the handle is parsed, as before.
 
 ## Cross-replica operation
 
