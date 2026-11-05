@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -123,6 +124,13 @@ class CanaryConfigValidatorTest {
     @Test
     void testNullStickyIsTreatedAsAbsent() {
         assertNull(CanaryConfigValidator.parseHandle("{\"sticky\":null}").getSticky());
+    }
+
+    @Test
+    void testParseHandleNeverReturnsNull() {
+        assertNotNull(CanaryConfigValidator.parseHandle("{}"));
+        assertNotNull(CanaryConfigValidator.parseHandle("{\"sticky\":null}"));
+        assertThrows(IllegalArgumentException.class, () -> CanaryConfigValidator.parseHandle("null"));
     }
 
     @Test
