@@ -74,6 +74,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -193,7 +194,7 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testSubmit() {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ScheduledThreadPoolExecutor executor = mock(ScheduledThreadPoolExecutor.class);
         ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamUrl("divide-upstream-60")
