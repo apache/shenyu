@@ -629,5 +629,22 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
     public boolean isConnectedToMaster() {
         return isConnectedToMaster;
     }
-    
+
+    /**
+     * Whether initial sync has timed out.
+     *
+     * @return true if timed out
+     */
+    public boolean isInitialSyncTimedOut() {
+        return Objects.nonNull(initialSyncState) && initialSyncState.isTimedOut();
+    }
+
+    /**
+     * Whether initial sync has failed.
+     *
+     * @return true if failed
+     */
+    public boolean isInitialSyncFailed() {
+        return Objects.nonNull(initialSyncState) && initialSyncState.isFailed();
+    }
 }

@@ -23,6 +23,7 @@ public enum InstanceStatusEnum {
      * DELETED.
      */
     DELETED(0, "DELETED"),
+
     /**
      * ONLINE.
      */
@@ -31,7 +32,32 @@ public enum InstanceStatusEnum {
     /**
      * OFFLINE.
      */
-    OFFLINE(2, "OFFLINE");
+    OFFLINE(2, "OFFLINE"),
+
+    /**
+     * INITIALIZING.
+     */
+    INITIALIZING(3, "initializing"),
+
+    /**
+     * READY.
+     */
+    READY(4, "ready"),
+
+    /**
+     * READINESS_FAILED.
+     */
+    READINESS_FAILED(5, "readiness_failed"),
+
+    /**
+     * DRAINING.
+     */
+    DRAINING(6, "draining"),
+
+    /**
+     * UNKNOWN.
+     */
+    UNKNOWN(7, "unknown");
 
     private final int code;
 
@@ -42,14 +68,30 @@ public enum InstanceStatusEnum {
         this.name = name;
     }
 
+    /**
+     * get code.
+     *
+     * @return code
+     */
     public int getCode() {
         return code;
     }
 
+    /**
+     * get name.
+     *
+     * @return name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * get name by code.
+     *
+     * @param code code
+     * @return name
+     */
     public static String getNameByCode(final int code) {
         for (InstanceStatusEnum status : values()) {
             if (status.getCode() == code) {
@@ -57,5 +99,35 @@ public enum InstanceStatusEnum {
             }
         }
         return DELETED.name;
+    }
+
+    /**
+     * from code.
+     *
+     * @param code code
+     * @return instance status enum
+     */
+    public static InstanceStatusEnum fromCode(final int code) {
+        for (InstanceStatusEnum status : values()) {
+            if (status.getCode() == code) {
+                return status;
+            }
+        }
+        return UNKNOWN;
+    }
+
+    /**
+     * from name.
+     *
+     * @param name name
+     * @return instance status enum
+     */
+    public static InstanceStatusEnum fromName(final String name) {
+        for (InstanceStatusEnum status : values()) {
+            if (status.getName().equalsIgnoreCase(name) || status.name().equalsIgnoreCase(name)) {
+                return status;
+            }
+        }
+        return UNKNOWN;
     }
 }
