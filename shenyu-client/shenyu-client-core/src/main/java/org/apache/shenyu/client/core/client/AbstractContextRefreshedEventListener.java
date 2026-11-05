@@ -149,10 +149,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         if (!markRegistered()) {
             return;
         }
-        String discoveryMode = context.getEnvironment()
-                .getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
-        boolean isDiscoveryLocalMode = ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode);
-        if (isDiscoveryLocalMode) {
+        if (isDiscoveryLocalMode(context)) {
             List<String> namespaceIds = this.getNamespace();
             namespaceIds.forEach(namespaceId -> {
                 URIRegisterDTO uriRegisterDTO = buildURIRegisterDTO(context, beans, namespaceId);
@@ -164,6 +161,21 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
         apiModules.forEach((k, v) -> handleApiDoc(v, beans));
+    }
+
+    /**
+     * Check whether the client runs in local discovery mode.
+     * <p>In registry discovery modes (e.g. nacos), upstream instances are sourced
+     * from the registry, so local URI registration must be skipped to avoid
+     * dual upstream registration for the same selector.
+     *
+     * @param context the spring application context
+     * @return true if {@code shenyu.discovery.type} is local (the default)
+     */
+    protected boolean isDiscoveryLocalMode(final ApplicationContext context) {
+        String discoveryMode = context.getEnvironment()
+                .getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        return ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode);
     }
 
     private void handleApiDoc(final Object bean, final Map<String, T> beans) {

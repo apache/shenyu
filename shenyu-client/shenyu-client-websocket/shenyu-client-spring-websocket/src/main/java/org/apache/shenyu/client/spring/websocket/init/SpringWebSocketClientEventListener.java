@@ -120,7 +120,9 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                         .ruleName(getContextPath())
                         .namespaceId(namespaceId)
                         .build());
-                getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+                if (isDiscoveryLocalMode(context)) {
+                    getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+                }
             });
             return Collections.emptyMap();
         }
