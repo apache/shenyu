@@ -34,6 +34,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class AgentMcpExecutionContext {
 
+    private final Set<String> rulePrompts;
+
+    private final Set<String> allowedPrompts;
+
     private final String requestId;
 
     private final String subject;
@@ -174,6 +178,20 @@ public final class AgentMcpExecutionContext {
                             final AgentGatewayResultFilterConfig resultFilters, final Set<String> ruleResources,
                             final Set<String> resourceGrants, final AgentGatewayHttpToolConfig httpTools,
                             final AgentHttpToolInvoker httpInvoker, final String tenant, final Runnable attemptListener) {
+        this(requestId, subject, ruleId, configurationVersion, ruleTools, securityGrants, deadline, resultFilters,
+                ruleResources, resourceGrants, httpTools, httpInvoker, tenant, attemptListener, Set.of(), Set.of());
+    }
+
+    private AgentMcpExecutionContext(final String requestId, final String subject, final String ruleId, final long configurationVersion,
+                                    final Set<String> ruleTools, final Set<String> securityGrants, final Instant deadline,
+                                    final AgentGatewayResultFilterConfig resultFilters, final Set<String> ruleResources,
+                                    final Set<String> resourceGrants, final AgentGatewayHttpToolConfig httpTools,
+                                    final AgentHttpToolInvoker httpInvoker, final String tenant, final Runnable attemptListener,
+                                    final Set<String> rulePrompts, final Set<String> promptGrants) {
+        this.rulePrompts = Set.copyOf(rulePrompts);
+        Set<String> prompts = new HashSet<>(this.rulePrompts);
+        prompts.retainAll(Set.copyOf(promptGrants));
+        allowedPrompts = Set.copyOf(prompts);
         this.tenant = Objects.isNull(tenant) ? null : requireText(tenant, "tenant");
         this.deadline = Objects.requireNonNull(deadline, "deadline");
         this.httpTools = Objects.requireNonNull(httpTools, "httpTools");
@@ -199,6 +217,19 @@ public final class AgentMcpExecutionContext {
 
     public String getRequestId() {
         return requestId;
+    }
+
+    public AgentMcpExecutionContext withPromptPermissions(final Set<String> configured, final Set<String> granted) {
+        return new AgentMcpExecutionContext(requestId, subject, ruleId, configurationVersion, ruleTools, allowedTools, deadline, resultFilters,
+                ruleResources, allowedResources, httpTools, httpInvoker, tenant, attemptListener, configured, granted);
+    }
+
+    public Set<String> getRulePrompts() {
+        return rulePrompts;
+    }
+
+    public Set<String> getAllowedPrompts() {
+        return allowedPrompts;
     }
 
     public Instant getDeadline() {

@@ -26,9 +26,13 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptProvider;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptRegistry;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
@@ -101,16 +105,21 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
     private final DisposableServer server;
 
     KeyAuthMcpTestFixture(final String mode, final boolean principal) {
-        this(mode, principal, null, null);
+        this(mode, principal, null, null, List.of());
+    }
+
+    KeyAuthMcpTestFixture(final String mode, final List<AgentPromptProvider> prompts) {
+        this(mode, false, null, null, prompts);
     }
 
     KeyAuthMcpTestFixture(final String mode, final org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver resolver,
                          final org.springframework.web.server.WebFilter filter) {
-        this(mode, false, resolver, filter);
+        this(mode, false, resolver, filter, List.of());
     }
 
     private KeyAuthMcpTestFixture(final String mode, final boolean principal,
-                                 final org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver resolver, final org.springframework.web.server.WebFilter filter) {
+                                 final org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver resolver, final org.springframework.web.server.WebFilter filter,
+                                 final List<AgentPromptProvider> prompts) {
         ConfigurableApplicationContext application = mock(ConfigurableApplicationContext.class);
         ShenyuConfig config = new ShenyuConfig();
         config.getSelectorMatchCache().getCache().setEnabled(false);
@@ -121,11 +130,13 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
         keyData = registerPlugin(keyPlugin.named());
         configureKeys();
         gateway = new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(
-                List.of(tool("read-a"), tool("read-b"), tool("blocked"), tool("outside"))), "test", "1"),
+                List.of(tool("read-a"), tool("read-b"), tool("blocked"), tool("outside"))), "test", "1", null,
+                new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, new AgentPromptRegistry(prompts)),
                 java.util.Objects.isNull(resolver) ? new KeyAuthMcpSecurityResolver(properties) : resolver));
         registerPlugin(gateway.named());
         gatewayRule = rule(selector(gateway.named(), "gateway-selector", true), "gateway-rule",
-                "{\"trafficType\":\"mcp\",\"mcp\":{\"responseMode\":\"" + mode + "\",\"allowedTools\":[\"read-a\",\"read-b\",\"blocked\"]}}");
+                "{\"trafficType\":\"mcp\",\"mcp\":{\"responseMode\":\"" + mode + "\",\"allowedTools\":[\"read-a\",\"read-b\",\"blocked\"]"
+                + (prompts.isEmpty() ? "" : ",\"allowedPrompts\":[\"template-a\",\"template-b\",\"blocked\"]") + "}}");
         gatewayHandler.handlerRule(gatewayRule);
         BaseDataCache.getInstance().cacheRuleData(gatewayRule);
         WebHttpHandlerBuilder builder = WebHttpHandlerBuilder.webHandler(exchange -> execute(principal
@@ -260,6 +271,8 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
                 binding.setSubject("service");
                 binding.setToolGrants(Set.of("read-" + tenant, "blocked", "outside"));
                 binding.setToolDenials(Set.of("blocked"));
+                binding.setPromptGrants(Set.of("template-" + tenant, "blocked"));
+                binding.setPromptDenials(Set.of("blocked"));
                 bindings.add(binding);
             }
         }

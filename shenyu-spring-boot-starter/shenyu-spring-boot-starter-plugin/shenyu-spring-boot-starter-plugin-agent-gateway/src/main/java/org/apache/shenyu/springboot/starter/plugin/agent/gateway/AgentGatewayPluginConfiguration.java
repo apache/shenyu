@@ -26,6 +26,8 @@ import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptProvider;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptRegistry;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
@@ -74,6 +76,7 @@ public class AgentGatewayPluginConfiguration {
      * @param resolvers trusted identity adapters
      * @param catalogs optional, unambiguous managed remote catalog
      * @param resources explicitly registered local resources
+     * @param promptProviders explicitly registered local prompts
      * @param tracers optional tracing bridge
      * @param terminalObservers optional application-owned terminal event sink
      * @param aiObservers optional application-owned AI attempt and terminal sink
@@ -85,6 +88,7 @@ public class AgentGatewayPluginConfiguration {
     @Bean
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
                                            final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentResourceProvider> resources,
+                                           final ObjectProvider<AgentPromptProvider> promptProviders,
                                            final ObjectProvider<AgentMcpCallTracer> tracers,
                                            final ObjectProvider<AgentMcpResourceAdmission.ResourceAdmissionController> admissions,
                                            final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
@@ -111,6 +115,7 @@ public class AgentGatewayPluginConfiguration {
             throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
         }
         return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources, admissions.getIfAvailable(),
+                new AgentPromptRegistry(promptProviders.orderedStream().toList()),
                 terminalObservers.getIfAvailable(), aiObservers.getIfAvailable(),
                 environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
@@ -119,6 +124,7 @@ public class AgentGatewayPluginConfiguration {
                                       final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
                                       final ObjectProvider<AgentResourceProvider> resources,
                                       final AgentMcpResourceAdmission.ResourceAdmissionController admission,
+                                      final AgentPromptRegistry prompts,
                                       final AgentMcpTerminalObserver terminalObserver, final AiCallObserver aiObserver,
                                       final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
@@ -131,7 +137,7 @@ public class AgentGatewayPluginConfiguration {
                 java.util.Objects.isNull(catalog) ? AgentMcpResourceAdmission.NOOP : catalog.admission());
         AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
                 AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry,
-                effectiveAdmission);
+                effectiveAdmission, prompts);
         return new AgentGatewayPlugin(new AgentMcpHttpHandler(dispatcher, resolver, tracer, terminalObserver),
                 llmIdentityEnabled ? resolver : null, aiObserver);
     }
@@ -203,7 +209,8 @@ public class AgentGatewayPluginConfiguration {
                 Path.of(environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.credentials-directory"))));
         return new ManagedRemoteMcpCatalog(allowed,
                 tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver, admission,
-                environment.getProperty("shenyu.plugins.agent.gateway.aggregation.resources-enabled", Boolean.class, false));
+                environment.getProperty("shenyu.plugins.agent.gateway.aggregation.resources-enabled", Boolean.class, false),
+                environment.getProperty("shenyu.plugins.agent.gateway.aggregation.prompts-enabled", Boolean.class, false));
     }
 
     private static Mono<Boolean> keyAuthenticationPresent(final org.springframework.web.server.ServerWebExchange exchange) {

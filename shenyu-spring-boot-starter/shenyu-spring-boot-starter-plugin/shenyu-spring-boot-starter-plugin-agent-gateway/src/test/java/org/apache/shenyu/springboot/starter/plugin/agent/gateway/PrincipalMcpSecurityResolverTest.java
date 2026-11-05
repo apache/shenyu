@@ -187,6 +187,27 @@ class PrincipalMcpSecurityResolverTest {
         return properties;
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"jwt", "opaque-token", "oauth2-login"})
+    void promptScopesAndClaimsKeepIndependentDenials(final String source) {
+        PrincipalMcpSecurityProperties properties = policy(source);
+        PrincipalMcpSecurityProperties.ScopeMapping mapping = mapping("templates:read");
+        mapping.setPromptGrants(Set.of("scopePrompt", "blocked"));
+        mapping.setPromptDenials(Set.of("claimPrompt"));
+        properties.setScopeMappings(List.of(mapping));
+        AgentMcpSecurityResolver resolver = resolver(properties);
+        Map<String, Object> claims = claims();
+        claims.put("scope", "templates:read");
+        claims.put("prompt_grants", List.of("claimPrompt"));
+        claims.put("prompt_denies", List.of("blocked"));
+        AgentMcpIdentity identity = resolve(resolver, authentication(source, claims));
+        assertEquals(Set.of("scopePrompt"), identity.getPromptGrants());
+        assertEquals(Set.of("claimPrompt", "blocked"), identity.getPromptDenials());
+        assertEquals(Set.of("read"), identity.getToolGrants());
+        claims.put("prompt_grants", List.of("*"));
+        assertNull(resolve(resolver, authentication(source, claims)));
+    }
+
     private static PrincipalMcpSecurityProperties.ScopeMapping mapping(final String scope) {
         PrincipalMcpSecurityProperties.ScopeMapping mapping = new PrincipalMcpSecurityProperties.ScopeMapping();
         mapping.setScope(scope);

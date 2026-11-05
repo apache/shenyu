@@ -37,6 +37,10 @@ public final class AgentMcpIdentity {
 
     private final String tenant;
 
+    private final Set<String> promptGrants;
+
+    private final Set<String> promptDenials;
+
     /**
      * Create a legacy unscoped identity without a tenant assignment.
      *
@@ -71,6 +75,11 @@ public final class AgentMcpIdentity {
     }
 
     private AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> toolDenials, final Set<String> resourceGrants, final String tenant) {
+        this(subject, toolGrants, toolDenials, resourceGrants, tenant, Set.of(), Set.of());
+    }
+
+    private AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> toolDenials, final Set<String> resourceGrants,
+                             final String tenant, final Set<String> promptGrants, final Set<String> promptDenials) {
         if (Objects.requireNonNull(subject, "subject").isBlank()) {
             throw new IllegalArgumentException("subject must not be blank");
         }
@@ -84,6 +93,26 @@ public final class AgentMcpIdentity {
         Set<String> effective = new HashSet<>(Set.copyOf(toolGrants));
         effective.removeAll(this.toolDenials);
         this.toolGrants = Set.copyOf(effective);
+        Set<String> prompts = new HashSet<>(Set.copyOf(promptGrants));
+        this.promptDenials = Set.copyOf(promptDenials);
+        if (prompts.size() > 32 || this.promptDenials.size() > 32
+                || java.util.stream.Stream.concat(prompts.stream(), this.promptDenials.stream()).anyMatch(name -> !name.matches("[A-Za-z0-9_.-]{1,128}"))) {
+            throw new IllegalArgumentException("Prompt permissions must be bounded exact names");
+        }
+        prompts.removeAll(this.promptDenials);
+        this.promptGrants = Set.copyOf(prompts);
+    }
+
+    public AgentMcpIdentity withPromptPermissions(final Set<String> grants, final Set<String> denials) {
+        return new AgentMcpIdentity(subject, toolGrants, toolDenials, resourceGrants, tenant, grants, denials);
+    }
+
+    public Set<String> getPromptGrants() {
+        return promptGrants;
+    }
+
+    public Set<String> getPromptDenials() {
+        return promptDenials;
     }
 
     public String getSubject() {

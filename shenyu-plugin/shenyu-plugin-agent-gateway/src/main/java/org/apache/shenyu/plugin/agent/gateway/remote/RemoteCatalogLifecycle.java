@@ -58,6 +58,8 @@ public final class RemoteCatalogLifecycle {
 
     private final boolean resourcesEnabled;
 
+    private final boolean promptsEnabled;
+
     private final int refreshConcurrency;
 
     private Generation current;
@@ -101,14 +103,22 @@ public final class RemoteCatalogLifecycle {
      * @param resourcesEnabled opt in to resource discovery
      */
     public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled) {
-        this(maxGenerations, refreshConcurrency, resourcesEnabled, new Object());
+        this(maxGenerations, refreshConcurrency, resourcesEnabled, false, new Object());
+    }
+
+    public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled, final boolean promptsEnabled) {
+        this(maxGenerations, refreshConcurrency, resourcesEnabled, promptsEnabled, new Object());
     }
 
     RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final Object lock) {
-        this(maxGenerations, refreshConcurrency, false, lock);
+        this(maxGenerations, refreshConcurrency, false, false, lock);
     }
 
     RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled, final Object lock) {
+        this(maxGenerations, refreshConcurrency, resourcesEnabled, false, lock);
+    }
+
+    RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled, final boolean promptsEnabled, final Object lock) {
         if (maxGenerations < 2 || maxGenerations > 16) {
             throw new IllegalArgumentException("Generation budget");
         }
@@ -118,6 +128,7 @@ public final class RemoteCatalogLifecycle {
         }
         this.maxGenerations = maxGenerations;
         this.resourcesEnabled = resourcesEnabled;
+        this.promptsEnabled = promptsEnabled;
         this.refreshConcurrency = refreshConcurrency;
         this.lock = Objects.requireNonNull(lock, "lock");
     }
@@ -280,7 +291,9 @@ public final class RemoteCatalogLifecycle {
                                     ? new RemoteResourceDirectory.Target(config.name(), client::listResources, client::listResourceTemplates, client::readResource) : null;
                             Function<String, Mono<McpSchema.ListToolsResult>> tools = Objects.nonNull(handshake.capabilities().tools())
                                     ? client::listTools : ignored -> Mono.just(new McpSchema.ListToolsResult(List.of(), null));
-                            return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources);
+                            RemotePromptDirectory.Target prompts = promptsEnabled && Objects.nonNull(handshake.capabilities().prompts())
+                                    ? new RemotePromptDirectory.Target(config.name(), client::listPrompts, client::getPrompt) : null;
+                            return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources, prompts);
                         });
                 }),
                 concurrency

@@ -75,6 +75,14 @@ public interface AgentMcpRemoteCatalog {
          */
         Map<String, ObjectNode> definitions();
 
+        default Map<String, ObjectNode> promptDefinitions() {
+            return Map.of();
+        }
+
+        default Mono<ObjectNode> getPrompt(final String name, final Map<String, String> arguments, final AgentMcpExecutionContext context) {
+            return Mono.error(new SecurityException("Prompt is not available"));
+        }
+
         /**
          * Return request-owned resource metadata for this same pinned generation.
          * @return namespaced resource definitions, empty for tools-only adapters

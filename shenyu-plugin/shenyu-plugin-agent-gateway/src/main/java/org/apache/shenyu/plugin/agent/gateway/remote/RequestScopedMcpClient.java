@@ -162,6 +162,17 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     @Override
+    public Mono<ObjectNode> listPrompts(final String cursor) {
+        return ready().then(Mono.defer(() -> request("prompts/list", Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false)));
+    }
+
+    @Override
+    public Mono<ObjectNode> getPrompt(final String name, final Map<String, String> arguments) {
+        Map<String, String> captured = Map.copyOf(arguments);
+        return ready().then(Mono.defer(() -> request("prompts/get", Map.of("name", name, "arguments", captured), false)));
+    }
+
+    @Override
     public Mono<ObjectNode> listResourceTemplates(final String cursor) {
         return ready().then(Mono.defer(() -> request("resources/templates/list", Objects.isNull(cursor) ? Map.of() : Map.of("cursor", cursor), false)));
     }

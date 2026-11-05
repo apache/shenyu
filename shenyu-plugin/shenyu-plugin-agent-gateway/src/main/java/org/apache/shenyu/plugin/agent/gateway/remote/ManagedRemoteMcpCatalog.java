@@ -185,13 +185,27 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)));
     }
 
+    public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
+                                   final RemoteServiceCredentialResolver credentials,
+                                   final AgentMcpResourceAdmission.ResourceAdmissionController admission,
+                                   final boolean resourcesEnabled, final boolean promptsEnabled) {
+        this(allowedEndpoints, localNames, credentials, resourcesEnabled, promptsEnabled,
+                Schedulers.newBoundedElastic(1, 16, "agent-mcp-config"), Schedulers.newSingle("agent-mcp-refresh"), System::nanoTime, admission);
+    }
+
     private ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
                                     final boolean resourcesEnabled, final Scheduler scheduler, final Scheduler timer, final LongSupplier monotonicTime,
+                                    final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
+        this(allowedEndpoints, localNames, credentials, resourcesEnabled, false, scheduler, timer, monotonicTime, admission);
+    }
+
+    ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
+                            final boolean resourcesEnabled, final boolean promptsEnabled, final Scheduler scheduler, final Scheduler timer, final LongSupplier monotonicTime,
                                     final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
         this.admission = Objects.requireNonNull(admission, "admission");
         try {
             // Revision changes, withdrawal and final publication share the same monitor.
-            lifecycle = new RemoteCatalogLifecycle(3, AgentGatewayAggregationConfig.DEFAULT_REFRESH_CONCURRENCY, resourcesEnabled, this);
+            lifecycle = new RemoteCatalogLifecycle(3, AgentGatewayAggregationConfig.DEFAULT_REFRESH_CONCURRENCY, resourcesEnabled, promptsEnabled, this);
             this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
             this.timer = Objects.requireNonNull(timer, "timer");
             this.monotonicTime = Objects.requireNonNull(monotonicTime, "monotonicTime");
@@ -595,6 +609,17 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         @Override
         public Map<String, ObjectNode> resourceDefinitions() {
             return directory.resources().definitions();
+        }
+
+        @Override
+        public Map<String, ObjectNode> promptDefinitions() {
+            return directory.prompts().definitions();
+        }
+
+        @Override
+        public Mono<ObjectNode> getPrompt(final String name, final Map<String, String> arguments, final AgentMcpExecutionContext context) {
+            return directory.prompts().get(name, context.getAllowedPrompts(), arguments)
+                    .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("deadline", context.getDeadline()))));
         }
 
         @Override

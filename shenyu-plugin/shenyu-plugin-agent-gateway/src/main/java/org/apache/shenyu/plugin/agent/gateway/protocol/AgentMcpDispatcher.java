@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptRegistry;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolArgumentException;
@@ -57,6 +58,10 @@ public final class AgentMcpDispatcher {
     private final AgentMcpResourceDispatcher resources;
 
     private final AgentResourceRegistry resourceRegistry;
+
+    private final AgentPromptRegistry promptRegistry;
+
+    private final AgentMcpPromptDispatcher prompts;
 
     private final String serverName;
 
@@ -110,9 +115,28 @@ public final class AgentMcpDispatcher {
     public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion,
                               final AgentMcpRemoteCatalog remoteCatalog, final AgentResourceRegistry resourceRegistry,
                               final AgentMcpResourceAdmission admission) {
+        this(registry, serverName, serverVersion, remoteCatalog, resourceRegistry, admission,
+                new AgentPromptRegistry(List.of()));
+    }
+
+    /**
+     * Compose independent tool, resource and prompt registries on the shared admission lifecycle.
+     * @param registry explicitly registered tools
+     * @param serverName gateway identity
+     * @param serverVersion gateway version
+     * @param remoteCatalog optional managed directory
+     * @param resourceRegistry explicitly registered resources
+     * @param admission shared bounded admission
+     * @param promptRegistry explicitly registered prompts
+     */
+    public AgentMcpDispatcher(final AgentToolRegistry registry, final String serverName, final String serverVersion,
+                              final AgentMcpRemoteCatalog remoteCatalog, final AgentResourceRegistry resourceRegistry,
+                              final AgentMcpResourceAdmission admission, final AgentPromptRegistry promptRegistry) {
         this.registry = Objects.requireNonNull(registry, "registry");
         this.remoteCatalog = remoteCatalog;
         this.resourceRegistry = Objects.requireNonNull(resourceRegistry, "resourceRegistry");
+        this.promptRegistry = Objects.requireNonNull(promptRegistry, "promptRegistry");
+        prompts = new AgentMcpPromptDispatcher(promptRegistry);
         this.resources = new AgentMcpResourceDispatcher(resourceRegistry);
         this.admission = Objects.requireNonNull(admission, "admission");
         if (Objects.requireNonNull(serverName, "serverName").isBlank() || Objects.requireNonNull(serverVersion, "serverVersion").isBlank()) {
@@ -145,9 +169,9 @@ public final class AgentMcpDispatcher {
                 AgentMcpExecutionContext bound = new AgentMcpExecutionContext(context.getRequestId(), context.getSubject(), context.getRuleId(),
                         context.getConfigurationVersion(), context.getRuleTools(), context.getAllowedTools(), context.getDeadline(), context.getResultFilters(),
                         context.getRuleResources(), context.getAllowedResources(), AgentGatewayHttpToolConfig.empty(), null,
-                        context.getTenant().orElse(null), context::notifyAttempt);
+                        context.getTenant().orElse(null), context::notifyAttempt).withPromptPermissions(context.getRulePrompts(), context.getAllowedPrompts());
                 return new AgentMcpDispatcher(captured, serverName, serverVersion, remoteCatalog,
-                        resourceRegistry, Objects.isNull(remoteCatalog) ? admission : remoteCatalog.admission()).dispatch(request, () -> bound);
+                        resourceRegistry, Objects.isNull(remoteCatalog) ? admission : remoteCatalog.admission(), promptRegistry).dispatch(request, () -> bound);
             }
             if (Objects.nonNull(remoteCatalog)) {
                 return remoteCatalog.withSnapshot(snapshot -> routeWithRemote(request, context, snapshot))
@@ -157,6 +181,9 @@ public final class AgentMcpDispatcher {
                 return Mono.error(failure(request, 500, -32603, "Configured tool is not registered"));
             }
             resources.validate(context, null);
+            if (request.getMethod().startsWith("prompts/")) {
+                return prompt(request, context, null).contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
+            }
             if (request.getMethod().startsWith("resources/")) {
                 return resource(request, context, null).contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
             }
@@ -199,6 +226,9 @@ public final class AgentMcpDispatcher {
                                            final AgentMcpRemoteCatalog.Snapshot snapshot) {
         Map<String, ObjectNode> definitions = snapshot.definitions();
         resources.validate(context, snapshot);
+        if (request.getMethod().startsWith("prompts/")) {
+            return prompt(request, context, snapshot);
+        }
         for (String name : definitions.keySet()) {
             if (registry.isRegistered(name)) {
                 return Mono.error(failure(request, 500, -32603, "Tool namespace collision"));
@@ -263,6 +293,9 @@ public final class AgentMcpDispatcher {
                 discovery.putArray("supportedVersions").add(AgentMcpRequestParser.VERSION);
                 ObjectNode capabilities = discovery.putObject("capabilities");
                 capabilities.putObject("tools");
+                if (!context.getRulePrompts().isEmpty()) {
+                    capabilities.putObject("prompts");
+                }
                 if (!context.getRuleResources().isEmpty()) {
                     capabilities.putObject("resources");
                 }
@@ -299,6 +332,17 @@ public final class AgentMcpDispatcher {
             }
             return response(request, result);
         }).onErrorMap(SecurityException.class, error -> failure(request, 403, -32002, "Resource is not available"));
+    }
+
+    private Mono<ObjectNode> prompt(final AgentMcpRequest request, final AgentMcpExecutionContext context, final AgentMcpRemoteCatalog.Snapshot snapshot) {
+        return prompts.dispatch(request, context, snapshot, Objects.isNull(remoteCatalog) ? admission : remoteCatalog.admission()).map(payload -> {
+            ObjectNode result = payload.deepCopy();
+            result.setAll(complete());
+            if ("prompts/list".equals(request.getMethod())) {
+                cacheMetadata(result);
+            }
+            return response(request, result);
+        });
     }
 
     private Mono<ObjectNode> call(final AgentMcpRequest request, final AgentMcpExecutionContext context) {

@@ -18,6 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptDefinition;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptProvider;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptRegistry;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
@@ -75,6 +78,20 @@ class AgentGatewayPluginConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(AgentGatewayPluginConfiguration.class);
+
+    @Test
+    void shouldAssembleExplicitPromptsWithoutInferringToolPermission() {
+        AgentPromptProvider provider = mock(AgentPromptProvider.class);
+        when(provider.definition()).thenReturn(new AgentPromptDefinition(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode().put("name", "summary")));
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true").withBean(AgentPromptProvider.class, () -> provider)
+                .run(context -> {
+                    assertNull(context.getStartupFailure());
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    AgentMcpDispatcher dispatcher = (AgentMcpDispatcher) ReflectionTestUtils.getField(handler, "dispatcher");
+                    AgentPromptRegistry prompts = (AgentPromptRegistry) ReflectionTestUtils.getField(dispatcher, "promptRegistry");
+                    assertEquals(Set.of("summary"), prompts.definitions().keySet());
+                });
+    }
 
     @Test
     void llmIdentityIsOptInAndRequiresOneAuthority() {

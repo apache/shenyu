@@ -75,6 +75,14 @@ public final class AgentGatewayRuleHandleValidatorTest {
     }
 
     @Test
+    public void testPromptPermissionsShareStrictGatewayValidation() {
+        assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedPrompts\":[\"first.summary\"]}}"));
+        for (String value : new String[] {"null", "[\"*\"]", "[\"first.summary\",\"first.summary\"]", "[\"bad/name\"]"}) {
+            assertThrows(ShenyuAdminException.class, () -> AgentGatewayRuleHandleValidator.validate("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedPrompts\":" + value + "}}"));
+        }
+    }
+
+    @Test
     public void testValidConfiguredHttpTool() {
         assertDoesNotThrow(() -> AgentGatewayRuleHandleValidator.validate("""
                 {"trafficType":"mcp","mcp":{"allowedTools":["lookup"],"httpTools":{"lookup":{

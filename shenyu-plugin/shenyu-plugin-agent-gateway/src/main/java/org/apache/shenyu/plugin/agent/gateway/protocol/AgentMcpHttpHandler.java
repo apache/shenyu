@@ -140,13 +140,13 @@ public final class AgentMcpHttpHandler {
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(), identity.getSubject(),
                                         traffic.getRuleId(), configurationVersion, config.getAllowedTools(), identity.getToolGrants(), deadline, config.getResultFilters(),
                                         config.getAllowedResources(), identity.getResourceGrants(), config.getHttpTools(), httpInvoker,
-                                        identity.getTenant().orElse(null)))
+                                        identity.getTenant().orElse(null)).withPromptPermissions(config.getAllowedPrompts(), identity.getPromptGrants()))
                                         .contextWrite(observation::traceContext)
                                         .contextWrite(context -> context.put(AgentRuntimeMetrics.KEY, metrics))
                                         .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
                                                 traffic.toRequestContext(configurationVersion)
                                                         .withIdentity(identity.getTenant().orElse(null), identity.getSubject())
-                                                        .withTarget("tools/call".equals(request.getMethod())
+                                                        .withTarget(("tools/call".equals(request.getMethod()) || "prompts/get".equals(request.getMethod()))
                                                                 ? request.getParams().path("name").textValue() : null,
                                                                 request.getMethod(), AgentMcpRequestParser.VERSION)));
                             }))
