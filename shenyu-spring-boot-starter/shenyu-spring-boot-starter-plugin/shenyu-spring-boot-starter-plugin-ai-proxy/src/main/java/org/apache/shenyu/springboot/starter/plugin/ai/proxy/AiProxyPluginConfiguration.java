@@ -20,7 +20,6 @@ package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
 import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 
-import io.netty.channel.ChannelOption;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
