@@ -79,7 +79,6 @@ class McpContractRegressionFixtureTest {
     void testCombinedDirectionAndWitnesses() throws IOException {
         JsonNode before = onlyTool(read("before.tools-list.json"));
         JsonNode after = onlyTool(read("combined.after.tools-list.json"));
-        JsonNode expected = read("expected/compatibility.json");
 
         assertEquals(before.path("inputSchema").path("properties"),
                 after.path("inputSchema").path("properties"));
@@ -90,6 +89,7 @@ class McpContractRegressionFixtureTest {
         assertFalse(has(before.path("outputSchema").path("properties").path("status").path("enum"), "paused"));
         assertTrue(has(after.path("outputSchema").path("properties").path("status").path("enum"), "paused"));
 
+        JsonNode expected = read("expected/compatibility.json");
         for (JsonNode witness : expected.path("witnesses")) {
             String schema = witness.path("schema").asText();
             JsonNode instance = witness.path("instance");
@@ -113,11 +113,11 @@ class McpContractRegressionFixtureTest {
     void testAnnotationOnlyIsMetadataReview() throws IOException {
         JsonNode before = onlyTool(read("before.tools-list.json"));
         JsonNode after = onlyTool(read("annotation_only.after.tools-list.json"));
-        JsonNode expected = read("expected/compatibility.json").path("annotation_only");
         assertEquals(before.path("inputSchema"), after.path("inputSchema"));
         assertEquals(before.path("outputSchema"), after.path("outputSchema"));
         assertTrue(before.path("annotations").path("readOnlyHint").asBoolean());
         assertFalse(after.path("annotations").path("readOnlyHint").asBoolean());
+        JsonNode expected = read("expected/compatibility.json").path("annotation_only");
         assertTrue(expected.path("metadata_review_required").asBoolean());
     }
 
