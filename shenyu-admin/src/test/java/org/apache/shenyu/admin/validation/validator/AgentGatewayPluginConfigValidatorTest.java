@@ -18,11 +18,13 @@
 package org.apache.shenyu.admin.validation.validator;
 
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class AgentGatewayPluginConfigValidatorTest {
 
@@ -37,5 +39,32 @@ class AgentGatewayPluginConfigValidatorTest {
     void rejectsInvalidAgentConfigButDoesNotChangeOtherPlugins(final String source) {
         assertThrows(ShenyuAdminException.class, () -> AgentGatewayPluginConfigValidator.validate("agentGateway", source));
         assertDoesNotThrow(() -> AgentGatewayPluginConfigValidator.validate("aiProxy", source));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 8})
+    void acceptsTrustedRefreshConcurrencyWithCompleteTimingPolicy(final int concurrency) {
+        String source = "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshConcurrency\":" + concurrency + ",\"refreshPolicy\":{"
+                + "\"refreshIntervalMs\":60000,\"initialBackoffMs\":1000,\"maxBackoffMs\":30000,\"maxRetries\":3}}}";
+        assertDoesNotThrow(() -> AgentGatewayPluginConfigValidator.validate("agentGateway", source));
+        assertEquals(concurrency, AgentGatewayAggregationConfig.parsePluginConfig(source).refreshConcurrency());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "9", "null", "\"2\"", "2.0", "4294967297"})
+    void adminAndRuntimeRejectTheSameInvalidConcurrency(final String value) {
+        String source = "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshConcurrency\":" + value + "}}";
+        assertThrows(ShenyuAdminException.class, () -> AgentGatewayPluginConfigValidator.validate("agentGateway", source));
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(source));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "{}", "{\"refreshIntervalMs\":60000,\"initialBackoffMs\":1000,\"maxBackoffMs\":30000,\"maxRetries\":9}",
+        "{\"refreshIntervalMs\":60000,\"initialBackoffMs\":3000,\"maxBackoffMs\":1000,\"maxRetries\":3}"})
+    void adminAndRuntimeRejectTheSameInvalidRefreshPolicy(final String policy) {
+        String source = "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshPolicy\":" + policy + "}}";
+        ShenyuAdminException error = assertThrows(ShenyuAdminException.class, () -> AgentGatewayPluginConfigValidator.validate("agentGateway", source));
+        assertEquals("Invalid Agent Gateway aggregation configuration", error.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(source));
     }
 }

@@ -144,8 +144,10 @@ public final class AgentMcpHttpHandler {
                                         .contextWrite(observation::traceContext)
                                         .contextWrite(context -> context.put(AgentRuntimeMetrics.KEY, metrics))
                                         .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
-                                                traffic.toRequestContext(configurationVersion).withIdentity(identity.getTenant().orElse(null), identity.getSubject())
-                                                        .withTarget("tools/call".equals(request.getMethod()) ? request.getParams().path("name").textValue() : null,
+                                                traffic.toRequestContext(configurationVersion)
+                                                        .withIdentity(identity.getTenant().orElse(null), identity.getSubject())
+                                                        .withTarget("tools/call".equals(request.getMethod())
+                                                                ? request.getParams().path("name").textValue() : null,
                                                                 request.getMethod(), AgentMcpRequestParser.VERSION)));
                             }))
                     .flatMap(response -> {

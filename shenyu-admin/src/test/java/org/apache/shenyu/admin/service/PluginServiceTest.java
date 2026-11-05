@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -60,10 +62,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * Test cases for PluginService.
@@ -97,6 +103,55 @@ public final class PluginServiceTest {
         publishEvent();
         testCreate();
         testUpdate();
+    }
+
+    @Test
+    public void invalidCatalogConcurrencyCannotReachPersistenceOrPublication() {
+        PluginDTO request = buildPluginDTO(null, "agentGateway");
+        request.setConfig("{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshConcurrency\":9}}");
+        assertThrows(ShenyuAdminException.class, () -> pluginService.createOrUpdate(request));
+        verifyNoInteractions(pluginMapper, modelDataEventPublisher);
+    }
+
+    @Test
+    public void invalidCatalogPolicyCannotBeImported() {
+        PluginDTO request = buildPluginDTO(null, "agentGateway");
+        request.setConfig("{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshPolicy\":null}}");
+        when(pluginMapper.selectAll()).thenReturn(List.of());
+        assertThrows(ShenyuAdminException.class, () -> pluginService.importData(List.of(request), null));
+        verify(pluginMapper, never()).insertSelective(any());
+        verify(pluginMapper, never()).updateSelective(any());
+        verifyNoInteractions(modelDataEventPublisher);
+    }
+
+    @Test
+    public void storedPluginIdentityPreventsBypassingCatalogValidationOnUpdate() {
+        PluginDO before = PluginDO.buildPluginDO(buildPluginDTO("catalog", "agentGateway"));
+        when(pluginMapper.selectById("catalog")).thenReturn(before);
+        when(pluginMapper.nameExistedExclude(eq("aiProxy"), any())).thenReturn(null);
+        PluginDTO request = buildPluginDTO("catalog", "aiProxy");
+        request.setConfig("{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshConcurrency\":0}}");
+        ShenyuAdminException error = assertThrows(ShenyuAdminException.class, () -> pluginService.createOrUpdate(request));
+        assertEquals("Invalid Agent Gateway aggregation configuration", error.getMessage());
+        verify(pluginMapper).selectById("catalog");
+        verify(pluginMapper, never()).updateSelective(any());
+        verifyNoInteractions(modelDataEventPublisher);
+    }
+
+    @Test
+    public void validCatalogPolicyIsPersistedAndPublishedWithoutRewriting() {
+        PluginDO before = PluginDO.buildPluginDO(buildPluginDTO("catalog", "agentGateway"));
+        when(pluginMapper.selectById("catalog")).thenReturn(before);
+        when(pluginMapper.nameExistedExclude(eq("agentGateway"), any())).thenReturn(null);
+        when(pluginMapper.updateSelective(any())).thenReturn(1);
+        PluginDTO request = buildPluginDTO("catalog", "agentGateway");
+        request.setConfig("{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshConcurrency\":2,\"refreshPolicy\":{"
+                + "\"refreshIntervalMs\":60000,\"initialBackoffMs\":1000,\"maxBackoffMs\":30000,\"maxRetries\":3}}}");
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, pluginService.createOrUpdate(request));
+        ArgumentCaptor<PluginDO> stored = ArgumentCaptor.forClass(PluginDO.class);
+        verify(pluginMapper).updateSelective(stored.capture());
+        assertEquals(request.getConfig(), stored.getValue().getConfig());
+        verify(modelDataEventPublisher).onUpdated(stored.getValue(), before);
     }
 
     @Test
