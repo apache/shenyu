@@ -83,13 +83,13 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         if (CollectionUtils.isEmpty(existList)) {
             canAddList = addList;
         } else {
-            List<DivideUpstream> diffList = addList.stream().filter(upstream -> !existList.contains(upstream)).collect(Collectors.toList());
+            List<DivideUpstream> diffList = addList.stream().filter(upstream -> existList.stream().noneMatch(existing -> sameUpstreamIdentity(existing, upstream))).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
             }
             List<DivideUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
-                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+                    || existList.stream().anyMatch(e -> sameUpstreamIdentity(e, upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffStatusList)) {
                 canAddList.addAll(diffStatusList);
                 syncUpstreamStatus(existList, diffStatusList);
@@ -110,12 +110,17 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
 
     @Override
     public String offline(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return executeRegistrationTransaction(() -> offlineInTransaction(selectorName, uriList, namespaceId));
+    }
+
+    private String offlineInTransaction(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         final SelectorService selectorService = getSelectorService();
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }
+        assertLegacyUriWrite(selectorDO.getId(), uriList);
         List<URIRegisterDTO> validUriList = uriList.stream()
                 .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
                 .collect(Collectors.toList());
@@ -124,13 +129,13 @@ public class ShenyuClientRegisterDivideServiceImpl extends AbstractContextPathRe
         if (CollectionUtils.isEmpty(existList)) {
             return Constants.SUCCESS;
         }
-        existList.removeAll(needToRemove);
+        existList.removeIf(existing -> needToRemove.stream().anyMatch(removed -> sameUpstreamIdentity(existing, removed)));
         final String handler = GsonUtils.getInstance().toJson(existList);
         selectorDO.setHandle(handler);
         SelectorData selectorData = selectorService.buildByNameAndPluginNameAndNamespaceId(selectorName, PluginNameAdapter.rpcTypeAdapter(rpcType()), namespaceId);
         selectorData.setHandle(handler);
         // update db
-        selectorService.updateSelective(selectorDO);
+        selectorService.updateSelectiveForRegistration(selectorDO);
         // publish change event.
         doRemoveAndSendEvent(needToRemove, selectorDO, pluginName);
         return Constants.SUCCESS;
