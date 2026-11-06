@@ -217,6 +217,15 @@
   aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
   provider table and migration steps. (#7578)
 
+- The gateway now refuses to start when `shenyu.httpclient.strategy` holds a value that no http
+  client plugin is selected for. The property accepts `netty` and `webClient`, matched
+  case-insensitively the same way the plugin selection conditions match, and keeps defaulting to
+  `netty` when it is absent. A value that is present but empty is rejected as well, because the
+  plugin selection conditions cannot match it either. Before this change a mistyped value such as
+  `web-client` matched neither condition, so the gateway started successfully without any http
+  client plugin and every proxied request failed without a startup hint. Deployments that
+  currently run with an unsupported value have to correct it before upgrading. (#8321)
+
 ## [v2.7.0]- 2024-12-23
 
 ### ✨ New Features

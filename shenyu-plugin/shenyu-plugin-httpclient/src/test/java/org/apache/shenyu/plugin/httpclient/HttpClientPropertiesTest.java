@@ -23,6 +23,8 @@ import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.ResourceUtils;
 import reactor.netty.resources.ConnectionProvider;
 
@@ -32,7 +34,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -171,7 +175,7 @@ public class HttpClientPropertiesTest {
         httpClientProperties.setReaderIdleTime(1);
         httpClientProperties.setReadTimeout(1);
         httpClientProperties.setResponseTimeout(1L);
-        httpClientProperties.setStrategy("strategy");
+        httpClientProperties.setStrategy("netty");
         httpClientProperties.setWiretap(true);
         httpClientProperties.setWriterIdleTime(1);
         httpClientProperties.setWriteTimeout(1);
@@ -182,9 +186,66 @@ public class HttpClientPropertiesTest {
         Assertions.assertEquals(httpClientProperties.getReaderIdleTime(), 1);
         Assertions.assertEquals(httpClientProperties.getReadTimeout(), 1);
         Assertions.assertEquals(httpClientProperties.getResponseTimeout(), Duration.ofMillis(1L));
-        Assertions.assertEquals(httpClientProperties.getStrategy(), "strategy");
+        Assertions.assertEquals(httpClientProperties.getStrategy(), "netty");
         Assertions.assertTrue(httpClientProperties.isWiretap());
         Assertions.assertEquals(httpClientProperties.getWriterIdleTime(), 1);
         Assertions.assertEquals(httpClientProperties.getWriteTimeout(), 1);
+    }
+
+    @Test
+    public void validateStrategyRejectsUnsupportedValueTest() {
+        List<String> unsupported = Arrays.asList("web-client", "web_client", "", " netty", "netty ", "Netty ", "httpclient");
+        for (String value : unsupported) {
+            HttpClientProperties httpClientProperties = new HttpClientProperties();
+            httpClientProperties.setStrategy(value);
+            IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class, httpClientProperties::validateStrategy);
+            Assertions.assertTrue(exception.getMessage().contains("shenyu.httpclient.strategy"), exception.getMessage());
+            Assertions.assertTrue(exception.getMessage().contains("netty"), exception.getMessage());
+            Assertions.assertTrue(exception.getMessage().contains("webClient"), exception.getMessage());
+        }
+    }
+
+    @Test
+    public void validateStrategyAcceptsSupportedValueTest() {
+        List<String> supported = Arrays.asList("netty", "webClient", "NETTY", "WEBCLIENT", "webclient", "WebClient");
+        for (String value : supported) {
+            HttpClientProperties httpClientProperties = new HttpClientProperties();
+            httpClientProperties.setStrategy(value);
+            Assertions.assertDoesNotThrow(httpClientProperties::validateStrategy);
+        }
+    }
+
+    @Test
+    public void validateStrategyAcceptsAbsentValueTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        Assertions.assertNull(httpClientProperties.getStrategy());
+        Assertions.assertDoesNotThrow(httpClientProperties::validateStrategy);
+    }
+
+    @Test
+    public void afterPropertiesSetRejectsUnsupportedValueTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        httpClientProperties.setStrategy("web-client");
+        Assertions.assertThrows(IllegalStateException.class, httpClientProperties::afterPropertiesSet);
+    }
+
+    @Test
+    public void validateStrategyRejectsNullValuedConfiguredPropertyTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        StandardEnvironment environment = new StandardEnvironment();
+        environment.getPropertySources().addFirst(new MapPropertySource("nullValuedStrategy",
+                Collections.singletonMap(HttpClientProperties.STRATEGY_PROPERTY, null)));
+        httpClientProperties.setEnvironment(environment);
+        IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class, httpClientProperties::validateStrategy);
+        Assertions.assertTrue(exception.getMessage().contains("shenyu.httpclient.strategy"), exception.getMessage());
+        Assertions.assertTrue(exception.getMessage().contains("netty"), exception.getMessage());
+        Assertions.assertTrue(exception.getMessage().contains("webClient"), exception.getMessage());
+    }
+
+    @Test
+    public void validateStrategyAcceptsAbsentPropertyWithEnvironmentTest() {
+        HttpClientProperties httpClientProperties = new HttpClientProperties();
+        httpClientProperties.setEnvironment(new StandardEnvironment());
+        Assertions.assertDoesNotThrow(httpClientProperties::validateStrategy);
     }
 }

@@ -19,14 +19,17 @@ package org.apache.shenyu.springboot.starter.plugin.httpclient;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
+import java.util.Collections;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
@@ -38,6 +41,8 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.NestedExceptionUtils;
+import org.springframework.core.env.MapPropertySource;
 
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -187,6 +192,91 @@ public class HttpClientPluginConfigurationTest {
                 .run(context -> {
                     ShenyuPlugin plugin = context.getBean("nettyHttpClientPlugin", ShenyuPlugin.class);
                     assertNotNull(plugin);
+                });
+    }
+
+    @Test
+    public void testDefaultStrategyRegistersNettyPlugin() {
+        applicationContextRunner
+                .withPropertyValues("debug=true")
+                .run(context -> {
+                    ShenyuPlugin plugin = context.getBean("nettyHttpClientPlugin", ShenyuPlugin.class);
+                    assertNotNull(plugin);
+                });
+    }
+
+    @Test
+    public void testNettyStrategyIsMatchedCaseInsensitively() {
+        applicationContextRunner
+                .withPropertyValues(
+                        "debug=true",
+                        "shenyu.httpclient.strategy=NETTY"
+                )
+                .run(context -> {
+                    ShenyuPlugin plugin = context.getBean("nettyHttpClientPlugin", ShenyuPlugin.class);
+                    assertNotNull(plugin);
+                });
+    }
+
+    @Test
+    public void testWebClientStrategyIsMatchedCaseInsensitively() {
+        applicationContextRunner
+                .withPropertyValues(
+                        "debug=true",
+                        "shenyu.httpclient.strategy=webclient"
+                )
+                .run(context -> {
+                    ShenyuPlugin plugin = context.getBean("webClientPlugin", ShenyuPlugin.class);
+                    assertNotNull(plugin);
+                });
+    }
+
+    @Test
+    public void testInvalidStrategyFailsStartup() {
+        applicationContextRunner
+                .withPropertyValues(
+                        "debug=true",
+                        "shenyu.httpclient.strategy=web-client"
+                )
+                .run(context -> {
+                    Throwable failure = context.getStartupFailure();
+                    assertNotNull(failure, "the application context must fail to start for an unsupported strategy");
+                    Throwable rootCause = NestedExceptionUtils.getMostSpecificCause(failure);
+                    assertInstanceOf(IllegalStateException.class, rootCause);
+                    assertTrue(rootCause.getMessage().contains("shenyu.httpclient.strategy"), rootCause.getMessage());
+                    assertTrue(rootCause.getMessage().contains("netty"), rootCause.getMessage());
+                    assertTrue(rootCause.getMessage().contains("webClient"), rootCause.getMessage());
+                });
+    }
+
+    @Test
+    public void testBlankStrategyFailsStartup() {
+        applicationContextRunner
+                .withPropertyValues(
+                        "debug=true",
+                        "shenyu.httpclient.strategy="
+                )
+                .run(context -> {
+                    Throwable failure = context.getStartupFailure();
+                    assertNotNull(failure, "the application context must fail to start for a blank strategy");
+                    Throwable rootCause = NestedExceptionUtils.getMostSpecificCause(failure);
+                    assertInstanceOf(IllegalStateException.class, rootCause);
+                    assertTrue(rootCause.getMessage().contains("shenyu.httpclient.strategy"), rootCause.getMessage());
+                });
+    }
+
+    @Test
+    public void testNullValuedStrategyFailsStartup() {
+        applicationContextRunner
+                .withInitializer(context -> context.getEnvironment().getPropertySources()
+                        .addFirst(new MapPropertySource("nullValuedStrategy",
+                                Collections.singletonMap("shenyu.httpclient.strategy", null))))
+                .run(context -> {
+                    Throwable failure = context.getStartupFailure();
+                    assertNotNull(failure, "the application context must fail to start for a null valued strategy");
+                    Throwable rootCause = NestedExceptionUtils.getMostSpecificCause(failure);
+                    assertInstanceOf(IllegalStateException.class, rootCause);
+                    assertTrue(rootCause.getMessage().contains("shenyu.httpclient.strategy"), rootCause.getMessage());
                 });
     }
 }
