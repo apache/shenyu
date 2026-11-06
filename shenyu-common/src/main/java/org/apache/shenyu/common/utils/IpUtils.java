@@ -428,7 +428,9 @@ public final class IpUtils {
             if (isCompleteHost(extractedHost)) {
                 return zookeeperUrl;
             }
-            return zookeeperUrl.replaceFirst(extractedHost, replacement);
+            // Preserve the scheme and user info even when they contain the host name.
+            String hostPattern = "^((?:zookeeper|zk)://(?:[^/?#]*@)?)?" + Pattern.quote(extractedHost);
+            return zookeeperUrl.replaceFirst(hostPattern, "$1" + Matcher.quoteReplacement(replacement));
         }
         return zookeeperUrl;
     }
