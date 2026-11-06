@@ -188,6 +188,7 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
         try {
             return responseFuture.get();
         } catch (InterruptedException e) {
+            responseFuture.cancel(true);
             Thread.currentThread().interrupt();
             throw new IOException("Interrupted while waiting for the HTTP response", e);
         } catch (ExecutionException e) {
