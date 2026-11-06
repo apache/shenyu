@@ -191,33 +191,23 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
     }
 
     private void compareInstances(final Set<InstanceInfo> previousInstances, final Set<InstanceInfo> currentInstances, final ChangedEventListener listener) {
-        Set<InstanceInfo> addedInstances = currentInstances.stream()
-                .filter(item -> !previousInstances.contains(item))
-                .collect(Collectors.toSet());
-        if (!addedInstances.isEmpty()) {
-            for (InstanceInfo instance : addedInstances) {
-                listener.onEvent(instance.getAppName(), buildUpstreamJsonFromInstance(instance), ChangedEventListener.Event.ADDED);
+        Map<String, InstanceInfo> previousById = previousInstances.stream()
+                .collect(Collectors.toMap(InstanceInfo::getInstanceId, instance -> instance));
+        for (InstanceInfo current : currentInstances) {
+            InstanceInfo previous = previousById.remove(current.getInstanceId());
+            if (Objects.isNull(previous)) {
+                listener.onEvent(current.getAppName(), buildUpstreamJsonFromInstance(current), ChangedEventListener.Event.ADDED);
+            } else if (!Objects.equals(previous.getIPAddr(), current.getIPAddr()) || previous.getPort() != current.getPort()) {
+                listener.onEvent(current.getAppName(), buildUpstreamJsonFromInstance(current), ChangedEventListener.Event.ADDED);
+                previous.setStatus(InstanceInfo.InstanceStatus.DOWN);
+                listener.onEvent(previous.getAppName(), buildUpstreamJsonFromInstance(previous), ChangedEventListener.Event.DELETED);
+            } else if (!buildUpstreamJsonFromInstance(current).equals(buildUpstreamJsonFromInstance(previous))) {
+                listener.onEvent(current.getAppName(), buildUpstreamJsonFromInstance(current), ChangedEventListener.Event.UPDATED);
             }
         }
-
-        Set<InstanceInfo> deletedInstances = previousInstances.stream()
-                .filter(item -> !currentInstances.contains(item))
-                .collect(Collectors.toSet());
-        if (!deletedInstances.isEmpty()) {
-            for (InstanceInfo instance : deletedInstances) {
-                instance.setStatus(InstanceInfo.InstanceStatus.DOWN);
-                listener.onEvent(instance.getAppName(), buildUpstreamJsonFromInstance(instance), ChangedEventListener.Event.DELETED);
-            }
-        }
-
-        Set<InstanceInfo> updatedInstances = currentInstances.stream()
-                .filter(currentInstance -> previousInstances.stream()
-                        .anyMatch(previousInstance -> currentInstance.getInstanceId().equals(previousInstance.getInstanceId()) && !currentInstance.equals(previousInstance)))
-                .collect(Collectors.toSet());
-        if (!updatedInstances.isEmpty()) {
-            for (InstanceInfo instance : updatedInstances) {
-                listener.onEvent(instance.getAppName(), buildUpstreamJsonFromInstance(instance), ChangedEventListener.Event.UPDATED);
-            }
+        for (InstanceInfo previous : previousById.values()) {
+            previous.setStatus(InstanceInfo.InstanceStatus.DOWN);
+            listener.onEvent(previous.getAppName(), buildUpstreamJsonFromInstance(previous), ChangedEventListener.Event.DELETED);
         }
     }
 
@@ -241,7 +231,7 @@ public class EurekaInstanceRegisterRepository implements ShenyuInstanceRegisterR
         List<InstanceInfo> instances = eurekaClient.getInstancesByVipAddressAndAppName(null, selectKey, true);
         return instances.stream()
                 .map(i -> InstanceEntity.builder()
-                        .appName(i.getAppName()).host(i.getHostName()).port(i.getPort()).uri(getURI(i))
+                        .appName(i.getAppName()).host(i.getIPAddr()).port(i.getPort()).uri(getURI(i))
                         .build()
                 ).collect(Collectors.toList());
     }
