@@ -21,6 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+
 import java.util.Objects;
 
 /**
@@ -104,5 +105,32 @@ public interface PiiTextSlot {
                 parent.set(index, new JsonPrimitive(newText));
             }
         };
+    }
+
+    /**
+     * A slot for a base64 {@code data:} URL member that carries text, for
+     * example the {@code file_data} of an OpenAI file content part. The text is
+     * the decoded payload, so detection scans the readable characters; it is
+     * decoded once and cached for the lifetime of the slot, so a large payload
+     * is not decoded again per read. A replacement re encodes the redacted text
+     * under the original data URL header, so the member stays a valid base64
+     * {@code data:} URL. The re encoding uses the standard padded alphabet, so
+     * a MIME wrapped or URL safe original is normalised: this one member does
+     * not keep its exact encoding style outside the redacted range, which is a
+     * documented tradeoff rather than a corruption. A binary media type or a
+     * non data URL string yields no slot and is left untouched, since binary
+     * content cannot be meaningfully regex scanned; see {@link Base64TextData}.
+     *
+     * @param parent the object that holds the member
+     * @param member the member name
+     * @return the slot, or null when the member is not a textual base64 data URL
+     */
+    static PiiTextSlot ofBase64TextData(final JsonObject parent, final String member) {
+        JsonElement element = parent.get(member);
+        if (Objects.isNull(element) || !element.isJsonPrimitive()
+                || !Base64TextData.isTextualDataUrl(element.getAsString())) {
+            return null;
+        }
+        return new Base64TextDataSlot(parent, member);
     }
 }
