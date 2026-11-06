@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.agent.gateway.governance;
 
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -33,7 +35,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayList;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,6 +48,8 @@ final class AgentMcpQuotaRedisStoreTest {
 
     private static final int PORT = Integer.getInteger("shenyu.agent.mcp-quota.redis.port", 6379);
 
+    private final List<LettuceConnectionFactory> factories = new ArrayList<>();
+
     private static boolean isRedisAvailable() {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(HOST, PORT), 500);
@@ -53,9 +59,22 @@ final class AgentMcpQuotaRedisStoreTest {
         }
     }
 
-    private static ReactiveRedisTemplate<String, String> template() {
+    @BeforeAll
+    static void requiredRedisMustBeAvailable() {
+        if (Boolean.getBoolean("shenyu.agent.mcp-quota.redis.required")) {
+            assertTrue(isRedisAvailable(), "Required real Redis service is unavailable");
+        }
+    }
+
+    @AfterEach
+    void closeConnections() {
+        factories.forEach(LettuceConnectionFactory::destroy);
+    }
+
+    private ReactiveRedisTemplate<String, String> template() {
         LettuceConnectionFactory factory = new LettuceConnectionFactory(new RedisStandaloneConfiguration(HOST, PORT));
         factory.afterPropertiesSet();
+        factories.add(factory);
         RedisSerializationContext<String, String> serializationContext =
                 RedisSerializationContext.<String, String>newSerializationContext()
                         .key(StringRedisSerializer.UTF_8)
@@ -73,10 +92,10 @@ final class AgentMcpQuotaRedisStoreTest {
         String tenant = tenant();
         AgentMcpQuotaConfig policy = policy(AgentMcpQuotaConfig.Mode.ENFORCE, 5, 100);
         RedisAgentMcpQuotaStore first = new RedisAgentMcpQuotaStore(template);
-        RedisAgentMcpQuotaStore second = new RedisAgentMcpQuotaStore(template);
+        RedisAgentMcpQuotaStore second = new RedisAgentMcpQuotaStore(template());
         long allowed = Flux.range(0, 10)
                 .flatMap(index -> (index % 2 == 0 ? first : second)
-                        .admit(policy, tenant, "subject", UUID.randomUUID().toString(), Instant.now()))
+                        .admit(policy, tenant, "subject", UUID.randomUUID().toString(), Instant.now().plusSeconds(index % 2 == 0 ? 3600 : -3600)))
                 .filter(AgentMcpQuotaStore.Admission::allowed)
                 .count()
                 .block(Duration.ofSeconds(10));
@@ -123,7 +142,7 @@ final class AgentMcpQuotaRedisStoreTest {
                 .block(Duration.ofSeconds(5));
         assertFalse(second.allowed());
         assertTrue(second.concurrencyLimited());
-        assertTrue(store.admit(policy, tenant, subject, "expired", now.plusSeconds(30)).block(Duration.ofSeconds(5)).allowed());
+        assertFalse(store.admit(policy, tenant, subject, "skewed", now.plusSeconds(3600)).block(Duration.ofSeconds(5)).allowed());
     }
 
     @Test
@@ -141,9 +160,8 @@ final class AgentMcpQuotaRedisStoreTest {
                 UUID.randomUUID().toString(), Instant.now()).block(Duration.ofSeconds(5));
         assertFalse(denied.allowed());
         assertTrue(denied.concurrencyLimited());
-        AgentMcpQuotaStore.Admission afterExpiry = store.admit(policy, tenant, subject,
-                UUID.randomUUID().toString(), Instant.now().plusSeconds(2)).block(Duration.ofSeconds(5));
-        assertTrue(afterExpiry.allowed());
+        await().atMost(Duration.ofSeconds(5)).until(() -> store.admit(policy, tenant, subject,
+                UUID.randomUUID().toString(), Instant.now().minusSeconds(3600)).block(Duration.ofSeconds(2)).allowed());
     }
 
     @Test
@@ -173,15 +191,26 @@ final class AgentMcpQuotaRedisStoreTest {
         String tenant = tenant();
         String subject = subject();
         AgentMcpQuotaConfig policy = AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE,
-                1, Duration.ofSeconds(60), 100, Duration.ofSeconds(60), false);
+                1, Duration.ofSeconds(1), 100, Duration.ofSeconds(60), false);
         RedisAgentMcpQuotaStore store = new RedisAgentMcpQuotaStore(template);
         long stableWindow = Math.floorDiv(Instant.now().plusSeconds(60).getEpochSecond(), 60) * 60L;
         assertTrue(store.admit(policy, tenant, subject, UUID.randomUUID().toString(), Instant.ofEpochSecond(stableWindow))
                 .block(Duration.ofSeconds(5)).allowed());
         assertFalse(store.admit(policy, tenant, subject, UUID.randomUUID().toString(), Instant.ofEpochSecond(stableWindow + 1))
                 .block(Duration.ofSeconds(5)).allowed());
-        assertTrue(store.admit(policy, tenant, subject, UUID.randomUUID().toString(), Instant.ofEpochSecond(stableWindow + 60))
-                .block(Duration.ofSeconds(5)).allowed());
+        await().atMost(Duration.ofSeconds(5)).until(() -> store.admit(policy, tenant, subject, UUID.randomUUID().toString(),
+                Instant.ofEpochSecond(stableWindow + 3600)).block(Duration.ofSeconds(2)).allowed());
+    }
+
+    @Test
+    void tenantAggregateCannotBeBypassedWithAnotherSubject() {
+        Assumptions.assumeTrue(isRedisAvailable(), "Start Redis to run distributed quota tests");
+        RedisAgentMcpQuotaStore store = new RedisAgentMcpQuotaStore(template());
+        String tenant = tenant();
+        AgentMcpQuotaConfig policy = policy(AgentMcpQuotaConfig.Mode.ENFORCE, 1, 100);
+        assertTrue(store.admit(policy, tenant, "first", "one", Instant.now()).block(Duration.ofSeconds(5)).allowed());
+        assertTrue(store.admit(policy, tenant, "second", "two", Instant.now().plusSeconds(3600))
+                .block(Duration.ofSeconds(5)).invocationLimited());
     }
 
     @Test
@@ -204,9 +233,10 @@ final class AgentMcpQuotaRedisStoreTest {
         ReactiveRedisTemplate<String, String> template = template();
         AgentMcpQuotaConfig policy = policy(AgentMcpQuotaConfig.Mode.ENFORCE, 1, 100);
         RedisAgentMcpQuotaStore store = new RedisAgentMcpQuotaStore(template);
-        assertTrue(store.admit(policy, "tenant", "subject:tool", UUID.randomUUID().toString(), Instant.now())
+        String prefix = tenant();
+        assertTrue(store.admit(policy, prefix, "subject:tool", UUID.randomUUID().toString(), Instant.now())
                 .block(Duration.ofSeconds(5)).allowed());
-        assertTrue(store.admit(policy, "tenant:subject", "tool", UUID.randomUUID().toString(), Instant.now())
+        assertTrue(store.admit(policy, prefix + ":subject", "tool", UUID.randomUUID().toString(), Instant.now())
                 .block(Duration.ofSeconds(5)).allowed());
     }
 

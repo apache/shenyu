@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.agent.gateway.governance;
 
 import reactor.core.publisher.Mono;
+import org.apache.shenyu.common.governance.AgentGovernanceText;
 
 import java.util.Objects;
 import java.time.Instant;
@@ -65,9 +66,8 @@ public interface AgentMcpQuotaStore {
             if (allowed && Objects.isNull(lease)) {
                 throw new IllegalArgumentException("An admitted decision requires a lease");
             }
-            if (allowed && (lease.isBlank() || lease.length() > 128 || !lease.equals(lease.strip())
-                    || lease.chars().anyMatch(Character::isISOControl))) {
-                throw new IllegalArgumentException("An admitted lease must be bounded nonblank text");
+            if (allowed) {
+                AgentGovernanceText.require(lease, "lease", 128);
             }
             if (!allowed && !Objects.toString(lease, "").isEmpty()) {
                 throw new IllegalArgumentException("A rejected decision must not retain a lease");

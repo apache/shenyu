@@ -214,8 +214,10 @@ public final class AgentMcpDispatcher {
             if (error instanceof AgentMcpQuotaException) {
                 AgentMcpQuotaException rejected = (AgentMcpQuotaException) error;
                 boolean unavailable = rejected.getDecision().getReason() == AgentGovernanceDecision.Reason.POLICY_ERROR;
-                AgentMcpProtocolException failure = failure(request, unavailable ? 503 : 429, -32027,
+                boolean missingIdentity = rejected.getDecision().getReason() == AgentGovernanceDecision.Reason.AUTHENTICATION_REJECTED;
+                AgentMcpProtocolException failure = failure(request, unavailable ? 503 : missingIdentity ? 403 : 429, -32027,
                         unavailable ? "MCP quota policy is unavailable"
+                                : missingIdentity ? "MCP quota requires tenant and subject identity"
                                 : rejected.getDecision().getReason() == AgentGovernanceDecision.Reason.MCP_CONCURRENCY_LIMIT
                                 ? "MCP concurrency quota exceeded" : "MCP invocation quota exceeded");
                 failure.initCause(error);
@@ -271,8 +273,8 @@ public final class AgentMcpDispatcher {
                 final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, definitions.get(name).get("outputSchema"));
                 ObjectNode params = request.getParams();
                 JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
-                return withQuota(context, Mono.defer(() -> admission.withRemote(remoteServer(name), context.getDeadline(),
-                                Mono.fromRunnable(context::notifyAttempt).then(snapshot.invoke(name, arguments, context)))))
+                return admission.withRemote(remoteServer(name), context.getDeadline(),
+                                withQuota(context, Mono.fromRunnable(context::notifyAttempt).then(Mono.defer(() -> snapshot.invoke(name, arguments, context)))))
                         .switchIfEmpty(Mono.error(new IllegalStateException("Remote tool completed without a result")))
                         .map(value -> {
                             ObjectNode result = value.deepCopy();
@@ -384,8 +386,8 @@ public final class AgentMcpDispatcher {
         if (Objects.isNull(quotaGovernor)) {
             return execution;
         }
-        return quotaGovernor.withQuota(context.getTenant().orElse("unknown"), context.getSubject(),
-                context.getRequestId(), context.getConfigurationVersion(), execution);
+        return quotaGovernor.withQuota(context.getTenant().orElse(null), context.getSubject(),
+                context.getRequestId(), context.getConfigurationVersion(), context.getDeadline(), execution);
     }
 
     private AgentMcpResultFilter prepareResultFilter(final AgentMcpRequest request, final AgentMcpExecutionContext context,

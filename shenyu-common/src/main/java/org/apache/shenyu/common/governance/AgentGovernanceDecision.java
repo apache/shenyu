@@ -132,11 +132,7 @@ public final class AgentGovernanceDecision {
     }
 
     private static String boundedText(final String value, final String name) {
-        if (Objects.isNull(value) || value.isBlank() || value.length() > 128
-                || !value.equals(value.strip()) || value.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException(name + " must be bounded nonblank text");
-        }
-        return value;
+        return AgentGovernanceText.require(value, name, 128);
     }
 
     public enum Consumer {

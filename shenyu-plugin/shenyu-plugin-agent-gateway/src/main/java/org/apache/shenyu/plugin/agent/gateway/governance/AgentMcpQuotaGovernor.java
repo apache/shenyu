@@ -18,6 +18,9 @@
 package org.apache.shenyu.plugin.agent.gateway.governance;
 
 import org.apache.shenyu.common.governance.AgentGovernanceDecision;
+import org.apache.shenyu.common.governance.AgentGovernanceShadowLedger;
+import org.apache.shenyu.common.governance.AgentGovernanceDecisionRouter;
+import org.apache.shenyu.common.governance.AgentGovernanceText;
 import org.apache.shenyu.common.audit.AgentGovernanceAuditAdapter;
 import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.apache.shenyu.common.dto.AgentRequestContext;
@@ -49,6 +52,8 @@ public final class AgentMcpQuotaGovernor {
 
     private final String ledgerGeneration;
 
+    private final AgentGovernanceShadowLedger shadowLedger;
+
     public AgentMcpQuotaGovernor(final AgentMcpQuotaConfig config, final AgentMcpQuotaStore store,
                                  final AgentRuntimeMetrics metrics, final String policyVersion) {
         this(config, store, metrics, policyVersion, null);
@@ -70,7 +75,8 @@ public final class AgentMcpQuotaGovernor {
         this.metrics = Objects.isNull(metrics) ? AgentRuntimeMetrics.NOOP : metrics;
         this.audit = audit;
         this.policyVersion = bounded(policyVersion, "policyVersion");
-        this.ledgerGeneration = config.newGeneration();
+        this.ledgerGeneration = UUID.randomUUID().toString();
+        this.shadowLedger = new AgentGovernanceShadowLedger(ledgerGeneration, config.getConcurrencyLimit());
     }
 
     /** Wrap an execution with atomic admission and idempotent lease release.
@@ -85,18 +91,47 @@ public final class AgentMcpQuotaGovernor {
      */
     public <T> Mono<T> withQuota(final String tenant, final String subject, final String correlationId,
                                  final long configurationVersion, final Mono<T> execution) {
+        return withQuota(tenant, subject, correlationId, configurationVersion, null, execution);
+    }
+
+    /**
+     * Admit only identities and deadlines that can be represented by this policy.
+     * @param <T> execution result
+     * @param tenant trusted tenant
+     * @param subject trusted subject
+     * @param correlationId request identity
+     * @param configurationVersion rule generation
+     * @param deadline absolute tool deadline, if present
+     * @param execution actual deferred execution
+     * @return governed result
+     */
+    public <T> Mono<T> withQuota(final String tenant, final String subject, final String correlationId,
+                                 final long configurationVersion, final Instant deadline, final Mono<T> execution) {
         Objects.requireNonNull(execution, "execution");
-        String normalizedTenant = bounded(tenant, "tenant");
-        String normalizedSubject = bounded(subject, "subject");
         String normalizedCorrelation = bounded(correlationId, "correlationId");
-        Instant effectiveTime = Instant.now();
         String configuration = Long.toString(configurationVersion);
         return Mono.deferContextual(context -> Mono.just(new GovernorContext(context)))
                 .flatMap(governorContext -> {
+                    Instant effectiveTime = Instant.now();
                     AgentRuntimeMetrics selectedMetrics = governorContext.metrics == AgentRuntimeMetrics.NOOP
                             ? metrics : governorContext.metrics;
                     AgentRequestContext requestContext = governorContext.requestContext;
-                    return store.admit(config, normalizedTenant, normalizedSubject, normalizedCorrelation, effectiveTime)
+                    if (!validIdentity(tenant) || !validIdentity(subject)) {
+                        AgentGovernanceDecision rejected = router(configuration).mandatoryDeny(normalizedCorrelation, effectiveTime,
+                                AgentGovernanceDecision.Reason.AUTHENTICATION_REJECTED);
+                        report(rejected, selectedMetrics, requestContext);
+                        return Mono.error(new AgentMcpQuotaException(rejected));
+                    }
+                    if (Objects.nonNull(deadline) && deadline.isAfter(effectiveTime.plus(config.getLeaseTtl()))) {
+                        AgentGovernanceDecision rejected = AgentGovernanceDecision.builder(
+                                        AgentGovernanceDecision.Consumer.MCP_QUOTA, AgentGovernanceDecision.Mode.ENFORCE)
+                                .policyVersion(policyVersion).configurationVersion(configuration)
+                                .result(AgentGovernanceDecision.Result.DENY).reason(AgentGovernanceDecision.Reason.POLICY_ERROR)
+                                .correlationId(normalizedCorrelation).ledgerGeneration(ledgerGeneration).effectiveTime(effectiveTime).build();
+                        report(rejected, selectedMetrics, requestContext);
+                        return Mono.error(new AgentMcpQuotaException(rejected));
+                    }
+                    return store.admit(config, tenant, subject, normalizedCorrelation, effectiveTime)
                             .map(admission -> Map.entry(admission, false))
                             .onErrorResume(error -> policyUnavailable(error, selectedMetrics, requestContext,
                                     normalizedCorrelation, configuration, effectiveTime))
@@ -104,10 +139,9 @@ public final class AgentMcpQuotaGovernor {
                                 boolean policyUnavailable = admission.getValue();
                                 AgentGovernanceDecision decision = decision(admission.getKey(), policyUnavailable,
                                         normalizedCorrelation, configuration, effectiveTime);
-                                AgentRuntimeMetrics.safely(() -> selectedMetrics.governanceDecision(decision));
-                                if (Objects.nonNull(requestContext) && Objects.nonNull(audit)
-                                        && decision.getReason() != AgentGovernanceDecision.Reason.ALLOWED) {
-                                    AgentRuntimeMetrics.safely(() -> audit.record(AgentGovernanceAuditAdapter.toEvent(requestContext, decision)));
+                                report(decision, selectedMetrics, requestContext);
+                                if (decision.getResult() == AgentGovernanceDecision.Result.WOULD_DENY) {
+                                    shadowLedger.observe(decision);
                                 }
                                 if (decision.deniesTraffic()) {
                                     return Mono.error(new AgentMcpQuotaException(decision));
@@ -116,12 +150,32 @@ public final class AgentMcpQuotaGovernor {
                                     return execution;
                                 }
                                 return Mono.usingWhen(Mono.just(admission.getKey()),
-                                        ignored -> execution,
-                                        ignored -> releaseOnce(normalizedTenant, normalizedSubject, normalizedCorrelation, admission.getKey().lease()),
-                                        (ignored, error) -> releaseOnce(normalizedTenant, normalizedSubject, normalizedCorrelation, admission.getKey().lease()),
-                                        ignored -> releaseOnce(normalizedTenant, normalizedSubject, normalizedCorrelation, admission.getKey().lease()));
+                                        ignored -> config.getMode() == AgentMcpQuotaConfig.Mode.ENFORCE ? execution.timeout(config.getLeaseTtl()) : execution,
+                                        ignored -> releaseOnce(tenant, subject, normalizedCorrelation, admission.getKey().lease()),
+                                        (ignored, error) -> releaseOnce(tenant, subject, normalizedCorrelation, admission.getKey().lease()),
+                                        ignored -> releaseOnce(tenant, subject, normalizedCorrelation, admission.getKey().lease()));
                             });
                 });
+    }
+
+    /**
+     * Observe isolated shadow decisions without identity or unbounded labels.
+     * @return immutable bounded shadow snapshot
+     */
+    public AgentGovernanceShadowLedger.AgentGovernanceShadowSnapshot shadowSnapshot() {
+        return shadowLedger.snapshot();
+    }
+
+    private void report(final AgentGovernanceDecision decision, final AgentRuntimeMetrics selectedMetrics, final AgentRequestContext requestContext) {
+        AgentRuntimeMetrics.safely(() -> selectedMetrics.governanceDecision(decision));
+        if (Objects.nonNull(requestContext) && Objects.nonNull(audit)
+                && decision.getReason() != AgentGovernanceDecision.Reason.ALLOWED) {
+            AgentRuntimeMetrics.safely(() -> audit.record(AgentGovernanceAuditAdapter.toEvent(requestContext, decision)));
+        }
+    }
+
+    private static boolean validIdentity(final String value) {
+        return AgentGovernanceText.valid(value, 256);
     }
 
     private Mono<Map.Entry<AgentMcpQuotaStore.Admission, Boolean>> policyUnavailable(final Throwable error,
@@ -163,6 +217,10 @@ public final class AgentMcpQuotaGovernor {
                 ? AgentGovernanceDecision.Reason.MCP_INVOCATION_LIMIT
                 : admission.concurrencyLimited() ? AgentGovernanceDecision.Reason.MCP_CONCURRENCY_LIMIT
                 : AgentGovernanceDecision.Reason.ALLOWED;
+        if (!policyUnavailable) {
+            return admission.allowed() ? router(configurationVersion).allow(correlationId, effectiveTime)
+                    : router(configurationVersion).deny(correlationId, effectiveTime, reason);
+        }
         AgentGovernanceDecision.Result result = policyUnavailable && config.isFailOpen() ? AgentGovernanceDecision.Result.ALLOW
                 : admission.allowed() ? AgentGovernanceDecision.Result.ALLOW
                 : config.getMode() == AgentMcpQuotaConfig.Mode.SHADOW
@@ -175,12 +233,14 @@ public final class AgentMcpQuotaGovernor {
                 .ledgerGeneration(ledgerGeneration).effectiveTime(effectiveTime).build();
     }
 
+    private AgentGovernanceDecisionRouter router(final String configurationVersion) {
+        return new AgentGovernanceDecisionRouter(AgentGovernanceDecision.Consumer.MCP_QUOTA,
+                config.getMode() == AgentMcpQuotaConfig.Mode.SHADOW ? AgentGovernanceDecision.Mode.SHADOW : AgentGovernanceDecision.Mode.ENFORCE,
+                policyVersion, configurationVersion, ledgerGeneration);
+    }
+
     private static String bounded(final String value, final String name) {
-        if (Objects.isNull(value) || value.isBlank() || value.length() > 256
-                || !value.equals(value.strip()) || value.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException(name + " must be bounded nonblank text");
-        }
-        return value;
+        return AgentGovernanceText.require(value, name, 128);
     }
 
     private static final class GovernorContext {

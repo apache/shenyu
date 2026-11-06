@@ -41,9 +41,9 @@ public final class AgentGovernanceDecisionRouter {
                                          final String ledgerGeneration) {
         this.consumer = Objects.requireNonNull(consumer, "consumer");
         this.mode = Objects.requireNonNull(mode, "mode");
-        this.policyVersion = Objects.requireNonNull(policyVersion, "policyVersion");
-        this.configurationVersion = Objects.requireNonNull(configurationVersion, "configurationVersion");
-        this.ledgerGeneration = Objects.requireNonNull(ledgerGeneration, "ledgerGeneration");
+        this.policyVersion = AgentGovernanceText.require(policyVersion, "policyVersion", 128);
+        this.configurationVersion = AgentGovernanceText.require(configurationVersion, "configurationVersion", 128);
+        this.ledgerGeneration = AgentGovernanceText.require(ledgerGeneration, "ledgerGeneration", 128);
     }
 
     public AgentGovernanceDecision allow(final String correlationId, final Instant effectiveTime) {

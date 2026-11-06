@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.metrics.reporter;
 
 import org.apache.shenyu.common.governance.AgentGovernanceDecision;
+import org.apache.shenyu.common.governance.AgentGovernanceContractLabels;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
@@ -88,8 +89,9 @@ final class AgentRuntimeMetricsReporter implements AgentRuntimeMetrics {
     @Override
     public synchronized void governanceDecision(final AgentGovernanceDecision decision) {
         if (active) {
-            String[] values = {label(decision.getConsumer()), label(decision.getMode()),
-                    label(decision.getResult()), label(decision.getReason())};
+            AgentGovernanceContractLabels labels = AgentGovernanceContractLabels.from(decision);
+            String[] values = {labels.getConsumer().toLowerCase(Locale.ROOT), labels.getMode().toLowerCase(Locale.ROOT),
+                    labels.getResult().toLowerCase(Locale.ROOT), labels.getReason().toLowerCase(Locale.ROOT)};
             register.counterIncrement(LabelNames.AGENT_GOVERNANCE_DECISIONS_TOTAL, values, 1);
         }
     }

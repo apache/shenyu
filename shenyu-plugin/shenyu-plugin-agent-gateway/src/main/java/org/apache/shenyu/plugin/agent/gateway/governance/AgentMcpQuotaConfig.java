@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.agent.gateway.governance;
 
 import java.time.Duration;
 import java.util.Objects;
-import java.util.UUID;
 
 /** Immutable deployment-owned MCP quota policy. */
 public final class AgentMcpQuotaConfig {
@@ -79,10 +78,6 @@ public final class AgentMcpQuotaConfig {
 
     public boolean isFailOpen() {
         return failOpen;
-    }
-
-    public String newGeneration() {
-        return UUID.randomUUID().toString();
     }
 
     private static Duration requireBounded(final Duration value, final Duration minimum, final Duration maximum, final String name) {

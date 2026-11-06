@@ -578,12 +578,68 @@ class AgentMcpDispatcherTest {
         assertEquals(0, calls.get());
     }
 
+    @Test
+    void remoteCapacityRejectionDoesNotConsumeInvocationQuota() throws InterruptedException {
+        AtomicInteger admissions = new AtomicInteger();
+        AgentMcpQuotaStore store = new AgentMcpQuotaStore() {
+            @Override
+            public Mono<Admission> admit(final AgentMcpQuotaConfig policy, final String tenant, final String subject,
+                                         final String correlationId, final Instant now) {
+                admissions.incrementAndGet();
+                return Mono.just(new Admission(true, false, false, "lease"));
+            }
+
+            @Override
+            public Mono<Boolean> release(final AgentMcpQuotaConfig policy, final String tenant, final String subject,
+                                          final String correlationId, final String lease) {
+                return Mono.just(true);
+            }
+        };
+        AgentMcpRemoteCatalog catalog = operation -> operation.apply(new AgentMcpRemoteCatalog.Snapshot() {
+            @Override
+            public Map<String, ObjectNode> definitions() {
+                ObjectNode definition = new ObjectMapper().createObjectNode().put("name", "remote.lookup");
+                definition.putObject("inputSchema").put("type", "object");
+                return Map.of("remote.lookup", definition);
+            }
+
+            @Override
+            public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
+                return Mono.error(new AssertionError("Rejected work must not start"));
+            }
+        });
+        try (AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(1, 0, 1, 0, 1, 0))) {
+            CountDownLatch acquired = new CountDownLatch(1);
+            reactor.core.Disposable holder = admission.withRemote("remote", Instant.now().plusSeconds(5),
+                    Mono.defer(() -> {
+                        acquired.countDown();
+                        return Mono.never();
+                    })).subscribe();
+            try {
+                assertTrue(acquired.await(5, TimeUnit.SECONDS));
+                AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1", catalog,
+                        new AgentResourceRegistry(List.of()), admission,
+                        new AgentMcpQuotaGovernor(AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE,
+                                10, Duration.ofSeconds(60), 10, Duration.ofSeconds(60), false), store, AgentRuntimeMetrics.NOOP, "test"));
+                StepVerifier.create(dispatcher.dispatch(request("tools/call", "1", "remote.lookup"),
+                        () -> context("owner", Set.of("remote.lookup"), Set.of("remote.lookup"))))
+                        .expectErrorSatisfies(error -> assertEquals(429, ((AgentMcpProtocolException) error).getHttpStatus())).verify();
+                assertEquals(0, admissions.get());
+            } finally {
+                holder.dispose();
+            }
+        }
+    }
+
     private AgentMcpExecutionContext context(final String subject, final Set<String> grants) {
         return context(subject, Set.of("order_status"), grants);
     }
 
     private AgentMcpExecutionContext context(final String subject, final Set<String> ruleTools, final Set<String> grants) {
-        return new AgentMcpExecutionContext("internal-" + subject, subject, "rule", 1, ruleTools, grants);
+        return new AgentMcpExecutionContext("internal-" + subject, subject, "rule", 1, ruleTools, grants,
+                Instant.now().plusSeconds(10), org.apache.shenyu.common.dto.AgentGatewayResultFilterConfig.empty(),
+                org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig.empty(), null, "tenant");
     }
 
     private AgentMcpDispatcher dispatcher(final AgentToolProvider... providers) {

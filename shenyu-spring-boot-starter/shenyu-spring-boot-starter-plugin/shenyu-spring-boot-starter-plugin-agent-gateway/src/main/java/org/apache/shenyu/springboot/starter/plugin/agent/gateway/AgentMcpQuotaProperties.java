@@ -18,10 +18,10 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaConfig;
+import org.apache.shenyu.common.governance.AgentGovernanceText;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
-import java.util.Objects;
 
 /**
  * Deployment-owned distributed MCP quota policy. Redis connectivity and lifecycle
@@ -32,7 +32,7 @@ public class AgentMcpQuotaProperties {
 
     private boolean enabled;
 
-    private Mode mode = Mode.SHADOW;
+    private AgentMcpQuotaConfig.Mode mode = AgentMcpQuotaConfig.Mode.SHADOW;
 
     private long invocationLimit = 1000;
 
@@ -54,11 +54,11 @@ public class AgentMcpQuotaProperties {
         this.enabled = enabled;
     }
 
-    public Mode getMode() {
+    public AgentMcpQuotaConfig.Mode getMode() {
         return mode;
     }
 
-    public void setMode(final Mode mode) {
+    public void setMode(final AgentMcpQuotaConfig.Mode mode) {
         this.mode = mode;
     }
 
@@ -116,21 +116,12 @@ public class AgentMcpQuotaProperties {
      * @return validated quota policy
      */
     public AgentMcpQuotaConfig toConfig() {
-        return AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.valueOf(mode.name()), invocationLimit,
+        return AgentMcpQuotaConfig.of(mode, invocationLimit,
                 invocationWindow, concurrencyLimit, leaseTtl, failOpen);
     }
 
     public String trustedPolicyVersion() {
-        if (Objects.isNull(policyVersion) || policyVersion.isBlank() || policyVersion.length() > 128
-                || !policyVersion.equals(policyVersion.strip())
-                || policyVersion.chars().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("policyVersion must be bounded nonblank text");
-        }
-        return policyVersion;
+        return AgentGovernanceText.require(policyVersion, "policyVersion", 128);
     }
 
-    public enum Mode {
-        SHADOW,
-        ENFORCE;
-    }
 }

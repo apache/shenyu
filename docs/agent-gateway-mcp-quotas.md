@@ -19,7 +19,7 @@ limitations under the License.
 
 Agent Gateway can enforce a shared invocation-count window and concurrency
 limit for actual MCP `tools/call` requests. The first policy dimensions are
-trusted tenant and subject; local and federated tools use the same admission
+trusted tenant and subject, each using `invocation-limit`. Local and federated tools use the same admission
 boundary. Tool discovery, resource reads, and other MCP methods do not consume
 these quotas.
 
@@ -52,25 +52,31 @@ diagnostic metadata and does not shard Redis state.
 
 `shadow` evaluates and records isolated would-deny decisions but never rejects
 the call and never debits enforce state. `enforce` rejects at the actual tool
-execution boundary. A denied local tool is never executed.
+execution boundary. A denied tool is never executed. Missing or invalid tenant or
+subject is an explicit identity rejection (403 / `-32027`), including in shadow
+mode; unrelated callers never share an `unknown` tenant bucket.
 
 ## Redis semantics
 
-Admission is one Lua operation. It atomically checks the invocation counter,
+Admission is one Lua operation. Redis `TIME` controls fixed windows and lease
+expiry; gateway clocks never select windows or reclaim live leases.
+It atomically checks the tenant and subject invocation counters,
 removes expired concurrency leases, checks concurrency, debits the count, and
 adds a unique lease token. Redis returns one of invocation-limited,
 concurrency-limited, or admitted-with-lease; it never debits or acquires a
 lease for a rejected request.
 
-Keys are scoped by mode, tenant, and subject:
+All admission keys share one Redis Cluster hash tag derived from mode and
+base64url-encoded tenant; subject components are encoded independently:
 
-- `shenyu:agent:mcp-quota:invocation:{mode}:{tenant}:{subject}:{windowStart}`;
-- `shenyu:agent:mcp-quota:concurrency:{mode}:{tenant}:{subject}`.
+- `shenyu:agent:mcp-quota:invocation:{mode:encodedTenant}`;
+- `shenyu:agent:mcp-quota:invocation:{mode:encodedTenant}:encodedSubject`;
+- `shenyu:agent:mcp-quota:concurrency:{mode:encodedTenant}:encodedSubject`.
 
-The invocation key expires one second after its fixed window. The concurrency
-sorted set stores one member per in-flight lease and expires one second after
-the configured lease TTL. Cardinality is therefore bounded by active tenant and
-subject identities, one invocation key per active fixed window per identity,
+Window hashes store the server-computed window and count and expire just after
+that window. The concurrency sorted set stores one member per in-flight lease
+and expires just after its lease TTL. Cardinality is bounded by active tenant and
+subject identities, one active invocation hash per identity,
 and at most the configured concurrency count per identity.
 
 Completion, error, cancellation, or subscriber cancellation releases only the
@@ -83,8 +89,11 @@ have occurred.
 There is no lease renewal in this first policy. A lease carries one immutable
 expiry and cannot be resurrected. If a gateway disappears, its lease is ignored
 and removed after at most the configured `lease-ttl`, plus the documented
-one-second key-expiration buffer. Existing request deadlines remain the
-execution-time boundary.
+key-expiration buffer. Tool deadlines longer than `lease-ttl` are rejected as
+policy errors before Redis admission. Set `lease-ttl` at least as high as the
+largest tool timeout; enforced execution is also bounded by the lease TTL.
+Local and remote capacity admission precede quota consumption, so overload
+rejection never consumes an invocation.
 
 ## Outages and observability
 
@@ -103,6 +112,18 @@ shenyu_agent_governance_decisions_total{consumer,mode,result,reason}
 Tenant, subject, tool name, endpoint, request id, and trace id are not metric
 labels. Non-allow decisions can also be emitted as metadata-only audit events
 through the application-provided audit observer.
+Would-deny decisions are also counted in the governor's bounded, generation-owned
+`AgentGovernanceShadowLedger`, available through `shadowSnapshot()`, separately
+from enforce Redis state.
+
+## Redis regression checks
+
+The `Agent MCP Redis quota` workflow starts a real Redis node with Cluster slot
+enforcement and assigns all slots to it. It requires the Redis tests to run
+without skipped cases. Tests use independent connections, skewed gateway times,
+actual Redis window/lease boundaries, tenant aggregate limits and tenant
+isolation. This verifies script slot correctness; it does not simulate
+multi-node Cluster failover.
 
 ## Non-goals
 

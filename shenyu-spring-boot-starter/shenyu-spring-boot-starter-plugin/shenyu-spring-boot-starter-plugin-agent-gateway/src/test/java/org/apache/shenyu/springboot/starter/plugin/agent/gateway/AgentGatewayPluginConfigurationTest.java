@@ -260,7 +260,7 @@ class AgentGatewayPluginConfigurationTest {
         assertEquals(100, config.getConcurrencyLimit());
         assertEquals(Duration.ofMinutes(1), config.getLeaseTtl());
         assertFalse(config.isFailOpen());
-        properties.setMode(AgentMcpQuotaProperties.Mode.ENFORCE);
+        properties.setMode(AgentMcpQuotaConfig.Mode.ENFORCE);
         assertEquals(AgentMcpQuotaConfig.Mode.ENFORCE, properties.toConfig().getMode());
     }
 

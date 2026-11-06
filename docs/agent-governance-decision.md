@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 # Agent governance decision contract
 
 Agent Gateway governance consumers use one versioned decision contract before introducing MCP quotas or LLM budgets. A decision identifies its consumer, policy/configuration versions, shadow or enforce mode, result, bounded reason, correlation id, ledger generation and effective time. Tenant, subject and trace id are not labels; they remain in the existing trusted request context and metadata-only audit event.
@@ -22,4 +39,8 @@ Shadow/enforce comparison is explicit: `SAME_EFFECT`, `SHADOW_STRICTER`, or `ENF
 
 ## Non-goals
 
-This contract does not implement Redis quota admission, token reservation, cost settlement, provider usage parsing, or execution-point wiring. Those belong to #7957 and #7958 and must consume this vocabulary rather than invent local switches.
+This document defines the shared vocabulary and bounded shadow state. The MCP
+consumer and its Redis admission, execution-point wiring and decision audit are
+described in [distributed MCP quotas](agent-gateway-mcp-quotas.md).
+Token reservation, cost settlement and provider usage parsing remain separate
+consumers and are not implemented by this contract.

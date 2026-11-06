@@ -46,20 +46,14 @@ public final class RedisAgentMcpQuotaStore implements AgentMcpQuotaStore {
     public Mono<Admission> admit(final AgentMcpQuotaConfig policy, final String tenant, final String subject,
                                  final String correlationId, final Instant now) {
         Objects.requireNonNull(now, "now");
-        long windowSeconds = policy.getInvocationWindow().toSeconds();
-        long windowStart = Math.floorDiv(now.getEpochSecond(), windowSeconds)
-                * policy.getInvocationWindow().toSeconds();
-        long invocationTtl = windowStart + windowSeconds - now.getEpochSecond() + 1;
-        long leaseExpiry = now.plus(policy.getLeaseTtl()).getEpochSecond();
         String lease = UUID.randomUUID().toString();
-        String scope = (policy.getMode() == AgentMcpQuotaConfig.Mode.SHADOW ? "shadow" : "enforce")
-                + ":" + scopePart(tenant) + ":" + scopePart(subject);
-        String invocationKey = "shenyu:agent:mcp-quota:invocation:" + scope + ":" + windowStart;
+        String scope = scope(policy, tenant, subject);
+        String invocationKey = "shenyu:agent:mcp-quota:invocation:" + scope;
+        String tenantKey = "shenyu:agent:mcp-quota:invocation:" + tag(policy, tenant);
         String concurrencyKey = "shenyu:agent:mcp-quota:concurrency:" + scope;
-        return redis.execute(ADMIT, List.of(invocationKey, concurrencyKey),
-                        List.of(Long.toString(policy.getInvocationLimit()), Long.toString(windowStart),
-                                Long.toString(invocationTtl), Integer.toString(policy.getConcurrencyLimit()),
-                                lease, Long.toString(leaseExpiry), Long.toString(policy.getLeaseTtl().toSeconds() + 1), Long.toString(now.getEpochSecond())))
+        return redis.execute(ADMIT, List.of(invocationKey, concurrencyKey, tenantKey),
+                        List.of(Long.toString(policy.getInvocationLimit()), Long.toString(policy.getInvocationWindow().toMillis()),
+                                Integer.toString(policy.getConcurrencyLimit()), lease, Long.toString(policy.getLeaseTtl().toMillis())))
                 .next()
                 .map(values -> new Admission(flag(values, 0),
                         flag(values, 1), flag(values, 2),
@@ -70,12 +64,19 @@ public final class RedisAgentMcpQuotaStore implements AgentMcpQuotaStore {
     public Mono<Boolean> release(final AgentMcpQuotaConfig policy, final String tenant, final String subject,
                                  final String correlationId, final String lease) {
         Objects.requireNonNull(lease, "lease");
-        String scope = (policy.getMode() == AgentMcpQuotaConfig.Mode.SHADOW ? "shadow" : "enforce")
-                + ":" + scopePart(tenant) + ":" + scopePart(subject);
+        String scope = scope(policy, tenant, subject);
         String concurrencyKey = "shenyu:agent:mcp-quota:concurrency:" + scope;
         return redis.execute(RELEASE, List.of(concurrencyKey), List.of(lease))
                 .next()
                 .map(value -> Objects.equals("1", Objects.toString(value, null)));
+    }
+
+    private static String scope(final AgentMcpQuotaConfig policy, final String tenant, final String subject) {
+        return tag(policy, tenant) + ":" + scopePart(subject);
+    }
+
+    private static String tag(final AgentMcpQuotaConfig policy, final String tenant) {
+        return "{" + (policy.getMode() == AgentMcpQuotaConfig.Mode.SHADOW ? "shadow" : "enforce") + ":" + scopePart(tenant) + "}";
     }
 
     private static String scopePart(final String value) {

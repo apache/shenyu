@@ -63,6 +63,7 @@ final class AgentMcpQuotaGovernorTest {
         assertEquals(1, store.admissions);
         assertTrue(awaitRelease(store.releaseCount));
         assertEquals(AgentGovernanceDecision.Result.WOULD_DENY, decisions.get(0).getResult());
+        assertEquals(1, governor.shadowSnapshot().observedDenials());
     }
 
     @Test
@@ -92,6 +93,30 @@ final class AgentMcpQuotaGovernorTest {
         assertEquals(1, store.releaseCount.getCount());
         assertEquals(AgentGovernanceDecision.Reason.POLICY_ERROR, decisions.get(0).getReason());
         assertEquals(AgentGovernanceDecision.Result.ALLOW, decisions.get(0).getResult());
+    }
+
+    @Test
+    void missingIdentityRejectsBeforeRedisEvenWhenFailOpenOrShadow() {
+        RecordingStore store = new RecordingStore(new AgentMcpQuotaStore.Admission(true, false, false, "lease"));
+        AgentMcpQuotaGovernor governor = governor(AgentMcpQuotaConfig.Mode.SHADOW, store, true);
+        for (String identity : java.util.Arrays.asList(null, "", " padded", "bad\nidentity")) {
+            StepVerifier.create(governor.withQuota(identity, "subject", "request", 1, Mono.just("value")))
+                    .expectErrorSatisfies(error -> assertEquals(AgentGovernanceDecision.Reason.AUTHENTICATION_REJECTED,
+                            ((AgentMcpQuotaException) error).getDecision().getReason())).verify();
+            StepVerifier.create(governor.withQuota("tenant", identity, "request", 1, Mono.just("value")))
+                    .expectError(AgentMcpQuotaException.class).verify();
+        }
+        assertEquals(0, store.admissions);
+    }
+
+    @Test
+    void deadlineCannotOutliveItsConcurrencyLeaseEvenWhenFailOpen() {
+        RecordingStore store = new RecordingStore(new AgentMcpQuotaStore.Admission(true, false, false, "lease"));
+        AgentMcpQuotaGovernor governor = governor(AgentMcpQuotaConfig.Mode.ENFORCE, store, true);
+        StepVerifier.create(governor.withQuota("tenant", "subject", "request", 1, Instant.now().plusSeconds(3600), Mono.just("value")))
+                .expectErrorSatisfies(error -> assertEquals(AgentGovernanceDecision.Reason.POLICY_ERROR,
+                        ((AgentMcpQuotaException) error).getDecision().getReason())).verify();
+        assertEquals(0, store.admissions);
     }
 
     @Test
