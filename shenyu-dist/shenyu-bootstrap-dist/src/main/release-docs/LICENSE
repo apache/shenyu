@@ -439,7 +439,6 @@ The text of each license is the standard Apache 2.0 license.
     spring-ai-openai 1.1.8: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-retry 1.1.8: https://github.com/spring-projects/spring-ai, Apache 2.0
     spring-ai-template-st 1.1.8: https://github.com/spring-projects/spring-ai, Apache 2.0
-    fastjson 2.0.66: https://github.com/alibaba/fastjson2, Apache 2
 
 ========================================================================
 BSD licenses
