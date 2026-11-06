@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.RuleDO;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,8 +62,20 @@ public final class RuleImportResolver {
     public static RuleImportResolver from(final RuleMapper ruleMapper,
                                           final String namespace,
                                           final Map<String, String> selectorIdMapping) {
-        Map<String, Map<String, String>> existing = new LinkedHashMap<>();
-        for (RuleDO rule : ruleMapper.selectAllByNamespaceId(namespace)) {
+        return from(ruleMapper.selectAllByNamespaceId(namespace), selectorIdMapping);
+    }
+
+    /**
+     * Build a resolver from an already loaded namespace rule list.
+     *
+     * @param rules namespace rules
+     * @param selectorIdMapping source selector id to target selector id mapping
+     * @return resolver
+     */
+    public static RuleImportResolver from(final List<RuleDO> rules,
+                                          final Map<String, String> selectorIdMapping) {
+        Map<String, Map<String, String>> existing = new LinkedHashMap<>(rules.size());
+        for (RuleDO rule : rules) {
             if (Objects.isNull(rule)) {
                 continue;
             }

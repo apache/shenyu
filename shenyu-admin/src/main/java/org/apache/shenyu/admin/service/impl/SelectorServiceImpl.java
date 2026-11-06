@@ -66,6 +66,7 @@ import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportInputValidator;
 import org.apache.shenyu.admin.service.configs.plan.SelectorImportResolver;
 import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
@@ -567,6 +568,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ConfigImportResult.success();
         }
+        selectorList.forEach(ConfigsImportInputValidator::requireValidSelector);
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         List<SelectorData> importedSelectors = new ArrayList<>();
@@ -621,6 +623,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ConfigImportResult.success();
         }
+        selectorList.forEach(ConfigsImportInputValidator::requireValidSelector);
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;

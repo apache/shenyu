@@ -100,58 +100,6 @@ public final class ZipUtil {
      */
     public static UnZipResult unzip(final byte[] source, final long maxEntrySize,
                                     final long maxTotalSize, final int maxEntryCount) {
-        List<ZipItem> itemList = Lists.newArrayList();
-        long totalSize = 0L;
-        int entryCount = 0;
-        try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(source))) {
-            ZipEntry entry;
-            while (Objects.nonNull(entry = zipIn.getNextEntry())) {
-                if (entry.isDirectory()) {
-                    continue;
-                }
-                entryCount++;
-                if (entryCount > maxEntryCount) {
-                    throw new IllegalArgumentException("entry count exceeds maximum of " + maxEntryCount);
-                }
-                try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                    byte[] buffer = new byte[1024];
-                    int offset;
-                    long entrySize = 0L;
-                    while ((offset = zipIn.read(buffer)) != -1) {
-                        entrySize += offset;
-                        totalSize += offset;
-                        if (entrySize > maxEntrySize) {
-                            throw new IllegalArgumentException("entry size exceeds maximum allowed value.");
-                        }
-                        if (totalSize > maxTotalSize) {
-                            throw new IllegalArgumentException("total size exceeds maximum allowed value.");
-                        }
-                        out.write(buffer, 0, offset);
-                    }
-                    String entryName = entry.getName();
-                    itemList.add(new ZipItem(entryName, out.toString(StandardCharsets.UTF_8)));
-                } catch (IOException e) {
-                    LOG.error("unzip error", e);
-                }
-            }
-        } catch (IOException e) {
-            LOG.error("unzip error", e);
-        }
-        return new UnZipResult(itemList);
-    }
-
-    /**
-     * Unzip with the same limits as {@link #unzip(byte[], long, long, int)} but reject
-     * malformed archives, duplicate entry names and blank entry names.
-     *
-     * @param source source
-     * @param maxEntrySize max entry size
-     * @param maxTotalSize max total size
-     * @param maxEntryCount max entry count
-     * @return unzip result
-     */
-    public static UnZipResult unzipStrict(final byte[] source, final long maxEntrySize,
-                                          final long maxTotalSize, final int maxEntryCount) {
         if (Objects.isNull(source) || source.length < 4 || source[0] != 'P' || source[1] != 'K') {
             throw new IllegalArgumentException("malformed zip archive");
         }

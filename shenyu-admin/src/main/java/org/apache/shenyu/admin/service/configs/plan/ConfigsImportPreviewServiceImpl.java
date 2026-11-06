@@ -29,18 +29,18 @@ import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
-import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
-import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.enums.ConfigImportAction;
+import org.apache.shenyu.admin.model.enums.PreviewTokenCheckResult;
 import org.apache.shenyu.admin.model.result.ConfigsImportPreview;
+import org.apache.shenyu.admin.model.result.ConfigsImportWarning;
 import org.apache.shenyu.admin.service.configs.ConfigsExportImportEnum;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.utils.PreviewTextSanitizer;
 import org.apache.shenyu.admin.utils.ZipUtil;
 import org.apache.shenyu.admin.validation.validator.AgentGatewayPluginConfigValidator;
 import org.apache.shenyu.common.constant.ExportImportConstants;
-import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.slf4j.Logger;
@@ -94,6 +94,8 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
     private static final String DUPLICATE_NAMESPACE_PLUGIN = "DUPLICATE_NAMESPACE_PLUGIN";
 
     private static final String DUPLICATE_RULE_NAME = "DUPLICATE_RULE_NAME";
+
+    private static final String DUPLICATE_PLUGIN_NAME = "DUPLICATE_PLUGIN_NAME";
 
     private static final String INVALID_PLUGIN = "INVALID_PLUGIN";
 
@@ -194,7 +196,7 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         final long started = System.currentTimeMillis();
         try {
             final String observedAt = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-            final ZipUtil.UnZipResult unzipResult = ZipUtil.unzipStrict(source, maxEntrySize, maxTotalSize, maxEntryCount);
+            final ZipUtil.UnZipResult unzipResult = ZipUtil.unzip(source, maxEntrySize, maxTotalSize, maxEntryCount);
             final List<ZipUtil.ZipItem> items = unzipResult.getZipItemList();
             final ConfigsImportTargetSnapshot snapshot = ConfigsImportTargetSnapshot.load(pluginMapper, namespacePluginRelMapper,
                     selectorMapper, ruleMapper, shenyuDictMapper, namespace);
@@ -203,7 +205,7 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
             final String previewToken = ConfigsImportFingerprint.token(namespace, archiveDigest, baselineFingerprint);
             final PreviewPlanning planning = planSections(items, namespace, snapshot, new ConfigsImportContext());
             final ConfigsImportPreview.Summary summary = summarize(planning.sections());
-            final List<String> warnings = warnings(planning.sections(), planning.blocking(), planning.truncated());
+            final List<ConfigsImportWarning> warnings = warnings(planning.sections(), planning.blocking(), planning.truncated());
             LOG.info("configs import preview namespace={} digest={} sections={} truncated={} elapsedMs={}",
                     namespace, archiveDigest, planning.sections().size(), planning.truncated(),
                     System.currentTimeMillis() - started);
@@ -215,30 +217,54 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public PreviewTokenCheckResult matchesToken(final String namespace, final byte[] source, final String previewToken) {
+        if (Objects.isNull(source) || source.length > maxTotalSize
+                || StringUtils.isBlank(previewToken) || previewToken.length() > 256) {
+            return PreviewTokenCheckResult.UNVERIFIABLE;
+        }
+        final Semaphore semaphore = semaphore();
+        if (!semaphore.tryAcquire()) {
+            return PreviewTokenCheckResult.UNVERIFIABLE;
+        }
+        try {
+            ConfigsImportTargetSnapshot snapshot = ConfigsImportTargetSnapshot.load(pluginMapper, namespacePluginRelMapper,
+                    selectorMapper, ruleMapper, shenyuDictMapper, namespace);
+            String expected = ConfigsImportFingerprint.token(namespace,
+                    ConfigsImportFingerprint.archiveDigest(source),
+                    ConfigsImportFingerprint.baseline(namespace, snapshot));
+            return Objects.equals(expected, previewToken)
+                    ? PreviewTokenCheckResult.VALID : PreviewTokenCheckResult.STALE;
+        } finally {
+            semaphore.release();
+        }
+    }
+
     private PreviewPlanning planSections(final List<ZipUtil.ZipItem> items,
                                          final String namespace,
                                          final ConfigsImportTargetSnapshot snapshot,
                                          final ConfigsImportContext context) {
-        Map<String, ZipUtil.ZipItem> itemsByName = new LinkedHashMap<>();
+        Map<String, ZipUtil.ZipItem> itemsByName = new LinkedHashMap<>(items.size());
         for (ZipUtil.ZipItem item : items) {
             itemsByName.put(item.getItemName(), item);
         }
         PreviewBudget budget = new PreviewBudget(maxOutcomes);
-        List<ConfigsImportPreview.SectionPreview> sections = new ArrayList<>();
+        List<ConfigsImportPreview.SectionPreview> sections = new ArrayList<>(SECTIONS.size() + items.size());
         boolean coverage = true;
         boolean blocking = false;
         boolean truncated = false;
 
-        Map<String, PluginDO> pluginsById = new LinkedHashMap<>();
+        Map<String, PluginDO> pluginsById = new LinkedHashMap<>(snapshot.plugins().size());
         for (PluginDO plugin : snapshot.plugins()) {
             pluginsById.putIfAbsent(plugin.getId(), plugin);
         }
-        Map<String, String> selectorPluginIds = new LinkedHashMap<>();
+        Map<String, String> selectorPluginIds = new LinkedHashMap<>(snapshot.selectors().size());
         for (SelectorDO selector : snapshot.selectors()) {
             selectorPluginIds.putIfAbsent(selector.getId(), selector.getPluginId());
         }
-        Map<String, String> plannedPluginNamesById = new LinkedHashMap<>();
-        Map<String, String> plannedSelectorPluginIds = new LinkedHashMap<>();
+        Map<String, String> plannedPluginNamesById = new LinkedHashMap<>(snapshot.plugins().size());
+        Map<String, String> plannedSelectorPluginIds = new LinkedHashMap<>(snapshot.selectors().size());
         PlanningState state = new PlanningState(namespace, snapshot, context, budget, pluginsById, selectorPluginIds,
                 plannedPluginNamesById, plannedSelectorPluginIds);
 
@@ -278,7 +304,7 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
             }
         }
 
-        List<ConfigsImportPreview.SectionPreview> unknownSections = new ArrayList<>();
+        List<ConfigsImportPreview.SectionPreview> unknownSections = new ArrayList<>(items.size());
         for (ZipUtil.ZipItem item : items) {
             if (!KNOWN_SECTION_NAMES.contains(item.getItemName())) {
                 unknownSections.add(new ConfigsImportPreview.SectionPreview(
@@ -290,20 +316,6 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         unknownSections.sort(Comparator.comparing(ConfigsImportPreview.SectionPreview::section));
         sections.addAll(unknownSections);
         return new PreviewPlanning(sections, coverage, blocking, truncated);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean matchesToken(final String namespace, final byte[] source, final String previewToken) {
-        if (Objects.isNull(source) || StringUtils.isBlank(previewToken) || previewToken.length() > 256) {
-            return false;
-        }
-        ConfigsImportTargetSnapshot snapshot = ConfigsImportTargetSnapshot.load(pluginMapper, namespacePluginRelMapper,
-                selectorMapper, ruleMapper, shenyuDictMapper, namespace);
-        String expected = ConfigsImportFingerprint.token(namespace,
-                ConfigsImportFingerprint.archiveDigest(source),
-                ConfigsImportFingerprint.baseline(namespace, snapshot));
-        return Objects.equals(expected, previewToken);
     }
 
     private SectionPlan planSection(final ConfigsExportImportEnum section,
@@ -325,12 +337,15 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         } catch (RuntimeException ex) {
             return malformedSection(ExportImportConstants.PLUGIN_TEMPLATE_JSON, SCOPE_GLOBAL, VALIDATORS_PLUGIN);
         }
-        Map<String, String> existing = new LinkedHashMap<>();
-        for (PluginDO plugin : state.snapshot().plugins()) {
-            existing.putIfAbsent(plugin.getName(), plugin.getId());
+        final String duplicateName = PluginTemplateImportResolver.findDuplicateName(state.snapshot().plugins());
+        if (Objects.nonNull(duplicateName)) {
+            return new SectionPlan(new ConfigsImportPreview.SectionPreview(
+                    ExportImportConstants.PLUGIN_TEMPLATE_JSON, SCOPE_GLOBAL, true, true, true,
+                    VALIDATORS_PLUGIN, List.of(), List.of(DUPLICATE_PLUGIN_NAME)), false);
         }
-        PluginTemplateImportResolver resolver = new PluginTemplateImportResolver(existing, state.context().getPluginTemplateIdMapping());
-        List<ConfigImportDecision> decisions = new ArrayList<>();
+        PluginTemplateImportResolver resolver = PluginTemplateImportResolver.from(
+                state.snapshot().plugins(), state.context().getPluginTemplateIdMapping());
+        List<ConfigImportDecision> decisions = new ArrayList<>(pluginList.size());
         boolean blocking = false;
         boolean truncated = false;
         for (PluginDTO pluginDTO : pluginList) {
@@ -340,10 +355,10 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
             }
             if (Objects.isNull(pluginDTO) || StringUtils.isBlank(pluginDTO.getName())) {
                 blocking = true;
-                decisions.add(reject(value(pluginDTO, true), value(pluginDTO, false), INVALID_SOURCE));
+                decisions.add(reject(sourceId(pluginDTO), sourceName(pluginDTO), INVALID_SOURCE));
                 continue;
             }
-            if (invalidPlugin(pluginDTO)) {
+            if (ConfigsImportInputValidator.invalidPlugin(pluginDTO)) {
                 blocking = true;
                 decisions.add(reject(pluginDTO.getId(), pluginDTO.getName(), INVALID_PLUGIN));
                 continue;
@@ -374,12 +389,9 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         } catch (RuntimeException ex) {
             return malformedSection(ExportImportConstants.NAMESPACE_PLUGIN_JSON, SCOPE_NAMESPACE, VALIDATORS_PLUGIN);
         }
-        Map<String, NamespacePluginRelDO> existing = new LinkedHashMap<>();
-        for (NamespacePluginRelDO relation : state.snapshot().namespacePlugins()) {
-            existing.putIfAbsent(relation.getPluginId(), relation);
-        }
-        NamespacePluginImportResolver resolver = new NamespacePluginImportResolver(existing, state.context().getPluginTemplateIdMapping());
-        List<ConfigImportDecision> decisions = new ArrayList<>();
+        NamespacePluginImportResolver resolver = NamespacePluginImportResolver.from(
+                state.snapshot().namespacePlugins(), state.context().getPluginTemplateIdMapping());
+        List<ConfigImportDecision> decisions = new ArrayList<>(pluginList.size());
         boolean blocking = false;
         boolean truncated = false;
         for (NamespacePluginDTO pluginDTO : pluginList) {
@@ -389,10 +401,10 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
             }
             if (Objects.isNull(pluginDTO) || StringUtils.isBlank(pluginDTO.getPluginId())) {
                 blocking = true;
-                decisions.add(reject(value(pluginDTO, true), value(pluginDTO, false), INVALID_SOURCE));
+                decisions.add(reject(sourceId(pluginDTO), sourceName(pluginDTO), INVALID_SOURCE));
                 continue;
             }
-            if (invalidNamespacePlugin(pluginDTO)) {
+            if (ConfigsImportInputValidator.invalidNamespacePlugin(pluginDTO)) {
                 blocking = true;
                 decisions.add(reject(pluginDTO.getId(), pluginDTO.getName(), INVALID_NAMESPACE_PLUGIN));
                 continue;
@@ -445,13 +457,9 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         } catch (RuntimeException ex) {
             return malformedSection(ExportImportConstants.SELECTOR_JSON, SCOPE_NAMESPACE, VALIDATORS_SELECTOR);
         }
-        Map<String, Map<String, String>> existing = new LinkedHashMap<>();
-        for (SelectorDO selector : state.snapshot().selectors()) {
-            existing.computeIfAbsent(selector.getPluginId(), key -> new LinkedHashMap<>())
-                    .putIfAbsent(selector.getSelectorName(), selector.getId());
-        }
-        SelectorImportResolver resolver = new SelectorImportResolver(existing, state.context().getPluginTemplateIdMapping());
-        List<ConfigImportDecision> decisions = new ArrayList<>();
+        SelectorImportResolver resolver = SelectorImportResolver.from(
+                state.snapshot().selectors(), state.context().getPluginTemplateIdMapping());
+        List<ConfigImportDecision> decisions = new ArrayList<>(selectorList.size());
         boolean blocking = false;
         boolean truncated = false;
         for (SelectorDTO selectorDTO : selectorList) {
@@ -461,10 +469,10 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
             }
             if (Objects.isNull(selectorDTO) || StringUtils.isBlank(selectorDTO.getName())) {
                 blocking = true;
-                decisions.add(reject(value(selectorDTO, true), value(selectorDTO, false), INVALID_SOURCE));
+                decisions.add(reject(sourceId(selectorDTO), sourceName(selectorDTO), INVALID_SOURCE));
                 continue;
             }
-            if (invalidSelector(selectorDTO)) {
+            if (ConfigsImportInputValidator.invalidSelector(selectorDTO)) {
                 blocking = true;
                 decisions.add(reject(selectorDTO.getId(), selectorDTO.getName(), INVALID_SELECTOR));
                 continue;
@@ -513,13 +521,9 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         } catch (RuntimeException ex) {
             return malformedSection(ExportImportConstants.RULE_JSON, SCOPE_NAMESPACE, VALIDATORS_RULE);
         }
-        Map<String, Map<String, String>> existing = new LinkedHashMap<>();
-        for (RuleDO rule : state.snapshot().rules()) {
-            existing.computeIfAbsent(rule.getSelectorId(), key -> new LinkedHashMap<>())
-                    .putIfAbsent(rule.getRuleName(), rule.getId());
-        }
-        RuleImportResolver resolver = new RuleImportResolver(existing, state.context().getSelectorIdMapping());
-        List<ConfigImportDecision> decisions = new ArrayList<>();
+        RuleImportResolver resolver = RuleImportResolver.from(
+                state.snapshot().rules(), state.context().getSelectorIdMapping());
+        List<ConfigImportDecision> decisions = new ArrayList<>(ruleList.size());
         boolean blocking = false;
         boolean truncated = false;
         for (RuleDTO ruleDTO : ruleList) {
@@ -529,10 +533,10 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
             }
             if (Objects.isNull(ruleDTO) || StringUtils.isBlank(ruleDTO.getName()) || StringUtils.isBlank(ruleDTO.getSelectorId())) {
                 blocking = true;
-                decisions.add(reject(value(ruleDTO, true), value(ruleDTO, false), INVALID_SOURCE));
+                decisions.add(reject(sourceId(ruleDTO), sourceName(ruleDTO), INVALID_SOURCE));
                 continue;
             }
-            if (invalidRule(ruleDTO)) {
+            if (ConfigsImportInputValidator.invalidRule(ruleDTO)) {
                 blocking = true;
                 decisions.add(reject(ruleDTO.getId(), ruleDTO.getName(), INVALID_RULE));
                 continue;
@@ -630,7 +634,7 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         List<String> diagnostics = decision.diagnostics().stream()
                 .limit(Math.max(1, maxDiagnosticsPerOutcome))
                 .map(value -> PreviewTextSanitizer.sanitize(value, refLimit())).toList();
-        return new ConfigsImportPreview.PreviewOutcome(sourceRef, sourceName, targetRef, decision.action().name(),
+        return new ConfigsImportPreview.PreviewOutcome(sourceRef, sourceName, targetRef, decision.action(),
                 remapped, diagnostics);
     }
 
@@ -652,75 +656,61 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
         for (ConfigsImportPreview.SectionPreview section : sections) {
             for (ConfigsImportPreview.PreviewOutcome outcome : section.outcomes()) {
                 switch (outcome.action()) {
-                    case "CREATE" -> create++;
-                    case "REUSE" -> reuse++;
-                    case "SKIP" -> skip++;
-                    case "REJECT" -> reject++;
-                    default -> {
-                    }
+                    case CREATE -> create++;
+                    case REUSE -> reuse++;
+                    case SKIP -> skip++;
+                    case REJECT -> reject++;
+                    default -> throw new IllegalStateException("unexpected import action: " + outcome.action());
                 }
             }
         }
         return new ConfigsImportPreview.Summary(create, reuse, skip, reject);
     }
 
-    private static List<String> warnings(final List<ConfigsImportPreview.SectionPreview> sections,
+    private static List<ConfigsImportWarning> warnings(final List<ConfigsImportPreview.SectionPreview> sections,
                                          final boolean blocking,
                                          final boolean truncated) {
-        List<String> warnings = new ArrayList<>();
-        warnings.add("OBSERVATION_ONLY: Preview reflects the target state at observedAt; it is not a reservation, approval, or proof of Gateway activation.");
+        List<ConfigsImportWarning> warnings = new ArrayList<>(7);
+        warnings.add(warning("OBSERVATION_ONLY",
+                "Preview reflects the target state at observedAt; it is not a reservation, approval, or proof of Gateway activation."));
         if (sections.stream().anyMatch(section -> ExportImportConstants.PLUGIN_TEMPLATE_JSON.equals(section.section()) && section.present())) {
-            warnings.add("GLOBAL_PLUGIN_TEMPLATE: plugin_template.json affects global plugin templates, not only the target namespace.");
+            warnings.add(warning("GLOBAL_PLUGIN_TEMPLATE",
+                    "plugin_template.json affects global plugin templates, not only the target namespace."));
         }
         if (sections.stream().anyMatch(section -> !section.supported() && section.present())) {
-            warnings.add("UNSUPPORTED_SECTIONS_PRESENT: Some archive sections were not analyzed; results are not fully validated.");
+            warnings.add(warning("UNSUPPORTED_SECTIONS_PRESENT",
+                    "Some archive sections were not analyzed; results are not fully validated."));
         }
         if (sections.stream().anyMatch(ConfigsImportPreviewServiceImpl::hasCoverageGap)) {
-            warnings.add("COVERAGE_GAPS_PRESENT: Some objects could not be validated because a required dependency or identity is missing.");
+            warnings.add(warning("COVERAGE_GAPS_PRESENT",
+                    "Some objects could not be validated because a required dependency or identity is missing."));
         }
         if (blocking) {
-            warnings.add("IMPORT_WOULD_FAIL_FAST: A blocking section would abort the live import; per-object outcomes are diagnostic only.");
+            warnings.add(warning("IMPORT_WOULD_FAIL_FAST",
+                    "A blocking section would abort the live import; per-object outcomes are diagnostic only."));
         }
         if (truncated) {
-            warnings.add("REPORT_TRUNCATED: The outcome budget stopped planning; later sections were not fully analyzed.");
+            warnings.add(warning("REPORT_TRUNCATED",
+                    "The outcome budget stopped planning; later sections were not fully analyzed."));
         }
-        warnings.add("PREVIEW_TOKEN: Pass previewToken to /configs/import to detect archive and baseline drift.");
+        warnings.add(warning("REVALIDATE_BEFORE_IMPORT",
+                "Preview is an observation; re-run it before applying the archive."));
         return warnings;
     }
 
+    private static ConfigsImportWarning warning(final String code, final String message) {
+        return new ConfigsImportWarning(code, message);
+    }
+
     private static boolean hasCoverageGap(final ConfigsImportPreview.SectionPreview section) {
-        return section.outcomes().stream().anyMatch(outcome -> outcome.diagnostics().contains(INVALID_SOURCE)
+        return section.diagnostics().contains(DUPLICATE_PLUGIN_NAME)
+                || section.outcomes().stream().anyMatch(outcome -> outcome.diagnostics().contains(INVALID_SOURCE)
                 || outcome.diagnostics().contains(INVALID_PLUGIN)
                 || outcome.diagnostics().contains(INVALID_NAMESPACE_PLUGIN)
                 || outcome.diagnostics().contains(INVALID_SELECTOR)
                 || outcome.diagnostics().contains(INVALID_RULE)
                 || outcome.diagnostics().contains(MISSING_PLUGIN_TEMPLATE)
                 || outcome.diagnostics().contains(MISSING_SELECTOR_REFERENCE));
-    }
-
-    private static boolean invalidPlugin(final PluginDTO pluginDTO) {
-        return StringUtils.isBlank(pluginDTO.getRole()) || Objects.isNull(pluginDTO.getEnabled());
-    }
-
-    private static boolean invalidNamespacePlugin(final NamespacePluginDTO pluginDTO) {
-        return Objects.isNull(pluginDTO.getEnabled());
-    }
-
-    private static boolean invalidSelector(final SelectorDTO selectorDTO) {
-        if (Objects.isNull(selectorDTO.getType()) || Objects.isNull(selectorDTO.getSort())
-                || Objects.isNull(selectorDTO.getEnabled()) || Objects.isNull(selectorDTO.getLogged())
-                || Objects.isNull(selectorDTO.getContinued()) || Objects.isNull(selectorDTO.getMatchRestful())
-                || Objects.isNull(selectorDTO.getSelectorConditions())) {
-            return true;
-        }
-        return !Objects.equals(SelectorTypeEnum.FULL_FLOW.getCode(), selectorDTO.getType())
-                && Objects.isNull(selectorDTO.getMatchMode());
-    }
-
-    private static boolean invalidRule(final RuleDTO ruleDTO) {
-        return Objects.isNull(ruleDTO.getMatchMode()) || Objects.isNull(ruleDTO.getSort())
-                || Objects.isNull(ruleDTO.getEnabled()) || Objects.isNull(ruleDTO.getLogged())
-                || Objects.isNull(ruleDTO.getMatchRestful()) || Objects.isNull(ruleDTO.getRuleConditions());
     }
 
     private static boolean isSupported(final ConfigsExportImportEnum section) {
@@ -771,21 +761,34 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
                 decision.targetRef(), remapped, diagnostics);
     }
 
-    private static String value(final Object dto, final boolean id) {
-        if (Objects.isNull(dto)) {
-            return null;
-        }
+    private static String sourceId(final Object dto) {
         if (dto instanceof PluginDTO pluginDTO) {
-            return id ? pluginDTO.getId() : pluginDTO.getName();
+            return pluginDTO.getId();
         }
         if (dto instanceof NamespacePluginDTO pluginDTO) {
-            return id ? pluginDTO.getId() : pluginDTO.getName();
+            return pluginDTO.getId();
         }
         if (dto instanceof SelectorDTO selectorDTO) {
-            return id ? selectorDTO.getId() : selectorDTO.getName();
+            return selectorDTO.getId();
         }
         if (dto instanceof RuleDTO ruleDTO) {
-            return id ? ruleDTO.getId() : ruleDTO.getName();
+            return ruleDTO.getId();
+        }
+        return null;
+    }
+
+    private static String sourceName(final Object dto) {
+        if (dto instanceof PluginDTO pluginDTO) {
+            return pluginDTO.getName();
+        }
+        if (dto instanceof NamespacePluginDTO pluginDTO) {
+            return pluginDTO.getName();
+        }
+        if (dto instanceof SelectorDTO selectorDTO) {
+            return selectorDTO.getName();
+        }
+        if (dto instanceof RuleDTO ruleDTO) {
+            return ruleDTO.getName();
         }
         return null;
     }

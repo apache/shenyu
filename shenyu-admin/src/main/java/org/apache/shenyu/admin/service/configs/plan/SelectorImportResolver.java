@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,8 +62,20 @@ public final class SelectorImportResolver {
     public static SelectorImportResolver from(final SelectorMapper selectorMapper,
                                               final String namespace,
                                               final Map<String, String> pluginTemplateIdMapping) {
-        Map<String, Map<String, String>> existing = new LinkedHashMap<>();
-        for (SelectorDO selector : selectorMapper.selectAllByNamespaceId(namespace)) {
+        return from(selectorMapper.selectAllByNamespaceId(namespace), pluginTemplateIdMapping);
+    }
+
+    /**
+     * Build a resolver from an already loaded namespace selector list.
+     *
+     * @param selectors namespace selectors
+     * @param pluginTemplateIdMapping source plugin id to target plugin id mapping
+     * @return resolver
+     */
+    public static SelectorImportResolver from(final List<SelectorDO> selectors,
+                                              final Map<String, String> pluginTemplateIdMapping) {
+        Map<String, Map<String, String>> existing = new LinkedHashMap<>(selectors.size());
+        for (SelectorDO selector : selectors) {
             if (Objects.isNull(selector)) {
                 continue;
             }

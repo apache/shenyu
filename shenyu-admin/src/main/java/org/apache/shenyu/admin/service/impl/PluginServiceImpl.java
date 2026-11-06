@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.mapper.NamespacePluginRelMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.enums.ConfigImportAction;
 import org.apache.shenyu.admin.model.event.plugin.PluginCreatedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
@@ -35,8 +36,8 @@ import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
-import org.apache.shenyu.admin.service.configs.plan.ConfigImportAction;
 import org.apache.shenyu.admin.service.configs.plan.ConfigImportDecision;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportInputValidator;
 import org.apache.shenyu.admin.service.configs.plan.PluginTemplateImportResolver;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
@@ -253,6 +254,7 @@ public class PluginServiceImpl implements PluginService {
         if (CollectionUtils.isEmpty(pluginList)) {
             return ConfigImportResult.success();
         }
+        pluginList.forEach(ConfigsImportInputValidator::requireValidPlugin);
         PluginTemplateImportResolver resolver = PluginTemplateImportResolver.from(pluginMapper,
                 Objects.isNull(context) ? new HashMap<>() : context.getPluginTemplateIdMapping());
         StringBuilder errorMsgBuilder = new StringBuilder();

@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -57,8 +58,20 @@ public final class NamespacePluginImportResolver {
     public static NamespacePluginImportResolver from(final NamespacePluginRelMapper namespacePluginRelMapper,
                                                      final String namespace,
                                                      final Map<String, String> pluginTemplateIdMapping) {
-        Map<String, NamespacePluginRelDO> existing = new LinkedHashMap<>();
-        for (NamespacePluginRelDO relation : namespacePluginRelMapper.listByNamespaceId(namespace)) {
+        return from(namespacePluginRelMapper.listByNamespaceId(namespace), pluginTemplateIdMapping);
+    }
+
+    /**
+     * Build a resolver from an already loaded namespace plugin relation list.
+     *
+     * @param relations namespace plugin relations
+     * @param pluginTemplateIdMapping source plugin id to target plugin id mapping
+     * @return resolver
+     */
+    public static NamespacePluginImportResolver from(final List<NamespacePluginRelDO> relations,
+                                                     final Map<String, String> pluginTemplateIdMapping) {
+        Map<String, NamespacePluginRelDO> existing = new LinkedHashMap<>(relations.size());
+        for (NamespacePluginRelDO relation : relations) {
             if (Objects.isNull(relation)) {
                 continue;
             }

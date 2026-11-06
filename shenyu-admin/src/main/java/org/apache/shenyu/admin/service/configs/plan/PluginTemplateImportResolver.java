@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.configs.plan;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
+import org.apache.shenyu.admin.model.enums.ConfigImportAction;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.util.Collections;
@@ -58,8 +59,44 @@ public final class PluginTemplateImportResolver {
      */
     public static PluginTemplateImportResolver from(final PluginMapper pluginMapper,
                                                     final Map<String, String> pluginTemplateIdMapping) {
-        Map<String, String> existing = new LinkedHashMap<>();
-        for (PluginDO plugin : pluginMapper.selectAll()) {
+        return from(pluginMapper.selectAll(), pluginTemplateIdMapping);
+    }
+
+    /**
+     * Build a resolver from an already loaded global plugin list.
+     *
+     * @param plugins global plugins
+     * @param pluginTemplateIdMapping source plugin id to target plugin id mapping
+     * @return resolver
+     */
+    public static PluginTemplateImportResolver from(final List<PluginDO> plugins,
+                                                    final Map<String, String> pluginTemplateIdMapping) {
+        return new PluginTemplateImportResolver(indexByName(plugins), pluginTemplateIdMapping);
+    }
+
+    /**
+     * Find the first duplicate global plugin name.
+     *
+     * @param plugins global plugins
+     * @return duplicate name, or null when names are unique
+     */
+    public static String findDuplicateName(final List<PluginDO> plugins) {
+        Map<String, String> existing = new LinkedHashMap<>(plugins.size());
+        for (PluginDO plugin : plugins) {
+            if (Objects.isNull(plugin)) {
+                continue;
+            }
+            if (existing.containsKey(plugin.getName())) {
+                return plugin.getName();
+            }
+            existing.put(plugin.getName(), plugin.getId());
+        }
+        return null;
+    }
+
+    private static Map<String, String> indexByName(final List<PluginDO> plugins) {
+        Map<String, String> existing = new LinkedHashMap<>(plugins.size());
+        for (PluginDO plugin : plugins) {
             if (Objects.isNull(plugin)) {
                 continue;
             }
@@ -68,7 +105,7 @@ public final class PluginTemplateImportResolver {
             }
             existing.put(plugin.getName(), plugin.getId());
         }
-        return new PluginTemplateImportResolver(existing, pluginTemplateIdMapping);
+        return existing;
     }
 
     /**

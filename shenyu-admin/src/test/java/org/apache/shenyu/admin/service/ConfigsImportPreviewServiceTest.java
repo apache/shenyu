@@ -30,7 +30,10 @@ import org.apache.shenyu.admin.model.entity.NamespacePluginRelDO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.model.enums.ConfigImportAction;
+import org.apache.shenyu.admin.model.enums.PreviewTokenCheckResult;
 import org.apache.shenyu.admin.model.result.ConfigsImportPreview;
+import org.apache.shenyu.admin.model.result.ConfigsImportWarning;
 import org.apache.shenyu.admin.service.configs.plan.ConfigsImportPreviewBusyException;
 import org.apache.shenyu.admin.service.configs.plan.ConfigsImportPreviewServiceImpl;
 import org.apache.shenyu.admin.utils.ZipUtil;
@@ -132,47 +135,67 @@ public final class ConfigsImportPreviewServiceTest {
         assertThat(preview.truncated()).isFalse();
         assertThat(preview.archiveDigest()).startsWith("sha256:");
         assertThat(preview.baselineFingerprint()).startsWith("sha256:");
-        assertThat(preview.previewToken()).startsWith("sha256:");
         assertThat(preview.summary()).isEqualTo(new ConfigsImportPreview.Summary(5, 3, 2, 3));
-        assertThat(preview.warnings()).anyMatch(value -> value.startsWith("GLOBAL_PLUGIN_TEMPLATE"));
-        assertThat(preview.warnings()).anyMatch(value -> value.startsWith("COVERAGE_GAPS_PRESENT"));
+        assertThat(preview.warnings()).extracting(ConfigsImportWarning::code).contains("GLOBAL_PLUGIN_TEMPLATE");
+        assertThat(preview.warnings()).extracting(ConfigsImportWarning::code).contains("COVERAGE_GAPS_PRESENT");
 
         ConfigsImportPreview.SectionPreview pluginSection = section(preview, "plugin_template.json");
         assertThat(pluginSection.scope()).isEqualTo("GLOBAL");
-        assertThat(outcome(pluginSection, "src-divide").action()).isEqualTo("REUSE");
+        assertThat(outcome(pluginSection, "src-divide").action()).isEqualTo(ConfigImportAction.REUSE);
         assertThat(outcome(pluginSection, "src-divide").targetRef()).isEqualTo("existing:p-existing");
-        assertThat(outcome(pluginSection, "src-new").action()).isEqualTo("CREATE");
+        assertThat(outcome(pluginSection, "src-new").action()).isEqualTo(ConfigImportAction.CREATE);
         assertThat(outcome(pluginSection, "src-new").diagnostics()).contains("GLOBAL_EFFECT");
 
         ConfigsImportPreview.SectionPreview namespacePluginSection = section(preview, "namespace_plugin.json");
         assertThat(namespacePluginSection.outcomes()).isNotEmpty();
-        assertThat(outcome(namespacePluginSection, "np-1").action()).isEqualTo("SKIP");
+        assertThat(outcome(namespacePluginSection, "np-1").action()).isEqualTo(ConfigImportAction.SKIP);
         assertThat(outcome(namespacePluginSection, "np-1").diagnostics()).contains("DUPLICATE_NAMESPACE_PLUGIN");
-        assertThat(outcome(namespacePluginSection, "np-2").action()).isEqualTo("CREATE");
-        assertThat(outcome(namespacePluginSection, "np-3").action()).isEqualTo("REJECT");
+        assertThat(outcome(namespacePluginSection, "np-2").action()).isEqualTo(ConfigImportAction.CREATE);
+        assertThat(outcome(namespacePluginSection, "np-3").action()).isEqualTo(ConfigImportAction.REJECT);
         assertThat(outcome(namespacePluginSection, "np-3").diagnostics()).contains("MISSING_PLUGIN_TEMPLATE");
 
         ConfigsImportPreview.SectionPreview selectorSection = section(preview, "selector.json");
-        assertThat(outcome(selectorSection, "sel-src-1").action()).isEqualTo("REUSE");
+        assertThat(outcome(selectorSection, "sel-src-1").action()).isEqualTo(ConfigImportAction.REUSE);
         assertThat(outcome(selectorSection, "sel-src-1").diagnostics()).contains("DUPLICATE_SELECTOR_NAME");
-        assertThat(outcome(selectorSection, "sel-src-2").action()).isEqualTo("CREATE");
+        assertThat(outcome(selectorSection, "sel-src-2").action()).isEqualTo(ConfigImportAction.CREATE);
         assertThat(outcome(selectorSection, "sel-src-2").diagnostics()).contains("NAMESPACE_REMAPPED");
-        assertThat(outcome(selectorSection, "sel-src-3").action()).isEqualTo("REUSE");
+        assertThat(outcome(selectorSection, "sel-src-3").action()).isEqualTo(ConfigImportAction.REUSE);
         assertThat(outcome(selectorSection, "sel-src-3").targetRef()).isEqualTo("planned");
-        assertThat(outcome(selectorSection, "sel-src-4").action()).isEqualTo("REJECT");
+        assertThat(outcome(selectorSection, "sel-src-4").action()).isEqualTo(ConfigImportAction.REJECT);
 
         ConfigsImportPreview.SectionPreview ruleSection = section(preview, "rule.json");
-        assertThat(outcome(ruleSection, "rule-src-1").action()).isEqualTo("SKIP");
+        assertThat(outcome(ruleSection, "rule-src-1").action()).isEqualTo(ConfigImportAction.SKIP);
         assertThat(outcome(ruleSection, "rule-src-1").diagnostics()).contains("DUPLICATE_RULE_NAME");
-        assertThat(outcome(ruleSection, "rule-src-2").action()).isEqualTo("CREATE");
+        assertThat(outcome(ruleSection, "rule-src-2").action()).isEqualTo(ConfigImportAction.CREATE);
         assertThat(outcome(ruleSection, "rule-src-3").diagnostics()).contains("MISSING_SELECTOR_REFERENCE");
-        assertThat(outcome(ruleSection, "rule-src-4").action()).isEqualTo("CREATE");
+        assertThat(outcome(ruleSection, "rule-src-4").action()).isEqualTo(ConfigImportAction.CREATE);
 
         assertThat(JsonUtils.toJson(preview)).doesNotContain("TOP_SECRET");
         verify(pluginMapper, never()).insertSelective(any());
         verify(namespacePluginRelMapper, never()).insertSelective(any());
         verify(selectorMapper, never()).insertSelective(any());
         verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
+    public void testDuplicateTargetPluginNamesBlockPreview() {
+        when(pluginMapper.selectAllIdentity()).thenReturn(List.of(
+                PluginDO.builder().id("p-1").name("duplicate").build(),
+                PluginDO.builder().id("p-2").name("duplicate").build()));
+        when(namespacePluginRelMapper.listByNamespaceId(NAMESPACE)).thenReturn(Collections.emptyList());
+        when(selectorMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(Collections.emptyList());
+        when(ruleMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(Collections.emptyList());
+
+        byte[] archive = ZipUtil.zip(List.of(new ZipUtil.ZipItem("plugin_template.json",
+                JsonUtils.toJson(List.of(plugin("src", "duplicate", null))))));
+        ConfigsImportPreview preview = service.preview(NAMESPACE, archive);
+
+        ConfigsImportPreview.SectionPreview section = section(preview, "plugin_template.json");
+        assertThat(section.blocking()).isTrue();
+        assertThat(section.diagnostics()).contains("DUPLICATE_PLUGIN_NAME");
+        assertThat(preview.fullyValidated()).isFalse();
+        assertThat(preview.warnings()).extracting(ConfigsImportWarning::code).contains("COVERAGE_GAPS_PRESENT");
+        assertThat(preview.warnings()).allMatch(value -> value.code().matches("[A-Z_]+") && !value.message().isBlank());
     }
 
     @Test
@@ -222,7 +245,7 @@ public final class ConfigsImportPreviewServiceTest {
     }
 
     @Test
-    public void testPreviewTokenDetectsBaselineDrift() {
+    public void testBaselineFingerprintChangesWithTargetState() {
         when(pluginMapper.selectAllIdentity()).thenReturn(Collections.emptyList());
         when(namespacePluginRelMapper.listByNamespaceId(NAMESPACE)).thenReturn(Collections.emptyList());
         when(selectorMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(Collections.emptyList());
@@ -231,12 +254,21 @@ public final class ConfigsImportPreviewServiceTest {
         byte[] archive = ZipUtil.zip(List.of(new ZipUtil.ZipItem("plugin_template.json",
                 JsonUtils.toJson(List.of(plugin("src-new", "newPlugin", null))))));
         ConfigsImportPreview preview = service.preview(NAMESPACE, archive);
+        String archiveDigest = preview.archiveDigest();
+        String baselineFingerprint = preview.baselineFingerprint();
+        String previewToken = preview.previewToken();
 
-        assertThat(service.matchesToken(NAMESPACE, archive, preview.previewToken())).isTrue();
+        assertThat(previewToken).startsWith("sha256:");
+        assertThat(service.matchesToken(NAMESPACE, archive, previewToken)).isEqualTo(PreviewTokenCheckResult.VALID);
+        assertThat(service.matchesToken(NAMESPACE, archive, "")).isEqualTo(PreviewTokenCheckResult.UNVERIFIABLE);
 
         when(selectorMapper.selectAllByNamespaceId(NAMESPACE)).thenReturn(List.of(
                 SelectorDO.builder().id("drift").pluginId("p").selectorName("drift").build()));
-        assertThat(service.matchesToken(NAMESPACE, archive, preview.previewToken())).isFalse();
+        ConfigsImportPreview drifted = service.preview(NAMESPACE, archive);
+
+        assertThat(drifted.archiveDigest()).isEqualTo(archiveDigest);
+        assertThat(drifted.baselineFingerprint()).isNotEqualTo(baselineFingerprint);
+        assertThat(service.matchesToken(NAMESPACE, archive, previewToken)).isEqualTo(PreviewTokenCheckResult.STALE);
     }
 
     @Test
@@ -255,19 +287,37 @@ public final class ConfigsImportPreviewServiceTest {
         invalidSelector.setPluginId("bad-plugin");
         invalidSelector.setName("badSelector");
 
+        NamespacePluginDTO invalidNamespacePlugin = new NamespacePluginDTO();
+        invalidNamespacePlugin.setId("bad-namespace-plugin");
+        invalidNamespacePlugin.setPluginId("bad-plugin");
+        invalidNamespacePlugin.setName("badNamespacePlugin");
+
+        RuleDTO invalidRule = new RuleDTO();
+        invalidRule.setId("bad-rule");
+        invalidRule.setSelectorId("bad-selector");
+        invalidRule.setName("badRule");
+
         byte[] archive = ZipUtil.zip(List.of(
                 new ZipUtil.ZipItem("plugin_template.json", JsonUtils.toJson(List.of(invalidPlugin))),
-                new ZipUtil.ZipItem("selector.json", JsonUtils.toJson(List.of(invalidSelector)))));
+                new ZipUtil.ZipItem("namespace_plugin.json", JsonUtils.toJson(List.of(invalidNamespacePlugin))),
+                new ZipUtil.ZipItem("selector.json", JsonUtils.toJson(List.of(invalidSelector))),
+                new ZipUtil.ZipItem("rule.json", JsonUtils.toJson(List.of(invalidRule)))));
 
         ConfigsImportPreview preview = service.preview(NAMESPACE, archive);
 
         ConfigsImportPreview.SectionPreview pluginSection = section(preview, "plugin_template.json");
         assertThat(pluginSection.blocking()).isTrue();
-        assertThat(outcome(pluginSection, "bad-plugin").action()).isEqualTo("REJECT");
+        assertThat(outcome(pluginSection, "bad-plugin").action()).isEqualTo(ConfigImportAction.REJECT);
         assertThat(outcome(pluginSection, "bad-plugin").diagnostics()).contains("INVALID_PLUGIN");
+        ConfigsImportPreview.SectionPreview namespacePluginSection = section(preview, "namespace_plugin.json");
+        assertThat(namespacePluginSection.blocking()).isTrue();
+        assertThat(outcome(namespacePluginSection, "bad-namespace-plugin").diagnostics()).contains("INVALID_NAMESPACE_PLUGIN");
         ConfigsImportPreview.SectionPreview selectorSection = section(preview, "selector.json");
         assertThat(selectorSection.blocking()).isTrue();
         assertThat(outcome(selectorSection, "bad-selector").diagnostics()).contains("INVALID_SELECTOR");
+        ConfigsImportPreview.SectionPreview ruleSection = section(preview, "rule.json");
+        assertThat(ruleSection.blocking()).isTrue();
+        assertThat(outcome(ruleSection, "bad-rule").diagnostics()).contains("INVALID_RULE");
         assertThat(preview.fullyValidated()).isFalse();
     }
 
@@ -373,7 +423,7 @@ public final class ConfigsImportPreviewServiceTest {
         assertThat(preview.fullyValidated()).isFalse();
         assertThat(section(preview, "plugin_template.json").outcomes()).hasSize(1);
         assertThat(section(preview, "plugin_template.json").diagnostics()).contains("REPORT_TRUNCATED");
-        assertThat(preview.warnings()).anyMatch(value -> value.startsWith("REPORT_TRUNCATED"));
+        assertThat(preview.warnings()).extracting(ConfigsImportWarning::code).contains("REPORT_TRUNCATED");
     }
 
     @Test
@@ -398,9 +448,9 @@ public final class ConfigsImportPreviewServiceTest {
 
         ConfigsImportPreview.SectionPreview ruleSection = section(preview, "rule.json");
         assertThat(ruleSection.blocking()).isTrue();
-        assertThat(outcome(ruleSection, "rule-bad").action()).isEqualTo("REJECT");
+        assertThat(outcome(ruleSection, "rule-bad").action()).isEqualTo(ConfigImportAction.REJECT);
         assertThat(outcome(ruleSection, "rule-bad").diagnostics()).contains("INVALID_RULE_HANDLE");
-        assertThat(preview.warnings()).anyMatch(value -> value.startsWith("IMPORT_WOULD_FAIL_FAST"));
+        assertThat(preview.warnings()).extracting(ConfigsImportWarning::code).contains("IMPORT_WOULD_FAIL_FAST");
     }
 
     private static ConfigsImportPreview.SectionPreview section(final ConfigsImportPreview preview, final String name) {

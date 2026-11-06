@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.model.result;
 
+import org.apache.shenyu.admin.model.enums.ConfigImportAction;
+
 import java.util.List;
 
 /**
@@ -25,7 +27,7 @@ import java.util.List;
  * @param observedAt observation time in ISO-8601 form
  * @param archiveDigest SHA-256 digest of the uploaded archive
  * @param baselineFingerprint SHA-256 fingerprint of target identity rows
- * @param previewToken token binding this preview to its archive and baseline
+ * @param previewToken optional token binding this preview to its archive and baseline
  * @param targetNamespace preview target namespace
  * @param fullyValidated whether every present section was analyzed without coverage gaps
  * @param truncated whether the outcome budget stopped the plan
@@ -43,7 +45,7 @@ public record ConfigsImportPreview(
         boolean truncated,
         Summary summary,
         List<SectionPreview> sections,
-        List<String> warnings) {
+        List<ConfigsImportWarning> warnings) {
 
     /**
      * Defensive copy of sections and warnings.
@@ -51,7 +53,7 @@ public record ConfigsImportPreview(
      * @param observedAt observation time
      * @param archiveDigest archive digest
      * @param baselineFingerprint baseline fingerprint
-     * @param previewToken preview token
+     * @param previewToken optional preview token
      * @param targetNamespace target namespace
      * @param fullyValidated whether every present section was analyzed
      * @param truncated whether the report was truncated
@@ -130,7 +132,7 @@ public record ConfigsImportPreview(
             String sourceRef,
             String sourceName,
             String targetRef,
-            String action,
+            ConfigImportAction action,
             List<String> remappedRefs,
             List<String> diagnostics) {
 

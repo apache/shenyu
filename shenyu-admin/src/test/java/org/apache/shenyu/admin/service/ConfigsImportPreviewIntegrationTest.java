@@ -19,10 +19,12 @@ package org.apache.shenyu.admin.service;
 
 import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.dto.NamespacePluginDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
+import org.apache.shenyu.admin.model.enums.ConfigImportAction;
 import org.apache.shenyu.admin.model.result.ConfigsImportPreview;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.configs.plan.ConfigsImportPreviewService;
@@ -34,17 +36,25 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * H2 integration coverage for the read-only import preview.
  */
+@RecordApplicationEvents
 public class ConfigsImportPreviewIntegrationTest extends AbstractSpringIntegrationTest {
 
     private static final String NAMESPACE = Constants.SYS_DEFAULT_NAMESPACE_ID;
@@ -61,6 +71,12 @@ public class ConfigsImportPreviewIntegrationTest extends AbstractSpringIntegrati
 
     @Resource
     private JdbcTemplate jdbcTemplate;
+
+    @Resource
+    private ApplicationEvents applicationEvents;
+
+    @SpyBean
+    private SyncDataService syncDataService;
 
     @BeforeEach
     public void setUp() {
@@ -83,14 +99,18 @@ public class ConfigsImportPreviewIntegrationTest extends AbstractSpringIntegrati
     @Test
     public void testPreviewIsReadOnlyAndImportMatchesThePlan() {
         byte[] archive = archive();
-        int pluginCount = count("plugin");
-        int namespacePluginCount = count("namespace_plugin_rel");
-        int selectorCount = selectorCount();
-        int ruleCount = ruleCount();
-        int auditCount = count("operation_record_log");
+        final int pluginCount = count("plugin");
+        final int namespacePluginCount = count("namespace_plugin_rel");
+        final int selectorCount = selectorCount();
+        final int ruleCount = ruleCount();
+        final int auditCount = count("operation_record_log");
+        clearInvocations(syncDataService);
 
         ConfigsImportPreview preview = previewService.preview(NAMESPACE, archive);
 
+        assertThat(applicationEvents.stream(DataChangedEvent.class)).isEmpty();
+        verify(syncDataService, never()).syncAll(any());
+        verify(syncDataService, never()).syncAllByNamespaceId(any(), any());
         assertThat(count("plugin")).isEqualTo(pluginCount);
         assertThat(count("namespace_plugin_rel")).isEqualTo(namespacePluginCount);
         assertThat(selectorCount()).isEqualTo(selectorCount);
@@ -98,10 +118,10 @@ public class ConfigsImportPreviewIntegrationTest extends AbstractSpringIntegrati
         assertThat(count("operation_record_log")).isEqualTo(auditCount);
         assertThat(preview.fullyValidated()).isTrue();
         assertThat(preview.summary()).isEqualTo(new ConfigsImportPreview.Summary(2, 1, 1, 0));
-        assertThat(outcome(preview, "plugin_template.json", "sign").action()).isEqualTo("REUSE");
-        assertThat(outcome(preview, "namespace_plugin.json", "sign").action()).isEqualTo("SKIP");
-        assertThat(outcome(preview, "selector.json", SELECTOR_NAME).action()).isEqualTo("CREATE");
-        assertThat(outcome(preview, "rule.json", RULE_NAME).action()).isEqualTo("CREATE");
+        assertThat(outcome(preview, "plugin_template.json", "sign").action()).isEqualTo(ConfigImportAction.REUSE);
+        assertThat(outcome(preview, "namespace_plugin.json", "sign").action()).isEqualTo(ConfigImportAction.SKIP);
+        assertThat(outcome(preview, "selector.json", SELECTOR_NAME).action()).isEqualTo(ConfigImportAction.CREATE);
+        assertThat(outcome(preview, "rule.json", RULE_NAME).action()).isEqualTo(ConfigImportAction.CREATE);
 
         ShenyuAdminResult result = configsService.configsImport(NAMESPACE, archive);
 

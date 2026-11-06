@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.configs.plan;
 
+import org.apache.shenyu.admin.model.enums.PreviewTokenCheckResult;
 import org.apache.shenyu.admin.model.result.ConfigsImportPreview;
 
 /**
@@ -34,12 +35,12 @@ public interface ConfigsImportPreviewService {
     ConfigsImportPreview preview(String namespace, byte[] source);
 
     /**
-     * Check that a preview token still matches the archive and target baseline.
+     * Check whether an optional preview token is current.
      *
      * @param namespace target namespace
      * @param source archive bytes
-     * @param previewToken token returned by {@link #preview(String, byte[])}
-     * @return true when the token is current
+     * @param previewToken optional token returned by {@link #preview(String, byte[])}
+     * @return token check result
      */
-    boolean matchesToken(String namespace, byte[] source, String previewToken);
+    PreviewTokenCheckResult matchesToken(String namespace, byte[] source, String previewToken);
 }

@@ -17,28 +17,28 @@
 
 package org.apache.shenyu.admin.service.configs.plan;
 
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.springframework.http.HttpStatus;
+
 /**
- * The outcome of one source object in a configuration import plan.
+ * Stable error responses for configuration archive imports.
  */
-public enum ConfigImportAction {
+public final class ConfigsImportErrors {
 
     /**
-     * The import would insert a new object.
+     * Stable client-facing message for an invalid archive.
      */
-    CREATE,
+    public static final String INVALID_ARCHIVE = "Import failed: invalid archive";
+
+    private ConfigsImportErrors() {
+    }
 
     /**
-     * The import would not insert; the source maps to an existing or planned object.
+     * Build the invalid-archive response.
+     *
+     * @return error result
      */
-    REUSE,
-
-    /**
-     * The import would ignore the source object without creating or remapping it.
-     */
-    SKIP,
-
-    /**
-     * The source object cannot be imported because it is invalid or lacks a dependency.
-     */
-    REJECT
+    public static ShenyuAdminResult invalidArchive() {
+        return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), INVALID_ARCHIVE);
+    }
 }

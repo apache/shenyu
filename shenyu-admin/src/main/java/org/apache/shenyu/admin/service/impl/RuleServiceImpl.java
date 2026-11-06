@@ -50,6 +50,7 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportInputValidator;
 import org.apache.shenyu.admin.service.configs.plan.RuleImportResolver;
 import org.apache.shenyu.admin.service.configs.plan.RuleImportValidator;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
@@ -327,7 +328,7 @@ public class RuleServiceImpl implements RuleService {
         if (CollectionUtils.isEmpty(ruleList)) {
             return ConfigImportResult.success();
         }
-
+        ruleList.forEach(ConfigsImportInputValidator::requireValidRule);
         ruleList.forEach(rule -> validateCanaryConfig(rule.getSelectorId(), rule.getHandle()));
         Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
                 .selectAll()
@@ -373,6 +374,7 @@ public class RuleServiceImpl implements RuleService {
         if (CollectionUtils.isEmpty(ruleList)) {
             return ConfigImportResult.success();
         }
+        ruleList.forEach(ConfigsImportInputValidator::requireValidRule);
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         ruleList.stream().filter(rule -> selectorIdMapping.containsKey(rule.getSelectorId()))
                 .forEach(rule -> validateCanaryConfig(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));

@@ -60,7 +60,8 @@ public final class ConfigsImportFingerprint {
      * @return digest with an algorithm prefix
      */
     public static String baseline(final String namespace, final ConfigsImportTargetSnapshot snapshot) {
-        List<String> rows = new ArrayList<>();
+        List<String> rows = new ArrayList<>(snapshot.plugins().size() + snapshot.namespacePlugins().size()
+                + snapshot.selectors().size() + snapshot.rules().size() + snapshot.dicts().size());
         for (PluginDO plugin : snapshot.plugins()) {
             rows.add("plugin|" + field(plugin.getId()) + field(plugin.getName()));
         }
@@ -85,7 +86,7 @@ public final class ConfigsImportFingerprint {
     }
 
     /**
-     * Derive the token that binds a preview to its archive and baseline.
+     * Derive the optional token that binds a preview to its archive and baseline.
      *
      * @param namespace target namespace
      * @param archiveDigest archive digest
