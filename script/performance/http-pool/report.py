@@ -17,11 +17,12 @@
 
 import argparse
 import json
+import math
 from pathlib import Path
 import statistics
 
 
-def metric(run, name, key, default=0):
+def metric(run, name, key, default=None):
     return run["summary"]["metrics"].get(name, {}).get(key, default)
 
 
@@ -30,7 +31,7 @@ def median(runs, function):
 
 
 def p99(run):
-    return metric(run, "successful_duration", "p(99)")
+    return metric(run, "successful_duration", "p(99)") if metric(run, "successful_requests", "count", 0) else None
 
 
 def errors(run):
@@ -39,6 +40,59 @@ def errors(run):
 
 def resource(run, key):
     return run["resources"][key]
+
+
+def validate_measurements(run):
+    """Do not turn missing measurements into valid zero-valued observations."""
+    metrics = run["summary"]["metrics"]
+    if not isinstance(metrics, dict):
+        raise ValueError("metrics must be an object")
+
+    def number(value, field, integer=False):
+        if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+            raise ValueError(f"{field} must be a finite nonnegative number")
+        if integer and value != int(value):
+            raise ValueError(f"{field} must be an integer")
+        return value
+
+    def measured(name, key, integer=False):
+        return number(metrics[name][key], f"{name}.{key}", integer)
+
+    requests = measured("http_reqs", "count", integer=True)
+    if not requests:
+        raise ValueError("no HTTP requests were measured")
+    if measured("http_req_failed", "value") > 1:
+        raise ValueError("http_req_failed.value must not exceed one")
+    successes = measured("successful_requests", "count", integer=True) if "successful_requests" in metrics else 0
+    if successes > requests:
+        raise ValueError("successful request count exceeds HTTP request count")
+    if "successful_requests" in metrics:
+        rate = measured("successful_requests", "rate")
+        if bool(successes) != bool(rate):
+            raise ValueError("successful request count and rate disagree")
+    samples = run["successfulLatencyMillis"]
+    if not isinstance(samples, list) or len(samples) != successes:
+        raise ValueError("successful request count and retained latency samples disagree")
+    for value in samples:
+        number(value, "successfulLatencyMillis")
+    if successes:
+        measured("successful_duration", "p(99)")
+    elif measured("failed_requests", "count", integer=True) != requests:
+        # k6 may omit a custom counter/trend that never received a sample. Only
+        # infer zero successes when the independent failure counter accounts for all requests.
+        raise ValueError("zero successes require a complete failed request count")
+    if "dropped_iterations" in metrics:
+        measured("dropped_iterations", "count", integer=True)
+
+
+def latency_median(runs):
+    values = [p99(run) for run in runs]
+    return "N/A" if None in values else f"{statistics.median(values):.2f}"
+
+
+def latency_range(runs):
+    values = [p99(run) for run in runs]
+    return "N/A" if None in values else f"{min(values):.2f}–{max(values):.2f}"
 
 
 def validate_comparison(before, after):
@@ -60,6 +114,11 @@ def validate_comparison(before, after):
             raise ValueError(f"{label}: repeat must be an integer")
         if len(observed) != len(expected) or set(observed) != expected:
             raise ValueError(f"{label}: incomplete or duplicate case/repetition samples")
+        for run in arm["runs"]:
+            try:
+                validate_measurements(run)
+            except (KeyError, TypeError, ValueError) as error:
+                raise ValueError(f"{label}/{run['case']}/{run['repeat']}: invalid measurements: {error}") from error
     for field in ("repetitions", "warmupSeconds", "measurementSeconds"):
         if before[field] != after[field]:
             raise ValueError(f"Mismatched benchmark setting: {field}")
@@ -94,7 +153,6 @@ def main():
     groups = {case: ([run for run in before["runs"] if run["case"] == case],
                      [run for run in after["runs"] if run["case"] == case]) for case in cases}
     args.output.mkdir(parents=True, exist_ok=True)
-    (args.output / "http-pool-samples.json").write_text(json.dumps({"before": before, "after": after}, separators=(",", ":")) + "\n", encoding="utf-8")
     lines = [
         "# HTTP pool capacity experiment — 2026-10-15", "",
         "This is a controlled HTTP/1.1 client-pool experiment for #7644, not a full gateway throughput claim.",
@@ -115,15 +173,16 @@ def main():
         "- Fixture JAR SHA-256 (candidate): `" + after["build"]["fixtureSha256"] + "`. JAR snapshots include production and fixture classes; the tracked-source diff hash alone does not cover new untracked files.",
         "- k6: `" + before["k6Version"] + "`.", "",
         "## Successful traffic and latency", "",
-        "k6 rates include completion/drain time. Error percentage includes rejected overload requests; successful-only p99 prevents fast failures from making the latency comparison look better.", "",
+        "k6 rates include completion/drain time. Error percentage includes rejected overload requests; successful-only p99 prevents fast failures from making the latency comparison look better.",
+        "N/A means at least one repetition had no successful responses; no zero latency or reduced-repetition median/range is inferred.", "",
         "| Case | Offered/s | Successful/s before → after | Successful p99 ms before → after | Error % before → after |",
         "| --- | ---: | ---: | ---: | ---: |",
     ]
     for case, (old, new) in groups.items():
-        rates = [median(runs, lambda run: metric(run, "successful_requests", "rate")) for runs in (old, new)]
-        tails = [median(runs, p99) for runs in (old, new)]
+        rates = [median(runs, lambda run: metric(run, "successful_requests", "rate", 0)) for runs in (old, new)]
+        tails = [latency_median(runs) for runs in (old, new)]
         errs = [median(runs, errors) for runs in (old, new)]
-        lines.append(f"| {case} | {old[0]['rate']} | {rates[0]:.2f} → {rates[1]:.2f} | {tails[0]:.2f} → {tails[1]:.2f} | {errs[0]:.2f} → {errs[1]:.2f} |")
+        lines.append(f"| {case} | {old[0]['rate']} | {rates[0]:.2f} → {rates[1]:.2f} | {tails[0]} → {tails[1]} | {errs[0]:.2f} → {errs[1]:.2f} |")
     lines += ["", "## Resource peaks", "", "Peaks are sampled every 20 ms and then summarized across repetitions. Idle reusable connections are included in open physical upstream connections. New connections are counted at physical channel initialization, not per HTTP request.", "",
               "| Case | Open upstream connections before → after | Pending before → after | New connections/s before → after | Heap MiB before → after | Direct MiB before → after | Windows process handles before → after |",
               "| --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
@@ -141,8 +200,8 @@ def main():
               "| Case | Successful p99 range before (ms) | Successful p99 range after (ms) |",
               "| --- | ---: | ---: |"]
     for case, (old, new) in groups.items():
-        lines.append(f"| {case} | {min(map(p99, old)):.2f}–{max(map(p99, old)):.2f} | {min(map(p99, new)):.2f}–{max(map(p99, new)):.2f} |")
-    drops = sum(metric(run, "dropped_iterations", "count") for arm in (before, after) for run in arm["runs"])
+        lines.append(f"| {case} | {latency_range(old)} | {latency_range(new)} |")
+    drops = sum(metric(run, "dropped_iterations", "count", 0) for arm in (before, after) for run in arm["runs"])
     lines += ["", "- Total generator dropped iterations: " + str(drops) + ".",
               "- The unchanged FIXED default is not being presented as an unbounded queue: the before measurement exposes its existing 16-slot limit. The shorter candidate queue is an explicit configuration choice.",
               "- ELASTIC shedding under the new 8-connection budget is intentional admission control, not a throughput improvement. Before ELASTIC can complete more requests by consuming more upstream connections.",
@@ -152,9 +211,13 @@ def main():
               "- Windows has no POSIX FD counter here (`peakFileDescriptors: -1`). Native process-handle counts are retained separately. Linux FD validation remains an explicit follow-up; these handle counts must not be represented as FD measurements.",
               "- JFR `profile` recordings for the first fixed-overload repetition of each arm and complete k6 point streams remain in the runner output directories. They are local diagnostic artifacts; the checked-in JSON retains primary latency/queue samples, summaries and resource counters.",
               "- Longer isolated runs, a stated p99/error SLO rate sweep, separate generator/upstream hosts, Linux FD measurement and full gateway/TLS/AI-engine validation remain necessary before deployment sizing or maximum-throughput claims. These are not claimed complete by this local report.", ""]
+    # Finish validation and rendering before replacing either retained artifact.
+    serialized = json.dumps({"before": before, "after": after}, separators=(",", ":")) + "\n"
+    (args.output / "http-pool-samples.json").write_text(serialized, encoding="utf-8")
     (args.output / "http-pool-results.md").write_text("\n".join(lines), encoding="utf-8")
     print(args.output / "http-pool-results.md")
 
 
 if __name__ == "__main__":
     main()
+

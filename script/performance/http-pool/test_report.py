@@ -18,6 +18,9 @@
 import copy
 import json
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import unittest
 
 from report import validate_comparison
@@ -104,6 +107,116 @@ class ComparisonTest(unittest.TestCase):
         self.assertEqual(4, self.after["runs"][0]["pendingAcquireMaxCount"])
         validate_comparison(self.before, self.after)
 
+    def test_missing_measurements_are_not_zero_measurements(self):
+        for name in ("http_reqs", "http_req_failed", "successful_requests", "successful_duration"):
+            with self.subTest(metric=name):
+                after = copy.deepcopy(self.after)
+                del after["runs"][0]["summary"]["metrics"][name]
+                with self.assertRaises(ValueError):
+                    validate_comparison(self.before, after)
+
+    def test_missing_metric_fields_are_rejected(self):
+        for name, key in (("http_reqs", "count"), ("http_req_failed", "value"),
+                          ("successful_requests", "count"), ("successful_requests", "rate"),
+                          ("successful_duration", "p(99)")):
+            with self.subTest(metric=name, key=key):
+                after = copy.deepcopy(self.after)
+                del after["runs"][0]["summary"]["metrics"][name][key]
+                with self.assertRaises(ValueError):
+                    validate_comparison(self.before, after)
+
+    def test_invalid_measurements_are_rejected(self):
+        for name, key in (("http_reqs", "count"), ("http_req_failed", "value"),
+                          ("successful_requests", "count"), ("successful_requests", "rate"),
+                          ("successful_duration", "p(99)")):
+            for value in (None, True, "0", -1, float("nan"), float("inf")):
+                with self.subTest(metric=name, key=key, value=value):
+                    after = copy.deepcopy(self.after)
+                    after["runs"][0]["summary"]["metrics"][name][key] = value
+                    with self.assertRaises(ValueError):
+                        validate_comparison(self.before, after)
+
+    def test_error_rate_above_one_is_rejected(self):
+        self.after["runs"][0]["summary"]["metrics"]["http_req_failed"]["value"] = 1.01
+        with self.assertRaises(ValueError):
+            validate_comparison(self.before, self.after)
+
+    def test_no_requests_is_not_a_measured_run(self):
+        self.after["runs"][0]["summary"]["metrics"]["http_reqs"]["count"] = 0
+        with self.assertRaises(ValueError):
+            validate_comparison(self.before, self.after)
+
+    def test_success_count_agrees_with_retained_latency_samples(self):
+        self.after["runs"][0]["successfulLatencyMillis"].pop()
+        with self.assertRaises(ValueError):
+            validate_comparison(self.before, self.after)
+
+    def test_invalid_latency_samples_are_rejected(self):
+        for value in (None, True, "0", -1, float("nan"), float("inf")):
+            with self.subTest(value=value):
+                after = copy.deepcopy(self.after)
+                after["runs"][0]["successfulLatencyMillis"][0] = value
+                with self.assertRaises(ValueError):
+                    validate_comparison(self.before, after)
+
+    def test_zero_successes_need_independent_counter_evidence(self):
+        self.all_failed(self.after["runs"][0])
+        validate_comparison(self.before, self.after)
+        del self.after["runs"][0]["summary"]["metrics"]["failed_requests"]
+        with self.assertRaises(ValueError):
+            validate_comparison(self.before, self.after)
+
+    def test_zero_successes_have_unavailable_latency_not_zero(self):
+        # One unmeasurable repetition must not silently reduce the median's sample set.
+        self.all_failed(self.after["runs"][0])
+        result, output = self.render()
+        self.assertEqual(0, result.returncode, result.stderr)
+        lines = output["http-pool-results.md"].splitlines()
+        comparison = next(line for line in lines if line.startswith("| direct-slow-control | 160 |"))
+        self.assertIn(" → N/A |", comparison)
+        variability = next(line for line in lines if line.startswith("| direct-slow-control |") and "–" in line)
+        self.assertTrue(variability.endswith("| N/A |"), variability)
+
+    def test_failed_validation_keeps_published_artifacts_unchanged(self):
+        self.after["runs"][0]["summary"]["metrics"]["http_req_failed"]["value"] = None
+        result, output = self.render(retained=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertTrue(all(value == "retained" for value in output.values()))
+
+    def test_failed_render_keeps_published_artifacts_unchanged(self):
+        del self.before["build"]["commit"]
+        result, output = self.render(retained=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertTrue(all(value == "retained" for value in output.values()))
+
+    @staticmethod
+    def all_failed(run):
+        metrics = run["summary"]["metrics"]
+        total = metrics["http_reqs"]["count"]
+        metrics.pop("successful_requests", None)
+        metrics.pop("successful_duration", None)
+        metrics["failed_requests"] = {"count": total, "rate": metrics["http_reqs"]["rate"]}
+        metrics["http_req_failed"] = {"value": 1, "passes": total, "fails": 0}
+        run["successfulLatencyMillis"] = []
+
+    def render(self, retained=False):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            output = root / "report"
+            names = ("http-pool-samples.json", "http-pool-results.md")
+            if retained:
+                output.mkdir()
+                for name in names:
+                    (output / name).write_text("retained", encoding="utf-8")
+            for name, arm in (("before", self.before), ("after", self.after)):
+                (root / (name + ".json")).write_text(json.dumps(arm), encoding="utf-8")
+            result = subprocess.run([sys.executable, str(Path(__file__).with_name("report.py")),
+                                     "--before", str(root / "before.json"), "--after", str(root / "after.json"),
+                                     "--output", str(output)], text=True, capture_output=True, check=False)
+            contents = {name: (output / name).read_text(encoding="utf-8") for name in names if (output / name).is_file()}
+            return result, contents
+
 
 if __name__ == "__main__":
     unittest.main()
+
