@@ -39,6 +39,12 @@ class AgentPromptRegistryTest {
     private final ObjectMapper json = new ObjectMapper();
 
     @Test
+    void resultLimitsMeasureUtf8JsonRatherThanUtf16OrEscapedCharacterCounts() {
+        AgentPromptDefinition.validateResult(result("中".repeat(300000)));
+        assertThrows(IllegalArgumentException.class, () -> AgentPromptDefinition.validateResult(result("中".repeat(350000))));
+    }
+
+    @Test
     void freezesMetadataArgumentsAndResultsWithoutMutatingTheProvider() {
         ObjectNode source = metadata();
         AgentPromptDefinition definition = new AgentPromptDefinition(source);

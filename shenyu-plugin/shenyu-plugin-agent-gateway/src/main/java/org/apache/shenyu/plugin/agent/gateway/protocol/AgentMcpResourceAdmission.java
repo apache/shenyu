@@ -42,7 +42,7 @@ public interface AgentMcpResourceAdmission {
     /** Bound one local-provider execution.
      * @param deadline absolute request deadline
      * @param action controlled execution
-*    @param <T> result type
+     * @param <T> result type
      * @return controlled result
      */
     <T> Mono<T> withLocal(Instant deadline, Mono<T> action);
@@ -51,7 +51,7 @@ public interface AgentMcpResourceAdmission {
      * @param server stable target name, never Agent input
      * @param deadline absolute request deadline
      * @param action controlled execution
-*    @param <T> result type
+     * @param <T> result type
      * @return controlled result
      */
     <T> Mono<T> withRemote(String server, Instant deadline, Mono<T> action);

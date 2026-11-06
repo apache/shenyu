@@ -165,11 +165,7 @@ class ManagedCatalogRefreshConfigurationTest {
     }
 
     private static void await(final BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.nanoTime() + WAIT.toNanos();
-        while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
-            Thread.sleep(5);
-        }
-        assertTrue(condition.getAsBoolean());
+        org.awaitility.Awaitility.await().atMost(WAIT).until(condition::getAsBoolean);
     }
 
     private static final class Fixture implements AutoCloseable {

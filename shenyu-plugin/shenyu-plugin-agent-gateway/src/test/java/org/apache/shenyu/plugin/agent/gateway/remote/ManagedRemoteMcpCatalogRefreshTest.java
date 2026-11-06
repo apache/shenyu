@@ -64,6 +64,41 @@ class ManagedRemoteMcpCatalogRefreshTest {
 
     private static final HttpClient CLIENT = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).connectTimeout(Duration.ofSeconds(30)).build();
 
+    @Test
+    void identicalServerUpdateKeepsPublishedToolsAvailableWhilePreparingReplacement() throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            final CountDownLatch resolving = new CountDownLatch(1);
+            final CountDownLatch release = new CountDownLatch(1);
+            AtomicInteger resolutions = new AtomicInteger();
+            try (ManagedRemoteMcpCatalog catalog = catalog(fixture.endpoint, VirtualTimeScheduler.create(), target -> {
+                if (resolutions.incrementAndGet() == 2) {
+                    resolving.countDown();
+                    assertTrue(Mono.fromCallable(() -> release.await(5, TimeUnit.SECONDS)).block());
+                }
+                return new RemoteServerBinding.Credential(target, "fixed-test-token");
+            })) {
+                String source = config(fixture.endpoint, "v1");
+                catalog.reload(source).block(WAIT);
+                fixture.tool.set("replacement");
+                catalog.accept(event(true, source));
+                assertAvailableDuringResolution(catalog, resolving, release);
+                await(() -> definitions(catalog).equals(Set.of("orders.replacement")));
+            } finally {
+                release.countDown();
+            }
+        }
+    }
+
+    private static void assertAvailableDuringResolution(final ManagedRemoteMcpCatalog catalog, final CountDownLatch resolving,
+                                                        final CountDownLatch release) throws InterruptedException {
+        try {
+            assertTrue(resolving.await(5, TimeUnit.SECONDS));
+            assertEquals(Set.of("orders.lookup"), definitions(catalog));
+        } finally {
+            release.countDown();
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void pollingPreservesResourceOptInAndPublishesChangedDefinitionsTogether(final boolean resourcesEnabled) throws Exception {
@@ -523,11 +558,7 @@ class ManagedRemoteMcpCatalogRefreshTest {
     }
 
     private static void await(final BooleanSupplier condition) throws InterruptedException {
-        long deadline = System.nanoTime() + WAIT.toNanos();
-        while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
-            Thread.sleep(5);
-        }
-        assertTrue(condition.getAsBoolean());
+        org.awaitility.Awaitility.await().atMost(WAIT).until(condition::getAsBoolean);
     }
 
     private static final class Fixture implements AutoCloseable {

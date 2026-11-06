@@ -1,3 +1,20 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
 # Authorized MCP prompts aggregation
 
 Local prompts keep their explicit registration name. Every remote prompt is exposed as `mcpserver.promptname`, including non-colliding names. Duplicate upstream definitions reject discovery; a collision between local and remote names rejects the prompt operation, without automatic rename or fallback. Prompt grants and denies are independent of tools/resources, with deny precedence. Rule and trusted identity permissions intersect for both list and get.
@@ -6,7 +23,7 @@ The first candidate supports bounded text prompt messages with user/assistant ro
 
 Remote discovery consumes all bounded upstream pages before publishing one immutable generation; the gateway returns an unpaginated authorized list and rejects inbound cursors. Refresh/removal reuse the catalog generation leases and withdrawal fencing. This preparation integrates prompt discovery into #7952/#8143's existing polling, backoff, monotonic freshness check and atomic publication monitor. No separate notification/recovery scheduler is introduced. The existing inbound 2026-07-28 and outbound 2025-06-18 versions remain fixed; SDK migration is not assumed.
 
-This local publication-preparation checkout starts at master 8046953ca (2.7.3-SNAPSHOT), with separate, uncommitted admission (#8095) and recovery (#8143) overlays. It contains no audit bridge, collector, starter or AI Proxy changes from #8002. Neither dependency was merged when this preparation began; the complete master diff must not be submitted as a prompts-only PR. Once dependency interfaces are accepted into master, transplant only the prompts delta and repeat the affected checks. The original candidate and all its evidence are preserved separately. No commit, push or PR is performed by this preparation.
+Admission controllers supplied by the application remain application-owned. The catalog does not close them. When a managed catalog is present, its atomic publication callback is the only writer of admission configuration; the plugin data handler validates events without applying the limits a second time.
 
 ## Configuration
 
@@ -27,7 +44,7 @@ Admin validates `allowedPrompts` with the same shared parser as the gateway. Tru
 | Boundary | Contract |
 | --- | --- |
 | Local/remote definitions | At most 16 local and 16 remote prompts across at most 8 servers |
-| Names/metadata | Exact exposed names up to 128 characters; each definition up to 16 KiB; descriptions up to 4096 characters |
+| Names/metadata | Original names up to 128 characters; remote exposed names up to 177 (48-character server + dot + original); each definition up to 16 KiB; descriptions up to 4096 characters |
 | Discovery | At most 4 pages per server; repeated, empty or oversized cursors fail the complete generation |
 | Arguments | At most 32 declared string arguments; each value at most 16384 characters; required/unknown arguments checked before provider admission |
 | Results | 1 to 64 user/assistant text messages and at most 1 MiB UTF-8 JSON, also subject to the existing rule response-byte limit |
@@ -36,7 +53,13 @@ Admin validates `allowedPrompts` with the same shared parser as the gateway. Tru
 
 The gateway advertises `prompts` only when the matched rule configures prompts. It does not advertise `listChanged` or implement a GET notification stream. `prompts/list` returns one complete authorized list; an incoming cursor is rejected explicitly. Upstream paging completes before publication. Polling, outage recovery, hard snapshot expiry and configuration removal use #7952/#8143's shared complete-generation lifecycle. Failed refresh withdraws remote access; recovery never retries `prompts/get` or restores revoked identity grants.
 
-Missing authentication is 401, an ungranted get is 403, invalid arguments/mirrored headers/cursors are 400, rejected capacity is 429, and an elapsed deadline is 504. Invalid prompt results fail with 502; empty/provider failures or namespace/configuration inconsistencies fail closed with a sanitized 5xx JSON-RPC error. Private provider messages, credentials and argument values are not included in errors.
+An invalid original prompt identifier is omitted without withdrawing valid tools.
+For unchanged server/credential bindings, a still-fresh published generation keeps
+serving while its replacement is prepared. Removal, disablement, changed
+credentials and invalid configuration still withdraw access immediately; stale
+snapshots remain unavailable under the shared freshness policy.
+
+Missing authentication is 401, an ungranted get is 403 / JSON-RPC `-32002`, invalid arguments/mirrored headers/cursors are 400, rejected capacity is 429, and an elapsed deadline is 504. Invalid prompt results fail with 502; empty/provider failures or namespace/configuration inconsistencies fail closed with a sanitized 5xx JSON-RPC error. Private provider messages, credentials and argument values are not included in errors.
 
 ## Reproducing the HTTP verification
 
@@ -44,10 +67,11 @@ Missing authentication is 401, an ungranted get is 403, invalid arguments/mirror
 
 `KeyAuthMcpPromptHttpTest` separately exercises the public key-auth and Agent Gateway plugin chain over real HTTP with two service identities, tenant-specific prompts, explicit denials and tools coexistence. Its cache is fixture-owned; it is not an Admin/WebSocket deployment test.
 
-The network fixture constructs and reuses its HTTP client, checks HTTP readiness, then negotiates the fixture's existing MCP handshake and tools interface before starting each scenario. The bootstrap client is closed with `usingWhen`; it never lists or resolves prompts. This keeps the functional assertions independent of JDK HTTP/TLS and existing SDK cold initialization. Production 4-second request and 5-second discovery budgets are unchanged. Earlier QEMU cold-start timeouts remain recorded; a successful prepared functional run does not establish a cold-process startup latency guarantee.
+The network fixture reuses its HTTP client, checks readiness, then verifies the
+upstream handshake and tool interface before each scenario. Production request
+and discovery budgets are unchanged. Unmodified third-party client acceptance
+remains pending; the protocol fixture is not a substitute for that acceptance.
 
-The original candidate was verified separately on Windows and RISC-V/QEMU. Those results belong to its older baseline and are not used as proof for this publication-preparation checkout. The reconciled master-based checkout has its own verification logs and manifests linked from the project execution manual. Cross-platform and targeted reruns overlap; they are not added into a distinct-test total, and no remote CI or unmodified third-party agent compatibility is implied.
-
-```powershell
-.\mvnw.cmd -B -ntp -pl shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-agent-gateway -am test '-Dtest=AgentPromptRegistryTest,RemotePromptDirectoryTest,AgentMcpPromptIntegrationTest,RemotePromptNetworkTest,KeyAuthMcpPromptHttpTest' '-Dsurefire.failIfNoSpecifiedTests=false' '-DskipRemoteResources=true'
+```shell
+./mvnw -B -ntp -pl shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-agent-gateway -am test -Dtest=AgentPromptRegistryTest,RemotePromptDirectoryTest,AgentMcpPromptIntegrationTest,RemotePromptNetworkTest,KeyAuthMcpPromptHttpTest -Dsurefire.failIfNoSpecifiedTests=false -DskipRemoteResources=true
 ```

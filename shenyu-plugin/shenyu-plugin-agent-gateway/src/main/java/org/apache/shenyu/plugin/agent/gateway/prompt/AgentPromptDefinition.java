@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.agent.gateway.prompt;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.common.utils.AgentPromptNames;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -33,8 +34,8 @@ public final class AgentPromptDefinition {
 
     public AgentPromptDefinition(final ObjectNode source) {
         Objects.requireNonNull(source, "metadata");
-        text(source.get("name"), 128);
-        if (!source.path("name").asText().matches("[A-Za-z0-9_.-]{1,128}")) {
+        text(source.get("name"), AgentPromptNames.MAX_EXPOSED_LENGTH);
+        if (!AgentPromptNames.exposed(source.path("name").asText())) {
             throw new IllegalArgumentException("Invalid prompt name");
         }
         if (source.has("description")) {

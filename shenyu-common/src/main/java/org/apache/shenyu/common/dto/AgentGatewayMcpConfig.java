@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.utils.AgentPromptNames;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -58,7 +59,7 @@ public final class AgentGatewayMcpConfig {
         allowedTools = strings(object, "allowedTools", false);
         allowedResources = strings(object, "allowedResources", false);
         allowedPrompts = strings(object, "allowedPrompts", false);
-        if (allowedPrompts.size() > 32 || allowedPrompts.stream().anyMatch(value -> !value.matches("[A-Za-z0-9_.-]{1,128}"))) {
+        if (allowedPrompts.size() > 32 || allowedPrompts.stream().anyMatch(value -> !AgentPromptNames.exposed(value))) {
             throw invalid("allowedPrompts", "must contain at most 32 exact prompt names");
         }
         allowedOrigins = strings(object, "allowedOrigins", true);

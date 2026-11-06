@@ -189,6 +189,11 @@ public final class RemoteCatalogLifecycle {
                        final BooleanSupplier stillCurrent,
                        final int concurrency,
                        final LongConsumer published) {
+        return refresh(source, locals, reservedNames, stillCurrent, concurrency, published, false);
+    }
+
+    Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals, final Set<String> reservedNames,
+                       final BooleanSupplier stillCurrent, final int concurrency, final LongConsumer published, final boolean preserveCurrent) {
         Objects.requireNonNull(published, "published");
         if (concurrency < AgentGatewayAggregationConfig.MIN_REFRESH_CONCURRENCY
                 || concurrency > AgentGatewayAggregationConfig.MAX_REFRESH_CONCURRENCY) {
@@ -203,7 +208,7 @@ public final class RemoteCatalogLifecycle {
         }
         return Mono.usingWhen(
             Mono.defer(() -> {
-                Generation candidate = reserve(stillCurrent);
+                Generation candidate = reserve(stillCurrent, preserveCurrent);
                 // A fenced control update has no resource and must not enter the build/cleanup paths.
                 return Objects.isNull(candidate) ? Mono.empty() : Mono.just(candidate);
             }),
@@ -224,6 +229,9 @@ public final class RemoteCatalogLifecycle {
                                 throw new CatalogUnavailableException();
                             }
                             candidate.directory = directory;
+                            if (Objects.nonNull(current)) {
+                                current.retired = true;
+                            }
                             current = candidate;
                             published.accept(candidate.version);
                             return candidate.version;
@@ -235,7 +243,7 @@ public final class RemoteCatalogLifecycle {
         );
     }
 
-    private Generation reserve(final BooleanSupplier stillCurrent) {
+    private Generation reserve(final BooleanSupplier stillCurrent, final boolean preserveCurrent) {
         synchronized (lock) {
             // Recheck after credential resolution, atomically with generation allocation.
             if (!stillCurrent.getAsBoolean()) {
@@ -248,10 +256,12 @@ public final class RemoteCatalogLifecycle {
             generations.add(candidate);
             updatingGeneration = candidate;
             // Fail closed for new requests throughout a controlled configuration replacement.
-            if (Objects.nonNull(current)) {
+            if (!preserveCurrent && Objects.nonNull(current)) {
                 current.retired = true;
             }
-            current = null;
+            if (!preserveCurrent) {
+                current = null;
+            }
             return candidate;
         }
     }

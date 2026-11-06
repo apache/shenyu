@@ -47,6 +47,7 @@ import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ManagedRemoteMcpCatalogTest {
 
@@ -117,8 +118,6 @@ class ManagedRemoteMcpCatalogTest {
         try {
             assertEquals(128, catalog.admissionConfig().globalInFlight());
             catalog.accept(event(true, configWithAdmission(16, 8, 4)));
-            admission.replace(AgentMcpResourceAdmission.create(
-                    new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(16, 32, 16, 8, 8, 4)));
             await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
             assertEquals(16, catalog.admissionConfig().globalInFlight());
             assertEquals(8, catalog.admissionConfig().remoteInFlight());
@@ -128,6 +127,23 @@ class ManagedRemoteMcpCatalogTest {
                     .findFirst().orElseThrow().inFlightLimit());
         } finally {
             catalog.close();
+            admission.close();
+        }
+    }
+
+    @Test
+    void closingCatalogDoesNotCloseBorrowedAdmissionController() {
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig.parse(null));
+        try {
+            ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(), Set.of(), target -> null, admission);
+            catalog.close();
+            assertThrows(IllegalArgumentException.class, () -> new ManagedRemoteMcpCatalog(
+                    Set.of(URI.create("https://untrusted.example/mcp")), Set.of(), target -> null, admission));
+            admission.replace(AgentMcpResourceAdmission.create(org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig.parse(null)));
+            assertEquals("still-open", admission.withLocal(Instant.now().plusSeconds(5), Mono.just("still-open")).block());
+        } finally {
+            admission.close();
         }
     }
 

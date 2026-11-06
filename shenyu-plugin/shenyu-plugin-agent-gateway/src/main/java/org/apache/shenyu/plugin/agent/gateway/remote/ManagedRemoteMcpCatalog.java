@@ -75,6 +75,10 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private final AgentMcpResourceAdmission.ResourceAdmissionController admission;
 
+    private final boolean ownsAdmission;
+
+    private List<AgentGatewayAggregationConfig.Server> publishedServers = List.of();
+
     private final Scheduler scheduler;
 
     private final Scheduler timer;
@@ -124,7 +128,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @param credentials trusted credentials value
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials) {
-        this(allowedEndpoints, localNames, credentials, AgentMcpResourceAdmission.create(AgentGatewayAdmissionConfig.parse(null)), false);
+        this(allowedEndpoints, localNames, credentials, false);
     }
 
     /**
@@ -151,7 +155,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames,
                                    final RemoteServiceCredentialResolver credentials,
                                    final AgentMcpResourceAdmission.ResourceAdmissionController admission, final boolean resourcesEnabled) {
-        this(allowedEndpoints, localNames, credentials, resourcesEnabled, Schedulers.newBoundedElastic(1, 16, "agent-mcp-config"),
+        this(allowedEndpoints, localNames, credentials, resourcesEnabled, false, Schedulers.newBoundedElastic(1, 16, "agent-mcp-config"),
                 Schedulers.newSingle("agent-mcp-refresh"), System::nanoTime, admission);
     }
 
@@ -196,13 +200,20 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     private ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
                                     final boolean resourcesEnabled, final Scheduler scheduler, final Scheduler timer, final LongSupplier monotonicTime,
                                     final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
-        this(allowedEndpoints, localNames, credentials, resourcesEnabled, false, scheduler, timer, monotonicTime, admission);
+        this(allowedEndpoints, localNames, credentials, resourcesEnabled, false, scheduler, timer, monotonicTime, admission, true);
     }
 
     ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
                             final boolean resourcesEnabled, final boolean promptsEnabled, final Scheduler scheduler, final Scheduler timer, final LongSupplier monotonicTime,
                                     final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
+        this(allowedEndpoints, localNames, credentials, resourcesEnabled, promptsEnabled, scheduler, timer, monotonicTime, admission, false);
+    }
+
+    private ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
+                                    final boolean resourcesEnabled, final boolean promptsEnabled, final Scheduler scheduler, final Scheduler timer, final LongSupplier monotonicTime,
+                                    final AgentMcpResourceAdmission.ResourceAdmissionController admission, final boolean ownsAdmission) {
         this.admission = Objects.requireNonNull(admission, "admission");
+        this.ownsAdmission = ownsAdmission;
         try {
             // Revision changes, withdrawal and final publication share the same monitor.
             lifecycle = new RemoteCatalogLifecycle(3, AgentGatewayAggregationConfig.DEFAULT_REFRESH_CONCURRENCY, resourcesEnabled, promptsEnabled, this);
@@ -229,7 +240,9 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 LOG.warn("Agent MCP catalog metrics source budget exhausted");
             }
         } catch (RuntimeException error) {
-            this.admission.close();
+            if (ownsAdmission) {
+                this.admission.close();
+            }
             if (Objects.nonNull(scheduler)) {
                 scheduler.dispose();
             }
@@ -244,7 +257,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         return Mono.defer(() -> {
             if (!isCurrent(update)) {
                 complete(update, null, null);
-                return lifecycle.withdrawAsync().then(Mono.empty());
+                return Mono.empty();
             }
             if (!update.rejection().isEmpty()) {
                 recordFailure(update.sequence(), update.rejection());
@@ -265,9 +278,9 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 complete(update, null, null);
                 return Mono.empty();
             }
-            return lifecycle.withdrawAsync().then(refreshCatalog(config, () -> isCurrent(update)))
+            return refreshCatalog(config, () -> isCurrent(update))
                     .doOnNext(version -> refreshSucceeded(update, config, version))
-                    .onErrorResume(error -> lifecycle.withdrawAsync().then(Mono.defer(() -> {
+                    .onErrorResume(error -> (isCurrent(update) ? lifecycle.withdrawAsync() : Mono.<Void>empty()).then(Mono.defer(() -> {
                         refreshFailed(update, config, error);
                         return Mono.empty();
                     })))
@@ -311,6 +324,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     }
 
     private synchronized void recordPublication(final AgentGatewayAggregationConfig config) {
+        publishedServers = config.servers();
         published = !config.servers().isEmpty();
         lastSuccessNanos = monotonicTime.getAsLong();
         freshnessNanos = config.refreshPolicy().refreshInterval().toNanos();
@@ -372,14 +386,15 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         final long sequence = revision.incrementAndGet();
         cancelNextRefresh();
         consecutiveFailures = 0;
-        remoteConfigured = false;
-        published = false;
         // Diagnostics belong to the newest event, even if an older update is fenced before reserve().
         lastFailure = "";
         boolean enabled = Boolean.TRUE.equals(plugin.getEnabled());
-        // Withdraw before resolving replacement credentials; late old results cannot publish.
-        lifecycle.withdraw();
         String source = enabled && Objects.nonNull(plugin.getConfig()) ? plugin.getConfig() : "{}";
+        if (!enabled || !canRetain(source)) {
+            remoteConfigured = false;
+            published = false;
+            lifecycle.withdraw();
+        }
         if (source.getBytes(StandardCharsets.UTF_8).length > 16384) {
             lifecycle.withdraw();
             lastFailure = "ConfigurationByteLimit";
@@ -415,10 +430,12 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 final long sequence = revision.incrementAndGet();
                 cancelNextRefresh();
                 consecutiveFailures = 0;
-                remoteConfigured = false;
-                published = false;
                 lastFailure = "";
-                lifecycle.withdraw();
+                if (!canRetain(source)) {
+                    remoteConfigured = false;
+                    published = false;
+                    lifecycle.withdraw();
+                }
                 completions.add(completion);
                 if (Objects.nonNull(source) && source.getBytes(StandardCharsets.UTF_8).length > 16384) {
                     lastFailure = "ConfigurationByteLimit";
@@ -429,6 +446,14 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             }
             return completion.asMono();
         });
+    }
+
+    private boolean canRetain(final String source) {
+        try {
+            return published && publishedServers.equals(AgentGatewayAggregationConfig.parsePluginConfig(source).servers());
+        } catch (IllegalArgumentException error) {
+            return false;
+        }
     }
 
     private synchronized void complete(final ControlUpdate update, final Long version, final Throwable error) {
@@ -459,7 +484,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                     ignored -> {
                         admission.replace(AgentMcpResourceAdmission.create(config.admission()));
                         recordPublication(config);
-                    });
+                    }, published && publishedServers.equals(config.servers()));
         });
     }
 
@@ -560,7 +585,9 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 waiting.forEach(completion -> completion.tryEmitError(new CatalogUnavailableException()));
             }
             catalogMetrics.close();
-            admission.close();
+            if (ownsAdmission) {
+                admission.close();
+            }
             worker.dispose();
             timer.dispose();
             scheduler.dispose();

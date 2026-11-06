@@ -22,6 +22,16 @@ package org.apache.shenyu.plugin.metrics.constant;
  */
 public final class LabelNames {
 
+    public static final String AGENT_ADMISSION_INFLIGHT = "shenyu_agent_admission_inflight";
+
+    public static final String AGENT_ADMISSION_QUEUED = "shenyu_agent_admission_queued";
+
+    public static final String AGENT_ADMISSION_INFLIGHT_LIMIT = "shenyu_agent_admission_inflight_limit";
+
+    public static final String AGENT_ADMISSION_QUEUE_LIMIT = "shenyu_agent_admission_queue_limit";
+
+    public static final String AGENT_ADMISSION_REJECTIONS_TOTAL = "shenyu_agent_admission_rejections_total";
+
     public static final String AGENT_REQUESTS_TOTAL = "shenyu_agent_requests_total";
 
     public static final String AGENT_REQUEST_LATENCY = "shenyu_agent_request_latency_millis";

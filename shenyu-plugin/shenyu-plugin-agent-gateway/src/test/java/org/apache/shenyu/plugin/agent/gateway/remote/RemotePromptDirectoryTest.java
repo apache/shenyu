@@ -40,6 +40,19 @@ class RemotePromptDirectoryTest {
     private final ObjectMapper json = new ObjectMapper();
 
     @Test
+    void fullLengthUpstreamNamesRemainGrantableAfterPrefixing() {
+        String server = "s".repeat(48);
+        String original = "p".repeat(128);
+        String exposed = server + "." + original;
+        RemotePromptDirectory directory = RemotePromptDirectory.discover(List.of(target(server, page(original, null)))).block();
+        assertEquals(Set.of(exposed), directory.definitions().keySet());
+        directory.get(exposed, Set.of(exposed), Map.of("topic", "gateway")).block();
+        ObjectNode invalid = page("x".repeat(129), null);
+        invalid.withArray("prompts").add(page("valid", null).path("prompts").get(0));
+        assertEquals(Set.of("server.valid"), RemotePromptDirectory.discover(List.of(target("server", invalid))).block().definitions().keySet());
+    }
+
+    @Test
     void discoveryCapturesTargetsBeforeSubscription() {
         List<RemotePromptDirectory.Target> targets = new ArrayList<>(List.of(target("first", page("summary", null))));
         Mono<RemotePromptDirectory> discovery = RemotePromptDirectory.discover(targets);

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
+import org.apache.shenyu.common.utils.AgentPromptNames;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.springframework.security.core.Authentication;
@@ -79,8 +80,8 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
                 throw new IllegalArgumentException("Duplicate scope mapping");
             }
             denied.put(scope, names(mapping.getToolDenials(), true));
-            promptsAllowed.put(scope, names(mapping.getPromptGrants(), true));
-            promptsDenied.put(scope, names(mapping.getPromptDenials(), true));
+            promptsAllowed.put(scope, promptNames(mapping.getPromptGrants()));
+            promptsDenied.put(scope, promptNames(mapping.getPromptDenials()));
         }
         grants = Map.copyOf(allowed);
         denials = Map.copyOf(denied);
@@ -104,8 +105,8 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
                         String tenant = text(claims.containsKey("tenant_id") ? claims.get("tenant_id") : defaultTenant);
                         Set<String> allowed = new HashSet<>(names(claims.getOrDefault("tool_grants", Set.of()), true));
                         Set<String> denied = new HashSet<>(names(claims.getOrDefault("tool_denies", Set.of()), true));
-                        Set<String> promptsAllowed = new HashSet<>(names(claims.getOrDefault("prompt_grants", Set.of()), true));
-                        Set<String> promptsDenied = new HashSet<>(names(claims.getOrDefault("prompt_denies", Set.of()), true));
+                        Set<String> promptsAllowed = new HashSet<>(promptNames(claims.getOrDefault("prompt_grants", Set.of())));
+                        Set<String> promptsDenied = new HashSet<>(promptNames(claims.getOrDefault("prompt_denies", Set.of())));
                         for (String scope : scopes(claims)) {
                             allowed.addAll(grants.getOrDefault(scope, Set.of()));
                             denied.addAll(denials.getOrDefault(scope, Set.of()));
@@ -141,6 +142,14 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
             result.add(name);
         }
         return Set.copyOf(result);
+    }
+
+    private static Set<String> promptNames(final Object value) {
+        Set<String> names = names(value, false);
+        if (names.size() > 32 || names.stream().anyMatch(name -> !AgentPromptNames.exposed(name))) {
+            throw new IllegalArgumentException("Prompt permissions must be bounded exact names");
+        }
+        return names;
     }
 
     private static Set<String> scopes(final Map<String, Object> claims) {

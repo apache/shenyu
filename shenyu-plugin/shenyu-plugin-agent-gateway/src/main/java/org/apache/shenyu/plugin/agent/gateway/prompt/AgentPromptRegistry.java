@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.agent.gateway.prompt;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import reactor.core.publisher.Mono;
 
+import org.apache.shenyu.common.utils.AgentPromptNames;
+
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,6 +43,9 @@ public final class AgentPromptRegistry {
         }
         for (AgentPromptProvider provider : source) {
             AgentPromptDefinition definition = new AgentPromptDefinition(provider.definition().metadata());
+            if (!AgentPromptNames.original(definition.name())) {
+                throw new IllegalArgumentException("Local prompt name exceeds its original-name limit");
+            }
             if (Objects.nonNull(registered.putIfAbsent(definition.name(), provider))) {
                 throw new IllegalArgumentException("Duplicate local prompt");
             }

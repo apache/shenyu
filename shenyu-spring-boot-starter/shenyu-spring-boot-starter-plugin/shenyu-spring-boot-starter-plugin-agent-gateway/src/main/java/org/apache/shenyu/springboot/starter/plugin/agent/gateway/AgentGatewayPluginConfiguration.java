@@ -157,8 +157,10 @@ public class AgentGatewayPluginConfiguration {
         return new AgentGatewayPluginDataHandler(plugin -> {
             if (java.util.Objects.nonNull(catalog)) {
                 catalog.accept(plugin);
+                String config = plugin.getConfig();
+                AgentGatewayAggregationConfig.parsePluginConfig(java.util.Objects.isNull(config) || config.isBlank() ? "{}" : config);
             }
-            if (java.util.Objects.nonNull(admission)) {
+            if (java.util.Objects.isNull(catalog) && java.util.Objects.nonNull(admission)) {
                 String config = plugin.getConfig();
                 admission.update(java.util.Objects.isNull(config) || config.isBlank() ? "{}" : config);
             }

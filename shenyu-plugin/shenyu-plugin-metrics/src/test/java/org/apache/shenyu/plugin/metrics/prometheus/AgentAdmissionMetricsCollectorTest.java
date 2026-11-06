@@ -30,9 +30,15 @@ class AgentAdmissionMetricsCollectorTest {
     void shouldAggregateFixedScopesWithoutIdentityLabels() {
         AgentAdmissionMetrics.Snapshot snapshot = new AgentAdmissionMetrics.Snapshot(
                 AgentAdmissionMetrics.Scope.REMOTE, 2, 3, 4, 5, 6);
-        List<String> names = new AgentAdmissionMetricsCollector().collect().stream()
-                .map(family -> family.samples.stream().map(sample -> sample.name).toList()).flatMap(List::stream).toList();
-        assertEquals(15, names.size());
-        assertEquals(5, names.stream().filter(name -> name.startsWith("shenyu_agent_admission_")).distinct().count());
+        try (AgentAdmissionMetrics ignored = AgentAdmissionMetrics.register(() -> List.of(snapshot))) {
+            var families = new AgentAdmissionMetricsCollector().collect();
+            List<String> names = families.stream()
+                    .map(family -> family.samples.stream().map(sample -> sample.name).toList()).flatMap(List::stream).toList();
+            assertEquals(15, names.size());
+            assertEquals(5, names.stream().filter(name -> name.startsWith("shenyu_agent_admission_")).distinct().count());
+            assertEquals(6.0, families.stream().flatMap(family -> family.samples.stream())
+                    .filter(sample -> sample.name.equals("shenyu_agent_admission_rejections_total") && sample.labelValues.equals(List.of("remote")))
+                    .findFirst().orElseThrow().value);
+        }
     }
 }

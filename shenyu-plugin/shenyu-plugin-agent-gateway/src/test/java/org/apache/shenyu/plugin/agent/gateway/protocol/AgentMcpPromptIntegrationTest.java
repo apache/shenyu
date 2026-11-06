@@ -62,6 +62,43 @@ class AgentMcpPromptIntegrationTest {
 
     private final ObjectMapper json = new ObjectMapper();
 
+    @Test
+    void namespacedMaximumPromptNameSurvivesRuleIdentityAndWireValidation() {
+        String name = "s".repeat(48) + "." + "p".repeat(128);
+        AgentMcpRemoteCatalog catalog = operation -> operation.apply(new AgentMcpRemoteCatalog.Snapshot() {
+            @Override
+            public Map<String, ObjectNode> definitions() {
+                return Map.of();
+            }
+
+            @Override
+            public Map<String, ObjectNode> promptDefinitions() {
+                return Map.of(name, json.createObjectNode().put("name", name));
+            }
+
+            @Override
+            public Mono<ObjectNode> getPrompt(final String requested, final Map<String, String> arguments, final AgentMcpExecutionContext context) {
+                assertEquals(name, requested);
+                return Mono.just(result("maximum-name"));
+            }
+
+            @Override
+            public Mono<ObjectNode> invoke(final String tool, final com.google.gson.JsonObject arguments, final AgentMcpExecutionContext context) {
+                return Mono.error(new AssertionError("No tool invocation expected"));
+            }
+        });
+        AgentMcpIdentity identity = new AgentMcpIdentity("tenant", "subject", Set.of(), Set.of()).withPromptPermissions(Set.of(name), Set.of());
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1", catalog,
+                new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, new AgentPromptRegistry(List.of()));
+        AgentMcpHttpHandler handler = new AgentMcpHttpHandler(dispatcher, ignored -> Mono.just(identity));
+        MockServerWebExchange exchange = exchange("prompts/get", name, "");
+        AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString(
+                "{\"allowedPrompts\":[\"" + name + "\"],\"responseMode\":\"json\"}").getAsJsonObject(), true);
+        handler.handle(exchange, config, traffic("maximum"), 1).block(Duration.ofSeconds(5));
+        assertEquals(200, exchange.getResponse().getStatusCode().value(), exchange.getResponse().getBodyAsString().block());
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("maximum-name"));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
     void authorizedListGetAndDiscoverCarryIndependentPermissionAndHttpTools(final String mode) {

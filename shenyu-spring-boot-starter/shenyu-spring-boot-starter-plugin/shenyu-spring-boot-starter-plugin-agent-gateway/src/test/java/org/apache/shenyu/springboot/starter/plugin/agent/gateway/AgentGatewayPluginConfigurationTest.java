@@ -357,7 +357,7 @@ class AgentGatewayPluginConfigurationTest {
     }
 
     @Test
-    void pluginRemovalAndBlankConfigStillReachCatalogAndAdmission() {
+    void catalogOwnsAdmissionUpdatesWhileHandlerStillValidatesEvents() {
         ManagedRemoteMcpCatalog catalog = mock(ManagedRemoteMcpCatalog.class);
         List<PluginData> events = new ArrayList<>();
         doAnswer(invocation -> events.add(invocation.getArgument(0, PluginData.class)))
@@ -375,8 +375,8 @@ class AgentGatewayPluginConfigurationTest {
             assertEquals(2, events.size());
             assertEquals(Boolean.FALSE, events.get(0).getEnabled());
             assertNull(events.get(0).getConfig());
-            assertEquals(128, controller.config().globalInFlight());
-            assertEquals(32, controller.config().localInFlight());
+            assertEquals(8, controller.config().globalInFlight());
+            assertEquals(4, controller.config().localInFlight());
 
             PluginData invalid = pluginData("{\"admission\":{\"globalInFlight\":999,\"globalQueued\":4,"
                     + "\"localInFlight\":4,\"localQueued\":2,\"remoteInFlight\":2,\"remoteQueued\":2}}");

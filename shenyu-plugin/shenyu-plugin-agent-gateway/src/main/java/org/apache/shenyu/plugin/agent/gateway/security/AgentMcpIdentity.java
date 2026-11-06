@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.agent.gateway.security;
 
+import org.apache.shenyu.common.utils.AgentPromptNames;
+
 import java.util.Objects;
 import java.util.Set;
 import java.util.HashSet;
@@ -96,7 +98,7 @@ public final class AgentMcpIdentity {
         Set<String> prompts = new HashSet<>(Set.copyOf(promptGrants));
         this.promptDenials = Set.copyOf(promptDenials);
         if (prompts.size() > 32 || this.promptDenials.size() > 32
-                || java.util.stream.Stream.concat(prompts.stream(), this.promptDenials.stream()).anyMatch(name -> !name.matches("[A-Za-z0-9_.-]{1,128}"))) {
+                || java.util.stream.Stream.concat(prompts.stream(), this.promptDenials.stream()).anyMatch(name -> !AgentPromptNames.exposed(name))) {
             throw new IllegalArgumentException("Prompt permissions must be bounded exact names");
         }
         prompts.removeAll(this.promptDenials);

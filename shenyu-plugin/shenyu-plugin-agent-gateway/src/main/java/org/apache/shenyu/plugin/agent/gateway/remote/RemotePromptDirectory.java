@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.remote;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptDefinition;
+import org.apache.shenyu.common.utils.AgentPromptNames;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -79,6 +80,10 @@ public final class RemotePromptDirectory {
                     for (JsonNode node : page.get("prompts")) {
                         if (!node.isObject()) {
                             throw new IllegalArgumentException("Invalid prompt metadata");
+                        }
+                        if (!AgentPromptNames.original(node.path("name").asText())) {
+                            // An invalid prompt identifier cannot withdraw otherwise valid tools.
+                            continue;
                         }
                         AgentPromptDefinition original = new AgentPromptDefinition((ObjectNode) node);
                         ObjectNode metadata = original.metadata().put("name", target.name() + "." + original.name());

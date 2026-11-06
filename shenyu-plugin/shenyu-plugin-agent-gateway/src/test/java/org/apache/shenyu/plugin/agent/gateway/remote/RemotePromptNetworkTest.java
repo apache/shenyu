@@ -38,6 +38,7 @@ import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
@@ -56,6 +57,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -84,6 +86,19 @@ class RemotePromptNetworkTest {
     private static final HttpClient CLIENT = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).connectTimeout(WAIT).build();
 
     private final ObjectMapper json = new ObjectMapper();
+
+    private final List<AgentMcpResourceAdmission.ResourceAdmissionController> admissions = new ArrayList<>();
+
+    @AfterEach
+    void closeApplicationAdmissions() {
+        admissions.forEach(AgentMcpResourceAdmission.ResourceAdmissionController::close);
+    }
+
+    private AgentMcpResourceAdmission.ResourceAdmissionController admission() {
+        AgentMcpResourceAdmission.ResourceAdmissionController controller = AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(128, 64, 32, 16, 8, 16));
+        admissions.add(controller);
+        return controller;
+    }
 
     @ParameterizedTest
     @CsvSource({"false,json", "true,json", "false,sse", "true,sse"})
@@ -326,13 +341,13 @@ class RemotePromptNetworkTest {
         return new ManagedRemoteMcpCatalog(Set.of(first.endpoint(), second.endpoint()), Set.of(),
                 reference -> new RemoteServerBinding.Credential(reference, "prompts-service"), false, true,
                 Schedulers.newBoundedElastic(1, 16, "agent-mcp-prompt-test"), timer, clock,
-                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(128, 64, 32, 16, 8, 16)));
+                admission());
     }
 
     private ManagedRemoteMcpCatalog catalog(final Fixture first, final Fixture second, final boolean prompts) {
         return new ManagedRemoteMcpCatalog(Set.of(first.endpoint(), second.endpoint()), Set.of(),
                 reference -> new RemoteServerBinding.Credential(reference, "prompts-service"),
-                AgentMcpResourceAdmission.create(new AgentGatewayAdmissionConfig(128, 64, 32, 16, 8, 16)), false, prompts);
+                admission(), false, prompts);
     }
 
     private String config(final Fixture first, final Fixture second) {

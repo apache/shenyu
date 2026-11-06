@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptDefinition;
 import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptInvocation;
 import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptRegistry;
+import org.apache.shenyu.common.utils.AgentPromptNames;
 import reactor.core.publisher.Mono;
 
 import java.util.LinkedHashMap;
@@ -47,7 +48,7 @@ final class AgentMcpPromptDispatcher {
         Map<String, ObjectNode> remote = Objects.isNull(snapshot) ? Map.of() : snapshot.promptDefinitions();
         remote.forEach((name, metadata) -> {
             AgentPromptDefinition definition = new AgentPromptDefinition(metadata);
-            if (!name.matches("[A-Za-z0-9_-]{1,48}\\.[A-Za-z0-9_.-]{1,128}")
+            if (!AgentPromptNames.remote(name)
                     || !name.equals(definition.name()) || Objects.nonNull(definitions.putIfAbsent(name, definition))) {
                 throw new IllegalStateException("Prompt namespace collision");
             }
@@ -70,7 +71,7 @@ final class AgentMcpPromptDispatcher {
         }
         String name = request.getParams().path("name").textValue();
         if (!context.getAllowedPrompts().contains(name) || !definitions.containsKey(name)) {
-            return Mono.error(failure(request, 403, -32602, "Prompt is not available"));
+            return Mono.error(failure(request, 403, -32002, "Prompt is not available"));
         }
         Map<String, String> arguments = new LinkedHashMap<>();
         JsonNode supplied = request.getParams().get("arguments");
@@ -93,7 +94,7 @@ final class AgentMcpPromptDispatcher {
         }
         return execution.map(AgentPromptDefinition::validateResult)
                 .onErrorMap(IllegalArgumentException.class, error -> failure(request, 502, -32603, "Invalid prompt result"))
-                .onErrorMap(SecurityException.class, error -> failure(request, 403, -32602, "Prompt is not available"));
+                .onErrorMap(SecurityException.class, error -> failure(request, 403, -32002, "Prompt is not available"));
     }
 
     private AgentMcpProtocolException failure(final AgentMcpRequest request, final int status, final int code, final String message) {

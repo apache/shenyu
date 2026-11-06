@@ -20,6 +20,8 @@ package org.apache.shenyu.common.dto;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * Strict fixed resource-admission limits shared by Admin and the gateway.
@@ -51,9 +53,9 @@ public record AgentGatewayAdmissionConfig(int globalInFlight, int globalQueued,
         if (!node.isObject() || node.isEmpty()) {
             return DEFAULT;
         }
-        java.util.Set<String> fields = new java.util.HashSet<>();
+        Set<String> fields = new HashSet<>();
         node.fieldNames().forEachRemaining(fields::add);
-        if (!fields.equals(java.util.Set.of("globalInFlight", "globalQueued", "localInFlight",
+        if (!fields.equals(Set.of("globalInFlight", "globalQueued", "localInFlight",
                 "localQueued", "remoteInFlight", "remoteQueued"))) {
             throw new IllegalArgumentException("Unknown or missing admission field");
         }

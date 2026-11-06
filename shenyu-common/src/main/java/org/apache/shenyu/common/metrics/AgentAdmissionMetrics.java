@@ -19,13 +19,17 @@ package org.apache.shenyu.common.metrics;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /** Live payload-free admission snapshots, without tool, subject, tenant, or endpoint labels. */
 public final class AgentAdmissionMetrics implements AutoCloseable {
 
     private static final Set<AgentAdmissionMetrics> SOURCES = ConcurrentHashMap.newKeySet();
+
+    private static final int MAX_SOURCES = 16;
 
     private final Supplier<List<Snapshot>> source;
 
@@ -39,8 +43,12 @@ public final class AgentAdmissionMetrics implements AutoCloseable {
      * @return registration removed by close
      */
     public static AgentAdmissionMetrics register(final Supplier<List<Snapshot>> source) {
-        AgentAdmissionMetrics value = new AgentAdmissionMetrics(source);
-        SOURCES.add(value);
+        AgentAdmissionMetrics value = new AgentAdmissionMetrics(Objects.requireNonNull(source, "source"));
+        synchronized (SOURCES) {
+            if (SOURCES.size() < MAX_SOURCES) {
+                SOURCES.add(value);
+            }
+        }
         return value;
     }
 
@@ -52,7 +60,7 @@ public final class AgentAdmissionMetrics implements AutoCloseable {
             try {
                 return registration.source.get().stream();
             } catch (RuntimeException ignored) {
-                return java.util.stream.Stream.empty();
+                return Stream.empty();
             }
         }).toList();
     }

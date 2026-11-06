@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.metrics.prometheus;
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
 import org.apache.shenyu.common.metrics.AgentAdmissionMetrics;
+import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,15 +39,15 @@ public final class AgentAdmissionMetricsCollector extends Collector implements C
     }
 
     private List<MetricFamilySamples> samples(final List<AgentAdmissionMetrics.Snapshot> states) {
-        GaugeMetricFamily inFlight = new GaugeMetricFamily("shenyu_agent_admission_inflight",
+        GaugeMetricFamily inFlight = new GaugeMetricFamily(LabelNames.AGENT_ADMISSION_INFLIGHT,
                 "Admitted work by fixed scope", List.of("scope"));
-        GaugeMetricFamily queued = new GaugeMetricFamily("shenyu_agent_admission_queued",
+        GaugeMetricFamily queued = new GaugeMetricFamily(LabelNames.AGENT_ADMISSION_QUEUED,
                 "Queued work by fixed scope", List.of("scope"));
-        GaugeMetricFamily inFlightLimit = new GaugeMetricFamily("shenyu_agent_admission_inflight_limit",
+        GaugeMetricFamily inFlightLimit = new GaugeMetricFamily(LabelNames.AGENT_ADMISSION_INFLIGHT_LIMIT,
                 "Configured in-flight limit by fixed scope", List.of("scope"));
-        GaugeMetricFamily queueLimit = new GaugeMetricFamily("shenyu_agent_admission_queue_limit",
+        GaugeMetricFamily queueLimit = new GaugeMetricFamily(LabelNames.AGENT_ADMISSION_QUEUE_LIMIT,
                 "Configured queue limit by fixed scope", List.of("scope"));
-        GaugeMetricFamily rejected = new GaugeMetricFamily("shenyu_agent_admission_rejections_total",
+        GaugeMetricFamily rejected = new GaugeMetricFamily(LabelNames.AGENT_ADMISSION_REJECTIONS_TOTAL,
                 "Explicit admission rejections by fixed scope", List.of("scope"));
         for (AgentAdmissionMetrics.Scope scope : AgentAdmissionMetrics.Scope.values()) {
             List<AgentAdmissionMetrics.Snapshot> scoped = states.stream()
