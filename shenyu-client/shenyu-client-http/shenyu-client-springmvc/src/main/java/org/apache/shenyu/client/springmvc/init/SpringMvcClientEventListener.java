@@ -136,9 +136,7 @@ public class SpringMvcClientEventListener extends AbstractContextRefreshedEventL
                         .namespaceId(namespaceId)
                         .build());
                 
-                if (isDiscoveryLocalMode(context)) {
-                    getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
-                }
+                publishUriRegisterIfDiscoveryLocal(context, namespaceId);
             });
             return Collections.emptyMap();
         }
