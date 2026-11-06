@@ -19,6 +19,10 @@ package org.apache.shenyu.plugin.agent.gateway;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.metrics.AiTerminalEvent;
+import org.apache.shenyu.common.metrics.AiCallOutcome;
+import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
@@ -53,6 +57,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -65,6 +70,73 @@ import static org.mockito.ArgumentMatchers.any;
 class AgentGatewayPluginTest {
 
     private final AgentGatewayPlugin plugin = new AgentGatewayPlugin();
+
+    @Test
+    void llmLimiterRejectionKeepsTrustedIdentityAndHasNoFabricatedUsage() {
+        ConcurrentLinkedQueue<AiTerminalEvent> events = new ConcurrentLinkedQueue<>();
+        AgentGatewayPlugin configured = new AgentGatewayPlugin(new AgentMcpHttpHandler(
+                new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "server", "1"), ignored -> Mono.empty()),
+                ignored -> Mono.just(new AgentMcpIdentity("tenant", "subject", Set.of(), Set.of())), events::add);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/llm")
+                .header("X-Tenant-Id", "forged").header("X-Subject", "forged").body("private"));
+        StepVerifier.create(configured.doExecute(exchange, next -> Mono.deferContextual(context -> {
+            AgentRequestContext snapshot = context.get(AgentRequestContext.REACTOR_KEY);
+            assertEquals("tenant", snapshot.getTenant());
+            assertEquals("subject", snapshot.getSubject());
+            assertEquals(context.<AgentTrafficContext>get(AgentGatewayConstants.REACTOR_CONTEXT_KEY).getRequestId(), snapshot.getRequestId());
+            next.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+            return next.getResponse().setComplete();
+        }), selector(), rule("rule-1"))).verifyComplete();
+        assertEquals(1, events.size());
+        AiTerminalEvent event = events.element();
+        assertEquals(AiCallOutcome.RATE_LIMITED, event.outcome());
+        assertEquals(0, event.attemptCount());
+        assertEquals(AiUsage.UNKNOWN, event.usage());
+        assertEquals("tenant", event.context().getTenant());
+        assertTrue(Objects.isNull(event.context().getSessionId()));
+    }
+
+    @Test
+    void explicitLlmIdentityRequirementRejectsWithoutReadingBody() {
+        ConcurrentLinkedQueue<AiTerminalEvent> events = new ConcurrentLinkedQueue<>();
+        AgentGatewayPlugin configured = new AgentGatewayPlugin(new AgentMcpHttpHandler(
+                new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "server", "1"), ignored -> Mono.empty()), ignored -> Mono.empty(), events::add);
+        AtomicBoolean consumed = new AtomicBoolean();
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/llm").body(reactor.core.publisher.Flux.defer(() -> {
+            consumed.set(true);
+            return reactor.core.publisher.Flux.empty();
+        })));
+        StepVerifier.create(configured.doExecute(exchange, ignored -> Mono.error(new AssertionError("Unauthenticated request reached downstream")),
+                selector(), rule("rule-1"))).verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        assertEquals(1, events.size());
+        assertEquals(AiCallOutcome.REJECTED, events.element().outcome());
+        assertEquals(AiUsage.UNKNOWN, events.element().usage());
+        assertTrue(!consumed.get());
+    }
+
+    @Test
+    void llmContextIsIsolatedAcrossConcurrentSubscriptionsAndCancellation() {
+        ConcurrentLinkedQueue<AiTerminalEvent> events = new ConcurrentLinkedQueue<>();
+        AgentGatewayPlugin configured = new AgentGatewayPlugin(new AgentMcpHttpHandler(
+                new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "server", "1"), ignored -> Mono.empty()),
+                exchange -> exchange.getPrincipal().map(principal -> new AgentMcpIdentity(principal.getName(), "subject", Set.of(), Set.of())), events::add);
+        reactor.core.publisher.Flux<Void> executions = reactor.core.publisher.Flux.range(0, 32).flatMap(index -> {
+            ServerWebExchange exchange = newExchange().mutate().principal(Mono.just(() -> "tenant-" + index)).build();
+            return configured.doExecute(exchange, ignored -> Mono.delay(Duration.ofMillis(1)).then(Mono.deferContextual(context -> {
+                assertEquals("tenant-" + index, context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getTenant());
+                return Mono.empty();
+            })), selector(), rule("rule-1"));
+        }, 16);
+        StepVerifier.create(executions).verifyComplete();
+        org.awaitility.Awaitility.await().untilAsserted(() -> assertEquals(32, events.size()));
+        assertEquals(32, events.stream().map(event -> event.context().getRequestId()).distinct().count());
+        assertEquals(32, events.stream().map(event -> event.context().getTenant()).distinct().count());
+        ServerWebExchange cancelled = newExchange().mutate().principal(Mono.just(() -> "cancelled")).build();
+        StepVerifier.create(configured.doExecute(cancelled, ignored -> Mono.never(), selector(), rule("rule-1"))).thenCancel().verify();
+        assertEquals(1, events.stream().filter(event -> event.outcome() == AiCallOutcome.CANCELLED).count());
+        assertTrue(Objects.isNull(cancelled.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+    }
 
     @BeforeEach
     void initResult() {

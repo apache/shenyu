@@ -28,8 +28,10 @@ import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.ApiService;
+import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.TagService;
 import org.apache.shenyu.admin.service.MetaDataService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.admin.service.manager.RegisterApiDocService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -51,6 +53,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.SimpleTransactionStatus;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +71,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test cases for AbstractShenyuClientRegisterServiceImpl.
@@ -103,6 +113,12 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
     @Mock
     private PluginMapper pluginMapper;
+
+    @Mock
+    private RegistrationFencingGuard registrationFencingGuard;
+
+    @Mock
+    private DiscoveryUpstreamService discoveryUpstreamService;
 
     @Test
     public void testRegister() {
@@ -178,6 +194,7 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
 
         SelectorDO selectorDO = mock(SelectorDO.class);
         when(selectorService.findByNameAndPluginNameAndNamespaceId(any(), any(), any())).thenReturn(selectorDO);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(any(), any(), any())).thenReturn(selectorDO);
         SelectorData selectorData = new SelectorData();
         when(selectorService.buildByNameAndPluginNameAndNamespaceId(any(), any(), any())).thenReturn(selectorData);
         PluginDO plugin = new PluginDO();
@@ -189,6 +206,86 @@ public final class AbstractShenyuClientRegisterServiceImplTest {
         namespacePlugin.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
         when(namespacePluginRelMapper.selectByPluginIdAndNamespaceId(pluginDO.getId(), Constants.SYS_DEFAULT_NAMESPACE_ID)).thenReturn(namespacePlugin);
         assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doRegisterURI("Selector_Name", Collections.singletonList(uriRegisterDTO), SYS_DEFAULT_NAMESPACE_ID));
+    }
+
+    @Test
+    public void registrationHandleAndDiscoveryWritesStayInsideOneTransaction() {
+        List<String> steps = new ArrayList<>();
+        PlatformTransactionManager transactionManager = new PlatformTransactionManager() {
+            @Override
+            public TransactionStatus getTransaction(final TransactionDefinition definition) {
+                steps.add("begin");
+                TransactionSynchronizationManager.setActualTransactionActive(true);
+                return new SimpleTransactionStatus();
+            }
+
+            @Override
+            public void commit(final TransactionStatus status) {
+                steps.add("commit");
+                TransactionSynchronizationManager.setActualTransactionActive(false);
+            }
+
+            @Override
+            public void rollback(final TransactionStatus status) {
+                steps.add("rollback");
+                TransactionSynchronizationManager.setActualTransactionActive(false);
+            }
+        };
+        MockAbstractShenyuClientRegisterServiceImpl service = org.mockito.Mockito.spy(abstractShenyuClientRegisterService);
+        ReflectionTestUtils.setField(service, "transactionManager", transactionManager);
+        PluginDO plugin = new PluginDO();
+        plugin.setId("1");
+        plugin.setName(PluginEnum.GRPC.getName());
+        when(pluginMapper.selectByName(PluginEnum.GRPC.getName())).thenReturn(plugin);
+        NamespacePluginVO relation = new NamespacePluginVO();
+        relation.setPluginId("1");
+        relation.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(namespacePluginRelMapper.selectByPluginIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(relation);
+        SelectorDO selector = mock(SelectorDO.class);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate("/service", "grpc", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(selector);
+        when(selectorService.buildByNameAndPluginNameAndNamespaceId("/service", "grpc", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(new SelectorData());
+        when(selectorService.updateSelectiveForRegistration(selector)).thenAnswer(invocation -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+            steps.add("selector");
+            return 1;
+        });
+        doAnswer(invocation -> {
+            assertTrue(TransactionSynchronizationManager.isActualTransactionActive());
+            steps.add("discovery");
+            return null;
+        }).when(service).doDiscoveryLocal(any(), any(), any());
+        URIRegisterDTO uri = URIRegisterDTO.builder().host("127.0.0.1").port(8080).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+
+        assertEquals(ShenyuResultMessage.SUCCESS, service.doRegisterURI("/service", Collections.singletonList(uri), SYS_DEFAULT_NAMESPACE_ID));
+
+        assertEquals(List.of("begin", "selector", "discovery", "commit"), steps);
+    }
+
+    @Test
+    public void admissionUpdatesUseFencingTransactionAndNewRegistrationClearsBothMarkers() {
+        SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        selector.setSelectorName("/service");
+        selector.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate("/service", "grpc", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(selector);
+        URIRegisterDTO uri = URIRegisterDTO.builder().host("127.0.0.1").port(8080).namespaceId(SYS_DEFAULT_NAMESPACE_ID).build();
+
+        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doNotReady("/service", Collections.singletonList(uri), SYS_DEFAULT_NAMESPACE_ID));
+        verify(discoveryUpstreamService).markNotReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080", true);
+        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doReady("/service", Collections.singletonList(uri), SYS_DEFAULT_NAMESPACE_ID));
+        verify(discoveryUpstreamService).markReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080");
+        PluginDO plugin = new PluginDO();
+        plugin.setId("1");
+        plugin.setName(PluginEnum.GRPC.getName());
+        when(pluginMapper.selectByName(PluginEnum.GRPC.getName())).thenReturn(plugin);
+        NamespacePluginVO relation = new NamespacePluginVO();
+        relation.setPluginId("1");
+        relation.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        when(namespacePluginRelMapper.selectByPluginIdAndNamespaceId("1", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(relation);
+        when(selectorService.buildByNameAndPluginNameAndNamespaceId("/service", "grpc", SYS_DEFAULT_NAMESPACE_ID)).thenReturn(new SelectorData());
+        when(selectorService.updateSelectiveForRegistration(any())).thenReturn(1);
+        assertEquals(ShenyuResultMessage.SUCCESS, abstractShenyuClientRegisterService.doRegisterURI("/service", Collections.singletonList(uri), SYS_DEFAULT_NAMESPACE_ID));
+        verify(discoveryUpstreamService).markReadyBySelectorIdAndUrl("selector-1", "127.0.0.1:8080");
     }
 
     @Test

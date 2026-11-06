@@ -18,6 +18,13 @@
 ALTER TABLE "public"."selector" RENAME COLUMN "loged" TO "logged";
 ALTER TABLE "public"."rule" RENAME COLUMN "loged" TO "logged";
 
+-- Move Agent Gateway ahead of the AI governance chain for existing installs.
+-- Preserve deliberate custom orders: only the old default sort value changes.
+UPDATE "public"."plugin" SET "sort" = 169 WHERE "name" = 'agentGateway' AND "sort" = 198;
+UPDATE "public"."namespace_plugin_rel" SET "sort" = 169
+WHERE "sort" = 198
+  AND "plugin_id" IN (SELECT "id" FROM "public"."plugin" WHERE "name" = 'agentGateway');
+
 -- Stop all Admin writers and back up instance_info before this one-time migration.
 -- Retain the latest heartbeat, then latest update/create timestamp, then greatest id.
 -- Rows upgraded from 2.7.1 have heartbeat 0 and are ordered by timestamps and id.
@@ -44,3 +51,58 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers, including long Authorization values.
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE public.mock_request_record ALTER COLUMN header TYPE TEXT;
+
+-- Agent Gateway OpenAPI import ownership: Admin-only provenance, never synchronized to gateways.
+CREATE TABLE "public"."agent_gateway_import" (
+  "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "rule_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+  "namespace_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+  "manifest" text COLLATE "pg_catalog"."default" NOT NULL,
+  "date_created" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  "date_updated" timestamp(6) NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+  PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "uk_agent_gateway_import_rule" ON "public"."agent_gateway_import" USING btree ("rule_id");
+
+
+CREATE TABLE IF NOT EXISTS registration_fencing_target (
+    id varchar(128) NOT NULL PRIMARY KEY,
+    date_created timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_updated timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    domain_id varchar(128) NOT NULL,
+    namespace_id varchar(64) NOT NULL,
+    selector_id varchar(128) NOT NULL,
+    plugin_id varchar(128) NOT NULL,
+    protocol varchar(32) NOT NULL,
+    host varchar(255) NOT NULL,
+    port integer NOT NULL,
+    principal_id varchar(128) NOT NULL,
+    enabled smallint NOT NULL,
+    state varchar(16) NOT NULL,
+    generation bigint NOT NULL,
+    owner_startup_id varchar(64),
+    session_id varchar(128),
+    last_sequence bigint NOT NULL,
+    last_payload text,
+    last_result text,
+    last_request_id varchar(64),
+    last_request_payload text,
+    retired_startups text,
+    CONSTRAINT uk_registration_fencing_target_address UNIQUE (selector_id, host, port)
+);
+CREATE INDEX IF NOT EXISTS idx_registration_fencing_target_address
+    ON registration_fencing_target (namespace_id, host, port);
+CREATE INDEX IF NOT EXISTS idx_fencing_domain_session
+    ON registration_fencing_target (domain_id, session_id);
+
+-- Revoke JWTs issued before a password change or an explicit revocation.
+ALTER TABLE public.dashboard_user ADD COLUMN token_version int4 NOT NULL DEFAULT 0;
+COMMENT ON COLUMN public.dashboard_user.token_version IS 'token version used to revoke issued JWTs';
+
+-- Add the opt-in rate limiter backend-failure policy selector.
+INSERT INTO "public"."plugin_handle" ("id", "plugin_id", "field", "label", "data_type", "type", "sort", "ext_obj", "date_created", "date_updated")
+VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}', '2026-10-30 00:00:00', '2026-10-30 00:00:00');
+INSERT INTO "public"."shenyu_dict" ("id", "type", "dict_code", "dict_name", "dict_value", "desc", "sort", "enabled", "date_created", "date_updated")
+VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1, '2026-10-30 00:00:00', '2026-10-30 00:00:00');
+INSERT INTO "public"."shenyu_dict" ("id", "type", "dict_code", "dict_name", "dict_value", "desc", "sort", "enabled", "date_created", "date_updated")
+VALUES ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1, '2026-10-30 00:00:00', '2026-10-30 00:00:00');

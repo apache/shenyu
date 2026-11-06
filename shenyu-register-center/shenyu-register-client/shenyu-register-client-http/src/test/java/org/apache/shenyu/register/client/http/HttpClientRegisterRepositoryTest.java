@@ -225,6 +225,29 @@ public final class HttpClientRegisterRepositoryTest {
     }
 
     @Test
+    public void readinessEventsShouldSendExpectedRequests() {
+        URIRegisterDTO notReadyDTO = uriRegisterDTO();
+        URIRegisterDTO readyDTO = uriRegisterDTO();
+
+        try (MockedStatic<RegisterUtils> registerUtils = mockStatic(RegisterUtils.class);
+             MockedStatic<RuntimeUtils> runtimeUtils = mockStatic(RuntimeUtils.class)) {
+            runtimeUtils.when(() -> RuntimeUtils.listenByOther(anyInt())).thenReturn(false);
+            registerUtils.when(() -> RegisterUtils.doLogin(anyString(), anyString(), anyString()))
+                    .thenReturn(Optional.of(TOKEN));
+
+            repository.notReady(notReadyDTO);
+            repository.ready(readyDTO);
+
+            assertEquals(EventType.NOT_READY, notReadyDTO.getEventType());
+            assertEquals(EventType.READY, readyDTO.getEventType());
+            registerUtils.verify(() -> RegisterUtils.doRegister(eq(GsonUtils.getInstance().toJson(notReadyDTO)),
+                    eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)));
+            registerUtils.verify(() -> RegisterUtils.doRegister(eq(GsonUtils.getInstance().toJson(readyDTO)),
+                    eq(FIRST_SERVER + Constants.URI_PATH), eq(Constants.URI), eq(TOKEN)));
+        }
+    }
+
+    @Test
     public void heartbeatShouldSkipWhenPortIsUsedByAnotherProcess() {
         URIRegisterDTO heartbeatDTO = uriRegisterDTO();
 

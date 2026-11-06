@@ -57,6 +57,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -282,7 +283,7 @@ class AiProxyEngineOrchestrationTest {
                     return attempt == 1
                             ? Mono.just(response(429, Map.of("Retry-After", List.of("1")), Flux.just(bytes("busy"))))
                             : Mono.just(response(200, Flux.just(bytes("ok"))));
-                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), events::add);
+                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(),
                 response -> response.getBody().then())).verifyComplete();
@@ -306,7 +307,7 @@ class AiProxyEngineOrchestrationTest {
                     return body.contains("\"model\":\"fallback\"")
                             ? Mono.just(response(200, Flux.just(bytes("fallback response"))))
                             : Mono.just(response(429, Flux.just(bytes("busy"))));
-                }, properties, events::add);
+                }, properties, (AiProxyAttemptListener) events::add);
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"),
                         Optional.of(config(false, "fallback")), response -> response.getBody().then()))
@@ -618,7 +619,7 @@ class AiProxyEngineOrchestrationTest {
                 protocolRouteResolver(), request -> {
             calls.incrementAndGet();
             return Mono.just(response(200, Flux.just(bytes("data: {\"first\":true}\n\n")).concatWith(Flux.error(networkFailure()))));
-        }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), events::add);
+        }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> consume(response, received)))
                 .expectError(AiTransportException.class).verify();
         assertEquals(1, calls.get());
@@ -660,7 +661,8 @@ class AiProxyEngineOrchestrationTest {
             return Mono.error(networkFailure());
         });
         StepVerifier.create(engine.execute("invalid", config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
-                .expectError(ShenyuException.class).verify();
+                .expectErrorMatches(error -> error instanceof AiProxyException request
+                        && request.getKind() == AiProxyException.Kind.REQUEST).verify();
         assertEquals(0, calls.get());
     }
 
@@ -819,7 +821,7 @@ class AiProxyEngineOrchestrationTest {
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
                 .thenAwait(Duration.ofMillis(30)).thenCancel().verify(Duration.ofSeconds(3));
         assertEquals(3, calls.get());
-        assertTrue(cancelled.get());
+        await().atMost(Duration.ofSeconds(5)).untilTrue(cancelled);
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport) {

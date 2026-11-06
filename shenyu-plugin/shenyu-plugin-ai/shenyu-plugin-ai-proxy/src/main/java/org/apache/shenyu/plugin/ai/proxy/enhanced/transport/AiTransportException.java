@@ -55,9 +55,11 @@ public final class AiTransportException extends RuntimeException {
      */
     public enum Kind {
         CONNECT_TIMEOUT,
+        CONNECTION_POOL_TIMEOUT,
         RESPONSE_HEADER_TIMEOUT,
         STREAM_IDLE_TIMEOUT,
         STREAM_DURATION_TIMEOUT,
+        REQUEST_TOO_LARGE,
         RESPONSE_TOO_LARGE,
         DNS_FAILURE,
         TLS_FAILURE,

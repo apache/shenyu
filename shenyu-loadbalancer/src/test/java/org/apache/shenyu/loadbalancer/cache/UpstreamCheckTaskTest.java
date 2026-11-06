@@ -41,6 +41,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -61,11 +62,13 @@ public class UpstreamCheckTaskTest {
         List<String> changed = new ArrayList<>();
         UpstreamCheckTask task = new UpstreamCheckTask(50000, changed::add);
         Upstream first = Upstream.builder().url("first").build();
-        task.withLock(() -> {
+        task.withBatch(() -> {
             task.triggerAddOne("s", first);
             task.triggerAddOne("s", Upstream.builder().url("second").build());
             assertTrue(changed.isEmpty());
+            assertNull(task.getHealthySnapshot("s"));
         });
+        assertEquals(2, task.getHealthySnapshot("s").size());
         assertEquals(List.of("s"), changed);
         changed.clear();
         task.triggerAddOne("s", first);
@@ -80,7 +83,7 @@ public class UpstreamCheckTaskTest {
     public void testFailedBatchStillPublishesCompletedChanges() {
         List<String> changed = new ArrayList<>();
         UpstreamCheckTask task = new UpstreamCheckTask(50000, changed::add);
-        assertThrows(IllegalStateException.class, () -> task.withLock(() -> {
+        assertThrows(IllegalStateException.class, () -> task.withBatch(() -> {
             task.triggerAddOne("s", Upstream.builder().url("first").build());
             throw new IllegalStateException("interrupted update");
         }));

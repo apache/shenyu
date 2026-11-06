@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.register;
 
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingException;
 import org.apache.shenyu.common.timer.AbstractRetryTask;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.TimerTask;
@@ -66,6 +67,9 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
             result = this.doRegisterURI(selectorName, uriList, namespaceId);
             LOG.info("Register success: {},{},{}", namespaceId, selectorName, uriList);
         } catch (Exception ex) {
+            if (ex instanceof RegistrationFencingException) {
+                throw (RegistrationFencingException) ex;
+            }
             LOG.error("Register exception: cause: {}", ex.getMessage());
             result = "";
             this.addFallback(key, new FallbackHolder(selectorName, uriList, namespaceId));
@@ -81,6 +85,16 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
     @Override
     public String draining(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
         return doDraining(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String notReady(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return doNotReady(selectorName, uriList, namespaceId);
+    }
+
+    @Override
+    public String ready(final String selectorName, final List<URIRegisterDTO> uriList, final String namespaceId) {
+        return doReady(selectorName, uriList, namespaceId);
     }
     
     private void addFallback(final String key, final FallbackHolder holder) {
@@ -103,8 +117,14 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
         if (Objects.nonNull(fallbackHolder)) {
             List<URIRegisterDTO> uriList = fallbackHolder.uriList();
             String selectorName = fallbackHolder.selectorName();
-            this.doRegisterURI(selectorName, uriList, fallbackHolder.namespaceId());
-            LOG.info("Register success: {},{}", selectorName, uriList);
+            try {
+                this.doRegisterURI(selectorName, uriList, fallbackHolder.namespaceId());
+                LOG.info("Register success: {},{}", selectorName, uriList);
+            } catch (RegistrationFencingException ex) {
+                // A protected target never accepts a queued legacy registration; drop it instead of retrying.
+                LOG.warn("Discard fenced fallback registration {}:{}: {}", fallbackHolder.namespaceId(),
+                        selectorName, ex.getMessage());
+            }
         }
     }
 
@@ -140,6 +160,27 @@ public abstract class FallbackShenyuClientRegisterService implements ShenyuClien
      * @return the string
      */
     abstract String doDraining(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
+     * Not ready: mark the instances so gateways stop selecting them for new work
+     * until an explicit ready event.
+     *
+     * @param selectorName the selector name
+     * @param uriList      the uri list
+     * @param namespaceId  the namespace id
+     * @return the string
+     */
+    abstract String doNotReady(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
+
+    /**
+     * Ready: release the not-ready and draining markers so new work is admitted again.
+     *
+     * @param selectorName the selector name
+     * @param uriList      the uri list
+     * @param namespaceId  the namespace id
+     * @return the string
+     */
+    abstract String doReady(String selectorName, List<URIRegisterDTO> uriList, String namespaceId);
 
     /**
      * The type Fall holder.

@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class ShenyuExtPathPluginJarLoader {
 
@@ -42,6 +43,18 @@ public class ShenyuExtPathPluginJarLoader {
      * @throws IOException the io exception
      */
     public static synchronized ExtPluginLoadResult loadExtendPlugins(final String path) throws IOException {
+        return loadExtendPlugins(path, ignored -> { });
+    }
+
+    /**
+     * Discover changed jars and clean registrations belonging to deleted jars.
+     *
+     * @param path extension directory
+     * @param deactivation ownership-aware cleanup callback
+     * @return discovered changes
+     * @throws IOException when a jar cannot be read
+     */
+    public static synchronized ExtPluginLoadResult loadExtendPlugins(final String path, final Consumer<ShenyuPluginClassLoader> deactivation) throws IOException {
         File[] jarFiles = ShenyuPluginPathBuilder.getPluginFile(path).listFiles(file -> file.getName().endsWith(".jar"));
         if (Objects.isNull(jarFiles)) {
             return new ExtPluginLoadResult(Collections.emptyList(), Collections.emptySet());
@@ -51,18 +64,21 @@ public class ShenyuExtPathPluginJarLoader {
         for (File file : jarFiles) {
             String absolutePath = file.getAbsolutePath();
             currentPaths.add(absolutePath);
-            if (pluginJarName.contains(absolutePath)) {
-                continue;
-            }
             byte[] pluginBytes = Files.readAllBytes(Paths.get(absolutePath));
             PluginJarParser.PluginJar uploadPluginJar = PluginJarParser.parseJar(pluginBytes);
             uploadPluginJar.setAbsolutePath(absolutePath);
+            if (pluginJarName.contains(absolutePath)) {
+                ShenyuPluginClassLoaderHolder holder = ShenyuPluginClassLoaderHolder.getSingleton();
+                if (holder.hasPluginClassLoader(absolutePath, uploadPluginJar.getVersion())) {
+                    continue;
+                }
+            }
             uploadPluginJars.add(uploadPluginJar);
         }
         Sets.SetView<String> removePluginSet = Sets.difference(pluginJarName, currentPaths);
         Set<String> removedPluginNames = new HashSet<>();
         for (String removePath : removePluginSet) {
-            removedPluginNames.addAll(ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(removePath));
+            removedPluginNames.addAll(ShenyuPluginClassLoaderHolder.getSingleton().removePluginClassLoader(removePath, deactivation));
         }
         pluginJarName = currentPaths;
         return new ExtPluginLoadResult(uploadPluginJars, removedPluginNames);

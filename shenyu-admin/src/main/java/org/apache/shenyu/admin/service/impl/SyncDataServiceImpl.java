@@ -174,6 +174,9 @@ public class SyncDataServiceImpl implements SyncDataService {
 
         List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(namespacePluginVO.getPluginId(), namespacePluginVO.getNamespaceId());
 
+        // An empty REFRESH payload would clear the whole gateway cache for that group. The websocket listener
+        // drops empty payloads, so the empty rule list published below never reaches a gateway; this guard also
+        // skips the discovery and rule sync that would be pointless without selectors.
         if (!CollectionUtils.isEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
 
@@ -207,6 +210,9 @@ public class SyncDataServiceImpl implements SyncDataService {
         
         List<SelectorData> selectorDataList = selectorService.findByPluginIdAndNamespaceId(namespacePluginVO.getPluginId(), namespacePluginVO.getNamespaceId());
         
+        // An empty REFRESH payload would clear the whole gateway cache for that group. The websocket listener
+        // drops empty payloads, so the empty rule list published below never reaches a gateway; this guard also
+        // skips the discovery and rule sync that would be pointless without selectors.
         if (!CollectionUtils.isEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
             

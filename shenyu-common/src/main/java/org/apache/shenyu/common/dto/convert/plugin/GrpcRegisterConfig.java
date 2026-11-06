@@ -22,6 +22,10 @@ import java.util.Objects;
 
 /**
  * The type grpc register config.
+ *
+ * <p>The aggregate budgets are opt-in so existing deployments keep their historical unlimited
+ * behavior. Deployments that expose untrusted streaming gRPC upstreams should configure both
+ * {@code maxAggregatedResultCount} and {@code maxAggregatedResultBytes} explicitly.</p>
  */
 public class GrpcRegisterConfig implements Serializable {
 

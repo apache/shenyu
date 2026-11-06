@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -49,13 +50,14 @@ class UpstreamLabelSubsetsTest {
     }
 
     @Test
-    void testMetadataOnlyUpdateAndRequestMutationIsolation() {
+    void testMetadataOnlyUpdateAndReadOnlySnapshot() {
         manager.registerLabelSubsets(SELECTOR, "r", List.of(STABLE, CANARY));
         Upstream original = upstream("same:8080", STABLE);
         manager.submit(SELECTOR, List.of(original));
         List<Upstream> request = manager.findUpstreamListByLabels(SELECTOR, STABLE);
         assertSame(original, request.get(0));
-        request.clear();
+        assertSame(request, manager.findUpstreamListByLabels(SELECTOR, STABLE));
+        assertThrows(UnsupportedOperationException.class, request::clear);
         assertEquals(1, manager.findUpstreamListByLabels(SELECTOR, STABLE).size());
         Upstream changed = upstream("same:8080", CANARY);
         changed.setWeight(70);
@@ -80,8 +82,23 @@ class UpstreamLabelSubsetsTest {
         draining.setDraining(true);
         manager.submit(SELECTOR, List.of(draining));
         assertTrue(manager.findUpstreamListByLabels(SELECTOR, CANARY).isEmpty());
-        manager.submit(SELECTOR, List.of(upstream));
+        manager.submit(SELECTOR, List.of(upstream("recover:8080", CANARY)));
         assertEquals(List.of(upstream), manager.findUpstreamListByLabels(SELECTOR, CANARY));
+    }
+
+    @Test
+    void testReadinessUpdateRemovesCachedInstanceAndRecoveryRepopulates() {
+        manager.registerLabelSubsets(SELECTOR, "r", List.of(CANARY));
+        manager.submit(SELECTOR, List.of(upstream("ready:8080", CANARY)));
+        final List<Upstream> before = manager.findUpstreamListByLabels(SELECTOR, CANARY);
+        Upstream notReady = upstream("ready:8080", CANARY);
+        notReady.setReady(false);
+        manager.submit(SELECTOR, List.of(notReady));
+        assertTrue(manager.findUpstreamListByLabels(SELECTOR, CANARY).isEmpty());
+        assertTrue(manager.findAllUpstreamListBySelectorId(SELECTOR).isEmpty());
+        assertEquals(1, before.size());
+        manager.submit(SELECTOR, List.of(upstream("ready:8080", CANARY)));
+        assertEquals(1, manager.findUpstreamListByLabels(SELECTOR, CANARY).size());
     }
 
     @Test
@@ -92,12 +109,12 @@ class UpstreamLabelSubsetsTest {
         Field field = UpstreamCacheManager.class.getDeclaredField("task");
         field.setAccessible(true);
         UpstreamCheckTask task = (UpstreamCheckTask) field.get(manager);
-        task.withLock(() -> {
+        task.withBatch(() -> {
             task.removeFromMap(task.getHealthyUpstream(), SELECTOR, upstream);
             task.putToMap(task.getUnhealthyUpstream(), SELECTOR, upstream);
         });
         assertTrue(manager.findUpstreamListByLabels(SELECTOR, CANARY).isEmpty());
-        task.withLock(() -> {
+        task.withBatch(() -> {
             task.removeFromMap(task.getUnhealthyUpstream(), SELECTOR, upstream);
             task.putToMap(task.getHealthyUpstream(), SELECTOR, upstream);
         });
@@ -110,7 +127,9 @@ class UpstreamLabelSubsetsTest {
         manager.submit(SELECTOR, List.of(upstream));
         manager.registerLabelSubsets(SELECTOR, "r", List.of(CANARY));
         manager.registerLabelSubsets(SELECTOR, "r", List.of(STABLE));
-        assertEquals(List.of(upstream), manager.findUpstreamListByLabels(SELECTOR, CANARY));
+        List<Upstream> oldRule = manager.findUpstreamListByLabels(SELECTOR, CANARY);
+        assertEquals(List.of(upstream), oldRule);
+        assertThrows(UnsupportedOperationException.class, oldRule::clear);
         assertTrue(manager.findUpstreamListByLabels(SELECTOR, STABLE).isEmpty());
         assertTrue(manager.findUpstreamListByLabels(SELECTOR, Map.of()).isEmpty());
         manager.unregisterLabelSubsets(SELECTOR, "r");

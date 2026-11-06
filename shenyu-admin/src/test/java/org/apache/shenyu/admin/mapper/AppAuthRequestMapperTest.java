@@ -133,7 +133,7 @@ class AppAuthRequestMapperTest {
     @Test
     void reserveReplayDoesNotClobberOriginal() {
         mapper.reserveIfAbsent(candidate("id-1", "svc-a", "ns-1", "req-1", "hash-1", "CREATED"));
-        assertEquals(1, mapper.completeCreated("id-1", "auth-A"));
+        assertEquals(1, mapper.completeCreated("id-1", "auth-A", "CREATED"));
         session.commit();
 
         // another transaction replays the same key with a different candidate: id/hash/authId of the original row must stay untouched
@@ -155,9 +155,9 @@ class AppAuthRequestMapperTest {
     @Test
     void completeCreatedIsCasOnStateAndNullAuthId() {
         mapper.reserveIfAbsent(candidate("id-c", "svc-c", "ns-1", "req-c", "hash-c", "CREATED"));
-        assertEquals(1, mapper.completeCreated("id-c", "auth-C1"));
+        assertEquals(1, mapper.completeCreated("id-c", "auth-C1", "CREATED"));
         // backfill again after a successful backfill (CAS fails)
-        assertEquals(0, mapper.completeCreated("id-c", "auth-C2"));
+        assertEquals(0, mapper.completeCreated("id-c", "auth-C2", "CREATED"));
         session.commit();
         final AppAuthRequestDO record = mapper.selectByKey("svc-c", "ns-1", "req-c");
         assertEquals("auth-C1", record.getAuthId());
@@ -184,8 +184,8 @@ class AppAuthRequestMapperTest {
     @Test
     void markRevokedKeepsHistoricalAuthId() {
         mapper.reserveIfAbsent(candidate("id-r", "svc-r", "ns-1", "req-r", "hash-r", "CREATED"));
-        assertEquals(1, mapper.completeCreated("id-r", "auth-R"));
-        assertEquals(1, mapper.markRevoked("id-r", "manual-drill"));
+        assertEquals(1, mapper.completeCreated("id-r", "auth-R", "CREATED"));
+        assertEquals(1, mapper.markRevoked("id-r", "manual-drill", "REVOKED"));
         session.commit();
 
         final AppAuthRequestDO record = mapper.selectByAuthId("auth-R");

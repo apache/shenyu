@@ -80,6 +80,17 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
                 .orElse("");
         return redisRateLimiter.isAllowed(rule.getId() + resolverKey, limiterHandle)
                 .flatMap(response -> {
+                    if (response.isBackendFailure()) {
+                        if (limiterHandle.isRejectOnBackendFailure()) {
+                            exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+                            final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RATE_LIMITER);
+                            Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
+                            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.RATE_LIMITER_BACKEND_UNAVAILABLE);
+                            return WebFluxResultUtils.result(exchange, error);
+                        }
+                        // RedisRateLimiter already ran the algorithm callback exactly once for this error path.
+                        return chain.execute(exchange);
+                    }
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                         final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_RATE_LIMITER);

@@ -38,6 +38,10 @@ inputs:
   filters:
     description: 'Path to the configuration file or YAML string with filters definition'
     required: true
+  predicate-quantifier:
+    description: 'Use every to combine a positive path union with negative exclusions; some matches any pattern.'
+    required: false
+    default: some
   list-files:
     description: |
       Enables listing of files matching the filter:
@@ -60,6 +64,28 @@ inputs:
     required: false
     default: '100'
 outputs:
+  code:
+    description: 'Result for the code repository filter.'
+  code_files:
+    description: 'Result for the code_files repository filter.'
+  e2e:
+    description: 'Result for the e2e repository filter.'
+  e2e_files:
+    description: 'Result for the e2e_files repository filter.'
+  integration:
+    description: 'Result for the integration repository filter.'
+  integration_files:
+    description: 'Result for the integration_files repository filter.'
+  k8s-ingress:
+    description: 'Result for the k8s-ingress repository filter.'
+  k8s-ingress_files:
+    description: 'Result for the k8s-ingress_files repository filter.'
+  k8s-gateway-api:
+    description: 'Result for the k8s-gateway-api repository filter.'
+  k8s-examples:
+    description: 'Result for the k8s-examples repository filter.'
+  k8s-examples_files:
+    description: 'Result for the k8s-examples_files repository filter.'
   changes:
     description: JSON array with names of all filters matching any of changed files
 runs:
