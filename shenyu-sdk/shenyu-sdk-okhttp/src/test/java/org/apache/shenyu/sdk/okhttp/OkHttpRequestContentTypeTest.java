@@ -18,6 +18,7 @@
 package org.apache.shenyu.sdk.okhttp;
 
 import com.sun.net.httpserver.HttpServer;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.shenyu.registry.api.config.RegisterConfig;
@@ -116,7 +117,9 @@ public final class OkHttpRequestContentTypeTest {
         "POST | Content-Type | text/plain;charset=UTF-16LE | café中文 | UTF-16LE",
         "POST | Content-Type | application/problem+json;charset=UTF-8 | {\"title\":\"中文\"} | UTF-8",
         "POST | Content-Type | application/json;charset=ISO-8859-1 | {\"name\":\"café\"} | ISO-8859-1",
-        "POST | Content-Type | application/json;charset=UTF-8 | {\"name\":\"中文\"} | UTF-8"
+        "POST | Content-Type | application/json;charset=UTF-8 | {\"name\":\"中文\"} | UTF-8",
+        "POST | Content-Type | text/plain; charset=UTF-8 | café | UTF-8",
+        "POST | Content-Type | Text/Plain; charset=\"ISO-8859-1\" | café | ISO-8859-1"
     })
     public void testDeclaredContentTypeAndCharsetReachServer(final ShenyuRequest.HttpMethod method, final String headerName,
                                                            final String contentType, final String body, final String charsetName) throws IOException {
@@ -128,7 +131,7 @@ public final class OkHttpRequestContentTypeTest {
         assertAll(
                 () -> assertEquals(204, response.getStatus()),
                 () -> assertEquals(method.name(), receivedMethod.get()),
-                () -> assertEquals(contentType, receivedContentType.get()),
+                () -> assertContentType(contentType),
                 () -> assertArrayEquals(body.getBytes(Charset.forName(charsetName)), receivedBody.get()),
                 () -> assertEquals(Arrays.asList("first", "second"), receivedTrace.get()));
     }
@@ -139,7 +142,7 @@ public final class OkHttpRequestContentTypeTest {
 
         client.execute(request(ShenyuRequest.HttpMethod.POST, headers(), body));
 
-        assertEquals("application/json;charset=UTF-8", receivedContentType.get());
+        assertContentType("application/json;charset=UTF-8");
         assertArrayEquals(body.getBytes(StandardCharsets.UTF_8), receivedBody.get());
     }
 
@@ -151,7 +154,7 @@ public final class OkHttpRequestContentTypeTest {
 
         client.execute(request(ShenyuRequest.HttpMethod.POST, headers, body));
 
-        assertEquals("text/plain; charset=utf-8", receivedContentType.get());
+        assertContentType("text/plain; charset=utf-8");
         assertArrayEquals(body.getBytes(StandardCharsets.UTF_8), receivedBody.get());
     }
 
@@ -184,6 +187,15 @@ public final class OkHttpRequestContentTypeTest {
         Map<String, Collection<String>> headers = new LinkedHashMap<>();
         headers.put("X-Trace", Arrays.asList("first", "second"));
         return headers;
+    }
+
+    private void assertContentType(final String expected) {
+        MediaType expectedType = MediaType.get(expected);
+        MediaType actualType = MediaType.get(receivedContentType.get());
+        assertAll(
+                () -> assertEquals(expectedType.type(), actualType.type()),
+                () -> assertEquals(expectedType.subtype(), actualType.subtype()),
+                () -> assertEquals(expectedType.charset(), actualType.charset()));
     }
 
     private ShenyuRequest request(final ShenyuRequest.HttpMethod method, final Map<String, Collection<String>> headers, final String body) {
