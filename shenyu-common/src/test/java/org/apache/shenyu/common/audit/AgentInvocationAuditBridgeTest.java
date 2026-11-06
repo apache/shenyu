@@ -38,6 +38,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AgentInvocationAuditBridgeTest {
 
@@ -95,6 +97,7 @@ class AgentInvocationAuditBridgeTest {
 
     @Test
     void auditFailureDoesNotSuppressExistingObserverAndDisabledPathIsUnchanged() {
+        final long failuresBefore = AgentInvocationAuditBridge.deliveryFailureCount();
         AtomicInteger delivered = new AtomicInteger();
         AiCallObserver existing = event -> delivered.incrementAndGet();
         assertSame(existing, AgentInvocationAuditBridge.ai(existing, null));
@@ -103,6 +106,7 @@ class AgentInvocationAuditBridgeTest {
         }), context("one"));
         observation.finish(SignalType.ON_COMPLETE, 200);
         assertEquals(1, delivered.get());
+        assertTrue(AgentInvocationAuditBridge.deliveryFailureCount() > failuresBefore);
     }
 
     private AgentRequestContext context(final String id) {
@@ -135,6 +139,55 @@ class AgentInvocationAuditBridgeTest {
                 context("one").withTarget(target, "chat", null));
         observation.finish(SignalType.ON_COMPLETE, 200);
         assertEquals(target, records.get(0).getTarget().orElseThrow());
+    }
+
+    @Test
+    void invalidOptionalIdentityAndRouteFieldsDoNotDiscardRecords() {
+        for (String invalid : List.of("x".repeat(257), " padded", "padded ", "control\nname", Character.toString(127), "", " ")) {
+            List<AgentInvocationAuditEvent> records = new CopyOnWriteArrayList<>();
+            final long omittedBefore = AgentInvocationAuditBridge.omittedMetadataCount();
+            AgentRequestContext context = new AgentRequestContext("preserved", "llm", invalid, invalid)
+                    .withIdentity(invalid, invalid).withApiKeyId(invalid);
+            final AiCallObserver observer = AgentInvocationAuditBridge.ai(null, records::add);
+            AiAttemptEvent attempt = mock(AiAttemptEvent.class);
+            when(attempt.context()).thenReturn(context);
+            when(attempt.attemptNumber()).thenReturn(1);
+            when(attempt.outcome()).thenReturn(AiCallOutcome.ERROR);
+            when(attempt.provider()).thenReturn(invalid);
+            when(attempt.clientProtocol()).thenReturn(invalid);
+            when(attempt.targetProtocol()).thenReturn(invalid);
+            when(attempt.requestedModel()).thenReturn(invalid);
+            when(attempt.resolvedModel()).thenReturn(invalid);
+            observer.recordAttempt(attempt);
+            new AiRequestObservation(observer, context).finish(SignalType.ON_COMPLETE, 403);
+            assertEquals(2, records.size());
+            assertTrue(records.stream().allMatch(event -> event.getTenant().isEmpty() && event.getSubject().isEmpty()
+                    && event.getApiKeyId().isEmpty() && event.getSelectorId().isEmpty() && event.getRuleId().isEmpty()));
+            assertTrue(records.get(0).getProvider().isEmpty());
+            assertTrue(records.get(0).getClientProtocol().isEmpty());
+            assertTrue(records.get(0).getTargetProtocol().isEmpty());
+            assertTrue(records.get(0).getRequestedModel().isEmpty());
+            assertTrue(records.get(0).getResolvedModel().isEmpty());
+            assertTrue(AgentInvocationAuditBridge.omittedMetadataCount() >= omittedBefore + 15);
+        }
+    }
+
+    @Test
+    void validBoundaryIdentityAndModelsRemainUnchanged() {
+        String boundary = "x".repeat(256);
+        List<AgentInvocationAuditEvent> records = new CopyOnWriteArrayList<>();
+        AgentRequestContext context = new AgentRequestContext("boundary", "llm", boundary, boundary)
+                .withIdentity(boundary, boundary).withApiKeyId(boundary);
+        AiRequestObservation observation = new AiRequestObservation(AgentInvocationAuditBridge.ai(null, records::add), context);
+        observation.startAttempt(context, AiAttemptEvent.Kind.PRIMARY,
+                new AiAttemptRoute("provider", "chat", "chat", boundary, boundary), false).finish(SignalType.ON_COMPLETE, null);
+        observation.finish(SignalType.ON_COMPLETE, 200);
+        assertEquals(2, records.size());
+        assertTrue(records.stream().allMatch(event -> event.getTenant().orElseThrow().equals(boundary)
+                && event.getSubject().orElseThrow().equals(boundary) && event.getApiKeyId().orElseThrow().equals(boundary)
+                && event.getSelectorId().orElseThrow().equals(boundary) && event.getRuleId().orElseThrow().equals(boundary)));
+        assertEquals(boundary, records.get(0).getRequestedModel().orElseThrow());
+        assertEquals(boundary, records.get(0).getResolvedModel().orElseThrow());
     }
 
 }
