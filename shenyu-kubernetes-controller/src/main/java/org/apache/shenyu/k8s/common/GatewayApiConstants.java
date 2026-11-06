@@ -42,7 +42,7 @@ public final class GatewayApiConstants {
     /** ResolvedRefs=False reason: a backendRef's Service has no ready endpoints. */
     public static final String REASON_BACKEND_NOT_FOUND = "BackendNotFound";
 
-    /** ResolvedRefs=False / Accepted=False reason: a cross-namespace reference (parentRef or backendRef) is not permitted by a ReferenceGrant or listener policy. */
+    /** ResolvedRefs=False reason: a backendRef's cross-namespace reference is not permitted by a ReferenceGrant. Parent denials use {@link #REASON_NOT_ALLOWED_BY_LISTENERS} instead. */
     public static final String REASON_REF_NOT_PERMITTED = "RefNotPermitted";
 
     /** ResolvedRefs=False reason: a backendRef's kind is not Service, the only supported kind. */
@@ -57,13 +57,16 @@ public final class GatewayApiConstants {
     /** Condition type Programmed. */
     public static final String CONDITION_PROGRAMMED = "Programmed";
 
-    /** Accepted=False reason: parentRef does not resolve to an existing Gateway. */
+    /** Accepted=False reason: the parentRef resolves to no parent, either because the parent Gateway does not exist or because no listener matches its port and/or sectionName. */
     public static final String REASON_NO_MATCHING_PARENT = "NoMatchingParent";
+
+    /** Accepted=False reason: no listener's allowedRoutes criteria (namespace or kind) permit the route. */
+    public static final String REASON_NOT_ALLOWED_BY_LISTENERS = "NotAllowedByListeners";
 
     /** Accepted=False reason: no listener hostname intersects the route hostnames. */
     public static final String REASON_NO_MATCHING_LISTENER_HOSTNAME = "NoMatchingListenerHostname";
 
-    /** Condition reason: a spec value (filter, sectionName, ...) is unsupported. */
+    /** Condition reason: a spec value (filters, {@code allowedRoutes.from=Selector}, a listener this controller cannot serve) is unsupported. */
     public static final String REASON_UNSUPPORTED_VALUE = "UnsupportedValue";
 
     /** Listener Accepted=False reason: protocol is not supported (only HTTP is served). */
@@ -83,6 +86,9 @@ public final class GatewayApiConstants {
 
     /** The only listener protocol this controller serves. */
     public static final String PROTOCOL_HTTP = "HTTP";
+
+    /** HTTPS listeners are not served, but an HTTPRoute is a protocol-matching kind for them. */
+    public static final String PROTOCOL_HTTPS = "HTTPS";
 
     public static final String SHENYU_CONTROLLER_NAME = "gateway.shenyu.apache.org/shenyu-controller";
 

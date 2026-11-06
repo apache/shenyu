@@ -90,12 +90,30 @@ public final class ListenerSupport {
         return Objects.nonNull(port) && port == servedPort;
     }
 
+    /**
+     * Whether this controller can actually serve the listener. Gateway status and HTTPRoute attachment
+     * must share this predicate, otherwise a listener reported as unusable would still accept routes.
+     *
+     * @param listener the listener object
+     * @param servedPort the port the embedded ShenYu data plane listens on
+     * @return true if the listener speaks plain HTTP on the served port
+     */
+    public static boolean isServable(final JsonObject listener, final long servedPort) {
+        return isSupportedProtocol(listener) && servesPort(listener, servedPort);
+    }
+
+    /**
+     * Listener name.
+     *
+     * @param listener the listener object
+     * @return the name, or null when absent
+     */
     public static String nameOf(final JsonObject listener) {
         return JsonFields.getString(listener, "name");
     }
 
     /**
-     * Listener protocol; defaults to HTTP per the spec.
+     * Listener protocol; absent in a schema-invalid or foreign object is read as plain HTTP.
      *
      * @param listener the listener object
      * @return the protocol, never null
@@ -105,6 +123,12 @@ public final class ListenerSupport {
         return Objects.isNull(protocol) ? GatewayApiConstants.PROTOCOL_HTTP : protocol;
     }
 
+    /**
+     * Listener hostname.
+     *
+     * @param listener the listener object
+     * @return the hostname, or null when the listener matches any host
+     */
     public static String hostnameOf(final JsonObject listener) {
         return JsonFields.getString(listener, "hostname");
     }
@@ -127,6 +151,19 @@ public final class ListenerSupport {
      */
     public static boolean isSupportedProtocol(final JsonObject listener) {
         return GatewayApiConstants.PROTOCOL_HTTP.equals(protocolOf(listener));
+    }
+
+    /**
+     * Whether HTTPRoute is a protocol-matching kind for this listener: it attaches to HTTP and HTTPS
+     * listeners, never to TLS/TCP/UDP ones.
+     *
+     * @param listener the listener object
+     * @return true if an HTTPRoute may attach to this listener's protocol
+     */
+    public static boolean supportsHttpRoute(final JsonObject listener) {
+        String protocol = protocolOf(listener);
+        return GatewayApiConstants.PROTOCOL_HTTP.equals(protocol)
+                || GatewayApiConstants.PROTOCOL_HTTPS.equals(protocol);
     }
 
     /**
@@ -162,12 +199,16 @@ public final class ListenerSupport {
     }
 
     /**
-     * Absent kinds means all protocol-matching kinds, i.e. HTTPRoute for HTTP.
+     * Absent kinds means all protocol-matching kinds; HTTPRoute itself only matches HTTP and HTTPS.
      *
      * @param listener the listener object
      * @return true if HTTPRoute is permitted
      */
     public static boolean allowsKind(final JsonObject listener) {
+        // Kinds are protocol-scoped: a TLS/TCP/UDP listener permits no HTTPRoute, declared kinds or not.
+        if (!supportsHttpRoute(listener)) {
+            return false;
+        }
         JsonObject allowedRoutes = JsonFields.getJsonObject(listener, "allowedRoutes");
         JsonArray kinds = JsonFields.getJsonArray(allowedRoutes, "kinds");
         if (Objects.isNull(kinds) || kinds.size() == 0) {

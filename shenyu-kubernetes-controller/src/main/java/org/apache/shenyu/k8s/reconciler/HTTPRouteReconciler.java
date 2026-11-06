@@ -49,10 +49,11 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Reconciler for HTTPRoute resources. Every parentRef is evaluated and reported in
- * status.parents with spec-defined rejection reasons, except parentRefs of foreign
- * controllers. Cross-namespace attachment is authorized by allowedRoutes only;
- * ReferenceGrant governs cross-namespace backendRefs (validated by {@link HttpRouteParser}).
+ * Reconciler for HTTPRoute resources. Every parentRef pointing at a ShenYu Gateway is evaluated and
+ * reported in status.parents with spec-defined rejection reasons. parentRefs of foreign group/kind, of
+ * foreign controllers' Gateways, and parentRefs without a name are skipped silently, per spec.
+ * Cross-namespace attachment is authorized by allowedRoutes only; ReferenceGrant governs
+ * cross-namespace backendRefs (validated by {@link HttpRouteParser}).
  */
 public class HTTPRouteReconciler implements Reconciler {
 
@@ -238,60 +239,89 @@ public class HTTPRouteReconciler implements Reconciler {
                 message = "Gateway " + parentNamespace + "/" + parentName + " has no listeners";
             }
             return ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE, message);
+                    GatewayApiConstants.REASON_NO_MATCHING_PARENT, message);
         }
-        Set<String> effective = new LinkedHashSet<>();
-        Set<String> matchedListeners = new LinkedHashSet<>();
-        boolean anyMatched = false;
-        boolean unsupportedFrom = false;
-        boolean notPermitted = false;
-        boolean hostnameMismatch = false;
+        // Both tiers are always evaluated: a served listener's denial must not hide a listener this
+        // controller cannot serve but whose policy and hostname would accept the route, or a Gateway
+        // whose HTTPS listener permits the route would be reported as permitting none.
+        ListenerVerdicts servedVerdicts = evaluateListenerTier(selected, true, routeNamespace, parentNamespace, routeHostnames);
+        ListenerVerdicts unservedVerdicts = evaluateListenerTier(selected, false, routeNamespace, parentNamespace, routeHostnames);
+        if (servedVerdicts.accepted) {
+            return ParentDecision.accepted(parentRef, parentNamespace, parentName,
+                    new ArrayList<>(servedVerdicts.hostnames), servedVerdicts.listenerNames);
+        }
+        if (unservedVerdicts.permitsRoute) {
+            // The route would be accepted by a listener this controller cannot serve, so capability —
+            // not the served listener's policy — is what is left to report.
+            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
+                    "the listener that would accept this route uses a protocol or port the ShenYu controller cannot serve");
+        }
+        // A served listener's verdict speaks before an unserved one's: it is the listener the route
+        // would actually be programmed on.
+        ListenerVerdicts decisive = Objects.nonNull(servedVerdicts.reason) ? servedVerdicts : unservedVerdicts;
+        if (Objects.nonNull(decisive.reason)) {
+            return ParentDecision.rejected(parentRef, parentNamespace, parentName, decisive.reason, decisive.message);
+        }
+        // Defensive only: every selected listener is either served or not, and either tier records an
+        // acceptance, a denial or that an unserved listener permits the route, so a non-empty selection
+        // makes the branches above exhaustive.
+        return ParentDecision.rejected(parentRef, parentNamespace, parentName,
+                GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
+                "no listener with a supported protocol (HTTP) on a served port (serving " + servedPort + ")");
+    }
+
+    /**
+     * Evaluate one listener tier: {@code served} selects the listeners this controller can serve,
+     * {@code false} the ones it cannot. Only a served listener can accept the route. An unserved one
+     * records the reason it denies with, or notes that it would otherwise have accepted the route, so a
+     * route rejected only by the controller's own capability is never reported as a policy denial.
+     *
+     * @param selected the listeners matching the parentRef's sectionName and port
+     * @param served true to evaluate the served tier, false the unserved one
+     * @param routeNamespace the HTTPRoute namespace
+     * @param parentNamespace the Gateway namespace
+     * @param routeHostnames the HTTPRoute hostnames, empty meaning any host
+     * @return the tier's verdicts, never null
+     */
+    private ListenerVerdicts evaluateListenerTier(final List<JsonObject> selected, final boolean served,
+                                                  final String routeNamespace, final String parentNamespace,
+                                                  final List<String> routeHostnames) {
+        ListenerVerdicts verdicts = new ListenerVerdicts();
         for (JsonObject listener : selected) {
             // Must mirror the Gateway reconciler's listener usability or status and data plane diverge.
-            if (!ListenerSupport.isSupportedProtocol(listener) || !ListenerSupport.servesPort(listener, servedPort)) {
+            if (ListenerSupport.isServable(listener, servedPort) != served) {
                 continue;
             }
-            if (ListenerSupport.usesUnsupportedFrom(listener)) {
-                unsupportedFrom = true;
+            // Only a listener that could attach an HTTPRoute makes its allowedRoutes values relevant:
+            // a TLS/TCP listener's from=Selector must not outrank a real policy denial.
+            if (ListenerSupport.supportsHttpRoute(listener) && ListenerSupport.usesUnsupportedFrom(listener)) {
+                verdicts.reject(GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
+                        "allowedRoutes with from=Selector is not supported by the ShenYu controller", 0);
                 continue;
             }
             if (!ListenerSupport.allowsNamespace(listener, routeNamespace, parentNamespace)
                     || !ListenerSupport.allowsKind(listener)) {
-                notPermitted = true;
+                verdicts.reject(GatewayApiConstants.REASON_NOT_ALLOWED_BY_LISTENERS,
+                        "no listener's allowedRoutes criteria (namespaces or kinds) permit this route", 1);
                 continue;
             }
             List<String> intersect = ListenerSupport.intersectHostnames(ListenerSupport.hostnameOf(listener), routeHostnames);
             if (Objects.isNull(intersect)) {
-                hostnameMismatch = true;
+                verdicts.reject(GatewayApiConstants.REASON_NO_MATCHING_LISTENER_HOSTNAME,
+                        "route hostnames do not intersect any listener hostname", 2);
+                continue;
+            }
+            if (!served) {
+                verdicts.permitsRoute = true;
                 continue;
             }
             // an empty intersection is still a match: no hostnames on either side means "any host"
-            anyMatched = true;
-            matchedListeners.add(ListenerSupport.nameOf(listener));
-            effective.addAll(intersect);
+            verdicts.accepted = true;
+            verdicts.listenerNames.add(ListenerSupport.nameOf(listener));
+            verdicts.hostnames.addAll(intersect);
         }
-        if (anyMatched) {
-            return ParentDecision.accepted(parentRef, parentNamespace, parentName, new ArrayList<>(effective),
-                    matchedListeners);
-        }
-        if (unsupportedFrom) {
-            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
-                    "allowedRoutes with from=Selector is not supported by the ShenYu controller");
-        }
-        if (notPermitted) {
-            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                    GatewayApiConstants.REASON_REF_NOT_PERMITTED,
-                    "listener allowedRoutes policy does not permit routes from namespace " + routeNamespace);
-        }
-        if (hostnameMismatch) {
-            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                    GatewayApiConstants.REASON_NO_MATCHING_LISTENER_HOSTNAME,
-                    "route hostnames do not intersect any listener hostname");
-        }
-        return ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
-                "no listener with a supported protocol (HTTP) on a served port (serving " + servedPort + ")");
+        return verdicts;
     }
 
     private List<String> readStringList(final JsonArray array) {
@@ -604,6 +634,44 @@ public class HTTPRouteReconciler implements Reconciler {
             LOG.debug("Updated status of HTTPRoute {}/{}", namespace, routeName);
         } catch (ApiException e) {
             LOG.warn("Failed to update status of HTTPRoute {}/{}: {}", namespace, routeName, e.getMessage());
+        }
+    }
+
+    /**
+     * Verdicts of one listener tier: whether a usable listener accepts the route, the strongest reason
+     * the tier denies with, and — for the unserved tier — whether a listener this controller cannot
+     * serve would otherwise have accepted the route.
+     */
+    private static final class ListenerVerdicts {
+
+        private final Set<String> hostnames = new LinkedHashSet<>();
+
+        private final Set<String> listenerNames = new LinkedHashSet<>();
+
+        private boolean accepted;
+
+        private boolean permitsRoute;
+
+        private String reason;
+
+        private String message;
+
+        private int reasonPriority = Integer.MAX_VALUE;
+
+        /**
+         * Record a rejection; the highest-priority reason is kept so the reported reason never depends
+         * on listener order.
+         *
+         * @param rejectionReason the spec reason the listener denies with
+         * @param rejectionMessage the human-readable explanation
+         * @param priority 0 for an unsupported value, 1 for a policy denial, 2 for a hostname mismatch
+         */
+        private void reject(final String rejectionReason, final String rejectionMessage, final int priority) {
+            if (priority < reasonPriority) {
+                this.reason = rejectionReason;
+                this.message = rejectionMessage;
+                this.reasonPriority = priority;
+            }
         }
     }
 
