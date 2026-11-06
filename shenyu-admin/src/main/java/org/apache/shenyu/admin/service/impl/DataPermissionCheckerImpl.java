@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.utils.AdminSecurityAudit;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.NamespaceUserService;
@@ -62,11 +63,14 @@ public class DataPermissionCheckerImpl implements DataPermissionChecker {
         }
         final String userId = SessionUtil.visitorId();
         if (StringUtils.isBlank(userId) || ANONYMOUS_USER_ID.equals(userId)) {
+            AdminSecurityAudit.denied(AdminSecurityAudit.Reason.RESOURCE_DENIED, "read", namespaceId, dataId);
             throw new UnauthorizedException("Data permission check failed: the caller is not an authenticated dashboard user");
         }
         final boolean belongsToNamespace = StringUtils.isNotBlank(namespaceId)
                 && namespaceUserService.listNamespaceIdByUserId(userId).contains(namespaceId);
         if (!belongsToNamespace || Objects.isNull(dataPermissionMapper.findOneByUniqueKey(dataId, userId, dataType))) {
+            AdminSecurityAudit.denied(belongsToNamespace ? AdminSecurityAudit.Reason.RESOURCE_DENIED : AdminSecurityAudit.Reason.NAMESPACE_DENIED,
+                    "read", namespaceId, dataId);
             throw new UnauthorizedException("Data permission check failed: the resource is not accessible to the caller");
         }
     }
