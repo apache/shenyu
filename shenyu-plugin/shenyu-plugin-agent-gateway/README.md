@@ -519,11 +519,26 @@ handshake; concurrent expiry observations issue their own requests only once and
 coalesce on cleanup/reinitialization work.
 
 An idle session is reclaimed before its next use after five minutes. Its bounded
-DELETE is shared by concurrent operations and retried on a later operation if DELETE
-itself fails; reinitialization is not allowed to strand that abandoned binding. A normal
-whole-client close still uses one cached DELETE attempt, while a 404 during cleanup is
-accepted because the remote session may already be gone. No request context or Agent
-identity is attached to recovery requests.
+DELETE is shared by concurrent operations and retried at most twice across later
+operations. Exhaustion is observable through `exhaustedCleanupCount()`; it does not
+add an unbounded DELETE delay to subsequent calls. Whole-client shutdown separately
+attempts both the active and abandoned bindings. Concurrent shutdown subscribers share
+an attempt, and a failed shutdown can be retried. HTTP 404 during cleanup is accepted
+because the remote session may already be gone. No request context or Agent identity
+is attached to recovery requests.
+
+The caller's remaining deadline bounds readiness, including cleanup and recovery.
+Before any recovery handshake, the adapter checks its catalog generation guard;
+withdrawn configurations cannot create a session with captured credentials. Safe
+directory/read failures use the catalog-unavailable response rather than claiming
+an unknown mutating tool outcome.
+
+Failed endpoint cleanup is retried once, then retained in an identity-based quarantine
+visible in client diagnostics. New allocation stops at the quarantine budget;
+shutdown retries retained endpoints and reports only unresolved cleanup failures.
+Historical failure diagnostics remain bounded and do not permanently poison a later
+successful shutdown. This is outbound recovery only; it does not add a cap or idle TTL
+to the legacy SDK servlet's inbound session store.
 
 Verified against the repository-managed MCP SDK `0.17.0` streamable HTTP transport:
 unknown `MCP-Session-Id` values produce HTTP 404 without a protocol-defined global

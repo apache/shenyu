@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -53,7 +52,7 @@ public final class RemoteCatalogLifecycle {
 
     private final List<String> cleanupFailures = new ArrayList<>();
 
-    private final Set<RemoteMcpEndpoint> cleanupQuarantine = Collections.newSetFromMap(new WeakHashMap<>());
+    private final Set<RemoteMcpEndpoint> cleanupQuarantine = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private final int maxGenerations;
 
@@ -190,7 +189,7 @@ public final class RemoteCatalogLifecycle {
             if (!stillCurrent.getAsBoolean()) {
                 return null;
             }
-            if (closed || Objects.nonNull(updatingGeneration) || generations.size() >= maxGenerations) {
+            if (closed || Objects.nonNull(updatingGeneration) || generations.size() >= maxGenerations || cleanupQuarantine.size() >= 16) {
                 throw new CatalogUnavailableException();
             }
             Generation candidate = new Generation(++sequence);
@@ -232,6 +231,11 @@ public final class RemoteCatalogLifecycle {
                         }
                         candidate.clients.add(client);
                         owners.put(client, candidate);
+                        client.recoveryGuard(() -> {
+                            synchronized (lock) {
+                                return !closed && !candidate.retired && generations.contains(candidate);
+                            }
+                        });
                     }
                     return client
                         .initialize()
@@ -360,6 +364,7 @@ public final class RemoteCatalogLifecycle {
                                 client ->
                                     Mono.defer(client::closeGracefully)
                                         .timeout(Duration.ofSeconds(2))
+                                        .retry(1)
                                         .onErrorResume(error -> {
                                             synchronized (lock) {
                                                 generation.cleanupFailed = true;
@@ -420,9 +425,10 @@ public final class RemoteCatalogLifecycle {
      */
     public Diagnostics diagnosticsState() {
         synchronized (lock) {
-            return new Diagnostics(closed, Objects.nonNull(updatingGeneration), generations.size(), owners.size(),
+            return new Diagnostics(closed, Objects.nonNull(updatingGeneration), generations.size(), owners.size() + cleanupQuarantine.size(),
                     generations.stream().mapToInt(g -> g.references).sum(),
-                    generations.stream().flatMap(g -> g.clients.stream()).mapToInt(RemoteMcpEndpoint::pending).sum(),
+                    generations.stream().flatMap(g -> g.clients.stream()).mapToInt(RemoteMcpEndpoint::pending).sum()
+                            + cleanupQuarantine.stream().mapToInt(RemoteMcpEndpoint::pending).sum(),
                     Objects.isNull(current) ? 0L : current.version, cleanupFailures);
         }
     }
@@ -473,10 +479,11 @@ public final class RemoteCatalogLifecycle {
                 signalDrain();
             }
             return closeIdle()
+                .then(Mono.defer(this::retryQuarantined))
                 .then(
                     Mono.defer(() -> {
                         synchronized (lock) {
-                            return cleanupFailures.isEmpty()
+                            return cleanupQuarantine.isEmpty()
                                     ? drained.asMono()
                                     : Mono.error(new IllegalStateException("Client cleanup failed"));
                         }
@@ -484,6 +491,19 @@ public final class RemoteCatalogLifecycle {
                 )
                 .timeout(Duration.ofSeconds(6));
         });
+    }
+
+    private Mono<Void> retryQuarantined() {
+        List<RemoteMcpEndpoint> clients;
+        synchronized (lock) {
+            clients = List.copyOf(cleanupQuarantine);
+        }
+        return Flux.fromIterable(clients).flatMap(client -> Mono.defer(client::closeGracefully)
+                .timeout(Duration.ofSeconds(2)).doOnSuccess(ignored -> {
+                    synchronized (lock) {
+                        cleanupQuarantine.remove(client);
+                    }
+                }).onErrorComplete(), 8).then();
     }
 
     private void signalDrain() {

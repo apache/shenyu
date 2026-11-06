@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.apache.shenyu.common.tracing.AgentTraceContext;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 import reactor.core.publisher.Sinks;
@@ -73,6 +74,8 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private static final Duration DEFAULT_SESSION_IDLE_TTL = Duration.ofMinutes(5);
 
+    private static final int MAX_CLEANUP_ATTEMPTS = 2;
+
     private final HttpClient http;
 
     private final URI endpoint;
@@ -113,9 +116,15 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private Mono<Void> abandonedCleanup;
 
-    // Client shutdown is owned/cached; repeat subscribers see the same cleanup failure, not false success.
+    private int cleanupAttempts;
 
-    private final Mono<Void> shutdown = Mono.defer(this::terminate).cache();
+    private final AtomicInteger exhaustedCleanups = new AtomicInteger();
+
+    private volatile java.util.function.BooleanSupplier recoveryAllowed = () -> true;
+
+    // Concurrent shutdown subscribers share an attempt; a failed cleanup remains retryable.
+
+    private final AtomicReference<Mono<Void>> shutdown = new AtomicReference<>();
 
     /**
      * Request Scoped Mcp Client.
@@ -150,8 +159,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     private Mono<McpSchema.InitializeResult> createHandshake() {
-        return request("initialize", Map.of("protocolVersion", VERSION, "capabilities", Map.of(),
+        return Mono.defer(() -> recoveryAllowed.getAsBoolean() ? request("initialize", Map.of("protocolVersion", VERSION, "capabilities", Map.of(),
                 "clientInfo", Map.of("name", "shenyu-agent-gateway", "version", "2.7.2-SNAPSHOT")), false)
+                : Mono.error(new AgentMcpRemoteCatalog.CatalogUnavailableException()))
             .map(result -> {
                 if (!VERSION.equals(result.path("protocolVersion").asText())) {
                     throw new IllegalArgumentException("Unsupported negotiated version");
@@ -236,6 +246,18 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     private Mono<Void> ready() {
+        return Mono.deferContextual(context -> {
+            McpTransportContext transport = context.getOrDefault(McpTransportContext.KEY, McpTransportContext.EMPTY);
+            Instant deadline = transport.get("deadline") instanceof Instant value ? value : Instant.now().plusSeconds(4);
+            Duration remaining = Duration.between(Instant.now(), deadline);
+            if (remaining.isNegative() || remaining.isZero()) {
+                return Mono.error(new TimeoutException("Deadline expired before session recovery"));
+            }
+            return prepareSession().timeout(remaining);
+        });
+    }
+
+    private Mono<Void> prepareSession() {
         return Mono.defer(() -> {
             if (closed) {
                 return Mono.error(new IllegalStateException("Client closed"));
@@ -266,6 +288,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                     synchronized (cleanupLock) {
                         abandonedSession = current;
                         abandonedCleanup = null;
+                        cleanupAttempts = 0;
                     }
                     return reclaimAbandonedSession(current).onErrorResume(ignored -> Mono.empty())
                             .then(Mono.defer(() -> Objects.isNull(session) ? initialize().then() : Mono.empty()));
@@ -319,6 +342,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             }
             var owned = new AtomicReference<CompletableFuture<HttpResponse<byte[]>>>();
             return Mono.defer(() -> {
+                if (("initialize".equals(method) || "notifications/initialized".equals(method)) && !recoveryAllowed.getAsBoolean()) {
+                    return Mono.error(new AgentMcpRemoteCatalog.CatalogUnavailableException());
+                }
                 CompletableFuture<HttpResponse<byte[]>> future = http.sendAsync(outbound, ignored -> new BoundedBody(LIMIT));
                 owned.set(future);
                 inFlight.add(future);
@@ -433,12 +459,19 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 }
                 cleanup = abandonedCleanup;
                 if (Objects.isNull(cleanup)) {
+                    if (cleanupAttempts >= MAX_CLEANUP_ATTEMPTS) {
+                        return Mono.empty();
+                    }
+                    cleanupAttempts++;
                     AtomicReference<Mono<Void>> created = new AtomicReference<>();
                     cleanup = discardSession(expired)
                         .doOnError(ignored -> {
                             synchronized (cleanupLock) {
                                 if (Objects.equals(abandonedSession, expired) && abandonedCleanup == created.get()) {
                                     abandonedCleanup = null;
+                                    if (cleanupAttempts == MAX_CLEANUP_ATTEMPTS) {
+                                        exhaustedCleanups.incrementAndGet();
+                                    }
                                 }
                             }
                         })
@@ -496,7 +529,31 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     @Override
     public Mono<Void> closeGracefully() {
-        return shutdown;
+        return Mono.defer(() -> {
+            synchronized (sessionLock) {
+                Mono<Void> current = shutdown.get();
+                if (Objects.isNull(current)) {
+                    AtomicReference<Mono<Void>> created = new AtomicReference<>();
+                    current = Mono.defer(this::terminate).doOnError(ignored -> shutdown.compareAndSet(created.get(), null)).cache();
+                    created.set(current);
+                    shutdown.set(current);
+                }
+                return current;
+            }
+        });
+    }
+
+    @Override
+    public void recoveryGuard(final java.util.function.BooleanSupplier valid) {
+        recoveryAllowed = Objects.requireNonNull(valid, "recovery validity");
+    }
+
+    /**
+     * Count stale sessions that exhausted the per-operation cleanup budget.
+     * @return bounded cleanup exhaustion count
+     */
+    public int exhaustedCleanupCount() {
+        return exhaustedCleanups.get();
     }
 
     String currentSessionForTest() {
@@ -519,6 +576,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         return Objects.nonNull(session);
     }
 
+    boolean sessionIdleForTest() {
+        return Objects.nonNull(lastUse) && Duration.between(lastUse, Instant.now()).compareTo(sessionIdleTtl) >= 0;
+    }
+
     private Mono<Void> terminate() {
         closed = true;
         synchronized (sessionLock) {
@@ -529,26 +590,21 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             future.cancel(true);
         }
         String currentSession = session;
-        if (Objects.isNull(currentSession)) {
-            return Mono.empty();
+        String abandoned;
+        synchronized (cleanupLock) {
+            abandoned = abandonedSession;
         }
-        HttpRequest request = HttpRequest.newBuilder(endpoint)
-            .timeout(Duration.ofSeconds(2))
-            .header("MCP-Session-Id", currentSession)
-            .header("Authorization", authorization)
-            .header("MCP-Protocol-Version", VERSION)
-            .DELETE()
-            // Bound completion of the body as well as connection/response headers. Owned future is cancelled on timeout.
-            .build();
-        return Mono.defer(() -> {
-            var future = http.sendAsync(request, HttpResponse.BodyHandlers.discarding());
-            return requestSignal(future).doFinally(ignored -> future.cancel(true));
-        })
-            .timeout(Duration.ofSeconds(2))
-            .flatMap(response ->
-                response.statusCode() == 404 || response.statusCode() >= 200 && response.statusCode() < 300
-                    ? Mono.<Void>empty()
-                    : Mono.error(new IllegalStateException("Session cleanup HTTP " + response.statusCode())));
+        Mono<Void> activeCleanup = Objects.isNull(currentSession) ? Mono.empty() : discardSession(currentSession).doOnSuccess(ignored -> session = null);
+        Mono<Void> staleCleanup = Objects.isNull(abandoned) || Objects.equals(currentSession, abandoned) ? Mono.empty()
+                : discardSession(abandoned).doOnSuccess(ignored -> {
+                    synchronized (cleanupLock) {
+                        if (Objects.equals(abandonedSession, abandoned)) {
+                            abandonedSession = null;
+                            abandonedCleanup = null;
+                        }
+                    }
+                });
+        return Mono.whenDelayError(activeCleanup, staleCleanup);
     }
 
     static <T> Mono<T> requestSignal(final CompletableFuture<T> request) {

@@ -24,6 +24,12 @@ package org.apache.shenyu.plugin.agent.gateway.remote;
  */
 public final class RemoteSessionExpiredException extends IllegalStateException {
 
+    public static final int HTTP_STATUS = 502;
+
+    public static final int RPC_CODE = -32026;
+
+    public static final String MESSAGE = "Remote tool outcome is unknown after session expiry";
+
     private static final long serialVersionUID = 1L;
 
     RemoteSessionExpiredException() {

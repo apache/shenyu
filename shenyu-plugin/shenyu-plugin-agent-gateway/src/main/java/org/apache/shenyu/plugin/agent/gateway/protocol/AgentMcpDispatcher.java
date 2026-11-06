@@ -134,10 +134,11 @@ public final class AgentMcpDispatcher {
                 return error;
             }
             if (hasRemoteSessionExpired(error)) {
-                AgentMcpProtocolException expired = failure(request, 502, -32026, "Remote tool outcome is unknown after session expiry");
-                if (error instanceof RemoteSessionExpiredException) {
-                    expired.initCause(error);
-                }
+                AgentMcpProtocolException expired = "tools/call".equals(request.getMethod())
+                        ? failure(request, RemoteSessionExpiredException.HTTP_STATUS, RemoteSessionExpiredException.RPC_CODE, RemoteSessionExpiredException.MESSAGE)
+                        : failure(request, AgentMcpRemoteCatalog.CatalogUnavailableException.HTTP_STATUS,
+                                AgentMcpRemoteCatalog.CatalogUnavailableException.RPC_CODE, AgentMcpRemoteCatalog.CatalogUnavailableException.MESSAGE);
+                expired.initCause(error);
                 return expired;
             }
             if (error instanceof AgentMcpRemoteCatalog.CatalogUnavailableException) {
@@ -158,7 +159,7 @@ public final class AgentMcpDispatcher {
         return timeout;
     }
 
-    private boolean hasRemoteSessionExpired(final Throwable error) {
+    private static boolean hasRemoteSessionExpired(final Throwable error) {
         Throwable current = error;
         while (Objects.nonNull(current)) {
             if (current instanceof RemoteSessionExpiredException) {
