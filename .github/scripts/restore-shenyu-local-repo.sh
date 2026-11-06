@@ -19,7 +19,8 @@ set -euo pipefail
 
 artifact_dir="${1:-/tmp/shenyu-m2}"
 target_dir="${2:-${HOME}/.m2/repository}/org/apache"
-project_dir="${3:-${PWD}}"
+script_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+project_dir="${3:-${script_root}}"
 
 if [[ -f "${artifact_dir}/repository.tar.gz" ]]; then
   tar -xzf "${artifact_dir}/repository.tar.gz" -C "${artifact_dir}"

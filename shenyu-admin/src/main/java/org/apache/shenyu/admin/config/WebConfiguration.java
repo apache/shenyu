@@ -23,7 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * web handler.
@@ -61,5 +63,12 @@ public class WebConfiguration implements WebMvcConfigurer {
                         "Origin, X-Requested-With, Content-Type, Accept")
                 .allowedOrigins("*")
                 .allowedMethods("*");
+    }
+
+    @Override
+    public void configurePathMatch(final PathMatchConfigurer configurer) {
+        final PathPatternParser parser = new PathPatternParser();
+        parser.setMatchOptionalTrailingSeparator(true);
+        configurer.setPatternParser(parser);
     }
 }

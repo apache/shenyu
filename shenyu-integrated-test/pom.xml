@@ -54,7 +54,6 @@
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud.version>4.3.3</spring-cloud.version>
-        <okhttp3.version>4.9.3</okhttp3.version>
 <!--        <curator.version>4.0.1</curator.version>-->
         <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
     </properties>
@@ -71,7 +70,7 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>${okhttp3.version}</version>
+            <version>${okhttp.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->

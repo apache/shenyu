@@ -4184,63 +4184,6 @@ Apache License
    See the License for the specific language governing permissions and
    limitations under the License.
 
-=======================================================================
-
-SPRING FRAMEWORK ${version} SUBCOMPONENTS:
-
-Spring Framework ${version} includes a number of subcomponents
-with separate copyright notices and license terms. The product that
-includes this file does not necessarily use all the open source
-subcomponents referred to below. Your use of the source
-code for these subcomponents is subject to the terms and
-conditions of the following licenses.
-
-
->>> ASM 4.0 (org.ow2.asm:asm:4.0, org.ow2.asm:asm-commons:4.0):
-
-Copyright (c) 2000-2011 INRIA, France Telecom
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holders nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-THE POSSIBILITY OF SUCH DAMAGE.
-
-Copyright (c) 1999-2009, OW2 Consortium <https://www.ow2.org/>
-
-
->>> CGLIB 3.0 (cglib:cglib:3.0):
-
-Per the LICENSE file in the CGLIB JAR distribution downloaded from
-https://sourceforge.net/projects/cglib/files/cglib3/3.0/cglib-3.0.jar/download,
-CGLIB 3.0 is licensed under the Apache License, version 2.0, the text of which
-is included above.
-
-
-=======================================================================
-
 To the extent any open source subcomponents are licensed under the EPL and/or
 other similar licenses that require the source code and/or modifications to
 source code to be made available (as would be noted above), you may obtain a
