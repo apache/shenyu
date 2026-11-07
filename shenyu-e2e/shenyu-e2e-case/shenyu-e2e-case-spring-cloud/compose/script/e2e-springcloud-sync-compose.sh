@@ -23,6 +23,10 @@ source "$(dirname "$0")/../../../../../.github/scripts/select-e2e-sync.sh"
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 
+# Merge the verified external provider into the existing MySQL driver mount.
+python3 .github/scripts/external-eureka-runtime.py install \
+  "${SHENYU_EUREKA_RUNTIME:?Prepare the external Eureka runtime first}" /tmp/shenyu-e2e/mysql/driver || exit 1
+
 # init register center
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")

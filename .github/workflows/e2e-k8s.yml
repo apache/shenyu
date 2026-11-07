@@ -117,6 +117,25 @@ jobs:
         run: |
           exec bash .github/scripts/maven-with-retry.sh ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
 
+      - name: Check out the pinned external Eureka candidate
+        if: contains(needs.changes.outputs.e2e_matrix, 'e2e-springcloud-sync-compose')
+        uses: actions/checkout@v4
+        with:
+          repository: apache/shenyu-plugin-store
+          ref: be07c121085f219f46578515156e7a0bb20befdf
+          path: target/external-eureka-store
+      - name: Prepare the external Eureka runtime for Spring Cloud
+        if: contains(needs.changes.outputs.e2e_matrix, 'e2e-springcloud-sync-compose')
+        run: python3 .github/scripts/external-eureka-runtime.py prepare target/external-eureka-store target/external-eureka-runtime
+      - name: Upload the external Eureka runtime
+        if: contains(needs.changes.outputs.e2e_matrix, 'e2e-springcloud-sync-compose')
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-eureka-runtime
+          path: target/external-eureka-runtime/
+          retention-days: 1
+          if-no-files-found: error
+
       - name: Prepare selected example and E2E Maven inputs
         env:
           E2E_MATRIX: ${{ needs.changes.outputs.e2e_matrix }}
@@ -280,6 +299,13 @@ jobs:
           name: shenyu-local-maven-repository
           path: /tmp/shenyu-m2
 
+      - name: Download the external Eureka runtime
+        if: matrix.script == 'e2e-springcloud-sync-compose'
+        uses: actions/download-artifact@v4
+        with:
+          name: external-eureka-runtime
+          path: /tmp/shenyu-eureka-runtime
+
       - name: Verify the image artifacts are present
         run: |
           missing=()
@@ -327,6 +353,7 @@ jobs:
       - name: Run E2E Tests
         env:
           SHENYU_E2E_SYNC: ${{ matrix.sync }}
+          SHENYU_EUREKA_RUNTIME: /tmp/shenyu-eureka-runtime
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
