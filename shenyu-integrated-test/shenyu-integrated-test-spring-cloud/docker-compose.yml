@@ -23,6 +23,8 @@ services:
       - shenyu
     ports:
       - "9095:9095"
+    volumes:
+      - "${SHENYU_EUREKA_RUNTIME:?Prepare the external Eureka runtime first}:/opt/shenyu-admin/ext-lib:ro"
     environment:
       - SPRING_PROFILES_ACTIVE=h2
       - shenyu.sync.websocket.token=shenyu-sync-token

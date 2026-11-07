@@ -128,6 +128,44 @@ The live profile must fail if its server URL is missing/unreachable; ordinary un
 tests do not silently substitute for it. Its CI lane builds the server and core
 API artifacts from a pinned main commit, then runs the receiving provider.
 
+## Spring Cloud CI assembly
+
+The retained Spring Cloud integration and E2E fixtures use Eureka discovery in
+Admin. After removing the in-tree provider, these fixtures explicitly install the
+external candidate into Admin's `ext-lib` directory. The default Admin and
+bootstrap images remain independent of the external provider.
+
+The workflows build receiver commit
+`be07c121085f219f46578515156e7a0bb20befdf` against the current core checkout's
+installed artifacts and version. The helper runs the receiver's unit/SPI tests,
+Checkstyle and RAT, then assembles its shaded provider and remaining runtime
+dependencies. It reuses dependencies already supplied by Admin by Maven
+group/artifact/classifier, records both versions, and excludes classes already
+shaded into the provider. Before accepting this reduced classpath, a Java probe
+loads the external provider through the real ShenYu SPI and discovers an instance
+through its shaded HTTP client against a loopback Eureka response fixture.
+This probe checks packaged dependency compatibility; the subsequent Docker
+integration/E2E jobs still have to pass their real server and gateway assertions.
+
+To reproduce the preparation after installing the core Admin reactor, check out
+that exact receiver commit in a separate directory and run from the core checkout:
+
+```bash
+python3 .github/scripts/external-eureka-runtime.py prepare /path/to/store /tmp/shenyu-eureka-runtime
+export SHENYU_EUREKA_RUNTIME=/tmp/shenyu-eureka-runtime
+```
+
+Use a new output directory. `MAVEN_CONFIG` can supply local Maven settings. The
+integration compose file mounts this directory read-only. The Spring Cloud E2E
+script verifies the downloaded manifest's core/receiver commits and JAR hashes,
+then merges the candidate into the existing MySQL driver mount without removing
+the driver. A mismatched or incomplete candidate fails before containers start.
+Changing either checkout requires preparing a new candidate.
+
+This fixed source candidate makes the cutover's existing CI fixtures executable
+before publication. It is not a released compatibility matrix and does not waive
+the coordinated publication or full deployment gates below.
+
 ## Cutover gates
 
 1. Merge/review the receiving code and confirm published artifact ownership and
