@@ -17,14 +17,11 @@
 
 package org.apache.shenyu.admin.validation.validator;
 
-import com.google.gson.JsonSyntaxException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
-import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.RewriteHandleUtils;
-
-import java.util.Objects;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
+import org.apache.shenyu.common.config.contract.ConfigurationViolation;
 
 /**
  * Validates rewrite rule handles before Admin stores them.
@@ -41,22 +38,14 @@ public final class RewriteRuleHandleValidator {
      * @param handle the rule handle supplied to Admin
      */
     public static void validate(final String handle) {
-        if (StringUtils.isBlank(handle)) {
-            // an empty handle means the rule does not rewrite, which the plugin tolerates as well
-            return;
-        }
-        final RewriteHandle rewriteHandle;
-        try {
-            rewriteHandle = GsonUtils.getInstance().fromJson(handle, RewriteHandle.class);
-        } catch (JsonSyntaxException ex) {
+        ConfigurationValidation result = ConfigurationContractRegistry.shared().validate("rewrite", ConfigurationScope.RULE, "1", handle);
+        if (result.status() == ConfigurationValidation.Status.INVALID) {
+            ConfigurationViolation problem = result.violations().get(0);
+            if (problem.code() == ConfigurationViolation.Code.SEMANTIC_INVALID) {
+                throw new ShenyuAdminException("rewrite rule handle can not be applied, "
+                        + ("regex".equals(problem.path()) ? "invalid regular expression" : "invalid replacement template"));
+            }
             throw new ShenyuAdminException("rewrite rule handle must be a valid JSON object");
-        }
-        if (Objects.isNull(rewriteHandle)) {
-            throw new ShenyuAdminException("rewrite rule handle must be a valid JSON object");
-        }
-        final String problem = RewriteHandleUtils.applicabilityProblem(rewriteHandle.getRegex(), rewriteHandle.getReplace());
-        if (Objects.nonNull(problem)) {
-            throw new ShenyuAdminException("rewrite rule handle can not be applied, " + problem);
         }
     }
 }

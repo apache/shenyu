@@ -22,7 +22,9 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.common.utils.RewriteHandleUtils;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
 import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
@@ -51,7 +53,7 @@ public class RewritePluginDataHandler implements PluginDataHandler {
                 return;
             }
             final RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(handle, RewriteHandle.class);
-            if (Objects.isNull(rewriteHandle) || !canRewrite(rewriteHandle, ruleData)) {
+            if (Objects.isNull(rewriteHandle) || !canRewrite(ruleData)) {
                 removeRule(ruleData);
                 return;
             }
@@ -73,17 +75,15 @@ public class RewritePluginDataHandler implements PluginDataHandler {
      * Check whether the plugin can apply the rule handle, so that an unusable rule is
      * rejected when it is published instead of failing every matching request.
      *
-     * @param rewriteHandle the parsed rule handle
      * @param ruleData the rule that owns the handle
      * @return true when the plugin can apply the handle
      */
-    private static boolean canRewrite(final RewriteHandle rewriteHandle, final RuleData ruleData) {
-        final String problem = RewriteHandleUtils.applicabilityProblem(rewriteHandle.getRegex(), rewriteHandle.getReplace());
-        if (Objects.isNull(problem)) {
+    private static boolean canRewrite(final RuleData ruleData) {
+        ConfigurationValidation result = ConfigurationContractRegistry.shared().validate("rewrite", ConfigurationScope.RULE, "1", ruleData.getHandle());
+        if (result.status() == ConfigurationValidation.Status.VALID) {
             return true;
         }
-        LOG.error("invalid rewrite rule [{}] is ignored, regex: {}, replace: {}, reason: {}",
-                ruleData.getId(), rewriteHandle.getRegex(), rewriteHandle.getReplace(), problem);
+        LOG.error("invalid rewrite rule [{}] is ignored, reason: {}", ruleData.getId(), result.violations());
         return false;
     }
 }

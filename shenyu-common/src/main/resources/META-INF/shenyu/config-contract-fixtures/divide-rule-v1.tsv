@@ -1,0 +1,46 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# id\tsharedStatus\tadminAccepted\tgatewayAction\tsource\tpath\tcode\tdictionaryName
+missing	VALID	true	RETAIN	@missing	-	-	-
+blank	VALID	true	THROW_RETAIN	@blank	-	-	-
+empty	VALID	true	REPLACE	{}	-	-	-
+literal-null	INVALID	false	REJECT_RETAIN	null	$	INVALID_TYPE	-
+malformed	INVALID	false	REJECT_RETAIN	{	$	INVALID_JSON	-
+array-root	INVALID	false	REJECT_RETAIN	[]	$	INVALID_TYPE	-
+bad-root-field	INVALID	false	REJECT_RETAIN	{"retry":{}}	$	INVALID_JSON	-
+custom-names	VALID	true	REPLACE	{"loadBalance":"contract-custom","retryStrategy":"custom","retryBackOffSpec":"custom"}	-	-	-
+coercion	VALID	true	REPLACE	{"retry":"2","timeout":"9000","requestMaxSize":"1024"}	-	-	-
+nullable	VALID	true	REPLACE	{"retry":null,"timeout":null,"canary":null,"sticky":null}	-	-	-
+legacy-ranges	VALID	true	REPLACE	{"retry":-1,"timeout":-1,"headerMaxSize":-1,"requestMaxSize":-1}	-	-	-
+disabled-canary	VALID	true	REPLACE	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"enabled":false}}	-	-	-
+full-canary	VALID	true	REPLACE	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"enabled":true,"percentage":100}}	-	-	-
+empty-canary	INVALID	false	REJECT_RETAIN	{"canary":{}}	canary.stableLabels	INVALID_TYPE	-
+canary-range	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"percentage":101}}	canary.percentage	OUT_OF_RANGE	-
+canary-fraction	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"percentage":20.5}}	canary.percentage	INVALID_TYPE	-
+canary-string	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"percentage":"20"}}	canary.percentage	INVALID_TYPE	-
+canary-null	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"percentage":null}}	canary.percentage	INVALID_TYPE	-
+canary-boolean	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"enabled":"false"}}	canary.enabled	INVALID_TYPE	-
+canary-failover	INVALID	false	REJECT_RETAIN	{"retry":1,"retryStrategy":"failover","canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"}}}	canary	SEMANTIC_INVALID	-
+canary-missing-key	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"enabled":true,"percentage":20}}	canary.stickyKey	SEMANTIC_INVALID	-
+canary-valid-key	VALID	true	REPLACE	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"enabled":true,"percentage":20,"stickyKey":{"paramType":"header","paramName":"x-user"}}}	-	-	header
+canary-labels	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":1},"canaryLabels":{"release":"canary"}}}	canary.stableLabels	INVALID_TYPE	-
+canary-conditions-null	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"conditions":null}}	canary.conditions	INVALID_TYPE	-
+canary-fallback	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"fallbackPolicy":"INVALID"}}	canary.fallbackPolicy	SEMANTIC_INVALID	-
+sticky-defaults	VALID	true	REPLACE	{"sticky":{}}	-	-	-
+sticky-legacy-coercion	VALID	true	REPLACE	{"sticky":{"enabled":"true","maxAgeSeconds":"3600","key":{"type":"HEADER","name":"x-user"},"secrets":["fixture-key"]}}	-	-	-
+sticky-unusable-but-parseable	VALID	true	REPLACE	{"sticky":{"enabled":true,"maxAgeSeconds":-1,"secrets":[],"key":{"type":"UNKNOWN"}}}	-	-	-
+sticky-wrong-shape	INVALID	false	REJECT_RETAIN	{"sticky":[]}	$	INVALID_JSON	-
+binding-differs	VALID	true	BINDING_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"stickyKey":{"paramType":"contract-missing"}}}	canary	RUNTIME_BINDING_UNAVAILABLE	contract-missing

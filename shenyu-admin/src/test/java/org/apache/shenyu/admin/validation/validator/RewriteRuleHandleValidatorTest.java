@@ -21,6 +21,7 @@ import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,6 +31,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Tests for rewrite rule handle validation at the Admin write boundary.
  */
 public final class RewriteRuleHandleValidatorTest {
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("fixtures")
+    public void testSharedFixtures(final String name, final boolean accepted, final String source) {
+        if (accepted) {
+            assertDoesNotThrow(() -> RewriteRuleHandleValidator.validate(source));
+        } else {
+            assertThrows(ShenyuAdminException.class, () -> RewriteRuleHandleValidator.validate(source));
+        }
+    }
+
+    private static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> fixtures() throws java.io.IOException {
+        try (var input = java.util.Objects.requireNonNull(RewriteRuleHandleValidatorTest.class.getResourceAsStream(
+                "/META-INF/shenyu/config-contract-fixtures/rewrite-rule-v1.tsv"));
+             var reader = new java.io.BufferedReader(new java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8))) {
+            return reader.lines().filter(line -> !line.isBlank() && !line.startsWith("#")).map(line -> {
+                String[] fields = line.split("\\t", -1);
+                String source = "@missing".equals(fields[3]) ? null : "@blank".equals(fields[3]) ? "" : fields[3];
+                return org.junit.jupiter.params.provider.Arguments.of(fields[0], Boolean.parseBoolean(fields[1]), source);
+            }).toList().stream();
+        }
+    }
 
     @Test
     public void testApplicableHandles() {
