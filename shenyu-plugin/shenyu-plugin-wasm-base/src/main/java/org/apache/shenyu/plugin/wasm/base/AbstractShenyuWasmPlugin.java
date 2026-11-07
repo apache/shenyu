@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.wasm.api.loader.WasmLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +37,19 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Complex plugins implemented in other languages should extend this class, we still need to write Java subclasses,
  * so we can reuse the convenient/powerful control of ShenYu, such as {@link #getOrder}/{@link #skip}
  * /{@link #skipExcept}/{@link #skipExceptHttpLike}.
+ *
+ * <p>The no-argument constructor supplies a versioned UTF-8 JSON bridge for request metadata,
+ * cached plugin configuration and matched selector/rule DTOs. Guest results can continue the chain,
+ * replace headers or reject the request. See the module README for the buffer and result protocol.
+ * The Consumer constructor retains custom host adapters.
  *
  * @see org.apache.shenyu.plugin.base.AbstractShenyuPlugin
  * @see org.apache.shenyu.plugin.wasm.api.loader.WasmLoader
@@ -58,14 +66,18 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin impl
 
     protected static final String AFTER_METHOD_NAME = "after";
 
+    private static final AtomicLong ARGUMENT_IDS = new AtomicLong();
+
+    private final WasmRequestBridge bridge;
+
     private final WasmLoader wasmLoader;
 
+    /**
+     * Construct a plugin using the supported request/configuration/result bridge.
+     */
     public AbstractShenyuWasmPlugin() {
-        // Pass null initializer so WasmLoader registers built-in get_args/put_result
-        // and calls its own initWasmCallJavaFunc (no-op by default).
-        // Subclasses that need custom host functions should use
-        // AbstractShenyuWasmPlugin(Consumer<Store>) constructor.
-        this.wasmLoader = new WasmLoader(this.getClass(), null);
+        this.bridge = new WasmRequestBridge();
+        this.wasmLoader = new WasmLoader(this.getClass(), bridge::register);
     }
 
     /**
@@ -77,6 +89,7 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin impl
      * @param initializer consumer to register host functions on the Chicory Store
      */
     public AbstractShenyuWasmPlugin(final java.util.function.Consumer<Store> initializer) {
+        this.bridge = null;
         this.wasmLoader = new WasmLoader(this.getClass(), initializer);
     }
 
@@ -90,11 +103,6 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin impl
     }
 
     @Override
-    public void close() {
-        wasmLoader.close();
-    }
-
-    @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange,
                                    final ShenyuPluginChain chain,
                                    final SelectorData selector,
@@ -102,24 +110,34 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin impl
         if (wasmLoader.hasExecutionDeadline()) {
             return Mono.defer(() -> executeWasm(exchange, chain, selector, rule)).subscribeOn(Schedulers.boundedElastic());
         }
-        return executeWasm(exchange, chain, selector, rule);
+        if (Objects.isNull(bridge)) {
+            return executeWasm(exchange, chain, selector, rule);
+        }
+        return Mono.defer(() -> executeWasm(exchange, chain, selector, rule));
     }
 
     /**
-     * this is Template Method child has implements your own logic.
+     * Java continuation hook. The supported bridge calls this after applying a CONTINUE result;
+     * custom adapters call it after their guest invocation. The default continues the chain.
      *
      * @param exchange   exchange the current server exchange {@linkplain ServerWebExchange}
      * @param chain      chain the current chain  {@linkplain ServerWebExchange}
      * @param selector   selector    {@linkplain SelectorData}
      * @param rule       rule    {@linkplain RuleData}
-     * @param argumentId the argument id {@linkplain #getArgumentId}
+     * @param argumentId the completed invocation ID; guest callbacks for this ID have expired
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
-    protected abstract Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule, Long argumentId);
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule, final Long argumentId) {
+        return chain.execute(exchange);
+    }
 
     private Mono<Void> executeWasm(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                   final SelectorData selector, final RuleData rule) {
+                                  final SelectorData selector, final RuleData rule) {
         return wasmLoader.getWasmExtern(DO_EXECUTE_METHOD_NAME).map(doExecute -> {
+            if (Objects.nonNull(bridge)) {
+                return executeBridge(exchange, chain, selector, rule, doExecute);
+            }
             final Long argumentId = callWASI(exchange, chain, selector, rule, doExecute);
             return doExecute(exchange, chain, selector, rule, argumentId);
         }).orElseGet(() -> {
@@ -128,6 +146,30 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin impl
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.WASM_FUNC_NOT_FOUND);
             return WebFluxResultUtils.result(exchange, error);
         });
+    }
+
+    private Mono<Void> executeBridge(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                     final SelectorData selector, final RuleData rule, final ExportFunction execute) {
+        final Long argumentId = ARGUMENT_IDS.incrementAndGet();
+        final WasmResult result;
+        try {
+            // Requests and hooks share one bridge invocation slot across the loader's pooled memories.
+            synchronized (wasmLoader) {
+                bridge.begin(argumentId, DO_EXECUTE_METHOD_NAME, exchange,
+                        BaseDataCache.getInstance().obtainPluginData(named()), selector, rule);
+                try {
+                    execute.apply(argumentId);
+                    result = bridge.result();
+                } finally {
+                    bridge.end();
+                }
+            }
+        } catch (RuntimeException e) {
+            LOG.error("WASM request execution failed in {}", wasmLoader.getWasmName(), e);
+            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            return exchange.getResponse().setComplete();
+        }
+        return result.apply(exchange, updated -> doExecute(updated, chain, selector, rule, argumentId));
     }
 
     private Long callWASI(final ServerWebExchange exchange,
@@ -148,21 +190,56 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin impl
         return argumentId;
     }
 
-    protected abstract Long getArgumentId(ServerWebExchange exchange,
-                                          ShenyuPluginChain chain,
-                                          SelectorData selector,
-                                          RuleData rule);
+    /**
+     * Allocate an ID for custom host adapters. The supported bridge allocates its own unique IDs.
+     *
+     * @param exchange current exchange
+     * @param chain plugin chain
+     * @param selector matched selector
+     * @param rule matched rule
+     * @return invocation ID
+     */
+    protected Long getArgumentId(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                  final SelectorData selector, final RuleData rule) {
+        return ARGUMENT_IDS.incrementAndGet();
+    }
 
     @Override
     public void before(final ServerWebExchange exchange) {
         wasmLoader.getWasmExtern(BEFORE_METHOD_NAME)
-                .ifPresent(before -> callWASI(exchange, null, null, null, before));
+                .ifPresent(before -> callHook(exchange, BEFORE_METHOD_NAME, before));
     }
 
     @Override
     public void after(final ServerWebExchange exchange) {
         wasmLoader.getWasmExtern(AFTER_METHOD_NAME)
-                .ifPresent(before -> callWASI(exchange, null, null, null, before));
+                .ifPresent(after -> callHook(exchange, AFTER_METHOD_NAME, after));
+    }
+
+    private void callHook(final ServerWebExchange exchange, final String phase, final ExportFunction function) {
+        if (Objects.isNull(bridge)) {
+            callWASI(exchange, null, null, null, function);
+            return;
+        }
+        synchronized (wasmLoader) {
+            bridge.begin(ARGUMENT_IDS.incrementAndGet(), phase, exchange,
+                    BaseDataCache.getInstance().obtainPluginData(named()), null, null);
+            try {
+                function.apply(bridge.argumentId());
+            } finally {
+                bridge.end();
+            }
+        }
+    }
+
+    @Override
+    public void close() {
+        synchronized (wasmLoader) {
+            if (Objects.nonNull(bridge)) {
+                bridge.close();
+            }
+            wasmLoader.close();
+        }
     }
 
     protected static final class Argument {
