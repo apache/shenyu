@@ -234,9 +234,9 @@ public final class ShenyuClusterServiceTest {
 
         clusterService.start("127.0.0.1", 9195, "/shenyu");
         assertTrue(errorsOccurred.await(5, TimeUnit.SECONDS));
-        assertTrue(clusterService.getSelectMasterErrorCount() >= 2);
-
+        // The latch observes entry into the mock, before the exception is counted by the scheduler.
         clusterService.shutdown();
+        assertTrue(clusterService.getSelectMasterErrorCount() >= 2);
     }
 
     private ScheduledExecutorService scheduler() {
@@ -285,3 +285,4 @@ public final class ShenyuClusterServiceTest {
         }
     }
 }
+
