@@ -32,6 +32,8 @@ public class UpstreamInstance {
 
     private int port;
 
+    private String scheme = "http";
+
     private Long startupTime;
 
     /**
@@ -110,6 +112,24 @@ public class UpstreamInstance {
     }
 
     /**
+     * Get the HTTP transport scheme.
+     *
+     * @return scheme
+     */
+    public String getScheme() {
+        return scheme;
+    }
+
+    /**
+     * Set the HTTP transport scheme.
+     *
+     * @param scheme scheme without the URI delimiter
+     */
+    public void setScheme(final String scheme) {
+        this.scheme = scheme;
+    }
+
+    /**
      * getStartupTime.
      *
      * @return Long
@@ -173,11 +193,12 @@ public class UpstreamInstance {
                 && enabled == that.enabled
                 && Objects.equals(contextPath, that.contextPath)
                 && Objects.equals(ip, that.ip)
+                && Objects.equals(scheme, that.scheme)
                 && Objects.equals(startupTime, that.startupTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contextPath, ip, port, startupTime, healthy, enabled);
+        return Objects.hash(contextPath, ip, port, startupTime, healthy, enabled, scheme);
     }
 }
