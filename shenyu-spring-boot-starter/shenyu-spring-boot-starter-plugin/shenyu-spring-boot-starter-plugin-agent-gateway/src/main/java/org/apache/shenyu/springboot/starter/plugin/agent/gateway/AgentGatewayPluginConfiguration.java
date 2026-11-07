@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
@@ -74,6 +76,7 @@ public class AgentGatewayPluginConfiguration {
      * @param tracers optional tracing bridge
      * @param terminalObservers optional application-owned terminal event sink
      * @param aiObservers optional application-owned AI attempt and terminal sink
+     * @param auditors optional unified audit sink
      * @param environment deployment-controlled tracing opt-in
      * @param beanFactory application bean factory used to verify the conditional JWT resolver
      * @return the plugin
@@ -84,6 +87,7 @@ public class AgentGatewayPluginConfiguration {
                                            final ObjectProvider<AgentMcpCallTracer> tracers,
                                            final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
                                            final ObjectProvider<AiCallObserver> aiObservers,
+                                           final ObjectProvider<AgentInvocationAuditObserver> auditors,
                                            final Environment environment, final BeanFactory beanFactory) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
@@ -106,20 +110,21 @@ public class AgentGatewayPluginConfiguration {
             throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
         }
         return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources,
-                terminalObservers.getIfAvailable(), aiObservers.getIfAvailable(),
+                AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditors.getIfAvailable()),
+                AgentInvocationAuditBridge.ai(AiCallObserver.select(aiObservers.stream().toList()), auditors.getIfAvailable()),
                 environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
+    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> candidates,
                                       final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
                                       final ObjectProvider<AgentResourceProvider> resources, final AgentMcpTerminalObserver terminalObserver,
                                       final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
-        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
-        if (llmIdentityEnabled && resolvers.isEmpty()) {
+        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
+        if (llmIdentityEnabled && candidates.isEmpty()) {
             throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
         }
+        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
         return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
                 AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer, terminalObserver),
                 llmIdentityEnabled ? resolver : null, aiObserver);

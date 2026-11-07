@@ -17,12 +17,30 @@
 
 package org.apache.shenyu.common.metrics;
 
+import java.util.List;
+
 /**
  * Optional application-owned, nonblocking sink. Implementations must bound queues
  * and must not use request identities as unrestricted metric labels.
  */
 @FunctionalInterface
 public interface AiCallObserver {
+
+    /**
+     * Select one explicit composition without silently fanning out arbitrary duplicate sinks.
+     * @param candidates application observers
+     * @return selected observer, or null when observation is disabled
+     */
+    static AiCallObserver select(final List<AiCallObserver> candidates) {
+        List<AiCallObserver> composites = candidates.stream().filter(Composite.class::isInstance).toList();
+        if (composites.size() == 1) {
+            return composites.get(0);
+        }
+        if (composites.size() > 1 || candidates.size() > 1) {
+            throw new IllegalStateException("AI observation requires one sink or one explicit composite");
+        }
+        return candidates.isEmpty() ? null : candidates.get(0);
+    }
 
     /**
      * Receive the single logical request terminal snapshot.
@@ -35,5 +53,9 @@ public interface AiCallObserver {
      * @param event immutable attempt snapshot, not another logical request
      */
     default void recordAttempt(final AiAttemptEvent event) {
+    }
+
+    /** Application-declared canonical composition; implementations own delegate deduplication. */
+    interface Composite extends AiCallObserver {
     }
 }
