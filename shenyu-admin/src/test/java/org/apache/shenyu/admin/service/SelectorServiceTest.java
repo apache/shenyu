@@ -194,6 +194,27 @@ public final class SelectorServiceTest {
     }
 
     @Test
+    public void testUpdateRejectsChangingSelectorPlugin() {
+        publishEvent();
+        SelectorDTO selectorDTO = buildSelectorDTO("456");
+        selectorDTO.setPluginId("other-plugin");
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> selectorService.createOrUpdate(selectorDTO));
+        assertEquals("the plugin of an existing selector cannot be changed", exception.getMessage());
+        verify(selectorMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testUpdateRejectsMissingSelector() {
+        publishEvent();
+        SelectorDTO selectorDTO = buildSelectorDTO("456");
+        given(selectorMapper.selectById("456")).willReturn(null);
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> selectorService.createOrUpdate(selectorDTO));
+        assertEquals("the updated selector is not found", exception.getMessage());
+        verify(selectorMapper, never()).updateSelective(any());
+    }
+
+    @Test
     public void testRegistrationMemberUpdateUsesAddressGuardInsteadOfSelectorWideGuard() {
         SelectorDO selector = new SelectorDO();
         selector.setId("selector-1");
@@ -444,6 +465,7 @@ public final class SelectorServiceTest {
     private void testUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
         selectorDTO.setPluginId("789");
+        given(this.selectorMapper.selectById("456")).willReturn(buildSelectorDO());
         given(this.selectorMapper.updateSelective(any())).willReturn(1);
         assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
     }

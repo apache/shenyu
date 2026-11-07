@@ -31,12 +31,13 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,27 +47,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -85,6 +84,9 @@ public final class RuleControllerTest {
 
     @Mock
     private RuleService ruleService;
+
+    @Mock
+    private PluginDataPermissionChecker pluginDataPermissionChecker;
 
     @Mock
     private RuleMapper ruleMapper;
@@ -280,20 +282,36 @@ public final class RuleControllerTest {
     }
 
     @Test
-    public void shouldRequirePluginPermissionsForMutatingEndpoints() throws NoSuchMethodException {
-        assertPermissions(RuleController.class.getMethod("createRule", RuleDTO.class), "system:plugin:edit");
-        assertPermissions(RuleController.class.getMethod("updateRule", String.class, RuleDTO.class), "system:plugin:edit");
-        assertPermissions(RuleController.class.getMethod("batchEnabled", BatchCommonDTO.class), "system:plugin:disable");
-        assertPermissions(RuleController.class.getMethod("deleteRules", BatchNamespaceCommonDTO.class), "system:plugin:delete");
+    public void shouldCheckPermissionBeforeEveryWrite() {
+        RuleDTO ruleDTO = RuleDTO.builder().id("1").build();
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Collections.singletonList("1"));
+        BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
+        batchNamespaceCommonDTO.setIds(Collections.singletonList("1"));
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateRule(ruleDTO);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkUpdateRule("1");
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableRules(batchCommonDTO.getIds());
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkDeleteRules(batchNamespaceCommonDTO.getIds());
+
+        assertThrows(UnauthorizedException.class, () -> ruleController.createRule(ruleDTO));
+        assertThrows(UnauthorizedException.class, () -> ruleController.updateRule("1", ruleDTO));
+        assertThrows(UnauthorizedException.class, () -> ruleController.batchEnabled(batchCommonDTO));
+        assertThrows(UnauthorizedException.class, () -> ruleController.deleteRules(batchNamespaceCommonDTO));
+        verifyNoInteractions(ruleService);
     }
 
-    private void assertPermissions(final Method method, final String... expectedPermissions) {
-        RequiresPermissions permissions = AnnotationUtils.findAnnotation(method, RequiresPermissions.class);
-        if (Objects.isNull(permissions)) {
-            permissions = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequiresPermissions.class);
-        }
-        assertNotNull(permissions, method.getName() + " should declare @RequiresPermissions");
-        assertArrayEquals(expectedPermissions, permissions.value(), method.getName() + " should declare the expected permissions");
+    @Test
+    public void shouldReturnNoPermissionMessageWhenDenied() throws Exception {
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableRules(any());
+        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Collections.singletonList("1"));
+        batchCommonDTO.setEnabled(false);
+        batchCommonDTO.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/rule/batchEnabled")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION)));
+        verifyNoInteractions(ruleService);
     }
-
 }

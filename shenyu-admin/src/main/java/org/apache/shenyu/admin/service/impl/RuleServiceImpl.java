@@ -211,7 +211,8 @@ public class RuleServiceImpl implements RuleService {
         validateRuleHandle(ruleDTO);
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
-        validateCanaryConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
+        validateRulePluginUnchanged(before, ruleDTO.getSelectorId());
+        validateCanaryConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
 
@@ -267,6 +268,23 @@ public class RuleServiceImpl implements RuleService {
             }
         } catch (IllegalArgumentException ex) {
             throw new ShenyuAdminException(ex.getMessage(), ex);
+        }
+    }
+
+    private void validateRulePluginUnchanged(final RuleDO before, final String targetSelectorId) {
+        if (Objects.equals(before.getSelectorId(), targetSelectorId)) {
+            return;
+        }
+        final SelectorDO currentSelector = selectorMapper.selectById(before.getSelectorId());
+        if (Objects.isNull(currentSelector)) {
+            throw new ShenyuAdminException("rule selector is not found");
+        }
+        final SelectorDO targetSelector = selectorMapper.selectById(targetSelectorId);
+        if (Objects.isNull(targetSelector)) {
+            throw new ShenyuAdminException("the target selector of the rule is not found");
+        }
+        if (!Objects.equals(currentSelector.getPluginId(), targetSelector.getPluginId())) {
+            throw new ShenyuAdminException("a rule cannot be moved to a selector of another plugin");
         }
     }
 
