@@ -20,6 +20,9 @@ package org.apache.shenyu.plugin.httpclient.config;
 import io.netty.handler.ssl.SslProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 import org.springframework.util.ResourceUtils;
 import reactor.netty.ReactorNetty;
 import reactor.netty.resources.ConnectionProvider;
@@ -39,17 +42,42 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
  */
-public class HttpClientProperties {
+public class HttpClientProperties implements InitializingBean, EnvironmentAware {
 
     /**
-     * the http client strategy.
+     * The netty http client strategy.
+     */
+    public static final String NETTY_STRATEGY = "netty";
+
+    /**
+     * The web client http client strategy.
+     */
+    public static final String WEB_CLIENT_STRATEGY = "webClient";
+
+    /**
+     * The http client strategy property name.
+     */
+    public static final String STRATEGY_PROPERTY = "shenyu.httpclient.strategy";
+
+    /**
+     * The http client strategy.
+     * Legal values are netty and webClient, matched case-insensitively the same way the plugin
+     * selection conditions match. When the property is absent the netty strategy is used. Any other
+     * value is rejected at startup so that a mistyped value cannot silently remove the gateway's
+     * http forwarding capability.
      */
     private String strategy;
+
+    /**
+     * The environment, used to tell an absent strategy apart from a configured but empty one.
+     */
+    private Environment environment;
 
     /**
      * The connection timeout in millis, the default is 45s.
@@ -140,6 +168,49 @@ public class HttpClientProperties {
      */
     public void setStrategy(final String strategy) {
         this.strategy = strategy;
+    }
+
+    /**
+     * Validate the bound http client strategy.
+     * The accepted values are the ones the plugin selection conditions match, so a value that would
+     * leave the gateway without an http client plugin is rejected instead of being ignored.
+     *
+     * @throws IllegalStateException if the configured strategy is not a supported value
+     */
+    public void validateStrategy() {
+        String value = this.strategy;
+        if (Objects.isNull(value)) {
+            if (Objects.isNull(this.environment) || !this.environment.containsProperty(STRATEGY_PROPERTY)) {
+                return;
+            }
+            throw new IllegalStateException(String.format(
+                    "Invalid empty value for property '%s', supported values are '%s' and '%s'",
+                    STRATEGY_PROPERTY, NETTY_STRATEGY, WEB_CLIENT_STRATEGY));
+        }
+        if (NETTY_STRATEGY.equalsIgnoreCase(value) || WEB_CLIENT_STRATEGY.equalsIgnoreCase(value)) {
+            return;
+        }
+        throw new IllegalStateException(String.format(
+                "Invalid value '%s' for property '%s', supported values are '%s' and '%s'",
+                value, STRATEGY_PROPERTY, NETTY_STRATEGY, WEB_CLIENT_STRATEGY));
+    }
+
+    /**
+     * Validate the strategy once the properties are bound.
+     */
+    @Override
+    public void afterPropertiesSet() {
+        validateStrategy();
+    }
+
+    /**
+     * Set the environment used to detect a configured but empty strategy.
+     *
+     * @param environment the environment
+     */
+    @Override
+    public void setEnvironment(final Environment environment) {
+        this.environment = environment;
     }
 
     /**
