@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.k8s;
 
+import com.google.gson.JsonParser;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -35,6 +36,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DubboUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -45,6 +47,8 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
@@ -52,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -163,6 +168,29 @@ public final class DubboReconcilerTest {
     public void testReconcile() {
         Result result = ingressReconciler.reconcile(new Request(NAMESPACE, INGRESS_NAME));
         Assertions.assertEquals(new Result(false), result);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
+        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
+        verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"zookeeper, zookeeper", "zookeeper, zoo", "zk, zk"})
+    public void testReconcilePreservesZookeeperScheme(final String scheme, final String serviceName) {
+        V1Ingress ingress = ingressInformer.getIndexer().getByKey(NAMESPACE + "/" + INGRESS_NAME);
+        ingress.getMetadata().getAnnotations().put("shenyu.apache.org/zookeeper-register-address", scheme + "://" + serviceName + ":2181");
+        Indexer<V1Endpoints> indexer = endpointsInformer.getIndexer();
+        V1Endpoints endpoints = new V1EndpointsBuilder().withNewMetadata().withName(serviceName).withNamespace(NAMESPACE).endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("192.0.2.10")).build())
+                .build();
+        when(indexer.getByKey(NAMESPACE + "/" + serviceName)).thenReturn(endpoints);
+
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(new Request(NAMESPACE, INGRESS_NAME)));
+
+        ArgumentCaptor<PluginData> captor = ArgumentCaptor.forClass(PluginData.class);
+        verify(shenyuCacheRepository, atLeastOnce()).saveOrUpdatePluginData(captor.capture());
+        PluginData dubboPluginData = captor.getAllValues().stream().filter(data -> "dubbo".equals(data.getName())).findFirst().orElseThrow();
+        Assertions.assertEquals(scheme + "://192.0.2.10:2181", JsonParser.parseString(dubboPluginData.getConfig()).getAsJsonObject().get("register").getAsString());
+        verify(indexer).getByKey(NAMESPACE + "/" + serviceName);
         verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
         verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
         verify(shenyuCacheRepository).saveOrUpdateMetaData(any());
