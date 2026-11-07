@@ -29,6 +29,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelationCache;
 import org.apache.shenyu.k8s.reconciler.GatewayReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
@@ -54,6 +55,7 @@ public final class GatewayReconcilerTest {
     @BeforeEach
     public void setUp() {
         GatewayRouteCache.getInstance().clear();
+        K8sResourceCorrelationCache.getInstance().clear();
     }
 
     /** Test ShenYu Gateway creation. */
@@ -106,6 +108,8 @@ public final class GatewayReconcilerTest {
         GatewayRouteCache cache = GatewayRouteCache.getInstance();
         cache.bindRouteToGateway("mockedNamespace", "shenyu-gateway", Set.of("http"), "mockedNamespace", "test-route");
         cache.putRouteSelectors("mockedNamespace", "test-route", "divide", List.of("sel-1"));
+        K8sResourceCorrelationCache.getInstance().recordAccepted("HTTPRoute", "mockedNamespace", "test-route",
+                "uid-1", 1L, "v1", Set.of("mockedNamespace/shenyu-gateway"), List.of("sel-1"), List.of());
 
         ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
 
@@ -119,6 +123,8 @@ public final class GatewayReconcilerTest {
         Result result = gatewayReconciler.reconcile(new Request("mockedNamespace", "shenyu-gateway"));
         Assertions.assertEquals(new Result(false), result);
         verify(shenyuCacheRepository).deleteSelectorWithRules("divide", "sel-1");
+        verify(httpRouteWorkQueue).add(new Request("mockedNamespace", "test-route"));
+        Assertions.assertNull(K8sResourceCorrelationCache.getInstance().getCorrelation("HTTPRoute", "mockedNamespace", "test-route"));
         // deletion re-queues every class: the one losing its last Gateway must drop its finalizer
         verify(gatewayClassWorkQueue).add(new Request("", "shenyu"));
         verify(gatewayClassWorkQueue).add(new Request("", "other-class"));
