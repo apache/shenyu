@@ -18,8 +18,16 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
+import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
+import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaConfig;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaGovernor;
+import org.apache.shenyu.plugin.agent.gateway.governance.RedisAgentMcpQuotaStore;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
@@ -27,6 +35,7 @@ import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHand
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
@@ -43,6 +52,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver;
@@ -61,6 +71,7 @@ import reactor.core.publisher.Mono;
  */
 @Configuration
 @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.enabled", havingValue = "true", matchIfMissing = false)
+@EnableConfigurationProperties(AgentMcpQuotaProperties.class)
 public class AgentGatewayPluginConfiguration {
 
     private static final String JWT_SECURITY_RESOLVER_BEAN_NAME = "agentGatewayJwtSecurityResolver";
@@ -74,17 +85,23 @@ public class AgentGatewayPluginConfiguration {
      * @param tracers optional tracing bridge
      * @param terminalObservers optional application-owned terminal event sink
      * @param aiObservers optional application-owned AI attempt and terminal sink
+     * @param auditors optional unified audit sink
+     * @param admissions optional deployment-owned resource admission controller
      * @param environment deployment-controlled tracing opt-in
      * @param beanFactory application bean factory used to verify the conditional JWT resolver
+     * @param quota optional quota governor supplied by the opt-in configuration below
      * @return the plugin
      */
     @Bean
     public ShenyuPlugin agentGatewayPlugin(final ObjectProvider<AgentToolProvider> providers, final ObjectProvider<AgentMcpSecurityResolver> resolvers,
                                            final ObjectProvider<AgentMcpRemoteCatalog> catalogs, final ObjectProvider<AgentResourceProvider> resources,
                                            final ObjectProvider<AgentMcpCallTracer> tracers,
+                                           final ObjectProvider<AgentMcpResourceAdmission.ResourceAdmissionController> admissions,
                                            final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
                                            final ObjectProvider<AiCallObserver> aiObservers,
-                                           final Environment environment, final BeanFactory beanFactory) {
+                                           final ObjectProvider<AgentInvocationAuditObserver> auditors,
+                                           final Environment environment, final BeanFactory beanFactory,
+                                           final ObjectProvider<AgentMcpQuotaGovernor> quota) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
             throw new IllegalStateException("Enabled MCP tracing requires an application tracing bridge");
@@ -105,36 +122,101 @@ public class AgentGatewayPluginConfiguration {
                 && !beanFactory.containsBean(JWT_SECURITY_RESOLVER_BEAN_NAME)) {
             throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
         }
-        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources,
-                terminalObservers.getIfAvailable(), aiObservers.getIfAvailable(),
-                environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
+        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources, admissions.getIfAvailable(),
+                AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditors.getIfAvailable()),
+                AgentInvocationAuditBridge.ai(aiObservers.getIfAvailable(), auditors.getIfAvailable()),
+                environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false),
+                quota.getIfAvailable());
     }
 
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
+    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> candidates,
                                       final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
-                                      final ObjectProvider<AgentResourceProvider> resources, final AgentMcpTerminalObserver terminalObserver,
-                                      final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
+                                      final ObjectProvider<AgentResourceProvider> resources,
+                                      final AgentMcpResourceAdmission.ResourceAdmissionController admission,
+                                      final AgentMcpTerminalObserver terminalObserver, final AiCallObserver aiObserver,
+                                      final boolean llmIdentityEnabled, final AgentMcpQuotaGovernor quotaGovernor) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
-        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
-        if (llmIdentityEnabled && resolvers.isEmpty()) {
+        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
+        if (llmIdentityEnabled && candidates.isEmpty()) {
             throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
         }
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
-                AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer, terminalObserver),
+        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
+        AgentMcpResourceAdmission effectiveAdmission = java.util.Objects.requireNonNullElse(admission,
+                java.util.Objects.isNull(catalog) ? AgentMcpResourceAdmission.NOOP : catalog.admission());
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
+                AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry,
+                effectiveAdmission, quotaGovernor);
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(dispatcher, resolver, tracer, terminalObserver),
                 llmIdentityEnabled ? resolver : null, aiObserver);
+    }
+
+    /**
+     * Opt-in distributed MCP admission. The application remains the sole owner of Redis
+     * connectivity and metrics/audit observers.
+     *
+     * @param properties deployment-owned immutable policy snapshot
+     * @param redis application-provided reactive Redis template
+     * @return quota governor attached only to actual tools/call execution
+     */
+    @Bean
+    @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.mcp-quota.enabled", havingValue = "true")
+    AgentMcpQuotaGovernor agentMcpQuotaGovernor(final AgentMcpQuotaProperties properties,
+                                                final ObjectProvider<ReactiveRedisTemplate<String, String>> redis,
+                                                final ObjectProvider<AgentInvocationAuditObserver> auditors) {
+        ReactiveRedisTemplate<String, String> template = redis.getIfAvailable();
+        if (java.util.Objects.isNull(template)) {
+            throw new IllegalStateException("Enabled MCP quotas require an application-provided ReactiveRedisTemplate");
+        }
+        AgentMcpQuotaConfig config = properties.toConfig();
+        return new AgentMcpQuotaGovernor(config, new RedisAgentMcpQuotaStore(template),
+                AgentRuntimeMetrics.NOOP, properties.trustedPolicyVersion(), auditors.getIfAvailable());
     }
 
     /**
      * Create the agent gateway plugin data handler.
      *
      * @param catalogs optional data-sync managed remote catalog
+     * @param admissions application-owned admission update service
      * @return the data handler
      */
     @Bean
-    public PluginDataHandler agentGatewayPluginDataHandler(final ObjectProvider<ManagedRemoteMcpCatalog> catalogs) {
+    public PluginDataHandler agentGatewayPluginDataHandler(final ObjectProvider<ManagedRemoteMcpCatalog> catalogs,
+                                                           final ObjectProvider<AgentGatewayAdmissionControllerService> admissions) {
+        AgentGatewayAdmissionControllerService admission = admissions.getIfAvailable();
         ManagedRemoteMcpCatalog catalog = catalogs.getIfAvailable();
-        return new AgentGatewayPluginDataHandler(java.util.Objects.isNull(catalog) ? ignored -> { } : catalog::accept);
+        return new AgentGatewayPluginDataHandler(plugin -> {
+            if (java.util.Objects.nonNull(catalog)) {
+                catalog.accept(plugin);
+            }
+            if (java.util.Objects.nonNull(admission)) {
+                String config = plugin.getConfig();
+                admission.update(java.util.Objects.isNull(config) || config.isBlank() ? "{}" : config);
+            }
+        });
+    }
+
+    /**
+     * Own local and global resource limits independently of optional remote discovery.
+     * @param environment deployment-controlled initial admission configuration
+     * @return closeable admission controller
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean(AgentMcpResourceAdmission.ResourceAdmissionController.class)
+    public AgentMcpResourceAdmission.ResourceAdmissionController agentGatewayResourceAdmission(final Environment environment) {
+        AgentGatewayAdmissionConfig initial = AgentGatewayAggregationConfig.parsePluginConfig(
+                environment.getProperty("shenyu.plugins.agent.gateway.admission.config", "{}")).admission();
+        return AgentMcpResourceAdmission.create(initial);
+    }
+
+    /**
+     * Publish trusted admission updates to the independently owned controller.
+     * @param controller the sole active resource controller
+     * @return application-wide controller service
+     */
+    @Bean
+    public AgentGatewayAdmissionControllerService agentGatewayAdmissionControllerService(
+            final AgentMcpResourceAdmission.ResourceAdmissionController controller) {
+        return new AgentGatewayAdmissionControllerService(controller);
     }
 
     /**
@@ -142,18 +224,21 @@ public class AgentGatewayPluginConfiguration {
      * @param environment deployment-controlled allowlist, never Admin-controlled
      * @param tools startup-local providers
      * @param credentials optional gateway credential source
+     * @param admission deployment-owned resource admission controller
      * @return owned managed catalog
      */
     @Bean(destroyMethod = "close")
     @ConditionalOnMissingBean(AgentMcpRemoteCatalog.class)
     @ConditionalOnProperty(value = "shenyu.plugins.agent.gateway.aggregation.enabled", havingValue = "true")
     public ManagedRemoteMcpCatalog agentGatewayRemoteCatalog(final Environment environment, final ObjectProvider<AgentToolProvider> tools,
-                                                            final ObjectProvider<RemoteServiceCredentialResolver> credentials) {
+                                                            final ObjectProvider<RemoteServiceCredentialResolver> credentials,
+                                                            final AgentMcpResourceAdmission.ResourceAdmissionController admission) {
         String endpoints = environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.allowed-endpoints");
         Set<URI> allowed = Arrays.stream(endpoints.split(",")).map(String::trim).map(URI::create).collect(Collectors.toUnmodifiableSet());
         RemoteServiceCredentialResolver resolver = credentials.getIfAvailable(() -> new FileRemoteServiceCredentialResolver(
                 Path.of(environment.getRequiredProperty("shenyu.plugins.agent.gateway.aggregation.credentials-directory"))));
-        return new ManagedRemoteMcpCatalog(allowed, tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver,
+        return new ManagedRemoteMcpCatalog(allowed,
+                tools.orderedStream().map(AgentToolProvider::getName).collect(Collectors.toUnmodifiableSet()), resolver, admission,
                 environment.getProperty("shenyu.plugins.agent.gateway.aggregation.resources-enabled", Boolean.class, false));
     }
 

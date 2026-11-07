@@ -17,8 +17,10 @@
 
 package org.apache.shenyu.plugin.metrics.reporter;
 
-import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.common.governance.AgentGovernanceDecision;
+import org.apache.shenyu.common.governance.AgentGovernanceContractLabels;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
 
@@ -81,6 +83,16 @@ final class AgentRuntimeMetricsReporter implements AgentRuntimeMetrics {
     public synchronized void authenticationRejected(final AuthenticationSource source, final AuthenticationReason reason) {
         if (active) {
             register.counterIncrement(LabelNames.AUTHENTICATION_REJECTIONS_TOTAL, new String[]{label(source), label(reason)}, 1);
+        }
+    }
+
+    @Override
+    public synchronized void governanceDecision(final AgentGovernanceDecision decision) {
+        if (active) {
+            AgentGovernanceContractLabels labels = AgentGovernanceContractLabels.from(decision);
+            String[] values = {labels.getConsumer().toLowerCase(Locale.ROOT), labels.getMode().toLowerCase(Locale.ROOT),
+                    labels.getResult().toLowerCase(Locale.ROOT), labels.getReason().toLowerCase(Locale.ROOT)};
+            register.counterIncrement(LabelNames.AGENT_GOVERNANCE_DECISIONS_TOTAL, values, 1);
         }
     }
 
