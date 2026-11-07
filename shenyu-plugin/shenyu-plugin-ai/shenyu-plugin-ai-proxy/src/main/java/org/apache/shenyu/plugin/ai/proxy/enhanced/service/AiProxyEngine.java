@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
+import org.apache.shenyu.common.metrics.AiAttemptRoute;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
@@ -282,12 +283,13 @@ public final class AiProxyEngine {
                     ? AiAttemptEvent.Kind.FALLBACK : currentAttempt == 0
                     ? AiAttemptEvent.Kind.PRIMARY : AiAttemptEvent.Kind.RETRY;
             AiRequestObservation.Attempt observedAttempt = execution.observation()
-                    .startAttempt(target, kind, prepared.provider(), prepared.clientProtocol(), prepared.stream());
+                    .startAttempt(target, kind, new AiAttemptRoute(prepared.provider(), prepared.clientProtocol(), prepared.targetProtocol(),
+                            observedModel(prepared.requestedModel()), observedModel(selectedModel(prepared.request()))), prepared.stream());
             return aiProxyTransport.execute(prepared.request())
                     .flatMap(response -> {
                         observedAttempt.status(response.getStatusCode());
                         AiUpstreamResponse observed = new AiUpstreamUsageTap(
-                                observedAttempt, response.getHeaders(), prepared.stream()).attach(response);
+                                observedAttempt, response.getHeaders(), prepared.stream(), prepared.targetProtocol()).attach(response);
                         return handleResponse(observed, prepared, fallback, retriesRemaining,
                                 execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe);
                     })
@@ -509,7 +511,9 @@ public final class AiProxyEngine {
             throw new AiProxyException(AiProxyException.Kind.REQUEST,
                     "Request body does not match AI protocol: " + protocol.name(), null);
         }
-        ShenyuAiRequest decoded = applyModelOverride(protocol.decodeRequest(upstreamBody, payload), protocol, config);
+        ShenyuAiRequest original = protocol.decodeRequest(upstreamBody, payload);
+        String requestedModel = original.getModel();
+        ShenyuAiRequest decoded = applyModelOverride(original, protocol, config);
         AiProxyProvider provider = aiProxyProviderFactory.getProvider(providerName(config));
         boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
         AiProtocolRoute route = aiProtocolRouteResolver.resolve(
@@ -547,10 +551,15 @@ public final class AiProxyEngine {
             return new PreparedExchange(preparedRequest.request(), responseAdapter,
                     route.clientProtocol(), route.targetProtocol(), stream,
                     AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
-                    providerDeclaredReplaySafe, provider.name());
+                    providerDeclaredReplaySafe, provider.name(), requestedModel);
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }
+    }
+
+    private String observedModel(final String model) {
+        return Objects.isNull(model) || model.isBlank() || model.length() > 256 || !model.equals(model.strip())
+                || model.chars().anyMatch(Character::isISOControl) ? null : model;
     }
 
     private String selectedModel(final AiUpstreamRequest request) {
@@ -616,7 +625,8 @@ public final class AiProxyEngine {
             boolean conservativeReplaySafe,
             ShenyuAiRequest.Operation operation,
             boolean providerDeclaredReplaySafe,
-            String provider) {
+            String provider,
+            String requestedModel) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {

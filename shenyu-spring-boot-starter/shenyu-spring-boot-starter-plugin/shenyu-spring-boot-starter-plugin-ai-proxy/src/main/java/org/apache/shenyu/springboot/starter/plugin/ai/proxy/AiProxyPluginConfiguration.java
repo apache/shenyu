@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
+
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
@@ -27,6 +30,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AnthropicMessages;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
@@ -71,17 +75,19 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyEngine        the aiProxyEngine
      * @param aiProxyPluginHandler the aiProxyPluginHandler
      * @param observers optional application terminal sink
+     * @param auditors optional unified audit sink
      * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin aiProxyPlugin(
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
-            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers) {
+            final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers,
+            final ObjectProvider<AgentInvocationAuditObserver> auditors) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler, observer(observers));
+                aiProxyPluginHandler, AgentInvocationAuditBridge.ai(observer(observers), auditors.getIfAvailable()));
     }
 
     /**
@@ -196,6 +202,26 @@ public class AiProxyPluginConfiguration {
     @Bean
     public OpenAiResponses openAiResponses() {
         return new OpenAiResponses();
+    }
+
+    /**
+     * Explicit opt-in native Anthropic protocol, selected by selector protocol configuration.
+     * @return Messages protocol
+     */
+    @Bean
+    @ConditionalOnProperty(value = "shenyu.plugins.ai.proxy.anthropic.enabled", havingValue = "true")
+    public AnthropicMessages anthropicMessages() {
+        return new AnthropicMessages();
+    }
+
+    /**
+     * Reuse the existing provider profile without introducing a second client or credential channel.
+     * @return native Anthropic provider
+     */
+    @Bean
+    @ConditionalOnProperty(value = "shenyu.plugins.ai.proxy.anthropic.enabled", havingValue = "true")
+    public AiProxyProvider anthropicProvider() {
+        return new OpenAiCompatible("anthropic", OpenAiProviderOptions.anthropicMessages());
     }
 
     /**
