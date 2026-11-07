@@ -33,9 +33,9 @@ import static org.awaitility.Awaitility.await;
 @SuppressWarnings("unchecked")
 public final class MatchDataCacheTest {
 
-    private final String selectorMapStr = "SELECTOR_DATA_MAP";
+    private final String selectorMapStr = "selectorDataMap";
 
-    private final String ruleMapStr = "RULE_DATA_MAP";
+    private final String ruleMapStr = "ruleDataMap";
 
     private final String mockPluginName1 = "MOCK_PLUGIN_NAME_1";
 
