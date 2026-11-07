@@ -66,6 +66,8 @@ import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportInputValidator;
+import org.apache.shenyu.admin.service.configs.plan.SelectorImportResolver;
 import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
@@ -566,6 +568,7 @@ public class SelectorServiceImpl implements SelectorService {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ConfigImportResult.success();
         }
+        selectorList.forEach(ConfigsImportInputValidator::requireValidSelector);
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         List<SelectorData> importedSelectors = new ArrayList<>();
@@ -620,49 +623,39 @@ public class SelectorServiceImpl implements SelectorService {
         if (CollectionUtils.isEmpty(selectorList)) {
             return ConfigImportResult.success();
         }
+        selectorList.forEach(ConfigsImportInputValidator::requireValidSelector);
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         List<SelectorData> importedSelectors = new ArrayList<>();
-        Map<String, Map<String, String>> pluginSelectorMap = selectorMapper.selectAllByNamespaceId(namespace).stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(SelectorDO::getPluginId,
-                        Collectors.toMap(SelectorDO::getSelectorName, SelectorDO::getId, (first, second) -> first)));
-
+        SelectorImportResolver resolver = SelectorImportResolver.from(selectorMapper, namespace, context.getPluginTemplateIdMapping());
+        // Keep first-seen plugin group order so import failure messages are deterministic.
         Map<String, List<SelectorDTO>> importSelectorMap = selectorList.stream()
-                .collect(Collectors.groupingBy(SelectorDTO::getPluginId));
+                .collect(Collectors.groupingBy(SelectorDTO::getPluginId, LinkedHashMap::new, Collectors.toList()));
 
-        for (Map.Entry<String, List<SelectorDTO>> selectorEntry : importSelectorMap.entrySet()) {
-            // the import selector's pluginId
-            String pluginId = context.getPluginTemplateIdMapping().get(selectorEntry.getKey());
-            List<SelectorDTO> selectorDTOList = selectorEntry.getValue();
+        for (List<SelectorDTO> selectorDTOList : importSelectorMap.values()) {
             if (CollectionUtils.isNotEmpty(selectorDTOList)) {
-
-                Map<String, String> existSelectorSet = pluginSelectorMap.computeIfAbsent(pluginId, key -> new HashMap<>());
-
                 for (SelectorDTO selectorDTO : selectorDTOList) {
-                    // filter by selectorName
+                    SelectorImportResolver.Resolution resolution = resolver.resolve(selectorDTO);
                     String selectorName = selectorDTO.getName();
-                    if (MapUtils.isNotEmpty(existSelectorSet)
-                            && existSelectorSet.containsKey(selectorName)) {
+                    if (!resolution.missingPlugin() && resolution.existing()) {
                         errorMsgBuilder
                                 .append(selectorName)
                                 .append(",");
-                        selectorIdMapping.put(selectorDTO.getId(), existSelectorSet.get(selectorName));
+                        selectorIdMapping.put(selectorDTO.getId(), resolution.existingSelectorId());
                     } else {
-                        // gen new id
                         String selectorId = UUIDUtils.getInstance().generateShortUuid();
                         final String oldSelectorId = selectorDTO.getId();
                         selectorDTO.setId(selectorId);
                         selectorDTO.setNamespaceId(namespace);
-                        selectorDTO.setPluginId(pluginId);
+                        selectorDTO.setPluginId(resolution.pluginId());
                         Optional.ofNullable(selectorDTO.getSelectorConditions())
                                         .orElse(Collections.emptyList()).forEach(c -> {
                                             c.setSelectorId(selectorId);
                                             c.setId(null);
                                         });
                         if (createForImport(selectorDTO, importedSelectors) > 0) {
-                            existSelectorSet.put(selectorName, selectorId);
+                            resolver.reserve(selectorDTO, resolution.pluginId(), selectorId);
                             selectorIdMapping.put(oldSelectorId, selectorId);
                             successCount++;
                         }

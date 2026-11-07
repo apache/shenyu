@@ -258,6 +258,16 @@ public final class RuleServiceTest {
     }
 
     @Test
+    public void testImportRejectsInvalidRuleBeforeWrite() {
+        RuleDTO invalid = new RuleDTO();
+        invalid.setName("invalid-rule");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(invalid)));
+
+        verify(ruleMapper, never()).insertSelective(any());
+    }
+
+    @Test
     public void testAgentGatewayCreateRejectsUnknownHandleFieldBeforeWrite() {
         mockAgentGatewayPlugin();
         RuleDTO ruleDTO = buildRuleDTO("");
@@ -823,6 +833,10 @@ public final class RuleServiceTest {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId("456")
                 .matchMode(0)
+                .sort(0)
+                .enabled(true)
+                .logged(false)
+                .matchRestful(false)
                 .handle("{\"test1\":\"\"}")
                 .name("456")
                 .namespaceId(SYS_DEFAULT_NAMESPACE_ID)

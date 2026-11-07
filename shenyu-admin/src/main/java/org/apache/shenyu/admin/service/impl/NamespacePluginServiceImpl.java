@@ -43,6 +43,8 @@ import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportInputValidator;
+import org.apache.shenyu.admin.service.configs.plan.NamespacePluginImportResolver;
 import org.apache.shenyu.admin.service.publish.NamespacePluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -54,10 +56,10 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -211,7 +213,10 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
             return StringUtils.EMPTY;
         }
         
-        Map<String, NamespacePluginVO> namespacePluginMap = namespacePluginList.stream().collect(Collectors.toMap(NamespacePluginVO::getPluginId, Function.identity()));
+        Map<String, NamespacePluginVO> namespacePluginMap = new LinkedHashMap<>(namespacePluginList.size());
+        for (NamespacePluginVO namespacePluginVO : namespacePluginList) {
+            namespacePluginMap.putIfAbsent(namespacePluginVO.getPluginId(), namespacePluginVO);
+        }
         
         List<NamespacePluginVO> updateList = Lists.newArrayList();
         
@@ -272,21 +277,20 @@ public class NamespacePluginServiceImpl implements NamespacePluginService {
         if (CollectionUtils.isEmpty(namespacePluginList)) {
             return ConfigImportResult.success();
         }
-        Map<String, NamespacePluginRelDO> existPluginMap = namespacePluginRelMapper.listByNamespaceId(namespace)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(NamespacePluginRelDO::getPluginId, x -> x));
+        namespacePluginList.forEach(ConfigsImportInputValidator::requireValidNamespacePlugin);
+        NamespacePluginImportResolver resolver = NamespacePluginImportResolver.from(namespacePluginRelMapper, namespace, context.getPluginTemplateIdMapping());
         StringBuilder errorMsgBuilder = new StringBuilder();
         int successCount = 0;
         for (NamespacePluginDTO namespacePluginDTO : namespacePluginList) {
-            String pluginId = context.getPluginTemplateIdMapping().get(namespacePluginDTO.getPluginId());
+            NamespacePluginImportResolver.Resolution resolution = resolver.resolve(namespacePluginDTO);
+            String pluginId = resolution.mappedPluginId();
             AgentGatewayPluginConfigValidator.validate(namespacePluginDTO.getName(), namespacePluginDTO.getConfig());
             PluginDO template = pluginMapper.selectById(pluginId);
             if (Objects.nonNull(template)) {
                 AgentGatewayPluginConfigValidator.validate(template.getName(), namespacePluginDTO.getConfig());
             }
             // check plugin base info
-            if (existPluginMap.containsKey(pluginId)) {
+            if (Objects.nonNull(resolution.existing())) {
                 errorMsgBuilder
                         .append(pluginId)
                         .append(",");

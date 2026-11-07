@@ -100,6 +100,13 @@ public interface PluginMapper extends ExistProvider {
     List<PluginDO> selectAll();
 
     /**
+     * Select all plugins without the plugin jar column.
+     *
+     * @return the plugin list
+     */
+    List<PluginDO> selectAllIdentity();
+
+    /**
      * select all not in resource.
      *
      * @return {@linkplain List}

@@ -25,7 +25,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
-import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -37,7 +36,6 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.event.rule.RuleCreatedEvent;
 import org.apache.shenyu.admin.model.event.selector.BatchSelectorDeletedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -52,19 +50,17 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportInputValidator;
+import org.apache.shenyu.admin.service.configs.plan.RuleImportResolver;
+import org.apache.shenyu.admin.service.configs.plan.RuleImportValidator;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
-import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValidator;
-import org.apache.shenyu.admin.validation.validator.RewriteRuleHandleValidator;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfigValidator;
-import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.MatchModeEnum;
-import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
@@ -248,35 +244,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     private void validateCanaryConfig(final String selectorId, final String handle) {
-        if (StringUtils.isBlank(handle)) {
-            return;
-        }
-        SelectorDO selector = selectorMapper.selectById(selectorId);
-        if (Objects.isNull(selector)) {
-            return;
-        }
-        PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
-        if (Objects.isNull(plugin) || !PluginEnum.DIVIDE.getName().equals(plugin.getName())) {
-            return;
-        }
-        try {
-            DivideRuleHandle divide = CanaryConfigValidator.parseHandle(handle);
-            if (Objects.nonNull(divide) && Objects.nonNull(divide.getCanary())) {
-                CanaryConfigValidator.validateExtensions(divide.getCanary(),
-                        name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
-            }
-        } catch (IllegalArgumentException ex) {
-            throw new ShenyuAdminException(ex.getMessage(), ex);
-        }
-    }
-
-    private void validateCanaryDictionary(final String type, final String name) {
-        boolean supported = shenyuDictMapper.findByType(type).stream()
-                .filter(dict -> Boolean.TRUE.equals(dict.getEnabled()))
-                .map(ShenyuDictDO::getDictValue).anyMatch(name::equals);
-        if (!supported) {
-            throw new IllegalArgumentException("Unsupported Canary " + type + ": " + name);
-        }
+        RuleImportValidator.validateCanaryConfig(selectorMapper, pluginMapper, shenyuDictMapper, selectorId, handle);
     }
 
     /**
@@ -360,7 +328,7 @@ public class RuleServiceImpl implements RuleService {
         if (CollectionUtils.isEmpty(ruleList)) {
             return ConfigImportResult.success();
         }
-
+        ruleList.forEach(ConfigsImportInputValidator::requireValidRule);
         ruleList.forEach(rule -> validateCanaryConfig(rule.getSelectorId(), rule.getHandle()));
         Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
                 .selectAll()
@@ -406,36 +374,24 @@ public class RuleServiceImpl implements RuleService {
         if (CollectionUtils.isEmpty(ruleList)) {
             return ConfigImportResult.success();
         }
+        ruleList.forEach(ConfigsImportInputValidator::requireValidRule);
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         ruleList.stream().filter(rule -> selectorIdMapping.containsKey(rule.getSelectorId()))
                 .forEach(rule -> validateCanaryConfig(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
-        Map<String, Set<String>> selectorRuleMap = ruleMapper
-                .selectAllByNamespaceId(namespace)
-                .stream()
-                .collect(Collectors.groupingBy(RuleDO::getSelectorId,
-                        Collectors.mapping(RuleDO::getRuleName, Collectors.toSet())));
+        RuleImportResolver resolver = RuleImportResolver.from(ruleMapper, namespace, selectorIdMapping);
 
         int successCount = 0;
         StringBuilder errorMsgBuilder = new StringBuilder();
         for (RuleDTO ruleDTO : ruleList) {
-            String selectorId = ruleDTO.getSelectorId();
             String ruleName = ruleDTO.getName();
-
-            String newSelectorId = selectorIdMapping.get(selectorId);
-            if (Objects.isNull(newSelectorId)) {
+            RuleImportResolver.Resolution resolution = resolver.resolve(ruleDTO);
+            if (resolution.missingSelector() || resolution.existing()) {
                 errorMsgBuilder
                         .append(ruleName)
                         .append(",");
                 continue;
             }
-            Set<String> existRuleNameSet = selectorRuleMap.computeIfAbsent(newSelectorId, key -> new HashSet<>());
-
-            if (existRuleNameSet.contains(ruleName)) {
-                errorMsgBuilder
-                        .append(ruleName)
-                        .append(",");
-                continue;
-            }
+            String newSelectorId = resolution.selectorId();
             validateRuleHandle(newSelectorId, ruleDTO.getHandle());
             ruleDTO.setNamespaceId(namespace);
             ruleDTO.setSelectorId(newSelectorId);
@@ -450,7 +406,7 @@ public class RuleServiceImpl implements RuleService {
                     });
             addCondition(ruleDO, ruleDTO.getRuleConditions());
             if (ruleCount > 0) {
-                existRuleNameSet.add(ruleName);
+                resolver.reserve(newSelectorId, ruleName, ruleId);
                 successCount++;
             }
         }
@@ -467,19 +423,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     private void validateRuleHandle(final String selectorId, final String handle) {
-        final SelectorDO selector = selectorMapper.selectById(selectorId);
-        if (Objects.isNull(selector)) {
-            throw new ShenyuAdminException("rule selector is not found");
-        }
-        final PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
-        if (Objects.isNull(plugin)) {
-            throw new ShenyuAdminException("rule plugin is not found");
-        }
-        if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
-            AgentGatewayRuleHandleValidator.validate(handle);
-        } else if (PluginEnum.REWRITE.getName().equals(plugin.getName())) {
-            RewriteRuleHandleValidator.validate(handle);
-        }
+        RuleImportValidator.validateRuleHandle(selectorMapper, pluginMapper, selectorId, handle);
     }
     
     @Override

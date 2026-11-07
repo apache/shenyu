@@ -56,6 +56,7 @@ import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.service.configs.ConfigsExportImportEnum;
 import org.apache.shenyu.admin.service.configs.ConfigsExportImportHandler;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportErrors;
 import org.apache.shenyu.admin.utils.ZipUtil;
 import org.apache.shenyu.admin.utils.ZipUtil.ZipItem;
 import org.apache.shenyu.common.constant.ExportImportConstants;
@@ -66,7 +67,6 @@ import org.apache.shenyu.common.utils.ListUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -376,7 +376,7 @@ public class ConfigsServiceImpl implements ConfigsService {
         try {
             unZipResult = ZipUtil.unzip(source, maxEntrySize, maxTotalSize, maxEntryCount);
         } catch (IllegalArgumentException e) {
-            return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage());
+            return ConfigsImportErrors.invalidArchive();
         }
         List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
         if (CollectionUtils.isEmpty(zipItemList)) {
@@ -429,7 +429,7 @@ public class ConfigsServiceImpl implements ConfigsService {
         try {
             unZipResult = ZipUtil.unzip(source, maxEntrySize, maxTotalSize, maxEntryCount);
         } catch (IllegalArgumentException e) {
-            return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), "Import failed: " + e.getMessage());
+            return ConfigsImportErrors.invalidArchive();
         }
         List<ZipUtil.ZipItem> zipItemList = unZipResult.getZipItemList();
         if (CollectionUtils.isEmpty(zipItemList)) {
