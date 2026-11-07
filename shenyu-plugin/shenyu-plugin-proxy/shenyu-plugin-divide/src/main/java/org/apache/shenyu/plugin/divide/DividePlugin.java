@@ -111,9 +111,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
 
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        // A re-entered exchange must not inherit a previous selector's partition.
+        // A re-entered exchange must not inherit a previous selector's partition or pool group.
         exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
         exchange.getAttributes().remove(Constants.SHENYU_CANARY_CONTEXT);
+        exchange.getAttributes().remove(Constants.HTTP_POOL_GROUP);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         DivideRuleHandle ruleHandle = buildRuleHandle(rule);
@@ -252,6 +253,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
+        if (StringUtils.isNotEmpty(ruleHandle.getPoolGroup())) {
+            exchange.getAttributes().put(Constants.HTTP_POOL_GROUP, ruleHandle.getPoolGroup());
+        }
         CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
         if (Objects.nonNull(observation)) {
             observation.setActualPartition(Objects.nonNull(observation.getFallbackReason()) ? CanaryDecision.STABLE.getName() : observation.getIntendedPartition());

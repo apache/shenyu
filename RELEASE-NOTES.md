@@ -115,6 +115,16 @@
   the previous behavior with `shenyu.httpclient.keepAlive=false`.
   For a fixed pool, set `shenyu.httpclient.pool.maxConnections` explicitly to
   size the connection limit for the deployment; the default follows Reactor Netty.
+- Opt-in named upstream connection-pool groups are available through
+  `shenyu.httpclient.pool-groups`. Groups must use the `FIXED` type, have an
+  explicit unique name other than `shenyu-proxy`, and configure a positive
+  `maxConnections` plus an omitted-or-positive `maxPendingAcquires` (at most 16
+  groups). A divide rule selects one with `poolGroup`; an unknown group returns
+  HTTP 503 instead of falling back. Definitions are read at startup only, and
+  deployments without `pool-groups` keep the existing shared pool unchanged.
+  Group metrics use Reactor Netty Micrometer meters when `metrics: true` and
+  `micrometer-core` is present; they are not exported by the ShenYu Prometheus
+  metrics endpoint in this release. See `docs/upstream-pool-groups.md`.
 - CORS origin patterns are compiled when the gateway starts. An invalid
   `shenyu.cross.allowed-origin.origin-regex` now fails startup with
   `PatternSyntaxException`, rather than failing the first matching request.
