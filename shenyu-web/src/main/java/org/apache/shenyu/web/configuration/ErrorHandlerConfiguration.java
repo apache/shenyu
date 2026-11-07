@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.web.configuration;
 
+import org.apache.shenyu.plugin.api.failure.GatewayFailureMapper;
+import org.apache.shenyu.plugin.api.failure.GatewayFailureMapping;
+import org.springframework.beans.factory.ObjectProvider;
 import org.apache.shenyu.web.handler.GlobalErrorHandler;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +35,16 @@ import reactor.core.publisher.Mono;
  * The type Error handler configuration.
  */
 public class ErrorHandlerConfiguration {
+
+    /**
+     * Prepare ordered error policies once, outside ordinary request execution.
+     * @param mappers optional local policies in Spring order
+     * @return bounded failure policy
+     */
+    @Bean
+    public GatewayFailureMapping gatewayFailureMapping(final ObjectProvider<GatewayFailureMapper> mappers) {
+        return new GatewayFailureMapping(mappers.orderedStream().toList());
+    }
 
     /**
      * Error web exception handler error web exception handler.
