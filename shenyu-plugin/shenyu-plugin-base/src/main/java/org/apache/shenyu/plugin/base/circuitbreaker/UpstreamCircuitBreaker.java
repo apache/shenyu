@@ -47,6 +47,14 @@ public final class UpstreamCircuitBreaker {
     public static final String HALF_OPEN_PROBE = "shenyu.upstreamCircuitBreaker.halfOpenProbe";
 
     /**
+     * Exchange attribute carrying the breaker key of the initially selected upstream. The
+     * HTTP client records the initial attempt's outcome against this key as soon as the
+     * attempt terminates, instead of the whole downstream chain (retries included) being
+     * attributed to the initial upstream (#8156).
+     */
+    public static final String INITIAL_BREAKER_KEY = UpstreamCircuitBreaker.class.getName() + ".INITIAL_BREAKER_KEY";
+
+    /**
      * The default number of consecutive failures before the breaker opens.
      */
     public static final int DEFAULT_FAILURE_THRESHOLD = 3;
