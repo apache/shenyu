@@ -300,6 +300,7 @@ public class HttpShenyuSdkClientTest {
         try {
             Assert.assertThrows(IOException.class, () -> shenyuHttpClient.doRequest(createRequest()));
             Assert.assertTrue(Thread.currentThread().isInterrupted());
+            verify(future).cancel(true);
         } finally {
             Thread.interrupted();
         }
