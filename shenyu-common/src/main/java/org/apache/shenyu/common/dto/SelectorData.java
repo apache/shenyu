@@ -89,6 +89,25 @@ public class SelectorData extends BaseData {
     }
 
     /**
+     * Copy the values and take snapshots of both condition lists.
+     *
+     * @param source source data
+     */
+    SelectorData(final SelectorData source) {
+        super(source);
+        this.pluginId = source.pluginId;
+        this.pluginName = source.pluginName;
+        this.matchMode = source.matchMode;
+        this.type = source.type;
+        this.logged = source.logged;
+        this.continued = source.continued;
+        this.handle = source.handle;
+        this.conditionList = DtoSnapshots.freezeConditions(source.conditionList);
+        this.beforeConditionList = DtoSnapshots.freezeConditions(source.beforeConditionList);
+        this.matchRestful = source.matchRestful;
+    }
+
+    /**
      * class builder.
      *
      * @return Builder
@@ -112,6 +131,7 @@ public class SelectorData extends BaseData {
      * @param pluginId pluginId
      */
     public void setPluginId(final String pluginId) {
+        checkMutable();
         this.pluginId = pluginId;
     }
 
@@ -130,6 +150,7 @@ public class SelectorData extends BaseData {
      * @param pluginName pluginName
      */
     public void setPluginName(final String pluginName) {
+        checkMutable();
         this.pluginName = pluginName;
     }
 
@@ -148,6 +169,7 @@ public class SelectorData extends BaseData {
      * @param matchMode matchMode
      */
     public void setMatchMode(final Integer matchMode) {
+        checkMutable();
         this.matchMode = matchMode;
     }
 
@@ -166,6 +188,7 @@ public class SelectorData extends BaseData {
      * @param type type
      */
     public void setType(final Integer type) {
+        checkMutable();
         this.type = type;
     }
 
@@ -184,6 +207,7 @@ public class SelectorData extends BaseData {
      * @param logged logged
      */
     public void setLogged(final Boolean logged) {
+        checkMutable();
         this.logged = logged;
     }
 
@@ -205,6 +229,7 @@ public class SelectorData extends BaseData {
      * @param continued continued
      */
     public void setContinued(final Boolean continued) {
+        checkMutable();
         this.continued = continued;
     }
 
@@ -223,6 +248,7 @@ public class SelectorData extends BaseData {
      * @param handle handle
      */
     public void setHandle(final String handle) {
+        checkMutable();
         this.handle = handle;
     }
 
@@ -241,6 +267,7 @@ public class SelectorData extends BaseData {
      * @param conditionList conditionList
      */
     public void setConditionList(final List<ConditionData> conditionList) {
+        checkMutable();
         this.conditionList = conditionList;
     }
 
@@ -259,6 +286,7 @@ public class SelectorData extends BaseData {
      * @param matchRestful matchRestful
      */
     public void setMatchRestful(final Boolean matchRestful) {
+        checkMutable();
         this.matchRestful = matchRestful;
     }
 
@@ -277,6 +305,7 @@ public class SelectorData extends BaseData {
      * @param beforeConditionList before condition list
      */
     public void setBeforeConditionList(final List<ConditionData> beforeConditionList) {
+        checkMutable();
         this.beforeConditionList = beforeConditionList;
     }
 

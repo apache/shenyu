@@ -101,6 +101,11 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
 
     @Override
+    protected boolean useReadOnlyConfiguration() {
+        return true;
+    }
+
+    @Override
     protected String getRawPath(final ServerWebExchange exchange) {
         return RequestUrlUtils.getRewrittenRawPath(exchange);
     }
