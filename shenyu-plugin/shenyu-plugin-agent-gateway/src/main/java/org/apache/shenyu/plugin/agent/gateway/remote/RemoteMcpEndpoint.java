@@ -21,8 +21,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.spec.McpSchema;
 import reactor.core.publisher.Mono;
 
+import java.util.function.BooleanSupplier;
+
 /** Exclusively owned remote session with request-scoped cancellation. */
 public interface RemoteMcpEndpoint {
+    /**
+     * Fence future session recovery to the owning catalog generation.
+     * @param valid whether the captured configuration is still authorized
+     */
+    default void recoveryGuard(final BooleanSupplier valid) {
+        // Endpoints without session recovery do not need an additional fence.
+    }
+
     /**
      * Negotiate the fixed outbound protocol.
      * @return initialization result
