@@ -37,6 +37,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -226,17 +227,14 @@ public final class ShenyuClusterServiceTest {
 
     @Test
     public void testSelectMasterErrorCountTracking() throws Exception {
-        CountDownLatch errorsOccurred = new CountDownLatch(2);
-        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString())).thenAnswer(invocation -> {
-            errorsOccurred.countDown();
-            throw new RuntimeException("consecutive failure");
-        });
+        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString()))
+                .thenThrow(new RuntimeException("consecutive failure"));
 
         clusterService.start("127.0.0.1", 9195, "/shenyu");
-        assertTrue(errorsOccurred.await(5, TimeUnit.SECONDS));
-        // The latch observes entry into the mock, before the exception is counted by the scheduler.
+        // Wait for the catch block to update the count, rather than for entry into the mock.
+        await().atMost(5, TimeUnit.SECONDS).until(() -> clusterService.getSelectMasterErrorCount() >= 2);
+
         clusterService.shutdown();
-        assertTrue(clusterService.getSelectMasterErrorCount() >= 2);
     }
 
     private ScheduledExecutorService scheduler() {
@@ -285,4 +283,3 @@ public final class ShenyuClusterServiceTest {
         }
     }
 }
-

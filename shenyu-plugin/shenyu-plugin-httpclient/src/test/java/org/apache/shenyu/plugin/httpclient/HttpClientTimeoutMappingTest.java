@@ -51,6 +51,8 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -134,19 +136,22 @@ public final class HttpClientTimeoutMappingTest {
     @ValueSource(strings = {"netty", "webClient"})
     public void testRealUpstreamReadTimeout(final String strategy) {
         AtomicInteger requests = new AtomicInteger();
+        CountDownLatch requestReceived = new CountDownLatch(1);
         DisposableServer upstream = HttpServer.create().host("127.0.0.1").port(0)
                 .handle((request, response) -> {
                     requests.incrementAndGet();
+                    requestReceived.countDown();
                     return Mono.never();
                 }).bindNow();
         try {
-            HttpClient client = HttpClient.newConnection().responseTimeout(Duration.ofMillis(100));
+            HttpClient client = HttpClient.newConnection().responseTimeout(Duration.ofSeconds(1));
             ShenyuPlugin plugin = "netty".equals(strategy) ? new NettyHttpClientPlugin(client, Constants.BYTES_PER_MB)
                     : new WebClientPlugin(WebClient.builder().clientConnector(new ReactorClientHttpConnector(client)).build(), Constants.BYTES_PER_MB);
             ServerWebExchange exchange = exchange("default", 0);
             exchange.getAttributes().put(Constants.HTTP_URI, URI.create("http://127.0.0.1:" + upstream.port() + "/slow"));
             ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
             StepVerifier.create(plugin.execute(exchange, chain))
+                    .then(() -> awaitRequest(requestReceived))
                     .expectErrorSatisfies(error -> {
                         ResponseStatusException status = assertInstanceOf(ResponseStatusException.class, error);
                         assertEquals(HttpStatus.GATEWAY_TIMEOUT, status.getStatusCode());
@@ -160,6 +165,15 @@ public final class HttpClientTimeoutMappingTest {
             verifyNoInteractions(chain);
         } finally {
             upstream.disposeNow();
+        }
+    }
+
+    private static void awaitRequest(final CountDownLatch requestReceived) {
+        try {
+            assertTrue(requestReceived.await(5, TimeUnit.SECONDS), "upstream should receive the request");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError("interrupted while waiting for the upstream request", e);
         }
     }
 
