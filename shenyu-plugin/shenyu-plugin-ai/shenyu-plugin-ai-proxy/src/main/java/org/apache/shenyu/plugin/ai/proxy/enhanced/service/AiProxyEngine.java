@@ -520,6 +520,11 @@ public final class AiProxyEngine {
                     + providerRequest.getProtocol() + " -> " + provider.name());
         }
         provider.capabilities().validate(providerRequest, stream);
+        try {
+            AiProxyConfigValidator.validate(config);
+        } catch (IllegalArgumentException error) {
+            throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
+        }
         AiProxyProtocol targetProtocol = aiProxyProtocolFactory.getProtocol(route.targetProtocol());
         AiProtocolRequestOverrides requestOverrides = new AiProtocolRequestOverrides(
                 config.getTemperature(), config.getMaxTokens(), provider.capabilities().features().contains(
