@@ -19,12 +19,18 @@ package org.apache.shenyu.admin.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.model.dto.AppAuthApplyRequestDTO;
 import org.apache.shenyu.admin.model.dto.AppAuthReplacePathsRequestDTO;
 import org.apache.shenyu.admin.model.dto.AppAuthResultQueryDTO;
 import org.apache.shenyu.admin.model.dto.AppAuthRevokeRequestDTO;
+import org.apache.shenyu.admin.model.entity.AppAuthRequestDO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.AppAuthResultVO;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 import org.apache.shenyu.admin.service.AppAuthLifecycleService;
 import org.apache.shenyu.admin.service.AppAuthAccessPolicy;
 import org.slf4j.Logger;
@@ -60,10 +66,14 @@ public class AppAuthLifecycleServiceImpl implements AppAuthLifecycleService {
 
     private final AppAuthTransactionService transactionService;
 
+    private final AppAuthRequestMapper requestMapper;
+
     public AppAuthLifecycleServiceImpl(final AppAuthAccessPolicy accessPolicy,
-                                          final AppAuthTransactionService transactionService) {
+                                          final AppAuthTransactionService transactionService,
+                                          final AppAuthRequestMapper requestMapper) {
         this.accessPolicy = accessPolicy;
         this.transactionService = transactionService;
+        this.requestMapper = requestMapper;
     }
 
     @Override
@@ -71,8 +81,10 @@ public class AppAuthLifecycleServiceImpl implements AppAuthLifecycleService {
         final String callerKey = accessPolicy.requireServiceCaller("system:authen:lifecycleApply");
         accessPolicy.requireNamespace(callerKey, request.getNamespaceId());
         final String requestHash = canonicalRequestHash(request);
-        return withDeadlockRetry("apply", request.getRequestId(),
+        final ShenyuAdminResult result = withDeadlockRetry("apply", request.getRequestId(),
                 () -> ShenyuAdminResult.success(transactionService.apply(callerKey, request, requestHash)));
+        auditLifecycleSuccess("apply", callerKey, request.getNamespaceId(), authIdOf(result));
+        return result;
     }
 
     @Override
@@ -86,8 +98,34 @@ public class AppAuthLifecycleServiceImpl implements AppAuthLifecycleService {
     public ShenyuAdminResult revoke(final AppAuthRevokeRequestDTO request) {
         final String callerKey = accessPolicy.requireServiceCaller("system:authen:lifecycleRevoke");
         accessPolicy.requireNamespace(callerKey, request.getNamespaceId());
-        return withDeadlockRetry("revoke", request.getRequestId(),
+        final ShenyuAdminResult result = withDeadlockRetry("revoke", request.getRequestId(),
                 () -> ShenyuAdminResult.success(transactionService.revoke(callerKey, request)));
+        auditLifecycleSuccess("revoke", callerKey, request.getNamespaceId(), resolveRevokedAuthId(callerKey, request));
+        return result;
+    }
+
+    /**
+     * resolve the revoked credential's real authId from the idempotency tombstone for the audit record.
+     * Runs only after the transaction proxy committed, so the REVOKED row is stable: markRevoked keeps
+     * the historical authId and no code path clears or reassigns it afterwards. The lookup is read-only
+     * and fully defensive — a missing row, a blank authId (tombstone-only revoke) or any lookup failure
+     * falls back to the idempotency requestId, so it can never affect the already committed revoke,
+     * its response, exception propagation or the audit emission.
+     *
+     * @param callerKey verified service-account caller key
+     * @param request revoke request
+     * @return the historical authId when resolvable, otherwise the idempotency requestId
+     */
+    private String resolveRevokedAuthId(final String callerKey, final AppAuthRevokeRequestDTO request) {
+        try {
+            final AppAuthRequestDO record = requestMapper.selectByKey(callerKey, request.getNamespaceId(), request.getRequestId());
+            if (Objects.nonNull(record) && StringUtils.isNotBlank(record.getAuthId())) {
+                return record.getAuthId();
+            }
+        } catch (RuntimeException e) {
+            LOG.debug("revoke authId lookup failed, falling back to the requestId, type={}", e.getClass().getSimpleName());
+        }
+        return request.getRequestId();
     }
 
     @Override
@@ -95,8 +133,10 @@ public class AppAuthLifecycleServiceImpl implements AppAuthLifecycleService {
         final String callerKey = accessPolicy.requireServiceCaller("system:authen:lifecycleReplacePaths");
         accessPolicy.requireNamespace(callerKey, request.getNamespaceId());
         accessPolicy.requireOwnedAuth(callerKey, request.getNamespaceId(), request.getAuthId());
-        return withDeadlockRetry("replacePaths", request.getAuthId(),
+        final ShenyuAdminResult result = withDeadlockRetry("replacePaths", request.getAuthId(),
                 () -> ShenyuAdminResult.success(transactionService.replacePaths(callerKey, request)));
+        auditLifecycleSuccess("replace_paths", callerKey, request.getNamespaceId(), request.getAuthId());
+        return result;
     }
 
     /**
@@ -157,6 +197,39 @@ public class AppAuthLifecycleServiceImpl implements AppAuthLifecycleService {
             }
         }
         throw last;
+    }
+
+    /**
+     * record the lifecycle success audit event. This facade holds no outer transaction and the
+     * transaction bean (@Transactional proxy) commits before it returns, so reaching the call site
+     * means the database transaction has really committed; any rollback surfaces as an exception
+     * and skips this method entirely. Credentials (appKey/appSecret) are never recorded.
+     *
+     * @param action lifecycle action (apply / revoke / replace_paths)
+     * @param callerKey verified service-account caller key
+     * @param namespaceId namespace context
+     * @param resourceId authId when available, otherwise the idempotency requestId
+     */
+    private void auditLifecycleSuccess(final String action, final String callerKey, final String namespaceId, final String resourceId) {
+        SecurityAuditLog.event(SecurityAuditEventType.APP_AUTH_LIFECYCLE)
+                .outcome(SecurityAuditLog.Outcome.SUCCESS)
+                .action(action)
+                .reason("success")
+                .actor(callerKey)
+                .namespace(namespaceId)
+                .resource(resourceId)
+                .emit();
+    }
+
+    /**
+     * extract the authId from a successful apply result.
+     *
+     * @param result apply response wrapper
+     * @return authId, null when the payload is not an auth result
+     */
+    private static String authIdOf(final ShenyuAdminResult result) {
+        final Object data = result.getData();
+        return data instanceof AppAuthResultVO ? ((AppAuthResultVO) data).getId() : null;
     }
 
     /** Minimal internal object utils (avoids a new dependency for two null checks). */

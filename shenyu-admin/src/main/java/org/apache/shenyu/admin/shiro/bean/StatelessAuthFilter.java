@@ -19,15 +19,17 @@ package org.apache.shenyu.admin.shiro.bean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
+import org.apache.shenyu.admin.utils.SecurityAuditUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.BearerToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.AccessControlFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
 import jakarta.servlet.ServletRequest;
@@ -43,9 +45,7 @@ import java.util.Objects;
  * custom Stateless AccessControlFilter.
  */
 public class StatelessAuthFilter extends AccessControlFilter {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(StatelessAuthFilter.class);
-    
+
     @Override
     protected boolean isAccessAllowed(final ServletRequest servletRequest,
                                       final ServletResponse servletResponse,
@@ -63,24 +63,51 @@ public class StatelessAuthFilter extends AccessControlFilter {
         
         String tokenValue = getTokenValue(httpServletRequest);
         if (StringUtils.isBlank(tokenValue)) {
-            LOG.error("token is null.");
+            SecurityAuditLog.event(SecurityAuditEventType.REQUEST_AUTH)
+                    .outcome(SecurityAuditLog.Outcome.FAILURE)
+                    .action("request_auth")
+                    .reason("missing_token")
+                    .resource(httpServletRequest.getRequestURI())
+                    .remoteAddr(httpServletRequest.getRemoteAddr())
+                    .emit();
             unionFailResponse(servletResponse);
             return false;
         }
-        
+
         BearerToken token = new BearerToken(tokenValue);
-        
+
         Subject subject = getSubject(servletRequest, servletResponse);
-        
+
         try {
             subject.login(token);
         } catch (Exception e) {
-            LOG.error("token is warning. token : {}.", tokenValue, e);
+            SecurityAuditLog.event(SecurityAuditEventType.REQUEST_AUTH)
+                    .outcome(SecurityAuditLog.Outcome.FAILURE)
+                    .action("request_auth")
+                    .reason(classifyAuthenticationFailure(e))
+                    .resource(httpServletRequest.getRequestURI())
+                    .remoteAddr(httpServletRequest.getRemoteAddr())
+                    .fingerprint(SecurityAuditUtils.fingerprint(tokenValue))
+                    .emit();
             unionFailResponse(servletResponse);
             return false;
         }
-        
+
         return true;
+    }
+
+    /**
+     * classify the authentication failure into a fixed safe reason, without logging the raw exception
+     * message which may carry untrusted token content.
+     *
+     * @param exception login exception
+     * @return fixed reason category
+     */
+    private static String classifyAuthenticationFailure(final Exception exception) {
+        if (exception instanceof AuthenticationException) {
+            return "authentication_failed";
+        }
+        return "authentication_error";
     }
     
     /**

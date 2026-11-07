@@ -17,15 +17,21 @@
 
 package org.apache.shenyu.admin.exception;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
+import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,12 +46,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.DirectFieldBindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Arrays;
@@ -88,6 +97,13 @@ public final class ExceptionHandlersTest {
     @BeforeEach
     public void setUp() {
         exceptionHandlersUnderTest = new ExceptionHandlers(null);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        SessionUtil.clean();
+        RequestContextHolder.resetRequestAttributes();
+        SecurityAuditLog.resetRateLimiter();
     }
 
     @Test
@@ -186,5 +202,55 @@ public final class ExceptionHandlersTest {
         when(exception.getConstraintViolations()).thenReturn(violations);
         ShenyuAdminResult result = exceptionHandlersUnderTest.handleConstraintViolationException(exception);
         Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+    }
+
+    @Test
+    public void testUnauthorizedExceptionEmitsPermissionDeniedAudit() {
+        SessionUtil.setLocalVisitor(UserInfo.builder().userId("1").userName("admin8179").build());
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/shenyu8179/protected");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        List<ILoggingEvent> events = captureAuditLogs(() -> {
+            ShenyuAdminResult result = exceptionHandlersUnderTest.handleUnauthorizedException(
+                    new UnauthorizedException("sensitive principal detail 8179"));
+            Assertions.assertEquals(result.getCode().intValue(), CommonErrorCode.TOKEN_NO_PERMISSION);
+            Assertions.assertEquals(result.getMessage(), ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
+        });
+        Assertions.assertEquals(1, events.size());
+        String message = events.get(0).getFormattedMessage();
+        Assertions.assertTrue(message.contains("eventType=permission_check"), message);
+        Assertions.assertTrue(message.contains("outcome=denied"), message);
+        Assertions.assertTrue(message.contains("reason=permission_denied"), message);
+        Assertions.assertTrue(message.contains("actor=admin8179"), message);
+        Assertions.assertTrue(message.contains("resource=/shenyu8179/protected"), message);
+        Assertions.assertFalse(message.contains("sensitive principal detail 8179"),
+                "exception message must not appear in audit logs");
+    }
+
+    @Test
+    public void testShenyuExceptionHandlerEmitsNoAuditEvent() {
+        // AppAuth access denials reach the global handler as ShenyuAdminException; it must never re-audit them
+        List<ILoggingEvent> events = captureAuditLogs(() -> exceptionHandlersUnderTest
+                .handleShenyuException(new ShenyuAdminException("App auth ownership check failed")));
+        Assertions.assertTrue(events.isEmpty(), "global handler must not duplicate business audit events");
+    }
+
+    /**
+     * capture the logback events emitted on the security audit logger while running the given action.
+     *
+     * @param runnable action to run
+     * @return captured logging events
+     */
+    private List<ILoggingEvent> captureAuditLogs(final Runnable runnable) {
+        ch.qos.logback.classic.Logger auditLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SecurityAuditLog.LOGGER_NAME);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        auditLogger.addAppender(appender);
+        try {
+            runnable.run();
+        } finally {
+            auditLogger.detachAppender(appender);
+        }
+        return appender.list;
     }
 }
