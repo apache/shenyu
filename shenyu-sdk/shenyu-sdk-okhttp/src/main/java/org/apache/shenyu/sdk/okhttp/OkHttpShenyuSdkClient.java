@@ -67,13 +67,17 @@ public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
         String body = request.getBody();
         Map<String, Collection<String>> headers = request.getHeaders();
         Request.Builder builder = new Request.Builder().url(url);
+        String contentType = "application/json;charset=UTF-8";
         for (String name : headers.keySet()) {
             for (String value : headers.get(name)) {
                 builder.addHeader(name, value);
+                if ("Content-Type".equalsIgnoreCase(name)) {
+                    contentType = value;
+                }
             }
         }
         RequestBody requestBody = StringUtils.isNotBlank(request.getBody()) 
-                ? RequestBody.create(MediaType.parse("application/json;charset=UTF-8"), body) 
+                ? RequestBody.create(MediaType.parse(contentType), body)
                 : Util.EMPTY_REQUEST;
         switch (request.getHttpMethod()) {
             case GET:
