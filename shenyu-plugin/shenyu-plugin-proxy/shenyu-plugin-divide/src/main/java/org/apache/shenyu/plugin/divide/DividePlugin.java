@@ -44,6 +44,7 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptOwner;
 import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
@@ -113,6 +114,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         // A re-entered exchange must not inherit a previous selector's partition.
         exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
+        exchange.getAttributes().remove(UpstreamAttemptOwner.ATTRIBUTE);
         exchange.getAttributes().remove(Constants.SHENYU_CANARY_CONTEXT);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
@@ -195,34 +197,44 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(UpstreamCircuitBreaker.HALF_OPEN_PROBE, candidates.isProbe());
         List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         Upstream upstream;
+        boolean p2cReserved = false;
         if (candidates.isProbe()) {
             upstream = breakeredUpstreamList.get(0);
-            if (P2C.equals(ruleHandle.getLoadBalance())) {
+            p2cReserved = P2C.equals(ruleHandle.getLoadBalance());
+            if (p2cReserved) {
                 upstream.getInflight().incrementAndGet();
                 upstream.setLastPicked(System.currentTimeMillis());
             }
         } else if (CollectionUtils.isNotEmpty(specifyDomains)) {
             // an explicit specify-domain request is an operations override and never affinity-bound
             String requested = specifyDomains.get(0);
-            upstream = breakeredUpstreamList.stream()
+            Upstream requestedUpstream = breakeredUpstreamList.stream()
                     .filter(u -> u.getUrl().equals(requested))
                     .findFirst()
-                    .map(u -> Upstream.builder()
-                            .url(u.getUrl())
-                            .protocol(u.getProtocol())
-                            .weight(u.getWeight())
-                            .warmup(u.getWarmup())
-                            .status(u.isStatus())
-                            .build())
-                    .orElseGet(() -> LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange));
+                    .orElse(null);
+            if (Objects.nonNull(requestedUpstream)) {
+                // the copy is not the cache object and P2C is not reserved for it
+                upstream = Upstream.builder()
+                        .url(requestedUpstream.getUrl())
+                        .protocol(requestedUpstream.getProtocol())
+                        .weight(requestedUpstream.getWeight())
+                        .warmup(requestedUpstream.getWarmup())
+                        .status(requestedUpstream.isStatus())
+                        .build();
+            } else {
+                upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
+                p2cReserved = P2C.equals(ruleHandle.getLoadBalance());
+            }
         } else if (stickySessionAffinity.isActive(ruleHandle.getSticky())) {
             upstream = resolveWithAffinity(exchange, rule, ruleHandle, breakeredUpstreamList);
+            p2cReserved = P2C.equals(ruleHandle.getLoadBalance());
             if (Objects.isNull(upstream)) {
                 return WebFluxResultUtils.result(exchange,
                         ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL));
             }
         } else {
             upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
+            p2cReserved = P2C.equals(ruleHandle.getLoadBalance());
         }
         if (Objects.isNull(upstream)) {
             rejectCanary(exchange);
@@ -230,11 +242,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        if (LEAST_ACTIVE.equals(ruleHandle.getLoadBalance())) {
-            // Least active compares outstanding requests, so the choice is reserved here and released
-            // once the request terminates, whatever its outcome.
-            upstream.getInflight().incrementAndGet();
-        }
+        final UpstreamAttemptOwner attemptOwner = installAttemptOwner(exchange, ruleHandle, upstream, p2cReserved);
         // a sticky binding is committed for the target chosen here, before the response headers
         // are committed: a downstream retry to another target never rewrites the binding (#8037)
         if (stickySessionAffinity.isActive(ruleHandle.getSticky())
@@ -257,7 +265,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
             observation.setActualPartition(Objects.nonNull(observation.getFallbackReason()) ? CanaryDecision.STABLE.getName() : observation.getIntendedPartition());
             reportCanary(exchange);
         }
-        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, candidates.getBreakerKey(upstream), upstream, candidates.isProbe());
+        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, candidates.getBreakerKey(upstream), upstream,
+                attemptOwner, candidates.isProbe());
     }
 
     private void rejectCanary(final ServerWebExchange exchange) {
@@ -324,13 +333,40 @@ public class DividePlugin extends AbstractShenyuPlugin {
      * @param probe whether the caller already attached exclusive probe accounting
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
+    private UpstreamAttemptOwner installAttemptOwner(final ServerWebExchange exchange, final DivideRuleHandle ruleHandle,
+                                                     final Upstream upstream, final boolean p2cReserved) {
+        final boolean leastActive = LEAST_ACTIVE.equals(ruleHandle.getLoadBalance());
+        if (leastActive) {
+            // Least active compares outstanding requests, so the choice is reserved here; the
+            // terminal release runs when the response body is done, or a failed failover
+            // attempt releases itself earlier (#8158).
+            upstream.getInflight().incrementAndGet();
+        }
+        final UpstreamAttemptOwner attemptOwner;
+        if (leastActive) {
+            attemptOwner = new UpstreamAttemptOwner(serving -> serving.getInflight().decrementAndGet());
+        } else if (P2C.equals(ruleHandle.getLoadBalance()) && p2cReserved) {
+            attemptOwner = new UpstreamAttemptOwner(this::responseTrigger);
+        } else {
+            attemptOwner = null;
+        }
+        if (Objects.nonNull(attemptOwner)) {
+            attemptOwner.move(upstream);
+            exchange.getAttributes().put(UpstreamAttemptOwner.ATTRIBUTE, attemptOwner);
+        }
+        return attemptOwner;
+    }
+
     private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                                 final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream, final boolean probe) {
+                                                 final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream,
+                                                 final UpstreamAttemptOwner attemptOwner, final boolean probe) {
         Mono<Void> response = Mono.defer(() -> chain.execute(exchange));
-        if (ruleHandle.getLoadBalance().equals(LEAST_ACTIVE)) {
-            response = response.doFinally(signalType -> upstream.getInflight().decrementAndGet());
-        } else if (ruleHandle.getLoadBalance().equals(P2C)) {
-            response = response.doFinally(signalType -> responseTrigger(upstream));
+        if (ruleHandle.getLoadBalance().equals(LEAST_ACTIVE) || ruleHandle.getLoadBalance().equals(P2C)) {
+            // the owner names whichever attempt is serving; failover moves it, and this terminal
+            // release runs when the response body is done, errors or is cancelled (#8158)
+            if (Objects.nonNull(attemptOwner)) {
+                response = response.doFinally(signalType -> attemptOwner.releaseCurrent());
+            }
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
             long beginTime = System.currentTimeMillis();
             response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime));
