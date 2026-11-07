@@ -105,6 +105,12 @@ jobs:
             echo "release_ref must resolve to an existing remote branch" >&2
             exit 1
           }
+          branch_sha="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${RELEASE_REF}" --jq .commit.sha)"
+          remote_sha="$(git ls-remote origin "refs/heads/${RELEASE_REF}" | awk '{print $1}')"
+          [[ -n "$remote_sha" && "$remote_sha" == "$branch_sha" && "$remote_sha" == "$(git rev-parse HEAD)" ]] || {
+            echo "Checked out release ref does not match the explicit refs/heads/${RELEASE_REF} branch" >&2
+            exit 1
+          }
           environment_rules="$(gh api "repos/${GITHUB_REPOSITORY}/environments/apache-release-candidate" --jq '.protection_rules | length' 2>/dev/null || true)"
           [[ "$environment_rules" =~ ^[1-9][0-9]*$ ]] || {
             echo "Configure at least one required reviewer protection rule for the apache-release-candidate environment before staging" >&2
