@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.utils.AdminSecurityAudit;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 
 import com.google.common.collect.Lists;
@@ -201,7 +203,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         if (updateCount > 0) {
             if (passwordReset) {
                 // an administrative password reset revokes tokens issued with the previous credential
-                dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated());
+                if (dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated()) > 0) {
+                    AdminSecurityAudit.credentialsRevoked(dashboardUserDO.getId());
+                }
             }
             publisher.onUpdated(dashboardUserDO, before);
         }
@@ -307,6 +311,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             dashboardUserVO = loginByDatabase(userName, cbcDecryptPassword);
         }
 
+        if (Objects.isNull(dashboardUserVO) || !Boolean.TRUE.equals(dashboardUserVO.getEnabled())) {
+            AdminSecurityAudit.authenticationFailed(null, AdminSecurityAudit.Reason.LOGIN_FAILED);
+        }
         final LoginDashboardUserVO loginDashboardUserVO = LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
         final DashboardUserVO finalDashboardUserVO = dashboardUserVO;
         return Optional.ofNullable(loginDashboardUserVO)
@@ -383,7 +390,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         int updateCount = dashboardUserMapper.updateSelective(dashboardUserDO);
         if (updateCount > 0) {
             // a password change revokes tokens issued with the previous credential
-            dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated());
+            if (dashboardUserMapper.incrementTokenVersion(dashboardUserDO.getId(), dashboardUserDO.getDateUpdated()) > 0) {
+                AdminSecurityAudit.credentialsRevoked(dashboardUserDO.getId());
+            }
             publisher.onUpdated(dashboardUserDO, before);
         }
         return updateCount;
@@ -393,11 +402,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Transactional(rollbackFor = Exception.class)
     public int revokeTokens(final String id) {
         // mandatory: This function can only be used by the admin user
-        Assert.isTrue(SessionUtil.isAdmin(), "This function can only be used by the admin(root) user");
+        if (!SessionUtil.isAdmin()) {
+            throw AdminSecurityAudit.denied(new ValidFailException("This function can only be used by the admin(root) user"),
+                    AdminSecurityAudit.Reason.ACTION_DENIED, "revoke_tokens", null, id);
+        }
         DashboardUserDO before = dashboardUserMapper.selectById(id);
         Assert.notNull(before, "current user is not found");
         int updateCount = dashboardUserMapper.incrementTokenVersion(id, new Timestamp(System.currentTimeMillis()));
         if (updateCount > 0) {
+            AdminSecurityAudit.credentialsRevoked(id);
             // publish the stored row so the audit context carries the account fields
             DashboardUserDO after = dashboardUserMapper.selectById(id);
             if (Objects.nonNull(after)) {

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import org.apache.shenyu.admin.utils.AdminSecurityAudit;
 import org.apache.shenyu.admin.config.AppAuthLifecycleProperties;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
@@ -62,13 +63,16 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
     public String requireServiceCaller(final String permission) {
         final String userId = SessionUtil.visitorId();
         if (Objects.isNull(userId) || "-1".equals(userId) || "unknown".equals(userId)) {
-            throw new ShenyuAdminException("Service identity check failed: call with a configured service account");
+            throw AdminSecurityAudit.denied(new ShenyuAdminException("Service identity check failed: call with a configured service account"),
+                    AdminSecurityAudit.Reason.SERVICE_IDENTITY_DENIED, permission, null, null);
         }
         if (!properties.getServiceUserIds().contains(userId)) {
-            throw new ShenyuAdminException("Service identity check failed: current account is not in the service whitelist");
+            throw AdminSecurityAudit.denied(new ShenyuAdminException("Service identity check failed: current account is not in the service whitelist"),
+                    AdminSecurityAudit.Reason.SERVICE_IDENTITY_DENIED, permission, null, null);
         }
         if (!isPermitted(permission)) {
-            throw new ShenyuAdminException("Service identity check failed: missing action permission " + permission);
+            throw AdminSecurityAudit.denied(new ShenyuAdminException("Service identity check failed: missing action permission " + permission),
+                    AdminSecurityAudit.Reason.ACTION_DENIED, permission, null, null);
         }
         // callerKey is the immutable userId: renaming the user never changes the identity key
         return userId;
@@ -77,7 +81,8 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
     @Override
     public void requireNamespace(final String callerKey, final String namespaceId) {
         if (!namespaceUserService.listNamespaceIdByUserId(callerKey).contains(namespaceId)) {
-            throw new ShenyuAdminException("Namespace ownership check failed");
+            throw AdminSecurityAudit.denied(new ShenyuAdminException("Namespace ownership check failed"),
+                    AdminSecurityAudit.Reason.NAMESPACE_DENIED, null, namespaceId, null);
         }
     }
 
@@ -88,11 +93,13 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
                 || !callerKey.equals(record.getCallerKey())
                 || !namespaceId.equals(record.getNamespaceId())
                 || !"CREATED".equals(record.getState())) {
-            throw new ShenyuAdminException("App auth ownership check failed");
+            throw AdminSecurityAudit.denied(new ShenyuAdminException("App auth ownership check failed"),
+                    AdminSecurityAudit.Reason.RESOURCE_DENIED, null, namespaceId, authId);
         }
         final AppAuthDO auth = appAuthMapper.selectById(authId);
         if (Objects.isNull(auth) || !namespaceId.equals(auth.getNamespaceId())) {
-            throw new ShenyuAdminException("App auth ownership check failed");
+            throw AdminSecurityAudit.denied(new ShenyuAdminException("App auth ownership check failed"),
+                    AdminSecurityAudit.Reason.RESOURCE_DENIED, null, namespaceId, authId);
         }
         return record;
     }

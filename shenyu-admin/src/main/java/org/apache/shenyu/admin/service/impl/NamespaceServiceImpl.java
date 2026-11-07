@@ -22,6 +22,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.utils.AdminSecurityAudit;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
@@ -296,6 +297,7 @@ public class NamespaceServiceImpl implements NamespaceService {
                 namespaceUserService.listNamespaceIdByUserId(SessionUtil.visitorId()), Collections.emptyList());
         for (String namespaceId : namespaceIds) {
             if (!memberNamespaceIds.contains(namespaceId)) {
+                AdminSecurityAudit.denied(AdminSecurityAudit.Reason.NAMESPACE_DENIED, null, namespaceId, null);
                 throw new UnauthorizedException("Current user is not a member of namespace " + namespaceId);
             }
         }

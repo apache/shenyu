@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.model.event;
 
 import org.apache.shenyu.admin.model.enums.EventTypeEnum;
+import org.apache.shenyu.admin.utils.AdminSecurityAudit;
 import org.apache.shenyu.common.constant.Constants;
 import org.springframework.context.ApplicationEvent;
 
@@ -53,6 +54,8 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
      * userId.
      */
     private final String userId;
+
+    private final String requestId;
     
     /**
      * consumed.
@@ -105,6 +108,16 @@ public class AdminDataModelChangedEvent extends ApplicationEvent {
         this.consumed = false;
         this.date = new Date();
         this.userId = userId;
+        this.requestId = AdminSecurityAudit.currentRequestId();
+    }
+
+    /**
+     * Return the server-owned originating request ID without retaining the servlet request.
+     *
+     * @return request ID, or null for non-servlet events
+     */
+    public String getRequestId() {
+        return requestId;
     }
     
     

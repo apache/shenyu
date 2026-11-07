@@ -25,18 +25,13 @@ import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.dao.DuplicateKeyException;
@@ -54,9 +49,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -67,23 +60,7 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class ExceptionHandlersTest {
 
-    private static Logger loggerSpy;
-
-    private static MockedStatic<LoggerFactory> loggerFactoryMockedStatic;
-
     private ExceptionHandlers exceptionHandlersUnderTest;
-
-    @BeforeAll
-    public static void beforeClass() {
-        loggerSpy = spy(LoggerFactory.getLogger(ExceptionHandlers.class));
-        loggerFactoryMockedStatic = mockStatic(LoggerFactory.class, CALLS_REAL_METHODS);
-        loggerFactoryMockedStatic.when(() -> LoggerFactory.getLogger(ExceptionHandlers.class)).thenReturn(loggerSpy);
-    }
-
-    @AfterAll
-    public static void afterClass() {
-        loggerFactoryMockedStatic.close();
-    }
 
     @BeforeEach
     public void setUp() {
