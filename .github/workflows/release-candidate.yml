@@ -47,7 +47,9 @@ on:
         type: boolean
 
 concurrency:
-  group: release-candidate-${{ github.event.pull_request.number || github.run_id }}-${{ inputs.release_version }}-${{ inputs.candidate }}
+  # Manual dispatches for one version/candidate must share a group. The fallback
+  # keeps the repository-wide workflow assertion valid for non-dispatch events.
+  group: release-candidate-${{ inputs.release_version || github.event.pull_request.number || github.run_id }}-${{ inputs.candidate || 'manual' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -58,6 +60,7 @@ jobs:
   stage:
     if: github.repository == 'apache/shenyu'
     runs-on: ubuntu-latest
+    environment: apache-release-candidate
     timeout-minutes: 180
     outputs:
       ci_run_id: ${{ steps.ci.outputs.run_id }}
@@ -83,9 +86,7 @@ jobs:
 
       - name: Validate release inputs
         env:
-          APACHE_LDAP_USERNAME: ${{ secrets.APACHE_LDAP_USERNAME }}
-          APACHE_LDAP_PASSWORD: ${{ secrets.APACHE_LDAP_PASSWORD }}
-          APACHE_GPG_PRIVATE_KEY: ${{ secrets.APACHE_GPG_PRIVATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -94,20 +95,43 @@ jobs:
             exit 1
           }
           [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]
+          [[ "$RELEASE_VERSION" != *SNAPSHOT* ]] || {
+            echo "release_version must not contain SNAPSHOT" >&2
+            exit 1
+          }
           [[ "$CANDIDATE" =~ ^RC[0-9]+$ ]]
-          [[ -n "$APACHE_LDAP_USERNAME" && -n "$APACHE_LDAP_PASSWORD" ]]
-          [[ -n "$APACHE_GPG_PRIVATE_KEY" ]]
+          branch_name="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${RELEASE_REF}" --jq .name)"
+          [[ "$branch_name" == "$RELEASE_REF" ]] || {
+            echo "release_ref must resolve to an existing remote branch" >&2
+            exit 1
+          }
+          environment_rules="$(gh api "repos/${GITHUB_REPOSITORY}/environments/apache-release-candidate" --jq '.protection_rules | length' 2>/dev/null || true)"
+          [[ "$environment_rules" =~ ^[1-9][0-9]*$ ]] || {
+            echo "Configure at least one required reviewer protection rule for the apache-release-candidate environment before staging" >&2
+            exit 1
+          }
           version="$(python3 - <<'PYTHON'
           import xml.etree.ElementTree as ET
           print(ET.parse('pom.xml').getroot().findtext('{http://maven.apache.org/POM/4.0.0}version') or '')
           PYTHON
           )"
-          [[ "$version" == "$RELEASE_VERSION" ]] || {
+          [[ "$version" == "$RELEASE_VERSION" && "$version" != *SNAPSHOT* ]] || {
             echo "pom.xml contains $version, expected non-SNAPSHOT $RELEASE_VERSION" >&2
             exit 1
           }
           if git ls-remote --exit-code origin "refs/tags/v${RELEASE_VERSION}-${CANDIDATE}" >/dev/null 2>&1; then
             echo "Candidate tag already exists: v${RELEASE_VERSION}-${CANDIDATE}" >&2
+            exit 1
+          fi
+          svn_url="https://dist.apache.org/repos/dist/dev/shenyu/${RELEASE_VERSION}-${CANDIDATE}"
+          svn_error="$RUNNER_TEMP/svn-existing-check.log"
+          if svn info "$svn_url" > /dev/null 2>"$svn_error"; then
+            echo "Candidate SVN directory already exists: $svn_url" >&2
+            exit 1
+          fi
+          if ! grep -Eq 'E160013|E170013|404|not found|Not Found' "$svn_error"; then
+            echo "Could not prove that the candidate SVN directory is absent:" >&2
+            cat "$svn_error" >&2
             exit 1
           fi
           echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
@@ -171,6 +195,7 @@ jobs:
           set -euo pipefail
           python3 .github/scripts/prepare-release-candidate.py \
             --repository "$RUNNER_TEMP/maven-repository/org/apache/shenyu" \
+            --staging-repository "$RUNNER_TEMP/maven-staging-repository/org/apache/shenyu" \
             --version "$RELEASE_VERSION" \
             --svn-dir "$RUNNER_TEMP/svn" \
             --key-id "$GPG_KEY_ID" \
@@ -210,7 +235,7 @@ jobs:
             -DserverId=apache.releases.https \
             -DnexusUrl=https://repository.apache.org/ \
             -DstagingProfileId="$NEXUS_PROFILE_ID" \
-            -DrepositoryDirectory="$RUNNER_TEMP/maven-repository" \
+            -DrepositoryDirectory="$RUNNER_TEMP/maven-staging-repository" \
             -DskipStagingRepositoryClose=true \
             -DautoReleaseAfterClose=false \
             -DkeepStagingRepositoryOnFailure=true \
@@ -258,6 +283,8 @@ jobs:
           SH
           chmod 700 "$wrapper"
           git config gpg.program "$wrapper"
+          git config user.name "Apache ShenYu Release Bot"
+          git config user.email "dev"@"shenyu.apache.org"
           tag="v${RELEASE_VERSION}-${CANDIDATE}"
           git tag -s -u "$GPG_KEY_ID" -m "Apache ShenYu ${RELEASE_VERSION} ${CANDIDATE}" "$tag"
           git verify-tag "$tag"

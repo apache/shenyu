@@ -4,7 +4,7 @@
 import argparse
 import hashlib
 import json
-import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -63,9 +63,34 @@ def copy_distribution(source: Path, destination: Path, version: str, kind: str) 
     return target
 
 
+def create_clean_repository(repository: Path, version: str, destination: Path) -> Path:
+    """Copy only the requested version into a fresh Maven repository tree."""
+    if destination.exists():
+        raise SystemExit(f"Clean staging repository already exists: {destination}")
+    destination.mkdir(parents=True)
+    selected = 0
+    for source in repository.rglob("*"):
+        if not source.is_file():
+            continue
+        relative = source.relative_to(repository)
+        if version not in relative.parts:
+            continue
+        if source.name.startswith("maven-metadata") or source.name in {"_remote.repositories"} \
+                or source.name.endswith(".lastUpdated"):
+            continue
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+        selected += 1
+    if not selected:
+        raise SystemExit(f"No Maven artifacts for version {version} were found in {repository}")
+    return destination
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repository", required=True, type=Path)
+    parser.add_argument("--staging-repository", required=True, type=Path)
     parser.add_argument("--version", required=True)
     parser.add_argument("--svn-dir", required=True, type=Path)
     parser.add_argument("--key-id", required=True)
@@ -77,8 +102,9 @@ def main() -> None:
     if not repository.is_dir():
         raise SystemExit(f"Maven repository does not exist: {repository}")
     args.svn_dir.mkdir(parents=True, exist_ok=False)
+    staging_repository = create_clean_repository(repository, args.version, args.staging_repository.resolve())
 
-    primary = sorted(path for path in repository.rglob("*") if path.is_file() and is_primary(path))
+    primary = sorted(path for path in staging_repository.rglob("*") if path.is_file() and is_primary(path))
     if not primary:
         raise SystemExit("No Maven primary artifacts were found")
 
@@ -89,7 +115,11 @@ def main() -> None:
 
     distributions = {}
     for kind, pattern in ARCHIVE_PATTERNS.items():
-        candidates = sorted(repository.rglob(pattern))
+        if kind == "source":
+            archive_pattern = f"*{args.version}-src.zip"
+        else:
+            archive_pattern = f"apache-shenyu-{args.version}-{kind}-bin.tar.gz"
+        candidates = sorted(staging_repository.rglob(archive_pattern))
         if len(candidates) != 1:
             raise SystemExit(f"Expected one {kind} distribution matching {pattern}, found {len(candidates)}")
         target = copy_distribution(candidates[0], args.svn_dir, args.version, kind)
@@ -100,7 +130,7 @@ def main() -> None:
     manifest = {
         "version": args.version,
         "maven_primary_count": len(primary),
-        "maven_primary": [str(path.relative_to(repository)) for path in primary],
+        "maven_primary": [str(path.relative_to(staging_repository)) for path in primary],
         "svn_files": sorted(path.name for path in args.svn_dir.iterdir()),
         "distributions": distributions,
     }
