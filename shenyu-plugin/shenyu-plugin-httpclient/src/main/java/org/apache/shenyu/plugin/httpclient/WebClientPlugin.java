@@ -70,6 +70,10 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
     }
     
     @Override
+    protected Integer extractStatusCode(final ResponseEntity<Flux<DataBuffer>> response) {
+        return response.getStatusCode().value();
+    }
+
     protected Mono<ResponseEntity<Flux<DataBuffer>>> doRequest(final ServerWebExchange exchange, final String httpMethod,
                                              final URI uri, final Flux<DataBuffer> body) {
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.

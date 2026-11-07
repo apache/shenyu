@@ -72,6 +72,10 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
     }
 
     @Override
+    protected Integer extractStatusCode(final HttpClientResponse response) {
+        return response.status().code();
+    }
+
     protected Mono<HttpClientResponse> doRequest(final ServerWebExchange exchange, final String httpMethod,
                                                  final URI uri, final Flux<DataBuffer> body) {
         ServerHttpRequest request = exchange.getRequest();

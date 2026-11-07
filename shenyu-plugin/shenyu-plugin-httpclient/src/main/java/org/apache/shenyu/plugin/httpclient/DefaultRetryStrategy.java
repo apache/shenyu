@@ -166,22 +166,25 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                         .isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
                 .collect(Collectors.toList());
         if (upstreamList.isEmpty()) {
-            // no need to retry anymore
             return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
         }
         final Upstream upstream = LoadbalancerUtils.getForExchange(upstreamList, loadBalance, exchange);
         if (Objects.isNull(upstream)) {
-            // no need to retry anymore
             return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
         }
         final URI newUri = RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain());
         // in order not to affect the next retry call, newUri needs to be excluded
         exclude.add(newUri);
         final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
+        // a resend is its own observed transport attempt: the observation is created at
+        // subscription time with a fresh identity and finishes on error/cancel here, while
+        // a succeeded resend is finished by the terminal callback with the body (#8209)
         Mono<R> retryResponse = httpClientPlugin
-                .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
-                .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
-                .doOnError(e -> LOG.error(e.getMessage(), e));
+                .observeAttempt(exchange, newUri, exchange.getRequest().getMethod().name(),
+                        httpClientPlugin
+                                .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
+                                .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
+                                .doOnError(e -> LOG.error(e.getMessage(), e)));
         if (LoadBalanceEnum.P2C.getName().equals(loadBalance)) {
             // Selecting the retry upstream above goes through the load balancer, which increments the P2C
             // inflight counter of the newly picked upstream. Divide's completion callback only captures the
