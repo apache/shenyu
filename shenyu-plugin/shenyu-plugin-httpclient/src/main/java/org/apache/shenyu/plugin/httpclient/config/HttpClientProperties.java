@@ -635,7 +635,8 @@ public class HttpClientProperties {
         public enum PoolType {
     
             /**
-             * Elastic pool type.
+             * Compatibility name for a pool with the same finite limits as FIXED.
+             * Prefer FIXED for new configuration; ELASTIC no longer implies unbounded capacity.
              */
             ELASTIC,
     
