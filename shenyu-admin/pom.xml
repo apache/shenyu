@@ -440,6 +440,29 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <useDefaultDelimiters>true</useDefaultDelimiters>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>dashboard-release-legal-materials</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- The standalone main and sources JARs also distribute the dashboard bundle. -->
+                            <outputDirectory>${project.build.directory}/maven-shared-archive-resources/META-INF/licenses</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}/shenyu-dist/shenyu-admin-dist/src/main/release-docs/licenses</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>LICENSE-dashboard.txt</include>
+                                        <include>NOTICE-dashboard.txt</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
