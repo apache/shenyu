@@ -17,10 +17,18 @@
 
 package org.apache.shenyu.admin.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mode.cluster.service.ClusterSelectMasterService;
 import org.apache.shenyu.admin.model.dto.ClusterDataChangedEventPayload;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.DiscoverySyncData;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
+import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -64,7 +72,8 @@ public final class ClusterDataChangedEventControllerTest {
 
     @BeforeEach
     public void setUp() {
-        controller = new ClusterDataChangedEventController(eventPublisher, clusterSelectMasterService);
+        controller = new ClusterDataChangedEventController(eventPublisher, clusterSelectMasterService,
+                new ObjectMapper());
     }
 
     /**
@@ -137,6 +146,56 @@ public final class ClusterDataChangedEventControllerTest {
         verify(eventPublisher, times(groups.size())).publishEvent(any(DataChangedEvent.class));
     }
 
+    /**
+     * Every config group's structured source is read back into its typed record class.
+     */
+    @Test
+    public void receiveStructuredSourceMapsEveryConfigGroupTest() {
+        when(clusterSelectMasterService.isMaster()).thenReturn(true);
+        ObjectMapper mapper = new ObjectMapper();
+        java.util.Map<ConfigGroupEnum, Object> samples = new java.util.LinkedHashMap<>();
+        PluginData pluginData = new PluginData();
+        pluginData.setName("plugin");
+        samples.put(ConfigGroupEnum.PLUGIN, pluginData);
+        RuleData ruleData = RuleData.builder().name("rule").build();
+        samples.put(ConfigGroupEnum.RULE, ruleData);
+        SelectorData selectorData = new SelectorData();
+        selectorData.setName("selector");
+        samples.put(ConfigGroupEnum.SELECTOR, selectorData);
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey("app-key");
+        samples.put(ConfigGroupEnum.APP_AUTH, appAuthData);
+        MetaData metaData = new MetaData();
+        metaData.setPath("/app/execute");
+        samples.put(ConfigGroupEnum.META_DATA, metaData);
+        ProxySelectorData proxySelectorData = new ProxySelectorData();
+        proxySelectorData.setName("proxy");
+        samples.put(ConfigGroupEnum.PROXY_SELECTOR, proxySelectorData);
+        ProxyApiKeyData proxyApiKeyData = ProxyApiKeyData.builder().proxyApiKey("proxy-key").build();
+        samples.put(ConfigGroupEnum.AI_PROXY_API_KEY, proxyApiKeyData);
+        DiscoverySyncData discoverySyncData = new DiscoverySyncData();
+        discoverySyncData.setSelectorId("selector-id");
+        samples.put(ConfigGroupEnum.DISCOVER_UPSTREAM, discoverySyncData);
+
+        for (java.util.Map.Entry<ConfigGroupEnum, Object> entry : samples.entrySet()) {
+            ClusterDataChangedEventPayload payload = new ClusterDataChangedEventPayload();
+            payload.setGroupKey(entry.getKey().name());
+            payload.setEventType(DataEventTypeEnum.UPDATE.name());
+            payload.setPayloadVersion(2);
+            payload.setStructuredSource(mapper.valueToTree(Collections.singletonList(entry.getValue())));
+            assertEquals(HttpStatus.OK, controller.receive(payload).getStatusCode(), entry.getKey().name());
+        }
+
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, times(samples.size())).publishEvent(captor.capture());
+        List<DataChangedEvent> events = captor.getAllValues();
+        assertEquals(samples.size(), events.size());
+        for (DataChangedEvent event : events) {
+            assertEquals(1, event.getSource().size());
+            assertEquals(samples.get(event.getGroupKey()).getClass(), event.getSource().get(0).getClass());
+        }
+    }
+
     @Test
     public void testNullAndMalformedFieldsReturnBadRequest() {
         when(clusterSelectMasterService.isMaster()).thenReturn(true);
@@ -147,6 +206,92 @@ public final class ClusterDataChangedEventControllerTest {
                     controller.receive(new ClusterDataChangedEventPayload("PLUGIN", "UPDATE", source)).getStatusCode());
         }
         org.mockito.Mockito.verifyNoInteractions(eventPublisher);
+    }
+
+    /**
+     * A structured source is re-published as typed records without a string round trip.
+     */
+    @Test
+    public void receiveStructuredSourcePublishesTypedRecordsTest() {
+        when(clusterSelectMasterService.isMaster()).thenReturn(true);
+        PluginData pluginData = new PluginData();
+        pluginData.setName("structuredPlugin");
+        ClusterDataChangedEventPayload payload = new ClusterDataChangedEventPayload();
+        payload.setGroupKey(ConfigGroupEnum.PLUGIN.name());
+        payload.setEventType(DataEventTypeEnum.UPDATE.name());
+        payload.setPayloadVersion(2);
+        payload.setStructuredSource(new ObjectMapper()
+                .valueToTree(Collections.singletonList(pluginData)));
+
+        ResponseEntity<?> response = controller.receive(payload);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        assertEquals(1, captor.getValue().getSource().size());
+        PluginData published = assertInstanceOf(PluginData.class, captor.getValue().getSource().get(0));
+        assertEquals("structuredPlugin", published.getName());
+    }
+
+    /**
+     * A legacy envelope without a version field keeps working for older senders.
+     */
+    @Test
+    public void receiveLegacySourceWithoutVersionPublishesTest() {
+        when(clusterSelectMasterService.isMaster()).thenReturn(true);
+        PluginData pluginData = new PluginData();
+        pluginData.setName("legacyPlugin");
+        ClusterDataChangedEventPayload payload = new ClusterDataChangedEventPayload(
+                ConfigGroupEnum.PLUGIN.name(), DataEventTypeEnum.UPDATE.name(),
+                GsonUtils.getInstance().toJson(Collections.singletonList(pluginData)));
+
+        assertEquals(HttpStatus.OK, controller.receive(payload).getStatusCode());
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        PluginData published = assertInstanceOf(PluginData.class, captor.getValue().getSource().get(0));
+        assertEquals("legacyPlugin", published.getName());
+    }
+
+    /**
+     * Exactly one source representation is accepted, so a conflicting payload is rejected.
+     */
+    @Test
+    public void receiveBothSourceRepresentationsReturnsBadRequestTest() {
+        when(clusterSelectMasterService.isMaster()).thenReturn(true);
+        ClusterDataChangedEventPayload payload =
+                new ClusterDataChangedEventPayload(ConfigGroupEnum.PLUGIN.name(), DataEventTypeEnum.UPDATE.name(), "[]");
+        payload.setStructuredSource(new ObjectMapper().createArrayNode());
+
+        assertEquals(HttpStatus.BAD_REQUEST, controller.receive(payload).getStatusCode());
+        verify(eventPublisher, never()).publishEvent(any(DataChangedEvent.class));
+    }
+
+    /**
+     * Unknown envelope versions and non-array structured sources are rejected.
+     */
+    @Test
+    public void receiveUnknownVersionOrShapeReturnsBadRequestTest() {
+        when(clusterSelectMasterService.isMaster()).thenReturn(true);
+        ObjectMapper objectMapper = new ObjectMapper();
+        ClusterDataChangedEventPayload unknownVersion = new ClusterDataChangedEventPayload();
+        unknownVersion.setGroupKey(ConfigGroupEnum.PLUGIN.name());
+        unknownVersion.setEventType(DataEventTypeEnum.UPDATE.name());
+        unknownVersion.setPayloadVersion(3);
+        unknownVersion.setStructuredSource(objectMapper.createArrayNode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.receive(unknownVersion).getStatusCode());
+
+        ClusterDataChangedEventPayload objectSource = new ClusterDataChangedEventPayload();
+        objectSource.setGroupKey(ConfigGroupEnum.PLUGIN.name());
+        objectSource.setEventType(DataEventTypeEnum.UPDATE.name());
+        objectSource.setPayloadVersion(2);
+        objectSource.setStructuredSource(objectMapper.createObjectNode());
+        assertEquals(HttpStatus.BAD_REQUEST, controller.receive(objectSource).getStatusCode());
+
+        ClusterDataChangedEventPayload legacyUnknownVersion = new ClusterDataChangedEventPayload(
+                ConfigGroupEnum.PLUGIN.name(), DataEventTypeEnum.UPDATE.name(), "[]");
+        legacyUnknownVersion.setPayloadVersion(2);
+        assertEquals(HttpStatus.BAD_REQUEST, controller.receive(legacyUnknownVersion).getStatusCode());
+        verify(eventPublisher, never()).publishEvent(any(DataChangedEvent.class));
     }
 
 }

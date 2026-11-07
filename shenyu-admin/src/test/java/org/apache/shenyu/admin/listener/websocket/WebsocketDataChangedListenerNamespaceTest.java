@@ -28,7 +28,9 @@ import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.WebsocketData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
@@ -213,18 +215,18 @@ public final class WebsocketDataChangedListenerNamespaceTest {
     }
 
     private Map<String, JsonNode> capture(final Runnable action) throws Exception {
-        Map<String, String> raw = new LinkedHashMap<>();
+        Map<String, WebsocketData<?>> captured = new LinkedHashMap<>();
         try (MockedStatic<WebsocketCollector> mockedStatic = mockStatic(WebsocketCollector.class)) {
-            mockedStatic.when(() -> WebsocketCollector.send(anyString(), anyString(), any()))
+            mockedStatic.when(() -> WebsocketCollector.sendConfiguration(anyString(), any(), any()))
                     .thenAnswer(invocation -> {
-                        raw.put(invocation.getArgument(0), invocation.getArgument(1));
+                        captured.put(invocation.getArgument(0), invocation.getArgument(1));
                         return null;
                     });
             action.run();
         }
         Map<String, JsonNode> parsed = new LinkedHashMap<>();
-        for (Map.Entry<String, String> entry : raw.entrySet()) {
-            parsed.put(entry.getKey(), mapper.readTree(entry.getValue()));
+        for (Map.Entry<String, WebsocketData<?>> entry : captured.entrySet()) {
+            parsed.put(entry.getKey(), mapper.readTree(GsonUtils.getInstance().toJson(entry.getValue())));
         }
         return parsed;
     }
