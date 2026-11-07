@@ -28,6 +28,11 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-agent-audit</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-tracing</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

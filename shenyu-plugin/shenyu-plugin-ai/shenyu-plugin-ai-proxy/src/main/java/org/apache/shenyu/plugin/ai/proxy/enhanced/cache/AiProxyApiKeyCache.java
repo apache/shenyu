@@ -121,10 +121,21 @@ public final class AiProxyApiKeyCache {
      * @return real key or null if missing/disabled
      */
     public String getRealApiKey(final String selectorId, final String proxyApiKey) {
-        final ProxyApiKeyData data = dataMap.get(key(selectorId, proxyApiKey));
+        final ProxyApiKeyData data = getValidatedMapping(selectorId, proxyApiKey);
         return (Objects.nonNull(data) && Boolean.TRUE.equals(data.getEnabled()))
                 ? data.getRealApiKey()
                 : null;
+    }
+
+    /**
+     * Capture an enabled mapping so admission and audit use the same synchronized identity.
+     * @param selectorId matched selector
+     * @param proxyApiKey presented credential
+     * @return enabled mapping, or null
+     */
+    public ProxyApiKeyData getValidatedMapping(final String selectorId, final String proxyApiKey) {
+        ProxyApiKeyData data = dataMap.get(key(selectorId, proxyApiKey));
+        return Objects.nonNull(data) && Boolean.TRUE.equals(data.getEnabled()) ? data : null;
     }
 
     /** Clear cache. */
