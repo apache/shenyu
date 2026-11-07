@@ -25,6 +25,7 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -151,15 +153,14 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
                 requestBuilder = RequestBuilder.patch(url);
                 break;
         }
-        if (StringUtils.isNotBlank(body)) {
-            requestBuilder.setEntity(createStringEntity(body));
-        }
-
         Map<String, Collection<String>> headers = request.getHeaders();
         for (String name : headers.keySet()) {
             for (String value : headers.get(name)) {
                 requestBuilder.addHeader(name, value);
             }
+        }
+        if (StringUtils.isNotBlank(body)) {
+            requestBuilder.setEntity(createStringEntity(body, requestBuilder.getFirstHeader("Content-Type")));
         }
         Future<HttpResponse> execute = httpAsyncClient.execute(requestBuilder.build(), new FutureCallback<>() {
             @Override
@@ -207,9 +208,11 @@ public class HttpShenyuSdkClient extends AbstractShenyuSdkClient {
         }
     }
 
-    private StringEntity createStringEntity(final String body) {
-        StringEntity stringEntity = new StringEntity(body, StandardCharsets.UTF_8);
-        stringEntity.setContentType("application/json;charset=UTF-8");
+    private StringEntity createStringEntity(final String body, final Header contentTypeHeader) {
+        String contentType = Objects.isNull(contentTypeHeader) ? "application/json;charset=UTF-8" : contentTypeHeader.getValue();
+        Charset charset = Objects.requireNonNullElse(ContentType.parse(contentType).getCharset(), StandardCharsets.UTF_8);
+        StringEntity stringEntity = new StringEntity(body, charset);
+        stringEntity.setContentType(contentType);
         return stringEntity;
     }
 }
