@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiStreamCompletionProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
@@ -63,6 +64,16 @@ import java.util.List;
         havingValue = "true",
         matchIfMissing = true)
 public class AiProxyPluginConfiguration {
+
+    /**
+     * Bind the explicit Chat SSE completion policy; compatibility remains the default.
+     * @return completion properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.ai.proxy.stream-completion")
+    public AiStreamCompletionProperties aiStreamCompletionProperties() {
+        return new AiStreamCompletionProperties();
+    }
 
     /**
      * Ai proxy plugin.
@@ -185,7 +196,7 @@ public class AiProxyPluginConfiguration {
      */
     @Bean
     public OpenAiChat openAiChat() {
-        return new OpenAiChat();
+        return new OpenAiChat(aiStreamCompletionProperties().getMode());
     }
 
     /**

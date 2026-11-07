@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
+import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
@@ -287,9 +288,10 @@ public final class AiProxyEngine {
                     .flatMap(response -> {
                         observedAttempt.status(response.getStatusCode());
                         AiUpstreamResponse observed = new AiUpstreamUsageTap(
-                                observedAttempt, response.getHeaders(), prepared.stream()).attach(response);
+                                observedAttempt, response.getHeaders(), prepared.stream(), "openai-chat".equals(prepared.targetProtocol())
+                                && response.getStatusCode() >= 200 && response.getStatusCode() < 300).attach(response);
                         return handleResponse(observed, prepared, fallback, retriesRemaining,
-                                execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe);
+                                execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe, observedAttempt);
                     })
                     .timeout(Duration.ofNanos(Math.max(1L, remainingNanos - elapsedSince(deadlineStartNanos))),
                             Mono.error(new AiTransportException(
@@ -299,7 +301,7 @@ public final class AiProxyEngine {
                     .doOnError(error -> observedAttempt.finish(SignalType.ON_ERROR,
                             error instanceof UpstreamStatusFailure ? null : AiObservationSupport.outcome(error)))
                     .doOnCancel(() -> observedAttempt.finish(SignalType.CANCEL, null))
-                    .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, target))
+                    .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, target).put(AiRequestObservation.Attempt.REACTOR_KEY, observedAttempt))
                     .onErrorResume(error -> resumeAttempt(error, prepared, fallback, maxRetries,
                             retriesRemaining, execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe));
         });
@@ -309,7 +311,7 @@ public final class AiProxyEngine {
                                       final Optional<AiCommonConfig> fallback, final int retriesRemaining,
                                       final Execution execution, final int currentAttempt,
                                       final AiProxyAttemptEvent.Phase phase,
-                                      final boolean fallbackProviderDeclaredReplaySafe) {
+                                      final boolean fallbackProviderDeclaredReplaySafe, final AiRequestObservation.Attempt observation) {
         return Mono.defer(() -> {
             int status = response.getStatusCode();
             if (status >= 400) {
@@ -319,7 +321,8 @@ public final class AiProxyEngine {
             AiUpstreamResponse adapted = prepared.responseAdapter().adapt(response);
             return consumeResponse(adapted, execution.responseConsumer(), execution.emitted())
                     .doOnSuccess(ignored -> emit(execution.invocationId(), currentAttempt, phase,
-                            AiProxyAttemptEvent.Reason.COMPLETED, null));
+                            prepared.stream() && observation.streamCompletion().evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER
+                                    ? AiProxyAttemptEvent.Reason.STREAM_COMPLETION_UNCONFIRMED : AiProxyAttemptEvent.Reason.COMPLETED, null));
         });
     }
 
