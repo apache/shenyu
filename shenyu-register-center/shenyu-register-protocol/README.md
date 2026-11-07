@@ -51,20 +51,32 @@ field types, authentication behavior, and success bodies are part of v1.
 
 ## Field contract
 
-“Required” below means needed for a useful registration in the receiving service;
-legacy controllers do not synchronously validate every field. Preserve that
-behavior in v1: an HTTP acknowledgement is not proof that incomplete registration
-succeeded. The field sets below describe all serialized DTO fields. Read-only
-`getType()` values are server dispatch information, not required request fields.
+Admin validates the six HTTP registration request bodies before publishing
+registration events. Required strings must be non-null and contain at least one
+non-whitespace character; required objects and integers must be non-null. For
+compatibility with existing clients, metadata (including nested MCP metadata)
+accepts missing, null or empty `contextPath`, `ruleName`, and `host`. URI and
+offline requests accept missing, null or empty `contextPath` and `host`.
+Whitespace-only values for these compatibility fields are rejected. Admin
+defaults a missing, null or empty metadata `ruleName` to `path`. API-doc requests
+still require a non-blank `contextPath`.
+Validation failures return HTTP 400. These checks live in Admin; the protocol DTOs
+remain JDK-only and carry no validation framework annotations. An HTTP success
+still acknowledges enqueueing, not completion of registration.
+
+The field sets below describe all serialized DTO fields. Read-only `getType()`
+values are server dispatch information, not required request fields.
 No fields are designated deprecated in this initial contract.
 
 ### Metadata
 
-- Required: `appName`, `rpcType`, and `path` (strings); supply `contextPath` for a
-  context-scoped selector. `ruleName` supplies the desired rule name. RPC-specific
-  integrations additionally need `serviceName`, `methodName`, `parameterTypes`,
-  and `rpcExt` (all strings). `rpcExt` is JSON encoded **inside a string**.
-- Optional strings: `pathDesc`, `host`, `namespaceId`. `port` is an integer;
+- Required: `appName`, `path`, and `rpcType` (strings). `contextPath`, `ruleName`,
+  and `host` are compatibility fields; empty values are accepted, while
+  whitespace-only values are rejected. A missing or empty `ruleName` defaults
+  to `path` in Admin. RPC-specific integrations additionally need `serviceName`,
+  `methodName`, `parameterTypes`, and `rpcExt` (all strings). `rpcExt` is JSON
+  encoded **inside a string**.
+- Optional strings: `pathDesc`, `namespaceId`. `port` is an integer;
   `pluginNames` is a string array. Missing reference fields remain null, including
   a missing plugin list; this is not an empty-list default.
 - Missing `enabled`, `registerMetaData`, and `addPrefixed` default to `false` during
@@ -75,9 +87,12 @@ No fields are designated deprecated in this initial contract.
 
 ### URI and offline lifecycle
 
-- Required: `host` (string), `port` (integer), `rpcType` (string), and a non-empty
-  `contextPath` or `appName` (strings) identifying the selector. `protocol` is a
-  string such as `http://`; it is distinct from the registration protocol version.
+- Required: `appName` and `rpcType` (strings). `contextPath` and `host` are
+  compatibility fields; empty values are accepted, while whitespace-only
+  values are rejected.
+  `port` (integer) is needed by the upstream service but is not checked by HTTP
+  request validation. `protocol` is a string such as `http://`; it is distinct
+  from the registration protocol version.
 - Optional: `namespaceId` has the metadata default; `instanceInfo` is a nullable
   JSON-encoded string for instance diagnostics. Do not remove it from the wire
   model or change its type to an object.
@@ -92,9 +107,10 @@ No fields are designated deprecated in this initial contract.
 
 ### API documentation
 
-- Required for registration: `contextPath`, `apiPath`, `rpcType` (strings),
-  `httpMethod` (integer, existing HTTP-method code), and `eventType: REGISTER`.
-  `OFFLINE` uses `contextPath` to offline the corresponding documentation.
+- Required: `contextPath`, `apiPath`, `rpcType` (strings), `httpMethod` (integer,
+  existing HTTP-method code), and `eventType` (enum). These checks apply to all
+  API-doc requests. Send `REGISTER` to register documentation; `OFFLINE` uses
+  `contextPath` to offline the corresponding documentation.
 - Optional strings: `consume`, `produce`, `version`, `ext`, `apiOwner`, `apiDesc`,
   `document`. Optional integers: `state`, `apiSource`. `tags` is a string array;
   a missing/empty list falls back to the context path in the service.
@@ -109,7 +125,9 @@ No fields are designated deprecated in this initial contract.
 ### Discovery configuration and instances
 
 - Required strings: `selectorName`, `name`, `discoveryType`, `serverList`,
-  `listenerNode`, `pluginName`; `handler` is a JSON-encoded string (usually `{}`).
+  `pluginName`. The discovery service additionally uses `listenerNode` and
+  `handler` (a JSON-encoded string, usually `{}`); these are not checked by HTTP
+  request validation.
   `props` is an object of provider configuration properties. Supply `{}` when no
   additional provider settings are needed; missing `props` remains null.
 - Optional `namespaceId` has the metadata default. `selectorName` must match the

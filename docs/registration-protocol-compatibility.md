@@ -71,11 +71,16 @@ providers; do not invent /register-instance.
 
 ## Field semantics and defaults
 
-"Required" below means needed to carry out the operation, not necessarily a Jakarta
-@NotNull annotation or immediate HTTP rejection. Several controllers accept a DTO
-without @Valid and downstream failures can occur after acknowledgement.
-Send explicit values for operational fields; a deserialization default is not a
-promise that an omitted field creates a usable route.
+"Required" below means the Admin HTTP endpoint rejects a missing, null or blank
+value with HTTP 400 before publishing the registration event. The protocol DTOs
+remain JDK-only; validation is owned by Admin. For compatibility with existing
+clients, metadata (including nested MCP metadata) accepts missing, null or empty
+`contextPath`, `ruleName`, and `host`. URI and offline requests accept missing,
+null or empty `contextPath` and `host`. Whitespace-only values for these
+compatibility fields are rejected. Admin defaults a missing, null or empty
+metadata `ruleName` to `path`. API-doc requests still require a non-blank
+`contextPath`. Send explicit values for operational fields because acceptance
+does not guarantee that downstream registration can create a usable route.
 
 Metadata, URI, discovery-config, MCP and offline controllers replace a null namespaceId
 with the default namespace ID 649330b6-c2d7-4edc-be8e-8a54df9eb385. Empty strings
@@ -89,12 +94,13 @@ explicit valid namespace for nondefault deployments, including nested MCP metada
 
 | Fields | JSON type | Semantics |
 | --- | --- | --- |
-| appName, contextPath | string | Application/selector identity; a missing context path can fall back to appName in registration helpers |
+| appName | string | Application/selector identity; required by the HTTP endpoint |
+| contextPath | string | Optional compatibility field; registration helpers fall back to appName when it is missing or empty |
 | path, rpcType | string | Endpoint and protocol/plugin identity; required by the selected registration consumer |
 | serviceName, methodName, parameterTypes, rpcExt | string | Protocol-specific invocation descriptor; required according to the RPC plugin. Keep rpcExt's embedded JSON schema compatible |
-| ruleName | string | Required nonblank by the asynchronous registration consumer |
+| ruleName | string | Optional compatibility field; Admin defaults a missing or empty value to `path` |
 | pathDesc | string | Optional description |
-| host, port | string, integer | Backend address; supply a valid host/port for consumers that also register upstreams |
+| host, port | string, integer | Backend address; host is optional at the HTTP boundary, while consumers that register upstreams still need a valid host/port |
 | namespaceId | string | Tenant identity; null controller default as above |
 | enabled, registerMetaData, addPrefixed | boolean | Endpoint enablement, metadata persistence selection and path-prefix behavior. Java no-arg defaults are false; builders may choose other values, so send these explicitly |
 | pluginNames | array of strings | Optional plugin selection for registration |
@@ -102,10 +108,11 @@ explicit valid namespace for nondefault deployments, including nested MCP metada
 
 Do not serialize service objects or Java class names as the contract itself.
 Keep parameterTypes/rpcExt formatting stable for the selected invocation plugin.
-The current consumer drops metadata events missing appName, path, ruleName,
-rpcType or namespaceId; the HTTP acknowledgement can already have been sent.
-URI events similarly require nonblank contextPath, rpcType and namespaceId before
-dispatch, in addition to the upstream address checks in the service.
+The HTTP endpoint rejects metadata events missing appName, path or rpcType before
+publishing. It accepts legacy metadata without contextPath, ruleName or host;
+downstream consumers retain their existing fallback and upstream filtering
+behavior. URI events similarly require appName and rpcType at the HTTP boundary;
+contextPath and host remain optional compatibility fields.
 
 ### URI registration and offline
 
@@ -113,8 +120,9 @@ dispatch, in addition to the upstream address checks in the service.
 
 | Fields | JSON type | Semantics |
 | --- | --- | --- |
-| appName, contextPath, rpcType | string | Locate the application selector and protocol/plugin |
-| host, port | string, integer | Backend identity; valid nonblank host and nonnull port are needed to update an upstream |
+| appName, rpcType | string | Locate the application selector and protocol/plugin; both are required by the HTTP endpoint |
+| contextPath | string | Optional compatibility field; empty values are accepted, but the existing registration consumer filters out URI events whose context path is empty |
+| host, port | string, integer | Backend identity; host is optional at the HTTP boundary, but a valid host and nonnull port are needed to update an upstream |
 | protocol | string | Upstream protocol, preserving the consumer's existing format |
 | eventType | string enum | REGISTER, UPDATED, DELETED, IGNORED, OFFLINE, HEARTBEAT retain their exact spellings. Offline path alone does not manufacture the deletion event |
 | namespaceId | string | Namespace identity |
