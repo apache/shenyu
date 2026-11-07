@@ -45,7 +45,7 @@ public final class MatchDataCache {
     
     /**
      * plugin name -> LRU Map.
-     * LRU Map: path -> rule data.
+     * LRU Map: path or selector-scoped path -> rule data.
      */
     private static final ConcurrentMap<String, Map<String, RuleData>> RULE_DATA_MAP = Maps.newConcurrentMap();
 
@@ -176,6 +176,21 @@ public final class MatchDataCache {
         MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map ->
                 new WindowTinyLFUMap<>(initialCapacity, ttl, maximumSize, Boolean.FALSE)).put(path, ruleData);
     }
+
+    /**
+     * Cache a rule match within its selected selector, retaining the per-plugin size bound.
+     *
+     * @param selectorId selected selector id
+     * @param path request path
+     * @param ruleData matched rule or negative result
+     * @param initialCapacity initial capacity
+     * @param maximumSize maximum size per plugin
+     * @param ttl lifetime in milliseconds
+     */
+    public void cacheRuleData(final String selectorId, final String path, final RuleData ruleData,
+                              final int initialCapacity, final long maximumSize, final long ttl) {
+        cacheRuleData(ruleCacheKey(selectorId, path), ruleData, initialCapacity, maximumSize, ttl);
+    }
     
     /**
      * remove rule data.
@@ -259,6 +274,22 @@ public final class MatchDataCache {
     public RuleData obtainRuleData(final String pluginName, final String path) {
         final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
         return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+    }
+
+    /**
+     * Obtain a rule match for the selected selector and request path.
+     *
+     * @param pluginName plugin name
+     * @param selectorId selected selector id
+     * @param path request path
+     * @return matched rule or negative result
+     */
+    public RuleData obtainRuleData(final String pluginName, final String selectorId, final String path) {
+        return obtainRuleData(pluginName, ruleCacheKey(selectorId, path));
+    }
+
+    private static String ruleCacheKey(final String selectorId, final String path) {
+        return selectorId.length() + ":" + selectorId + path;
     }
     
     /**

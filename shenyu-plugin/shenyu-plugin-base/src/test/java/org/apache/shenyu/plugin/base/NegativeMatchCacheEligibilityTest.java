@@ -105,7 +105,7 @@ class NegativeMatchCacheEligibilityTest {
         BaseDataCache.getInstance().cacheRuleData(dynamic);
 
         execute(false);
-        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "selector", "/x"));
         assertNull(plugin.rule);
 
         execute(true);
@@ -126,7 +126,8 @@ class NegativeMatchCacheEligibilityTest {
         BaseDataCache.getInstance().cacheRuleData(secondRule);
 
         execute(true);
-        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        assertNotNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, first.getId(), "/x"));
+        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, second.getId(), "/x"));
 
         execute(false);
         assertSame(secondRule, plugin.rule);
@@ -169,7 +170,7 @@ class NegativeMatchCacheEligibilityTest {
 
             clock.set(predicateFalse(operator, boundary));
             execute(false);
-            assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+            assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "selector", "/x"));
             assertNull(plugin.rule);
 
             clock.set(predicateTrue(operator, boundary));
@@ -196,7 +197,7 @@ class NegativeMatchCacheEligibilityTest {
 
         execute(false);
 
-        RuleData cached = MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x");
+        RuleData cached = MatchDataCache.getInstance().obtainRuleData(PLUGIN, "selector", "/x");
         assertNotNull(cached);
         assertNull(cached.getId());
     }
