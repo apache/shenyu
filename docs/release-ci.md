@@ -17,7 +17,7 @@ Configure these secrets in the Apache `apache/shenyu` repository. They are consu
 
 The signing key fingerprint and Sonatype staging profile are workflow inputs, so the workflow summary records exactly which public key and profile were used. The private key and passphrase are never written to artifacts or the step summary.
 
-Create the `apache-release-candidate` GitHub Environment in the Apache repository and configure at least one required reviewer. The staging job is bound to this environment and refuses to continue when the environment has no protection rule. This approval is the trusted gate for the release branch before LDAP and GPG secrets are made available. The workflow also resolves `release_ref` as an existing branch, rejects SNAPSHOT POMs, and rejects an already-existing candidate tag or SVN directory.
+Protect each `<version>-release` branch in the Apache repository and create the `apache-release-candidate` GitHub Environment with at least one required reviewer. The staging job verifies both the branch protection flag and a nonempty reviewer rule before LDAP and GPG secrets are made available. The workflow also resolves `release_ref` as an existing branch, rejects SNAPSHOT POMs, rejects an already-existing candidate tag or SVN directory, and correlates the dispatched CI run with a unique identifier before downloading artifacts.
 
 ## Run a candidate
 

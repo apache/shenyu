@@ -15,6 +15,11 @@
 
 name: ci
 
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && inputs.release_candidate
+      && format('Release candidate {0}', inputs.release_dispatch_id)
+      || github.workflow }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -22,6 +27,11 @@ on:
         description: Build unsigned release artifacts with Javadocs and legal resources
         type: boolean
         default: false
+      release_dispatch_id:
+        description: Unique release workflow correlation identifier
+        type: string
+        required: false
+        default: ''
   # Required checks must report a result even for documentation-only PRs.
   pull_request:
   push:
@@ -237,7 +247,7 @@ jobs:
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp \
             -pl shenyu-admin,shenyu-bootstrap,shenyu-dist/shenyu-admin-dist,shenyu-dist/shenyu-bootstrap-dist \
             dependency:list -DincludeScope=runtime -DoutputFile=target/release-runtime-dependencies.txt
-          python3 .github/scripts/collect-release-licenses.py
+          python3 .github/scripts/collect-release-licenses.py --check
       - name: Check out the pinned ShenYu license verifier
         if: github.event_name == 'workflow_dispatch' && inputs.release_candidate
         uses: actions/checkout@v4

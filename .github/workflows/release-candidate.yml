@@ -105,6 +105,11 @@ jobs:
             echo "release_ref must resolve to an existing remote branch" >&2
             exit 1
           }
+          branch_protected="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${RELEASE_REF}" --jq .protected)"
+          [[ "$branch_protected" == "true" ]] || {
+            echo "release_ref must be a GitHub-protected branch" >&2
+            exit 1
+          }
           branch_sha="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${RELEASE_REF}" --jq .commit.sha)"
           remote_sha="$(git ls-remote origin "refs/heads/${RELEASE_REF}" | awk '{print $1}')"
           [[ -n "$remote_sha" && "$remote_sha" == "$branch_sha" && "$remote_sha" == "$(git rev-parse HEAD)" ]] || {
@@ -112,9 +117,9 @@ jobs:
             exit 1
           }
           environment_rules="$(gh api "repos/${GITHUB_REPOSITORY}/environments/apache-release-candidate" \
-            --jq '[.protection_rules[] | select(.type == "required_reviewers")] | length' 2>/dev/null || true)"
+            --jq '[.protection_rules[] | select(.type == "required_reviewers" and (.reviewers | length > 0))] | length' 2>/dev/null || true)"
           [[ "$environment_rules" =~ ^[1-9][0-9]*$ ]] || {
-            echo "Configure at least one required_reviewers protection rule for the apache-release-candidate environment before staging" >&2
+            echo "Configure at least one required_reviewers rule with reviewers for the apache-release-candidate environment before staging" >&2
             exit 1
           }
           version="$(python3 - <<'PYTHON'
@@ -151,13 +156,16 @@ jobs:
         run: |
           set -euo pipefail
           started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          gh workflow run ci.yml --ref "$RELEASE_REF" -f release_candidate=true
+          dispatch_id="$(uuidgen | tr '[:upper:]' '[:lower:]')"
+          echo "dispatch_id=$dispatch_id" >> "$GITHUB_OUTPUT"
+          gh workflow run ci.yml --ref "$RELEASE_REF" \
+            -f release_candidate=true -f release_dispatch_id="$dispatch_id"
           run_id=""
           for attempt in {1..60}; do
             run_id="$(gh run list --workflow ci.yml --event workflow_dispatch --limit 20 \
-              --json databaseId,headSha,createdAt | \
-              python3 -c 'import json, sys; sha, started = sys.argv[1:]; runs = json.load(sys.stdin); matches = [r for r in runs if r.get("headSha") == sha and r.get("createdAt", "") >= started]; print(matches[0]["databaseId"] if matches else "")' \
-              "$release_sha" "$started_at")"
+              --json databaseId,headSha,createdAt,displayTitle | \
+              python3 -c 'import json, sys; sha, started, dispatch = sys.argv[1:]; runs = json.load(sys.stdin); title = f"Release candidate {dispatch}"; matches = [r for r in runs if r.get("headSha") == sha and r.get("createdAt", "") >= started and r.get("displayTitle") == title]; print(matches[0]["databaseId"] if matches else "")' \
+              "$release_sha" "$started_at" "$dispatch_id")"
             [[ -n "$run_id" ]] && break
             sleep 10
           done

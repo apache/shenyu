@@ -116,12 +116,22 @@ def main() -> None:
     distributions = {}
     for kind, pattern in ARCHIVE_PATTERNS.items():
         if kind == "source":
-            archive_pattern = f"*{args.version}-src.zip"
+            archive_patterns = [f"*{args.version}-src.zip"]
         else:
-            archive_pattern = f"apache-shenyu-{args.version}-{kind}-bin.tar.gz"
-        candidates = sorted(staging_repository.rglob(archive_pattern))
+            # Maven assembly installations may retain the module artifactId in
+            # the repository filename, while the SVN package uses the Apache
+            # canonical name. Accept both input forms and rename below.
+            archive_patterns = [
+                f"apache-shenyu-{args.version}-{kind}-bin.tar.gz",
+                f"shenyu-{kind}-dist-{args.version}-{kind}-bin.tar.gz",
+            ]
+        candidates = sorted({
+            candidate
+            for archive_pattern in archive_patterns
+            for candidate in staging_repository.rglob(archive_pattern)
+        })
         if len(candidates) != 1:
-            raise SystemExit(f"Expected one {kind} distribution matching {pattern}, found {len(candidates)}")
+            raise SystemExit(f"Expected one {kind} distribution matching {archive_patterns}, found {len(candidates)}")
         target = copy_distribution(candidates[0], args.svn_dir, args.version, kind)
         sign(target, args.key_id, args.passphrase_file)
         checksum(target, "sha512", ".sha512")
