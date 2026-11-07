@@ -156,3 +156,5 @@ Organizations using Apache ShenYu are welcome to [register through GitHub issue 
 ## License
 
 Apache ShenYu is licensed under the [Apache License, Version 2.0](LICENSE).
+
+Eureka registry externalization: see [the staged migration and rollback guide](docs/plugin-store-eureka.md).

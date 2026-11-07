@@ -132,6 +132,18 @@ jobs:
         shell: bash
         run: |
           exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+      - name: Check out the pinned external Eureka candidate
+        if: matrix.case == 'shenyu-integrated-test-spring-cloud'
+        uses: actions/checkout@v4
+        with:
+          repository: apache/shenyu-plugin-store
+          ref: be07c121085f219f46578515156e7a0bb20befdf
+          path: target/external-eureka-store
+      - name: Prepare the external Eureka runtime for Spring Cloud
+        if: matrix.case == 'shenyu-integrated-test-spring-cloud'
+        run: |
+          python3 .github/scripts/external-eureka-runtime.py prepare target/external-eureka-store target/external-eureka-runtime
+          echo "SHENYU_EUREKA_RUNTIME=$GITHUB_WORKSPACE/target/external-eureka-runtime" >> "$GITHUB_ENV"
       - name: Resolve required example projects
         id: examples
         env:
