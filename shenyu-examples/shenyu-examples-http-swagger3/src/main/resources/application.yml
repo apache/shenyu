@@ -47,9 +47,6 @@ shenyu:
 #      maxSleepTimeMilliseconds: 5000
 #      connectionTimeoutMilliseconds: 60000
 #      sessionTimeoutMilliseconds: 8
-#    type: etcd
-#    serverList: http://127.0.0.1:2379
-#    registerPath: shenyu_discovery_demo_${shenyu.client.http.props.appName}
 #    type: eureka
 #    serverList: http://127.0.0.1:8761/eureka
 #    registerPath: shenyu_discovery_demo_http-swagger3

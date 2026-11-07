@@ -70,8 +70,8 @@ data:
     
     shenyu:
       register:
-        registerType: http #http #zookeeper #etcd #nacos #consul
-        serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
+        registerType: http #http #zookeeper #nacos #consul
+        serverLists: #localhost:2181 #localhost:8848
         props:
           sessionTimeout: 5000
           connectionTimeout: 2000
@@ -362,8 +362,8 @@ data:
           - Access-Control-Allow-Origin
       register:
         enabled: false
-        registerType: zookeeper #etcd #consul
-        serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+        registerType: zookeeper #consul
+        serverLists: localhost:2181 #localhost:8848
         props:
       cross:
         enabled: true
@@ -496,12 +496,6 @@ data:
           sessionTimeoutMilliseconds: 5000
           connectionTimeoutMilliseconds: 2000
 
-  application-admin-sync-etcd.yml: |
-    shenyu:
-      sync:
-        etcd:
-          url: http://shenyu-etcd:2379
-
   application-admin-sync-nacos.yml: |
     shenyu:
       sync:
@@ -553,12 +547,6 @@ data:
           url: shenyu-zookeeper:2181
           sessionTimeoutMilliseconds: 5000
           connectionTimeoutMilliseconds: 2000
-
-  application-bootstrap-sync-etcd.yml: |
-    shenyu:
-      sync:
-        etcd:
-          url: http://shenyu-etcd:2379
 
   application-bootstrap-sync-nacos.yml: |
     shenyu:
