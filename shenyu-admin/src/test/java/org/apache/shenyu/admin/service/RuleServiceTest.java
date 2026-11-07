@@ -58,6 +58,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -411,6 +412,71 @@ public final class RuleServiceTest {
                 .id("789")
                 .name(PluginEnum.REWRITE.getName())
                 .build());
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"create", "update", "import"})
+    public void testAiProxyRuleGenerationContractAcceptsDefaultsAtWriteBoundaries(final String operation) {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder().id("789").name("aiProxy").build());
+        exerciseRuleWriteFixture(true, "{\"generationOverrides\":{\"model\":\"fixture-model\",\"temperature\":null,\"stream\":false}}", operation);
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"create", "update", "import"})
+    public void testAiProxyRuleGenerationContractRejectsProtectedFieldsBeforeWrite(final String operation) {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder().id("789").name("aiProxy").build());
+        ShenyuAdminException error = exerciseRuleWriteFixture(false, "{\"generationOverrides\":{\"apiKey\":\"FAKE_SECRET\"}}", operation);
+        assertTrue(!error.getMessage().contains("FAKE_SECRET"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("rewriteFixtures")
+    public void testRewriteFixtureAtWriteBoundaries(final String name, final boolean accepted, final String source, final String operation) {
+        mockRewritePlugin();
+        exerciseRuleWriteFixture(accepted, source, operation);
+    }
+
+    private ShenyuAdminException exerciseRuleWriteFixture(final boolean accepted, final String source, final String operation) {
+        RuleDTO candidate = buildRuleDTO("update".equals(operation) ? "123" : "");
+        candidate.setHandle(source);
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(ruleMapper.updateSelective(any())).willReturn(1);
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+        given(ruleMapper.selectAll()).willReturn(Collections.emptyList());
+        if (accepted) {
+            if ("import".equals(operation)) {
+                assertEquals(1, ruleService.importData(Collections.singletonList(candidate)).getSuccessCount());
+            } else {
+                assertEquals(1, ruleService.createOrUpdate(candidate));
+            }
+            return null;
+        } else {
+            ShenyuAdminException error;
+            if ("import".equals(operation)) {
+                error = assertThrows(ShenyuAdminException.class, () -> ruleService.importData(Collections.singletonList(candidate)));
+            } else {
+                error = assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(candidate));
+            }
+            verify(ruleMapper, never()).insertSelective(any());
+            verify(ruleMapper, never()).updateSelective(any());
+            verifyNoInteractions(ruleEventPublisher);
+            return error;
+        }
+    }
+
+    private static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> rewriteFixtures() throws java.io.IOException {
+        try (var input = java.util.Objects.requireNonNull(RuleServiceTest.class.getResourceAsStream(
+                "/META-INF/shenyu/config-contract-fixtures/rewrite-rule-v1.tsv"));
+             var reader = new java.io.BufferedReader(new java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8))) {
+            return reader.lines().filter(line -> !line.isBlank() && !line.startsWith("#")).flatMap(line -> {
+                String[] fields = line.split("\\t", -1);
+                String source = "@missing".equals(fields[3]) ? null : "@blank".equals(fields[3]) ? "" : fields[3];
+                return java.util.stream.Stream.of("create", "update", "import").map(operation ->
+                        org.junit.jupiter.params.provider.Arguments.of(fields[0] + "-" + operation, Boolean.parseBoolean(fields[1]), source, operation));
+            }).toList().stream();
+        }
     }
 
     private void mockAgentGatewayPlugin() {

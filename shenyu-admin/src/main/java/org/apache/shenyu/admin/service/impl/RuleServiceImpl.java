@@ -57,7 +57,9 @@ import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValidator;
-import org.apache.shenyu.admin.validation.validator.RewriteRuleHandleValidator;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -477,8 +479,11 @@ public class RuleServiceImpl implements RuleService {
         }
         if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
             AgentGatewayRuleHandleValidator.validate(handle);
-        } else if (PluginEnum.REWRITE.getName().equals(plugin.getName())) {
-            RewriteRuleHandleValidator.validate(handle);
+        }
+        ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate(plugin.getName(), ConfigurationScope.RULE, "1", handle);
+        if (validation.status() == ConfigurationValidation.Status.INVALID) {
+            throw new ShenyuAdminException("Invalid rule configuration: " + plugin.getName() + " " + validation.violations().get(0).path()
+                    + " " + validation.violations().get(0).code());
         }
     }
     

@@ -21,7 +21,7 @@ source "$(dirname "$0")/../../../../../.github/scripts/select-e2e-sync.sh"
 
 # init kubernetes for mysql
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
-bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
+bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh || exit 1
 
 # init register center
 CUR_PATH=$(readlink -f "$(dirname "$0")")
