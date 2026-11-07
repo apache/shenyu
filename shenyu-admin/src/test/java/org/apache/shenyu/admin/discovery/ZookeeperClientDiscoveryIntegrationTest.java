@@ -42,6 +42,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -90,7 +91,7 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
     private WebSocket websocket;
 
     @AfterEach
-    public void cleanup() {
+    public void cleanup() throws IOException {
         if (Objects.nonNull(websocket)) {
             websocket.abort();
         }
@@ -180,16 +181,19 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     private ShenyuInstanceRegisterRepository startInstance(final TestingServer server, final String app, final int port) throws Exception {
         // The Admin health checker remains active while testing registry removal.
-        // Serve optional document requests promptly so they cannot block discovery callbacks.
+        // Answer document pulls too: a listening socket alone blocks the registry event thread.
         HttpServer backend = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
-        backends.add(backend);
         backend.createContext("/", exchange -> {
-            try {
-                exchange.sendResponseHeaders(404, -1);
+            byte[] document = "{\"openapi\":\"3.0.3\",\"info\":{\"title\":\"Discovery fixture\",\"version\":\"1\"},\"paths\":{}}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, document.length);
+            try (java.io.OutputStream output = exchange.getResponseBody()) {
+                output.write(document);
             } finally {
                 exchange.close();
             }
         });
+        backends.add(backend);
         backend.start();
         String appName = "zk-6525-" + app;
         Properties properties = new Properties();
