@@ -31,6 +31,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.sticky.StickySessionAffinity;
 import org.junit.jupiter.api.AfterEach;
@@ -61,6 +62,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -506,7 +509,8 @@ class DivideStickySessionAffinityTest {
         final MockedStatic<UpstreamCacheManager> cache = org.mockito.Mockito.mockStatic(UpstreamCacheManager.class);
         final UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
         // the cache contract hands filter() a mutable, request-owned snapshot
-        when(manager.findAllUpstreamListBySelectorId(selectorId)).thenReturn(new ArrayList<>(upstreams));
+        when(manager.findUpstreamListByLabels(eq(selectorId), any()))
+                .thenAnswer(invocation -> UpstreamLabelUtils.filter(upstreams, invocation.getArgument(1)));
         final List<Upstream> gray = upstreams.stream().filter(Upstream::isGray).toList();
         when(manager.findUpstreamListBySelectorId(selectorId)).thenReturn(
                 gray.isEmpty() ? new ArrayList<>(upstreams) : new ArrayList<>(gray));
@@ -518,9 +522,11 @@ class DivideStickySessionAffinityTest {
                                                      final String secondSelectorId, final List<Upstream> second) {
         final MockedStatic<UpstreamCacheManager> cache = org.mockito.Mockito.mockStatic(UpstreamCacheManager.class);
         final UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
-        when(manager.findAllUpstreamListBySelectorId(firstSelectorId)).thenReturn(new ArrayList<>(first));
+        when(manager.findUpstreamListByLabels(eq(firstSelectorId), any()))
+                .thenAnswer(invocation -> UpstreamLabelUtils.filter(first, invocation.getArgument(1)));
         when(manager.findUpstreamListBySelectorId(firstSelectorId)).thenReturn(new ArrayList<>(first));
-        when(manager.findAllUpstreamListBySelectorId(secondSelectorId)).thenReturn(new ArrayList<>(second));
+        when(manager.findUpstreamListByLabels(eq(secondSelectorId), any()))
+                .thenAnswer(invocation -> UpstreamLabelUtils.filter(second, invocation.getArgument(1)));
         when(manager.findUpstreamListBySelectorId(secondSelectorId)).thenReturn(new ArrayList<>(second));
         cache.when(UpstreamCacheManager::getInstance).thenReturn(manager);
         return cache;

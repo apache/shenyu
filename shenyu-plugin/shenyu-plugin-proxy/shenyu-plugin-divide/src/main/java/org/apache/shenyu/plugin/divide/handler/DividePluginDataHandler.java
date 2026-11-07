@@ -32,6 +32,7 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -58,6 +59,7 @@ public class DividePluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
+        UpstreamCacheManager.getInstance().removeLabelSubsets(selectorData.getId());
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
         MetaDataCache.getInstance().clean();
         CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
@@ -71,7 +73,14 @@ public class DividePluginDataHandler implements PluginDataHandler {
                 CanaryConfigValidator.validateExtensions(divideRuleHandle.getCanary(),
                         ParameterDataFactory::newInstance, PredicateJudgeFactory::newInstance);
             }
-            CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
+            String key = CacheKeyUtils.INST.getKey(ruleData);
+            if (Objects.nonNull(divideRuleHandle.getCanary())) {
+                UpstreamCacheManager.getInstance().registerLabelSubsets(ruleData.getSelectorId(), key,
+                        List.of(divideRuleHandle.getCanary().getStableLabels(), divideRuleHandle.getCanary().getCanaryLabels()));
+            } else {
+                UpstreamCacheManager.getInstance().unregisterLabelSubsets(ruleData.getSelectorId(), key);
+            }
+            CACHED_HANDLE.get().cachedHandle(key, divideRuleHandle);
             // the update is also need to clean, but there is no way to
             // distinguish between crate and update, so it is always clean
             MetaDataCache.getInstance().clean();
@@ -80,7 +89,9 @@ public class DividePluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> CACHED_HANDLE.get().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        UpstreamCacheManager.getInstance().unregisterLabelSubsets(ruleData.getSelectorId(), key);
+        CACHED_HANDLE.get().removeHandle(key);
         MetaDataCache.getInstance().clean();
     }
 

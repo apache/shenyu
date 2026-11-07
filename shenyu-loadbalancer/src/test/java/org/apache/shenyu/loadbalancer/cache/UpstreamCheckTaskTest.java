@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Timeout;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -38,7 +39,9 @@ import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -53,6 +56,62 @@ public class UpstreamCheckTaskTest {
      *  Here to set interval with 50s to avoid running the second time.
      */
     private final UpstreamCheckTask healthCheckTask = new UpstreamCheckTask(50000);
+
+    @Test
+    public void testBatchPublishesOnceAndIgnoresUnchangedMembership() {
+        List<String> changed = new ArrayList<>();
+        UpstreamCheckTask task = new UpstreamCheckTask(50000, changed::add);
+        Upstream first = Upstream.builder().url("first").build();
+        task.withBatch(() -> {
+            task.triggerAddOne("s", first);
+            task.triggerAddOne("s", Upstream.builder().url("second").build());
+            assertTrue(changed.isEmpty());
+            assertNull(task.getHealthySnapshot("s"));
+        });
+        assertEquals(2, task.getHealthySnapshot("s").size());
+        assertEquals(List.of("s"), changed);
+        changed.clear();
+        task.triggerAddOne("s", first);
+        task.triggerRemoveOne("s", Upstream.builder().url("absent").build());
+        task.putToMap(task.getUnhealthyUpstream(), "s", first);
+        assertTrue(changed.isEmpty());
+        task.triggerRemoveAll("s");
+        assertEquals(List.of("s"), changed);
+    }
+
+    @Test
+    public void testFailedBatchStillPublishesCompletedChanges() {
+        List<String> changed = new ArrayList<>();
+        UpstreamCheckTask task = new UpstreamCheckTask(50000, changed::add);
+        assertThrows(IllegalStateException.class, () -> task.withBatch(() -> {
+            task.triggerAddOne("s", Upstream.builder().url("first").build());
+            throw new IllegalStateException("interrupted update");
+        }));
+        assertEquals(List.of("s"), changed);
+        task.triggerRemoveAll("s");
+        assertEquals(List.of("s", "s"), changed);
+    }
+
+    @Test
+    public void testHealthRoundPublishesRecoveredNodesOnce() throws ReflectiveOperationException {
+        List<String> changed = new ArrayList<>();
+        UpstreamCheckTask task = new UpstreamCheckTask(50000, changed::add);
+        ExecutorService checks = Executors.newSingleThreadExecutor();
+        Field executor = UpstreamCheckTask.class.getDeclaredField("executor");
+        executor.setAccessible(true);
+        executor.set(task, checks);
+        try {
+            task.putToMap(task.getUnhealthyUpstream(), "s", Upstream.builder().url("first").healthCheckEnabled(false).build());
+            task.putToMap(task.getUnhealthyUpstream(), "s", Upstream.builder().url("second").healthCheckEnabled(false).build());
+            task.run();
+            assertEquals(List.of("s"), changed);
+            assertEquals(2, task.getHealthyUpstreamListBySelectorId("s").size());
+            task.run();
+            assertEquals(List.of("s"), changed);
+        } finally {
+            checks.shutdownNow();
+        }
+    }
 
     /**
      * Test run.

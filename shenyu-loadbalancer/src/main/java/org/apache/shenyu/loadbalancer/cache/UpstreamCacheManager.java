@@ -27,6 +27,7 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.entity.UpstreamIdentity;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +52,8 @@ public final class UpstreamCacheManager {
 
     // Include unhealthy configured gray nodes so legacy traffic never falls back to ordinary nodes.
     private static final Map<String, Boolean> LEGACY_GRAY_SELECTORS = Maps.newConcurrentMap();
+
+    private final UpstreamLabelCache labelCache = new UpstreamLabelCache();
 
     private UpstreamCheckTask task;
 
@@ -96,7 +99,7 @@ public final class UpstreamCacheManager {
     }
 
     private void createTask() {
-        task = new UpstreamCheckTask(checkInterval);
+        task = new UpstreamCheckTask(checkInterval, selectorId -> labelCache.refresh(selectorId, task.getHealthySnapshot(selectorId)));
         task.setPoolSize(poolSize);
         task.setCheckTimeout(checkTimeout);
         task.setHealthyThreshold(healthyThreshold);
@@ -162,12 +165,60 @@ public final class UpstreamCacheManager {
     }
 
     /**
+     * Find a read-only label subset without copying cached matches on the request path.
+     * Unregistered predicates (including an old in-flight rule) are filtered without being cached.
+     *
+     * @param selectorId selector identifier
+     * @param labels exact labels that must all match
+     * @return a read-only list of matching healthy upstreams, retaining shared upstream identities
+     */
+    public List<Upstream> findUpstreamListByLabels(final String selectorId, final Map<String, String> labels) {
+        List<Upstream> cached = labelCache.get(selectorId, labels);
+        return Objects.nonNull(cached) ? cached
+                : List.copyOf(UpstreamLabelCache.filter(task.getHealthySnapshot(selectorId), labels));
+    }
+
+    /**
+     * Replace an owner's configured label predicates; identical predicates share one subset.
+     *
+     * @param selectorId selector identifier
+     * @param owner rule cache key
+     * @param predicates configured label predicates
+     */
+    public void registerLabelSubsets(final String selectorId, final String owner, final Collection<Map<String, String>> predicates) {
+        task.withLock(() -> labelCache.register(selectorId, owner, predicates, task.getHealthyUpstreamListBySelectorId(selectorId)));
+    }
+
+    /**
+     * Release an owner's predicates when its rule is deleted or no longer uses label routing.
+     *
+     * @param selectorId selector identifier
+     * @param owner rule cache key
+     */
+    public void unregisterLabelSubsets(final String selectorId, final String owner) {
+        if (Objects.isNull(selectorId)) {
+            return;
+        }
+        task.withLock(() -> labelCache.unregister(selectorId, owner, task.getHealthyUpstreamListBySelectorId(selectorId)));
+    }
+
+    /**
+     * Release selector registrations. An empty discovery snapshot must retain registrations,
+     * so this is separate from removing the selector's current upstreams.
+     *
+     * @param selectorId selector identifier
+     */
+    public void removeLabelSubsets(final String selectorId) {
+        task.withLock(() -> labelCache.remove(selectorId));
+    }
+
+    /**
      * Remove by key.
      *
      * @param key the key
      */
     public void removeByKey(final String key) {
-        task.withLock(() -> {
+        task.withBatch(() -> {
             UPSTREAM_MAP.remove(key);
             LEGACY_GRAY_SELECTORS.remove(key);
             task.triggerRemoveAll(key);
@@ -181,7 +232,7 @@ public final class UpstreamCacheManager {
      * @param upstreamList the upstream list
      */
     public void submit(final String selectorId, final List<Upstream> upstreamList) {
-        task.withLock(() -> doSubmit(selectorId, upstreamList));
+        task.withBatch(() -> doSubmit(selectorId, upstreamList));
     }
 
     private void doSubmit(final String selectorId, final List<Upstream> upstreamList) {
@@ -252,7 +303,10 @@ public final class UpstreamCacheManager {
             Upstream cached = existing.get(upstream.identity());
             if (Objects.nonNull(cached)) {
                 cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
-                cached.setLabels(upstream.getLabels());
+                if (!cached.getLabels().equals(upstream.getLabels())) {
+                    cached.setLabels(upstream.getLabels());
+                    task.markHealthyUpstreamChanged(selectorId);
+                }
                 cached.setGray(upstream.isGray());
                 cached.setDraining(upstream.isDraining());
                 cached.setReady(upstream.isReady());

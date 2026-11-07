@@ -44,7 +44,6 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
-import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
@@ -135,13 +134,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
         }
         boolean canaryRouting = Objects.nonNull(ruleHandle.getCanary())
                 && CollectionUtils.isEmpty(effectiveExchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN));
+        // Resolve the intent even for an empty pool so rejected requests can be attributed.
         List<Upstream> upstreamList = canaryRouting
-                ? UpstreamCacheManager.getInstance().findAllUpstreamListBySelectorId(selector.getId())
+                ? selectPartition(exchange, selector.getId(), rule.getId(), ruleHandle.getCanary())
                 : UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
-        if (canaryRouting) {
-            // Resolve the intent even for an empty snapshot so rejected requests can be attributed.
-            upstreamList = selectPartition(exchange, selector.getId(), rule.getId(), ruleHandle.getCanary(), upstreamList);
-        }
         if (CollectionUtils.isEmpty(upstreamList)) {
             if (canaryRouting) {
                 exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
@@ -167,17 +163,17 @@ public class DividePlugin extends AbstractShenyuPlugin {
     }
 
     private List<Upstream> selectPartition(final ServerWebExchange exchange, final String selectorId, final String ruleId,
-                                           final CanaryConfig config, final List<Upstream> upstreams) {
+                                           final CanaryConfig config) {
         long start = System.nanoTime();
         CanaryDecision decision = canaryDecisionService.decide(exchange, ruleId, config);
         long decisionDuration = System.nanoTime() - start;
         CanaryDecision actual = decision;
         Map<String, String> labels = decision == CanaryDecision.CANARY ? config.getCanaryLabels() : config.getStableLabels();
-        List<Upstream> candidates = UpstreamLabelUtils.filter(upstreams, labels);
+        List<Upstream> candidates = UpstreamCacheManager.getInstance().findUpstreamListByLabels(selectorId, labels);
         if (candidates.isEmpty() && decision == CanaryDecision.CANARY && "STABLE".equals(config.getFallbackPolicy())) {
             actual = CanaryDecision.STABLE;
             labels = config.getStableLabels();
-            candidates = UpstreamLabelUtils.filter(upstreams, labels);
+            candidates = UpstreamCacheManager.getInstance().findUpstreamListByLabels(selectorId, labels);
         }
         String rejectReason = candidates.isEmpty()
                 ? (actual == CanaryDecision.CANARY ? CanaryContext.CANARY_POOL_EMPTY : CanaryContext.STABLE_POOL_EMPTY) : null;
