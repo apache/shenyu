@@ -39,6 +39,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,6 +61,7 @@ public final class ShiroConfigurationTest {
     public void testSecurityManager() {
         AuthorizingRealm realm = mock(AuthorizingRealm.class);
         DefaultWebSecurityManager securityManager = shiroConfiguration.securityManager(realm);
+        assertNull(securityManager.getRememberMeManager(), "Stateless Admin must not accept RememberMe cookies");
         Object[] realms = securityManager.getRealms().toArray();
         assertEquals(1, realms.length);
         assert Objects.equals(realm, realms[0]);
