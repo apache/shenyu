@@ -217,6 +217,20 @@
   aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
   provider table and migration steps. (#7578)
 
+- The admin now validates the `sticky` section of a divide rule handle when a rule is
+  saved: `onUnavailable` must be exactly `REBIND` or `STRICT`, `maxAgeSeconds` must be
+  positive, `cookieName` must be a non-blank string (an explicit `null` is not accepted
+  as a substitute for omitting it), an enabled configuration needs at least one non-blank
+  `secrets` entry, and a configured deterministic `key` needs a non-blank `name` and,
+  when `type` is present, `HEADER` or `COOKIE`. JSON structure is checked before Gson can
+  coerce values, so a non-object `sticky`, a non-integer lifetime, a non-array secret
+  list or a non-string field is rejected with a `sticky.…` field error. A disabled
+  (`enabled=false`) sticky section is exempt from value validation, because the gateway
+  activation checks ignore it and its values cannot affect a request, so an unrelated
+  field of an already stored rule stays editable; structural type checks still apply.
+  The gateway runtime stays tolerant for values: a configuration persisted before this
+  validation still degrades to plain load balancing instead of failing requests. (#8037)
+
 ## [v2.7.0]- 2024-12-23
 
 ### ✨ New Features
