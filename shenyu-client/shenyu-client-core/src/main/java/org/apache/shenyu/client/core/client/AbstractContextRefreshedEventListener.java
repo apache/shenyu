@@ -149,10 +149,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         if (!markRegistered()) {
             return;
         }
-        String discoveryMode = context.getEnvironment()
-                .getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
-        boolean isDiscoveryLocalMode = ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode);
-        if (isDiscoveryLocalMode) {
+        if (isDiscoveryLocalMode(context)) {
             List<String> namespaceIds = this.getNamespace();
             namespaceIds.forEach(namespaceId -> {
                 URIRegisterDTO uriRegisterDTO = buildURIRegisterDTO(context, beans, namespaceId);
@@ -164,6 +161,51 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
         beans.forEach(this::handle);
         Map<String, Object> apiModules = context.getBeansWithAnnotation(ApiModule.class);
         apiModules.forEach((k, v) -> handleApiDoc(v, beans));
+    }
+
+    /**
+     * Check whether the client runs in local discovery mode.
+     * <p>In registry discovery modes (e.g. nacos), upstream instances are sourced
+     * from the registry, so local URI registration must be skipped to avoid
+     * dual upstream registration for the same selector.
+     * <p>The flag is deliberately resolved from the environment of the context that
+     * fired {@link org.springframework.context.event.ContextRefreshedEvent} instead of
+     * reusing the pre-computed {@code discoveryLocalMode} flag the starters store into
+     * the client props: a child context may publish the refresh event with a different
+     * environment, and the registration decision must follow the context the event
+     * belongs to. The single source of truth remains the shared
+     * {@code shenyu.discovery.type} property that both the starters and this listener read.
+     *
+     * @param context the spring application context
+     * @return true if {@code shenyu.discovery.type} is local (the default)
+     */
+    protected boolean isDiscoveryLocalMode(final ApplicationContext context) {
+        String discoveryMode = context.getEnvironment()
+                .getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE);
+        return ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(discoveryMode);
+    }
+
+    /**
+     * Publish the URI register DTO built by
+     * {@link #buildURIRegisterDTO(ApplicationContext, Map, String)} with an empty bean map,
+     * but only when the discovery mode is local. In registry discovery modes the upstream
+     * instances come from the registry watcher, so the URI payload must not be published.
+     * <p>This is the single place enforcing that invariant for full-mode (isFull)
+     * registrations; subclasses must not inline the check.
+     *
+     * @param context the spring application context that fired the event
+     * @param namespaceId the namespace to register the URI for
+     */
+    protected void publishUriRegisterIfDiscoveryLocal(final ApplicationContext context, final String namespaceId) {
+        if (!isDiscoveryLocalMode(context)) {
+            LOG.debug("URI registration skipped for namespaceId {}: discovery type is not local,"
+                    + " upstream instances are sourced from the registry", namespaceId);
+            return;
+        }
+        URIRegisterDTO uriRegisterDTO = buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId);
+        if (Objects.nonNull(uriRegisterDTO)) {
+            publisher.publishEvent(uriRegisterDTO);
+        }
     }
 
     private void handleApiDoc(final Object bean, final Map<String, T> beans) {
