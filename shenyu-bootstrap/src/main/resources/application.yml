@@ -244,12 +244,6 @@ shenyu:
       trusted-master-hosts:
       # Explicitly allow a wss connection to follow a plaintext ws advertised master.
       allow-insecure-master-redirect: false
-#    apollo:
-#      appId: shenyu
-#      meta: http://localhost:8080
-#      env: dev
-#      clusterName: test
-#      namespace: application
 #    zookeeper:
 #      url: localhost:2181
 #      sessionTimeoutMilliseconds: 5000

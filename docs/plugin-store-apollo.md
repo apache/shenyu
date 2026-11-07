@@ -18,12 +18,13 @@ limitations under the License.
 
 ## Status and deprecation cycle
 
-Apollo is currently an optional, supported in-tree integration. Issue [#7599](https://github.com/apache/shenyu/issues/7599)
+This source branch prepares the later removal of Apollo from the core reactor.
+The published deprecation release must retain its in-tree integration. Issue [#7599](https://github.com/apache/shenyu/issues/7599)
 proposes transferring its registry, data-sync, Admin listener and gateway starter to
 [plugin-store](https://github.com/apache/shenyu-plugin-store), extending [#7306](https://github.com/apache/shenyu/issues/7306).
-This guide is the advance deprecation notice: the in-tree modules remain available
-for the release carrying this notice. No removal release has been selected.
-The separate removal PR is a draft and must not be merged in that deprecation release.
+The separate deprecation PR publishes the advance notice and this guide while
+retaining all four modules for that release. No removal release has been selected.
+The separate removal PR can be reviewed in advance and must not be merged in that deprecation release.
 
 | Stage | Required action |
 | --- | --- |

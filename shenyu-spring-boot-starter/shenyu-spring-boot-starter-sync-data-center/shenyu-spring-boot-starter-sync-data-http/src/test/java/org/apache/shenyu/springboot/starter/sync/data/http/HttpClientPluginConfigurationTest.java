@@ -24,7 +24,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.apache.shenyu.sync.data.http.HttpSyncDataService;
 import org.apache.shenyu.sync.data.http.config.HttpConfig;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +32,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import wiremock.org.apache.hc.core5.http.ContentType;
 import wiremock.org.apache.hc.core5.http.HttpHeaders;
@@ -61,16 +64,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "shenyu.sync.http.url=http://localhost:18848",
                 "shenyu.sync.http.delayTime=3",
                 "shenyu.sync.http.username=admin",
                 "shenyu.sync.http.password=123456",
                 "shenyu.sync.http.connectionTimeout=5",
                 "spring.main.web-application-type=none"
         })
+@DirtiesContext
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class, ShenyuConfig.class})
 public final class HttpClientPluginConfigurationTest {
+
+    private static final WireMockServer WIRE_MOCK_SERVER = new WireMockServer(options().dynamicPort());
 
     @Autowired
     private HttpConfig httpConfig;
@@ -78,31 +83,36 @@ public final class HttpClientPluginConfigurationTest {
     @Autowired
     private HttpSyncDataService httpSyncDataService;
 
-    @BeforeAll
-    public static void setUpWireMock() throws Exception {
-        WireMockServer wireMockServer = new WireMockServer(options().port(18848));
+    @DynamicPropertySource
+    public static void setUpWireMock(final DynamicPropertyRegistry registry) throws Exception {
 
-        wireMockServer.stubFor(post(urlPathEqualTo("/platform/login"))
+        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo("/platform/login"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(mockLoginResponseJson())
                         .withStatus(200))
         );
 
-        wireMockServer.stubFor(get(urlPathEqualTo("/configs/fetch"))
+        WIRE_MOCK_SERVER.stubFor(get(urlPathEqualTo("/configs/fetch"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(mockConfigsFetchResponseJson())
                         .withStatus(200))
         );
-        wireMockServer.stubFor(post(urlPathEqualTo("/configs/listener"))
+        WIRE_MOCK_SERVER.stubFor(post(urlPathEqualTo("/configs/listener"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
                         .withBody(mockConfigsListenResponseJson())
                         .withStatus(200))
         );
 
-        wireMockServer.start();
+        WIRE_MOCK_SERVER.start();
+        registry.add("shenyu.sync.http.url", WIRE_MOCK_SERVER::baseUrl);
+    }
+
+    @AfterAll
+    public static void stopWireMock() {
+        WIRE_MOCK_SERVER.stop();
     }
 
     @Test
@@ -112,7 +122,7 @@ public final class HttpClientPluginConfigurationTest {
 
     @Test
     public void testHttpConfig() {
-        assertThat(httpConfig.getUrl(), is("http://localhost:18848"));
+        assertThat(httpConfig.getUrl(), is(WIRE_MOCK_SERVER.baseUrl()));
         assertThat(httpConfig.getDelayTime(), is(3));
         assertThat(httpConfig.getConnectionTimeout(), is(5));
     }
