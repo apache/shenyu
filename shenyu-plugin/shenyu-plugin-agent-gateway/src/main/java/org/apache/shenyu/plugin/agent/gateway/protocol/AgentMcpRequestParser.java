@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.common.utils.AgentPromptNames;
 import org.springframework.http.HttpHeaders;
 
 import java.nio.ByteBuffer;
@@ -50,7 +51,8 @@ public final class AgentMcpRequestParser {
 
     private static final String ENCODED_SUFFIX = "?=";
 
-    private static final Set<String> METHODS = Set.of("server/discover", "tools/list", "tools/call", "resources/list", "resources/templates/list", "resources/read");
+    private static final Set<String> METHODS = Set.of("server/discover", "tools/list", "tools/call", "resources/list", "resources/templates/list", "resources/read",
+            "prompts/list", "prompts/get");
 
     private final ObjectMapper mapper = new ObjectMapper(JsonFactory.builder()
             .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
@@ -110,7 +112,7 @@ public final class AgentMcpRequestParser {
             throw failure(404, -32601, "Method not found", id);
         }
         validateParams(method, params, id);
-        if ("tools/call".equals(method)) {
+        if ("tools/call".equals(method) || "prompts/get".equals(method)) {
             validateHeader(headers, "Mcp-Name", params.get("name").textValue(), true, id);
         }
         if ("resources/read".equals(method)) {
@@ -120,11 +122,24 @@ public final class AgentMcpRequestParser {
     }
 
     private void validateParams(final String method, final JsonNode params, final JsonNode id) {
+        if ("prompts/get".equals(method)) {
+            if (!params.path("name").isTextual() || !AgentPromptNames.exposed(params.get("name").textValue())
+                    || params.has("arguments") && (!params.get("arguments").isObject() || params.get("arguments").size() > 32)) {
+                throw failure(400, -32602, "Invalid prompt parameters", id);
+            }
+            if (params.has("arguments")) {
+                for (JsonNode argument : params.get("arguments")) {
+                    if (!argument.isTextual() || argument.textValue().length() > 16384) {
+                        throw failure(400, -32602, "Invalid prompt arguments", id);
+                    }
+                }
+            }
+        }
         if ("tools/call".equals(method) && (!params.path("name").isTextual() || params.path("name").textValue().isEmpty()
                 || params.has("arguments") && !params.get("arguments").isObject())) {
             throw failure(400, -32602, "Invalid tool call parameters", id);
         }
-        if (Set.of("tools/list", "resources/list", "resources/templates/list").contains(method) && params.has("cursor") && !params.get("cursor").isTextual()) {
+        if (Set.of("tools/list", "resources/list", "resources/templates/list", "prompts/list").contains(method) && params.has("cursor") && !params.get("cursor").isTextual()) {
             throw failure(400, -32602, "Invalid tools cursor", id);
         }
         if ("resources/read".equals(method)) {

@@ -472,16 +472,19 @@ server, method, generated outbound id, status and byte count, never credentials,
 Agent identity or result bodies.
 
 Resolve all credentials before replacing the directory. Invalid config/missing
-credentials reject the update and preserve the previous generation. Once a
-valid replacement starts, failed discovery leaves remote access unavailable until
-an explicit successful update. Old in-flight calls retain their captured version;
+credentials reject the update. A new configuration event immediately withdraws
+the old directory, before resolving replacement credentials. Failed discovery
+leaves remote access unavailable until a successful recovery or explicit update.
+Old in-flight calls retain their captured version;
 removing a credential file alone does not revoke already captured leases.
 Disable/removal withdraws new remote access immediately, including an in-progress
 candidate. Queue overflow also withdraws access and requires an explicit valid refresh.
 Cleanup failures remain quarantined and prevent further allocation; shutdown reports failure.
 Closed catalogs, overlapping refresh reservations, exhausted generation budgets
 and quarantined cleanup all reject reservation with the same sanitized
-catalog-unavailable exception. Superseded updates allocate no generation or client.
+catalog-unavailable exception. Updates already superseded before reservation
+allocate no generation or client; an in-progress superseded candidate is retired
+and its owned clients are cleaned up.
 Failure diagnostics belong to the latest control-event revision; a newer event
 clears the superseded failure even when the older event exits without publication.
 An empty failure field does not mean ready: check the current generation too.
@@ -502,6 +505,104 @@ per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per c
 5-second directory update and 2-second session DELETE completion. The trusted
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.
+
+### Managed refresh timing and recovery
+
+The aggregation object accepts optional `refreshConcurrency` (default 1, range
+1-8) and `refreshPolicy`. An omitted policy uses the defaults below. An explicit
+policy must contain all four integer fields; null, strings, decimals, integer
+overflow, unknown fields and duplicate fields are rejected by the shared parser.
+
+```json
+{
+  "aggregation": {
+    "revision": "orders-v1",
+    "servers": [],
+    "refreshConcurrency": 2,
+    "refreshPolicy": {
+      "refreshIntervalMs": 60000,
+      "initialBackoffMs": 1000,
+      "maxBackoffMs": 30000,
+      "maxRetries": 3
+    }
+  }
+}
+```
+
+The empty server list in this example does not poll; configure the trusted
+server references shown above to enable remote discovery. The normal interval
+is bounded to 5 seconds-1 hour. Backoff must satisfy
+`1 second <= initialBackoff <= maxBackoff <= refreshInterval`; the fast-retry
+budget is 0-8 retries after the initial attempt. No value is silently clamped.
+
+One delayed task is scheduled after an attempt finishes. It submits a signal
+to the existing bounded serial control queue; credential resolution remains on
+the owned blocking-capable worker. Successful discovery resets the failure streak
+and schedules the normal interval. Default temporary-failure waits are 1, 2 and
+4 seconds, followed by one recovery probe per 60-second interval until success.
+Credential-resolution and rejected-definition failures use the normal interval
+without fast retries. Invalid configuration stops polling until corrected;
+queue overflow and quarantined cleanup also require explicit intervention.
+Every attempt resolves credentials again. No discovery retry replays `tools/call`.
+Before resolving credentials, a periodic attempt withdraws the previous directory
+and closes idle retired clients. A slow credential source therefore cannot keep
+the previous directory available while the refresh waits.
+
+The normal refresh interval is also the hard admission age of a published remote
+snapshot (60 seconds by default). At or beyond that age, new operations fail closed
+even if the timer or control worker has been delayed. The age check and snapshot
+lease acquisition share the publication monitor. Existing leases may finish;
+retired clients close after their final lease ends. There is no age grace period.
+Publication and its monotonic timestamp are committed together, before asynchronous
+cleanup finishes. The internal publication callback is nonblocking and identifies
+one complete generation; it is not a public contract version or an approval hook.
+
+This is polling for the fixed outbound protocol/transport above; no change
+notification subscription is claimed. Discovery observes added, changed and
+removed tool definitions and publishes a complete directory. Each refresh still
+uses the fail-closed lifecycle, including a temporary unavailable period during
+discovery. Old-snapshot retention and automatic local-only fallback are disabled.
+Configuration replacement, disable and close cancel the pending timer and fence
+late results under the same monitor used for final publication. A polling attempt
+keeps its configuration revision while allocating a new directory generation;
+neither value is a stable public tool-contract version or a contract pin.
+
+### Catalog diagnostics and Prometheus metrics
+
+`diagnosticsState().refresh()` contains immutable, secret-free numeric state.
+`lastSuccessAgeMillis` uses a monotonic clock and grows without another refresh.
+It is -1 until the current configuration first publishes; it continues growing
+after an outage and resets on recovery. Configuration replacement, disable and
+close discard the prior configuration's timestamp. Availability is separate from
+age: a remembered successful publication does not authorize stale-directory use.
+
+With the existing Prometheus metrics service enabled, the process exposes:
+
+| Metric | Meaning |
+| --- | --- |
+| `shenyu_agent_mcp_catalog_refresh_total` | Remote discovery attempts started |
+| `shenyu_agent_mcp_catalog_failures_total` | Failed current attempts; invalid configuration and superseded outcomes excluded |
+| `shenyu_agent_mcp_catalog_recoveries_total` | Successful discovery following failures in the same configuration |
+| `shenyu_agent_mcp_catalog_configured` | Active catalogs configured with remote targets |
+| `shenyu_agent_mcp_catalog_available` | Active catalogs publishing remote directories |
+| `shenyu_agent_mcp_catalog_failure_active` | Active catalogs with a current validation or discovery failure |
+| `shenyu_agent_mcp_catalog_consecutive_failures` | Largest bounded failure streak |
+| `shenyu_agent_mcp_catalog_last_success_age_seconds` | Largest live last-success age; -1 if no current configuration has published |
+
+These fixed series have no target, tool, revision, endpoint, principal or credential
+labels. Sources can register before or after the metrics service starts and are
+removed on catalog close; at most 16 active sources are retained. Normally the
+starter creates one source per gateway context. Multiple active sources are summed
+for counters/state counts and use the maximum for age/streak gauges. Counters cover
+active instance lifetimes and can reset when those instances are replaced.
+
+For alerts, distinguish `failure_active > 0` from the expected temporary
+`configured > available` state during discovery. Treat age -1 as unknown, not fresh.
+Choose an operational alert delay allowing for discovery and cleanup, separately
+from the hard snapshot admission age above. Metric age does not authorize stale
+access. A custom credential resolver must itself bound blocking work: polling
+does not forcibly terminate arbitrary resolver code. Failure/recovery logs contain
+only categories and fixed messages, with no exception messages or credentials.
 
 ## Resource aggregation
 
@@ -571,8 +672,9 @@ at most four pages per list and sixteen combined resource/template definitions;
 local registration is limited to sixteen definitions and a read to sixteen
 content items. Existing transport byte/deadline limits still apply. The inbound
 list is complete and unpaginated; supplying a cursor is an error, not silently
-ignored. Remote directory changes follow the existing explicit configuration
-reload lifecycle; no periodic upstream refresh is implied.
+ignored. When resource discovery is enabled, resources and tools share the managed
+refresh policy above and publish as one complete directory generation. Changed or
+removed resources are discovered by the same bounded polling and recovery cycle.
 
 Resource results support text or canonical-base64 binary content. Unknown and
 unauthorized identifiers use the same sanitized HTTP403 / JSON-RPC `-32002`

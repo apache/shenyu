@@ -95,7 +95,7 @@ final class AgentMcpTerminalObservation {
     synchronized void parsed(final AgentMcpRequest request) {
         if (!completed) {
             method = request.getMethod();
-            requestedTool = "tools/call".equals(method) ? request.getParams().path("name").textValue() : null;
+            requestedTool = "tools/call".equals(method) || "prompts/get".equals(method) ? request.getParams().path("name").textValue() : null;
             protocolVersion = AgentMcpRequestParser.VERSION;
         }
     }

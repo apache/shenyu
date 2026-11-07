@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.utils.AgentPromptNames;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,11 +33,13 @@ import java.util.Set;
 public final class AgentGatewayMcpConfig {
 
     private static final Set<String> FIELDS = Set.of("allowedTools", "allowedOrigins", "responseMode", "timeoutMs", "maxRequestBytes", "maxResponseBytes",
-            "structuredContentRemovals", "allowedResources", "httpTools");
+            "structuredContentRemovals", "allowedResources", "allowedPrompts", "httpTools");
 
     private final Set<String> allowedTools;
 
     private final Set<String> allowedResources;
+
+    private final Set<String> allowedPrompts;
 
     private final Set<String> allowedOrigins;
 
@@ -55,6 +58,10 @@ public final class AgentGatewayMcpConfig {
     private AgentGatewayMcpConfig(final JsonObject object) {
         allowedTools = strings(object, "allowedTools", false);
         allowedResources = strings(object, "allowedResources", false);
+        allowedPrompts = strings(object, "allowedPrompts", false);
+        if (allowedPrompts.size() > 32 || allowedPrompts.stream().anyMatch(value -> !AgentPromptNames.exposed(value))) {
+            throw invalid("allowedPrompts", "must contain at most 32 exact prompt names");
+        }
         allowedOrigins = strings(object, "allowedOrigins", true);
         responseMode = text(object, "responseMode", "json");
         if (!Set.of("json", "sse").contains(responseMode)) {
@@ -95,6 +102,10 @@ public final class AgentGatewayMcpConfig {
 
     public Set<String> getAllowedResources() {
         return allowedResources;
+    }
+
+    public Set<String> getAllowedPrompts() {
+        return allowedPrompts;
     }
 
     public Set<String> getAllowedOrigins() {

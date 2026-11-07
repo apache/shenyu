@@ -51,6 +51,19 @@ class KeyAuthMcpSecurityConfigurationTest {
             .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true");
 
     @Test
+    void bindsPromptPermissionsSeparatelyAndRejectsWildcards() {
+        configured().withPropertyValues(PREFIX + "bindings[0].prompt-grants=summary,first.summary", PREFIX + "bindings[0].prompt-denials=summary")
+                .run(context -> {
+                    assertNull(context.getStartupFailure());
+                    KeyAuthMcpSecurityProperties.Binding binding = context.getBean(KeyAuthMcpSecurityProperties.class).getBindings().get(0);
+                    assertEquals(Set.of("summary", "first.summary"), binding.getPromptGrants());
+                    assertEquals(Set.of("summary"), binding.getPromptDenials());
+                });
+        configured().withPropertyValues(PREFIX + "bindings[0].prompt-grants=*")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
     void principalAdapterIsOptionalAndRequiresExplicitSource() {
         runner.withPropertyValues("shenyu.plugins.agent.gateway.security.principal.enabled=true")
                 .run(context -> assertNotNull(context.getStartupFailure()));
