@@ -1015,6 +1015,7 @@ public final class DiscoveryUpstreamServiceTest {
 
     private DiscoveryUpstreamDTO buildDiscoveryUpstreamDTO(final String id) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
+        discoveryUpstreamDTO.setNamespaceId("namespace");
         discoveryUpstreamDTO.setId(id);
         discoveryUpstreamDTO.setStatus(1);
         discoveryUpstreamDTO.setWeight(50);
@@ -1024,6 +1025,7 @@ public final class DiscoveryUpstreamServiceTest {
 
     private DiscoveryUpstreamDTO buildDiscoveryUpstreamDTO(final String id, final String discoveryHandlerId, final String url) {
         DiscoveryUpstreamDTO discoveryUpstreamDTO = new DiscoveryUpstreamDTO();
+        discoveryUpstreamDTO.setNamespaceId("namespace");
         discoveryUpstreamDTO.setId(id);
         discoveryUpstreamDTO.setStatus(1);
         discoveryUpstreamDTO.setWeight(50);
@@ -1042,6 +1044,7 @@ public final class DiscoveryUpstreamServiceTest {
 
     private SelectorDO buildSelectorDO() {
         SelectorDO selectorDO = new SelectorDO();
+        selectorDO.setNamespaceId("namespace");
         selectorDO.setId("selector_1");
         selectorDO.setSelectorName("selector_1");
         return selectorDO;
