@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.TraceIdUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
+import org.apache.shenyu.web.graph.PluginExecutionDispatcher;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
 
     private final boolean scheduled;
 
+    private final PluginExecutionDispatcher executionDispatcher;
+
     private Scheduler scheduler;
     
     /**
@@ -80,6 +83,21 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
      * @param shenyuConfig plugins config
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuLoaderService shenyuLoaderService, final ShenyuConfig shenyuConfig) {
+        this(plugins, shenyuLoaderService, shenyuConfig, new PluginExecutionDispatcher());
+    }
+
+    /**
+     * Create a handler with an explicitly selected plugin execution path.
+     * Production wiring remains LEGACY until graph admission and compatibility are finalized.
+     *
+     * @param plugins existing plugin catalog
+     * @param shenyuLoaderService plugin loader
+     * @param shenyuConfig gateway configuration
+     * @param executionDispatcher complete pipeline dispatcher
+     */
+    public ShenyuWebHandler(final List<ShenyuPlugin> plugins, final ShenyuLoaderService shenyuLoaderService,
+                            final ShenyuConfig shenyuConfig, final PluginExecutionDispatcher executionDispatcher) {
+        this.executionDispatcher = Objects.requireNonNull(executionDispatcher, "executionDispatcher");
         this.sourcePlugins = new ArrayList<>(plugins);
         this.plugins = new ArrayList<>(plugins);
         this.shenyuLoaderService = shenyuLoaderService;
@@ -138,7 +156,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
         return Mono.defer(() -> {
             before(exchange);
-            Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
+            Mono<Void> execute = executionDispatcher.execute(exchange, () -> new DefaultShenyuPluginChain(plugins));
             if (scheduled) {
                 execute = execute.subscribeOn(scheduler);
             }
