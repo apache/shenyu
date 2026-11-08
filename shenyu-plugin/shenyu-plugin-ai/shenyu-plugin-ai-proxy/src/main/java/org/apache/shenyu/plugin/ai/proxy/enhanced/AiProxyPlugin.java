@@ -28,6 +28,7 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.common.view.AiRequestViewOperations;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -139,6 +140,9 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         } finally {
                             DataBufferUtils.release(buffer);
                         }
+                        // the body about to be decoded is authoritative; publishing it keeps the
+                        // view generation current and makes stale consumer inspections observable
+                        AiRequestViewOperations.ensurePublished(exchange, body, PluginEnum.AI_PROXY.getName());
                         Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, handle, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
                         return aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response));
