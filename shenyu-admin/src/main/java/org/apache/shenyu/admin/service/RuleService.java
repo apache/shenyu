@@ -93,6 +93,18 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
+     * delete rules for the registration flow.
+     *
+     * <p>Registration runs without a login user, so this path skips the plugin data permission
+     * check applied by {@link #deleteByIdsAndNamespaceId(List, String)}. Only use it from registration.</p>
+     *
+     * @param ids         primary key.
+     * @param namespaceId namespaceId.
+     * @return rows int
+     */
+    int deleteForRegistration(List<String> ids, String namespaceId);
+
+    /**
      * find rule by id and namespaceId.
      *
      * @param id primary key.

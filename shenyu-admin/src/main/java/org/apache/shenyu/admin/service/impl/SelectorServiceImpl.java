@@ -67,6 +67,7 @@ import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
@@ -139,6 +140,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final DataPermissionChecker dataPermissionChecker;
 
+    private final PluginDataPermissionChecker pluginDataPermissionChecker;
+
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
@@ -150,7 +153,8 @@ public class SelectorServiceImpl implements SelectorService {
                                final DiscoveryProcessorHolder discoveryProcessorHolder,
                                final SelectorEventPublisher selectorEventPublisher,
                                final DataPermissionChecker dataPermissionChecker,
-                               final RegistrationFencingGuard registrationFencingGuard) {
+                               final RegistrationFencingGuard registrationFencingGuard,
+                               final PluginDataPermissionChecker pluginDataPermissionChecker) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
@@ -163,6 +167,7 @@ public class SelectorServiceImpl implements SelectorService {
         this.selectorEventPublisher = selectorEventPublisher;
         this.dataPermissionChecker = dataPermissionChecker;
         this.registrationFencingGuard = registrationFencingGuard;
+        this.pluginDataPermissionChecker = pluginDataPermissionChecker;
     }
 
     @Override
@@ -239,6 +244,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final SelectorDTO selectorDTO) {
+        pluginDataPermissionChecker.checkCreateSelector(selectorDTO);
         return SelectorService.super.createOrUpdate(selectorDTO);
     }
 
@@ -343,6 +349,17 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteByNamespaceId(final List<String> ids, final String namespaceId) {
+        pluginDataPermissionChecker.checkDeleteSelectors(ids);
+        return deleteSelectors(ids);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteForRegistration(final List<String> ids, final String namespaceId) {
+        return deleteSelectors(ids);
+    }
+
+    private int deleteSelectors(final List<String> ids) {
         final List<SelectorDO> selectors = selectorMapper.selectByIdSet(new TreeSet<>(ids));
         List<PluginDO> pluginDOS = new ArrayList<>(pluginMapper.selectByIds(ListUtil.map(selectors, SelectorDO::getPluginId)));
         selectors.forEach(selector -> registrationFencingGuard.assertSelectorWriteAllowed(selector.getId()));
@@ -690,6 +707,7 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
+        pluginDataPermissionChecker.checkEnableSelectors(ids);
         ids.forEach(id -> {
             SelectorDO selectorDO = selectorMapper.selectById(id);
             if (Objects.isNull(selectorDO) || !Objects.equals(selectorDO.getNamespaceId(), namespaceId)) {

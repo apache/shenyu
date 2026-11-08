@@ -31,7 +31,6 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -60,12 +59,10 @@ import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -84,9 +81,6 @@ public final class RuleControllerTest {
 
     @Mock
     private RuleService ruleService;
-
-    @Mock
-    private PluginDataPermissionChecker pluginDataPermissionChecker;
 
     @Mock
     private RuleMapper ruleMapper;
@@ -282,27 +276,8 @@ public final class RuleControllerTest {
     }
 
     @Test
-    public void shouldCheckPermissionBeforeEveryWrite() {
-        RuleDTO ruleDTO = RuleDTO.builder().id("1").build();
-        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
-        batchCommonDTO.setIds(Collections.singletonList("1"));
-        BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
-        batchNamespaceCommonDTO.setIds(Collections.singletonList("1"));
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateRule(ruleDTO);
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkUpdateRule("1");
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableRules(batchCommonDTO.getIds());
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkDeleteRules(batchNamespaceCommonDTO.getIds());
-
-        assertThrows(UnauthorizedException.class, () -> ruleController.createRule(ruleDTO));
-        assertThrows(UnauthorizedException.class, () -> ruleController.updateRule("1", ruleDTO));
-        assertThrows(UnauthorizedException.class, () -> ruleController.batchEnabled(batchCommonDTO));
-        assertThrows(UnauthorizedException.class, () -> ruleController.deleteRules(batchNamespaceCommonDTO));
-        verifyNoInteractions(ruleService);
-    }
-
-    @Test
     public void shouldReturnNoPermissionMessageWhenDenied() throws Exception {
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableRules(any());
+        doThrow(new UnauthorizedException()).when(this.ruleService).enabledByIdsAndNamespaceId(any(), any(), any());
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Collections.singletonList("1"));
         batchCommonDTO.setEnabled(false);
@@ -312,6 +287,5 @@ public final class RuleControllerTest {
                         .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION)));
-        verifyNoInteractions(ruleService);
     }
 }

@@ -46,9 +46,9 @@ ShenYu implements a role-based access control (RBAC) system using Apache Shiro a
 - Simplify the Admin UI by showing each user only the features relevant to their role.
 - Prevent accidental misconfiguration by limiting which users can modify specific resources (plugins, rules, selectors, etc.).
 
-Selector and rule write endpoints (`SelectorController` and `RuleController`) are also checked per plugin on the server. Instead of the annotation, these endpoints require either the global `system:plugin:*` grant for the action or the matching `plugin:<name><Selector|Rule>:<action>` grant for every plugin the request touches. A role holding a global grant is not limited to specific plugins.
+Selector and rule writes are also checked per plugin on the server. The check runs in the selector and rule services, so it covers the write endpoints of `SelectorController` and `RuleController` as well as the selector and rule cleanup performed when an API is deleted. Instead of the annotation, these writes require either the global `system:plugin:*` grant for the action or the matching `plugin:<name><Selector|Rule>:<action>` grant for every plugin the request touches. A role holding a global grant is not limited to specific plugins.
 
-This scoping applies only to those endpoints and does not isolate plugins from each other. Other endpoints that can affect gateway configuration, such as `/proxy-selector/**`, `/discovery-upstream/**` and configuration import, are not scoped per plugin.
+This scoping applies only to those writes and does not isolate plugins from each other. Other endpoints that can affect gateway configuration, such as `/proxy-selector/**`, `/discovery-upstream/**` and configuration import, are not scoped per plugin.
 
 RBAC in ShenYu is **not** a hard security boundary. It does **not** protect against:
 

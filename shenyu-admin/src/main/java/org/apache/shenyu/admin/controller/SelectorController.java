@@ -32,7 +32,6 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -55,12 +54,8 @@ public class SelectorController implements PagedController<SelectorQueryConditio
 
     private final SelectorService selectorService;
 
-    private final PluginDataPermissionChecker pluginDataPermissionChecker;
-
-    public SelectorController(final SelectorService selectorService,
-                              final PluginDataPermissionChecker pluginDataPermissionChecker) {
+    public SelectorController(final SelectorService selectorService) {
         this.selectorService = selectorService;
-        this.pluginDataPermissionChecker = pluginDataPermissionChecker;
     }
 
     /**
@@ -110,7 +105,6 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @PostMapping
     public ShenyuAdminResult createSelector(@Valid @RequestBody final SelectorDTO selectorDTO) {
-        pluginDataPermissionChecker.checkCreateSelector(selectorDTO);
         selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, selectorDTO.getId());
     }
@@ -126,7 +120,6 @@ public class SelectorController implements PagedController<SelectorQueryConditio
     public ShenyuAdminResult updateSelector(@PathVariable("id") @Valid
                                             @Existed(provider = SelectorMapper.class, message = "selector is not existed") final String id,
                                             @Valid @RequestBody final SelectorDTO selectorDTO) {
-        pluginDataPermissionChecker.checkUpdateSelector(id);
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
@@ -140,7 +133,6 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        pluginDataPermissionChecker.checkEnableSelectors(batchCommonDTO.getIds());
         if (!selectorService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
         }
@@ -155,7 +147,6 @@ public class SelectorController implements PagedController<SelectorQueryConditio
      */
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteSelector(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        pluginDataPermissionChecker.checkDeleteSelectors(batchNamespaceCommonDTO.getIds());
         Integer deleteCount = selectorService.deleteByNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }

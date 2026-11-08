@@ -52,6 +52,7 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -106,13 +107,16 @@ public class RuleServiceImpl implements RuleService {
 
     private final DataPermissionChecker dataPermissionChecker;
 
+    private final PluginDataPermissionChecker pluginDataPermissionChecker;
+
     public RuleServiceImpl(final RuleMapper ruleMapper,
                            final RuleConditionMapper ruleConditionMapper,
                            final SelectorMapper selectorMapper,
                            final PluginMapper pluginMapper,
                            final RuleEventPublisher ruleEventPublisher,
                            final ShenyuDictMapper shenyuDictMapper,
-                           final DataPermissionChecker dataPermissionChecker) {
+                           final DataPermissionChecker dataPermissionChecker,
+                           final PluginDataPermissionChecker pluginDataPermissionChecker) {
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.selectorMapper = selectorMapper;
@@ -120,6 +124,7 @@ public class RuleServiceImpl implements RuleService {
         this.ruleEventPublisher = ruleEventPublisher;
         this.shenyuDictMapper = shenyuDictMapper;
         this.dataPermissionChecker = dataPermissionChecker;
+        this.pluginDataPermissionChecker = pluginDataPermissionChecker;
     }
 
     @Override
@@ -190,6 +195,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final RuleDTO ruleDTO) {
+        pluginDataPermissionChecker.checkCreateRule(ruleDTO);
         return RuleService.super.createOrUpdate(ruleDTO);
     }
 
@@ -503,6 +509,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
+        pluginDataPermissionChecker.checkEnableRules(ids);
         ids.forEach(id -> {
             RuleDO ruleDO = ruleMapper.selectById(id);
             if (Objects.isNull(ruleDO) || !Objects.equals(ruleDO.getNamespaceId(), namespaceId)) {
@@ -538,11 +545,25 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
+        return deleteRules(ids, namespaceId, true);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteForRegistration(final List<String> ids, final String namespaceId) {
+        return deleteRules(ids, namespaceId, false);
+    }
+
+    private int deleteRules(final List<String> ids, final String namespaceId, final boolean checkPermission) {
         List<RuleDO> rules = ruleMapper.selectByIdsAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(rules)) {
             return 0;
         }
         final List<String> ruleIds = map(rules, RuleDO::getId);
+        if (checkPermission) {
+            // authorize the rules of the namespace that are actually deleted, not every requested id
+            pluginDataPermissionChecker.checkDeleteRules(ruleIds);
+        }
         final int deleteCount = ruleMapper.deleteByIdsAndNamespaceId(ruleIds, namespaceId);
         if (deleteCount > 0) {
             ruleEventPublisher.onDeleted(rules);

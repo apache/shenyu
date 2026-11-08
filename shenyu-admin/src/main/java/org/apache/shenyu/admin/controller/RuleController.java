@@ -33,7 +33,6 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -54,12 +53,8 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
 
     private final RuleService ruleService;
 
-    private final PluginDataPermissionChecker pluginDataPermissionChecker;
-
-    public RuleController(final RuleService ruleService,
-                          final PluginDataPermissionChecker pluginDataPermissionChecker) {
+    public RuleController(final RuleService ruleService) {
         this.ruleService = ruleService;
-        this.pluginDataPermissionChecker = pluginDataPermissionChecker;
     }
 
     /**
@@ -107,7 +102,6 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @PostMapping
     public ShenyuAdminResult createRule(@Valid @RequestBody final RuleDTO ruleDTO) {
-        pluginDataPermissionChecker.checkCreateRule(ruleDTO);
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
@@ -124,7 +118,6 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
                                         @Existed(provider = RuleMapper.class,
                                                 message = "rule is not existed") final String id,
                                         @Valid @RequestBody final RuleDTO ruleDTO) {
-        pluginDataPermissionChecker.checkUpdateRule(id);
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
@@ -138,7 +131,6 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        pluginDataPermissionChecker.checkEnableRules(batchCommonDTO.getIds());
         if (!ruleService.enabledByIdsAndNamespaceId(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId())) {
             return ShenyuAdminResult.error(ShenyuResultMessage.NOT_FOUND_EXCEPTION);
         }
@@ -153,7 +145,6 @@ public class RuleController implements PagedController<RuleQueryCondition, RuleV
      */
     @DeleteMapping("/batch")
     public ShenyuAdminResult deleteRules(@Valid @RequestBody final BatchNamespaceCommonDTO batchNamespaceCommonDTO) {
-        pluginDataPermissionChecker.checkDeleteRules(batchNamespaceCommonDTO.getIds());
         Integer deleteCount = ruleService.deleteByIdsAndNamespaceId(batchNamespaceCommonDTO.getIds(), batchNamespaceCommonDTO.getNamespaceId());
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }

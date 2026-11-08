@@ -29,7 +29,6 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -58,12 +57,10 @@ import java.util.Collections;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,9 +79,6 @@ public final class SelectorControllerTest {
 
     @Mock
     private SelectorService selectorService;
-
-    @Mock
-    private PluginDataPermissionChecker pluginDataPermissionChecker;
 
     @Mock
     private SelectorMapper selectorMapper;
@@ -251,27 +245,8 @@ public final class SelectorControllerTest {
     }
 
     @Test
-    public void shouldCheckPermissionBeforeEveryWrite() {
-        SelectorDTO selectorDTO = SelectorDTO.builder().id("1").build();
-        BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
-        batchCommonDTO.setIds(Collections.singletonList("1"));
-        BatchNamespaceCommonDTO batchNamespaceCommonDTO = new BatchNamespaceCommonDTO();
-        batchNamespaceCommonDTO.setIds(Collections.singletonList("1"));
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateSelector(selectorDTO);
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkUpdateSelector("1");
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableSelectors(batchCommonDTO.getIds());
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkDeleteSelectors(batchNamespaceCommonDTO.getIds());
-
-        assertThrows(UnauthorizedException.class, () -> selectorController.createSelector(selectorDTO));
-        assertThrows(UnauthorizedException.class, () -> selectorController.updateSelector("1", selectorDTO));
-        assertThrows(UnauthorizedException.class, () -> selectorController.batchEnabled(batchCommonDTO));
-        assertThrows(UnauthorizedException.class, () -> selectorController.deleteSelector(batchNamespaceCommonDTO));
-        verifyNoInteractions(selectorService);
-    }
-
-    @Test
     public void shouldReturnNoPermissionMessageWhenDenied() throws Exception {
-        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableSelectors(any());
+        doThrow(new UnauthorizedException()).when(this.selectorService).enabledByIdsAndNamespaceId(any(), any(), any());
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Collections.singletonList("1"));
         batchCommonDTO.setEnabled(false);
@@ -281,6 +256,5 @@ public final class SelectorControllerTest {
                         .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION)));
-        verifyNoInteractions(selectorService);
     }
 }
