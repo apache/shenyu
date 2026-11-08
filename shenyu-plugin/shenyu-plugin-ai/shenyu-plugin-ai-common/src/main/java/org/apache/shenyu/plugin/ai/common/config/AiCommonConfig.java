@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.common.config;
 
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.dto.convert.rule.AiStructuredOutputConfig;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -80,6 +81,11 @@ public class AiCommonConfig {
      */
     private Boolean requestBodyForceOverride;
 
+    /**
+     * Opt-in structured output policy (issue #8257); {@code null} means disabled.
+     */
+    private AiStructuredOutputConfig structuredOutput;
+
     public AiCommonConfig() {
     }
 
@@ -103,6 +109,7 @@ public class AiCommonConfig {
         this.protocol = other.getProtocol();
         this.requestBodyOverrides = copyRequestBodyOverrides(other.getRequestBodyOverrides());
         this.requestBodyForceOverride = other.getRequestBodyForceOverride();
+        this.structuredOutput = other.getStructuredOutput();
     }
 
     /**
@@ -277,12 +284,30 @@ public class AiCommonConfig {
     }
 
     /**
-     * Set whether configured request-body values overwrite existing values.
+     * Set whether request-body patches overwrite existing values.
      *
      * @param requestBodyForceOverride force-override flag
      */
     public void setRequestBodyForceOverride(final Boolean requestBodyForceOverride) {
         this.requestBodyForceOverride = requestBodyForceOverride;
+    }
+
+    /**
+     * Get the opt-in structured output policy.
+     *
+     * @return structured output config, or {@code null} when disabled
+     */
+    public AiStructuredOutputConfig getStructuredOutput() {
+        return structuredOutput;
+    }
+
+    /**
+     * Set the opt-in structured output policy.
+     *
+     * @param structuredOutput structured output config
+     */
+    public void setStructuredOutput(final AiStructuredOutputConfig structuredOutput) {
+        this.structuredOutput = structuredOutput;
     }
 
     /**
@@ -305,6 +330,7 @@ public class AiCommonConfig {
         this.setProtocol(Optional.ofNullable(overlay.getProtocol()).orElse(this.getProtocol()));
         this.setRequestBodyOverrides(Optional.ofNullable(overlay.getRequestBodyOverrides()).orElse(this.getRequestBodyOverrides()));
         this.setRequestBodyForceOverride(Optional.ofNullable(overlay.getRequestBodyForceOverride()).orElse(this.getRequestBodyForceOverride()));
+        this.setStructuredOutput(Optional.ofNullable(overlay.getStructuredOutput()).orElse(this.getStructuredOutput()));
         return this;
     }
 
