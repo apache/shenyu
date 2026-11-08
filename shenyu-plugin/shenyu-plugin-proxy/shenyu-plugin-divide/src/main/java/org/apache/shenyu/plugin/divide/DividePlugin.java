@@ -33,6 +33,8 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.spi.AdaptiveLoadBalancer;
+import org.apache.shenyu.loadbalancer.spi.AdaptiveOutcome;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -60,6 +62,8 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import reactor.core.publisher.SignalType;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ResponseStatusException;
@@ -85,6 +89,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private static final String LEAST_ACTIVE = "leastActive";
 
     private static final String SHORTEST_RESPONSE = "shortestResponse";
+
+    private static final String ADAPTIVE = "adaptive";
 
     private final CanaryDecisionService canaryDecisionService;
 
@@ -334,8 +340,48 @@ public class DividePlugin extends AbstractShenyuPlugin {
         } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
             long beginTime = System.currentTimeMillis();
             response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime));
+        } else if (ruleHandle.getLoadBalance().equals(ADAPTIVE)) {
+            // the attempt's own start time feeds the adaptive scoring, so overlapping
+            // attempts never share a timestamp the way the p2c lag attribution does
+            long beginTime = System.currentTimeMillis();
+            response = response.doFinally(signalType -> adaptiveFeedback(upstream, exchange, beginTime, signalType));
         }
         return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
+    }
+
+    /**
+     * Pair the adaptive selection's in-flight reservation with the attempt outcome and
+     * feed the classified result into the adaptive scoring: a downstream cancellation
+     * says nothing about the upstream, a 4xx is neutral, a 5xx or a transport failure
+     * penalizes through the synthetic failure latency floor.
+     *
+     * @param upstream the upstream that served the attempt
+     * @param exchange the current server exchange
+     * @param beginTime the attempt's own start time
+     * @param signalType the completion signal
+     */
+    private void adaptiveFeedback(final Upstream upstream, final ServerWebExchange exchange,
+                                  final long beginTime, final SignalType signalType) {
+        upstream.getInflight().decrementAndGet();
+        if (SignalType.CANCEL.equals(signalType)) {
+            return;
+        }
+        AdaptiveOutcome outcome;
+        if (SignalType.ON_ERROR.equals(signalType)) {
+            outcome = AdaptiveOutcome.TRANSPORT_ERROR;
+        } else {
+            HttpStatusCode status = exchange.getResponse().getStatusCode();
+            if (Objects.isNull(status)) {
+                outcome = AdaptiveOutcome.SUCCESS;
+            } else if (status.is5xxServerError()) {
+                outcome = AdaptiveOutcome.SERVER_ERROR;
+            } else if (status.is4xxClientError()) {
+                outcome = AdaptiveOutcome.CLIENT_ERROR;
+            } else {
+                outcome = AdaptiveOutcome.SUCCESS;
+            }
+        }
+        AdaptiveLoadBalancer.feedback(upstream, System.currentTimeMillis() - beginTime, outcome);
     }
 
     /**
@@ -356,8 +402,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
                 stickySessionAffinity.resolve(exchange, rule.getId(), sticky, breakeredUpstreamList);
         final Upstream bound = resolution.getBound();
         if (Objects.nonNull(bound)) {
-            if (P2C.equals(ruleHandle.getLoadBalance())) {
-                // a binding hit skips the P2C selection, which normally reserves the
+            if (P2C.equals(ruleHandle.getLoadBalance()) || ADAPTIVE.equals(ruleHandle.getLoadBalance())) {
+                // a binding hit skips the pairing selection, which normally reserves the
                 // attempt: the same accounting must apply or the count drifts down
                 bound.getInflight().incrementAndGet();
                 bound.setLastPicked(System.currentTimeMillis());
@@ -397,8 +443,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
         final LoadBalanceData data = new LoadBalanceData();
         data.setHashKey(key);
         final Upstream upstream = LoadBalancerFactory.selector(breakeredUpstreamList, LoadBalanceEnum.HASH.getName(), data);
-        if (Objects.nonNull(upstream) && P2C.equals(ruleHandle.getLoadBalance())) {
-            // the hash pick skips the P2C selection, which normally reserves the
+        if (Objects.nonNull(upstream) && (P2C.equals(ruleHandle.getLoadBalance()) || ADAPTIVE.equals(ruleHandle.getLoadBalance()))) {
+            // the hash pick skips the pairing selection, which normally reserves the
             // attempt: the same accounting must apply or the count drifts down
             upstream.getInflight().incrementAndGet();
             upstream.setLastPicked(System.currentTimeMillis());
