@@ -24,6 +24,7 @@ import reactor.core.publisher.SignalType;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A lightweight built-in circuit breaker for divide/http proxy upstreams.
@@ -208,6 +209,13 @@ public final class UpstreamCircuitBreaker {
         this.breakers.remove(key);
     }
 
+    private static boolean isLocalReject(final Throwable error) {
+        // classified by the explicit marker type, not by status: a 408 mapped by the
+        // retry strategy from an exhausted upstream timeout is an upstream failure and
+        // must keep counting toward the breaker
+        return error instanceof ShenyuLocalRejectException;
+    }
+
     /**
      * Wrap a forwarded {@link Mono} so that its terminal signal is recorded as
      * a success or a failure of the upstream identified by the given key.
@@ -221,23 +229,31 @@ public final class UpstreamCircuitBreaker {
         return Mono.defer(() -> {
             CircuitBreakerState initial = INSTANCE.breakers.get(key);
             long generation = Objects.isNull(initial) ? 0 : initial.getGeneration();
-            return source.doFinally(signal -> {
-                if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
-                    return;
-                }
-                CircuitBreakerState current = INSTANCE.breakers.get(key);
-                if (Objects.isNull(initial)) {
-                    if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
-                        current = INSTANCE.breakers.computeIfAbsent(key,
-                                ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
-                    }
-                } else if (current != initial) {
-                    return;
-                }
-                if (Objects.nonNull(current)) {
-                    current.recordOrdinaryOutcome(generation, signal);
-                }
-            });
+            // a client-caused 4xx (e.g. the gateway's own request-body limit) is not an
+            // upstream failure; counting it would open the breaker for a healthy backend,
+            // so classify the terminal error before the outcome reaches the state machine
+            final AtomicBoolean clientError = new AtomicBoolean(false);
+            return source.doOnError(error -> clientError.set(isLocalReject(error)))
+                    .doFinally(signal -> {
+                        if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
+                            return;
+                        }
+                        if (clientError.get()) {
+                            return;
+                        }
+                        CircuitBreakerState current = INSTANCE.breakers.get(key);
+                        if (Objects.isNull(initial)) {
+                            if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
+                                current = INSTANCE.breakers.computeIfAbsent(key,
+                                        ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
+                            }
+                        } else if (current != initial) {
+                            return;
+                        }
+                        if (Objects.nonNull(current)) {
+                            current.recordOrdinaryOutcome(generation, signal);
+                        }
+                    });
         });
     }
 
@@ -288,11 +304,23 @@ public final class UpstreamCircuitBreaker {
          * @return the request with probe outcome recording
          */
         public <T> Mono<T> recordOutcome(final Mono<T> source) {
-            return source.doFinally(signal -> {
-                if (breakers.get(key) == state) {
-                    state.recordProbeOutcome(generation, signal);
-                }
-            });
+            final AtomicBoolean localReject = new AtomicBoolean(false);
+            return source
+                    .doOnError(error -> localReject.set(isLocalReject(error)))
+                    .doFinally(signal -> {
+                        if (breakers.get(key) != state) {
+                            return;
+                        }
+                        if (localReject.get()) {
+                            // the gateway rejected the probe before it reached the upstream
+                            // (e.g. an oversized body): an invalid probe, not a failed one —
+                            // release the slot without changing the breaker state so a real
+                            // request can still probe recovery
+                            state.releaseProbe(generation);
+                            return;
+                        }
+                        state.recordProbeOutcome(generation, signal);
+                    });
         }
     }
 
@@ -393,6 +421,15 @@ public final class UpstreamCircuitBreaker {
                 } else {
                     recordFailure();
                 }
+            }
+        }
+
+        synchronized void releaseProbe(final long expectedGeneration) {
+            if (state == State.HALF_OPEN && generation == expectedGeneration) {
+                // return to OPEN with the wait window already elapsed, so the next request
+                // can immediately acquire a fresh probe
+                state = State.OPEN;
+                openedAtMillis = System.currentTimeMillis() - halfOpenWaitMillis;
             }
         }
 
