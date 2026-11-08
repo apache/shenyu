@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.common.config;
 
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.dto.convert.rule.AiEvaluationRouteConfig;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -80,6 +81,11 @@ public class AiCommonConfig {
      */
     private Boolean requestBodyForceOverride;
 
+    /**
+     * Opt-in evaluation sample export of the route (issue #8256); {@code null} means disabled.
+     */
+    private AiEvaluationRouteConfig evaluation;
+
     public AiCommonConfig() {
     }
 
@@ -103,6 +109,7 @@ public class AiCommonConfig {
         this.protocol = other.getProtocol();
         this.requestBodyOverrides = copyRequestBodyOverrides(other.getRequestBodyOverrides());
         this.requestBodyForceOverride = other.getRequestBodyForceOverride();
+        this.evaluation = other.getEvaluation();
     }
 
     /**
@@ -286,6 +293,24 @@ public class AiCommonConfig {
     }
 
     /**
+     * Get the opt-in evaluation sample export policy of the route.
+     *
+     * @return evaluation route config, or {@code null} when disabled
+     */
+    public AiEvaluationRouteConfig getEvaluation() {
+        return evaluation;
+    }
+
+    /**
+     * Set the opt-in evaluation sample export policy of the route.
+     *
+     * @param evaluation evaluation route config
+     */
+    public void setEvaluation(final AiEvaluationRouteConfig evaluation) {
+        this.evaluation = evaluation;
+    }
+
+    /**
      * merge with another config.
      *
      * @param overlay overlay config
@@ -305,6 +330,7 @@ public class AiCommonConfig {
         this.setProtocol(Optional.ofNullable(overlay.getProtocol()).orElse(this.getProtocol()));
         this.setRequestBodyOverrides(Optional.ofNullable(overlay.getRequestBodyOverrides()).orElse(this.getRequestBodyOverrides()));
         this.setRequestBodyForceOverride(Optional.ofNullable(overlay.getRequestBodyForceOverride()).orElse(this.getRequestBodyForceOverride()));
+        this.setEvaluation(Optional.ofNullable(overlay.getEvaluation()).orElse(this.getEvaluation()));
         return this;
     }
 

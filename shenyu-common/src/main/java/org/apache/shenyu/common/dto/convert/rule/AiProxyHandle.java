@@ -88,6 +88,12 @@ public class AiProxyHandle {
 
     private Boolean requestBodyForceOverride;
 
+    /**
+     * Opt-in evaluation sample export for this selector (issue #8256); absent means
+     * the route produces no samples and holds no state.
+     */
+    private AiEvaluationRouteConfig evaluation;
+
     // flat fallback fields (to fit dashboard flat handle capability)
     private String fallbackEnabled;
 
@@ -321,6 +327,24 @@ public class AiProxyHandle {
      */
     public void setRequestBodyForceOverride(final Boolean requestBodyForceOverride) {
         this.requestBodyForceOverride = requestBodyForceOverride;
+    }
+
+    /**
+     * Get the opt-in evaluation sample export policy of this selector.
+     *
+     * @return evaluation route config, or {@code null} when disabled
+     */
+    public AiEvaluationRouteConfig getEvaluation() {
+        return evaluation;
+    }
+
+    /**
+     * Set the opt-in evaluation sample export policy of this selector.
+     *
+     * @param evaluation evaluation route config
+     */
+    public void setEvaluation(final AiEvaluationRouteConfig evaluation) {
+        this.evaluation = evaluation;
     }
 
     /**
