@@ -251,6 +251,10 @@ public class RequestBodyReplayRetryTest {
         }
 
         @Override
+        protected Integer extractStatusCode(final String response) {
+            return 200;
+        }
+
         protected Mono<String> doRequest(final ServerWebExchange exchange, final String httpMethod,
                                          final URI uri, final Flux<DataBuffer> body) {
             return DataBufferUtils.join(body)

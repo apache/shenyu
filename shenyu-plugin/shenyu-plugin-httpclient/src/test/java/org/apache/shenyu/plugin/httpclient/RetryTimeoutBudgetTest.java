@@ -31,7 +31,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class RetryTimeoutBudgetTest {
 
@@ -75,4 +77,15 @@ class RetryTimeoutBudgetTest {
         }
         return new DefaultRetryStrategy<>(plugin);
     }
+
+    /**
+     * A plugin mock whose attempt-observation wrapper passes the attempt through
+     * unmodified, so strategy-level tests exercise their own accounting logic.
+     */
+    private static <T> AbstractHttpClientPlugin<T> mockWithAttemptPassthrough() {
+        AbstractHttpClientPlugin<T> plugin = mock(AbstractHttpClientPlugin.class);
+        when(plugin.observeAttempt(any(), any(), any(), any())).thenAnswer(inv -> inv.getArgument(3));
+        return plugin;
+    }
+
 }
