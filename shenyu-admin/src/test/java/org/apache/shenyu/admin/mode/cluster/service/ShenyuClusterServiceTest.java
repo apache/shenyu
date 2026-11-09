@@ -227,15 +227,12 @@ public final class ShenyuClusterServiceTest {
 
     @Test
     public void testSelectMasterErrorCountTracking() throws Exception {
-        CountDownLatch errorsOccurred = new CountDownLatch(2);
-        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString())).thenAnswer(invocation -> {
-            errorsOccurred.countDown();
-            throw new RuntimeException("consecutive failure");
-        });
+        when(clusterSelectMasterService.selectMaster(anyString(), anyString(), anyString()))
+                .thenThrow(new RuntimeException("consecutive failure"));
 
         clusterService.start("127.0.0.1", 9195, "/shenyu");
-        assertTrue(errorsOccurred.await(5, TimeUnit.SECONDS));
-        await().atMost(AWAIT_MILLIS, TimeUnit.MILLISECONDS).untilAsserted(() -> assertTrue(clusterService.getSelectMasterErrorCount() >= 2));
+        // Wait for the catch block to update the count, rather than for entry into the mock.
+        await().atMost(5, TimeUnit.SECONDS).until(() -> clusterService.getSelectMasterErrorCount() >= 2);
 
         clusterService.shutdown();
     }
