@@ -270,7 +270,10 @@ public class SpringWebSocketClientEventListenerTest {
             assertEquals("/contextPath", metadataCaptor.getValue().getContextPath());
             assertEquals("appName", metadataCaptor.getValue().getAppName());
             assertEquals(RpcTypeEnum.WEB_SOCKET.getName(), metadataCaptor.getValue().getRpcType());
-            assertEquals("/contextPath", metadataCaptor.getValue().getPath());
+            // The isFull metadata path must be contextPath + "/**": admin derives the websocket
+            // rule pathPattern from this value, and an exact path would leave every endpoint
+            // below the context path unmatched at the gateway (issue #8372).
+            assertEquals("/contextPath/**", metadataCaptor.getValue().getPath());
             assertEquals("/contextPath", metadataCaptor.getValue().getRuleName());
             assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, metadataCaptor.getValue().getNamespaceId());
         }
