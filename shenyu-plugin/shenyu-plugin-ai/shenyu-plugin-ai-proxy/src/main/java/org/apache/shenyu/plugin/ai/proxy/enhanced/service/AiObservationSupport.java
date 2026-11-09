@@ -71,6 +71,9 @@ public final class AiObservationSupport {
                 || error instanceof AiProxyException proxy && proxy.getKind() == AiProxyException.Kind.REQUEST) {
             return AiCallOutcome.REJECTED;
         }
+        if (error instanceof AiProxyException proxy && proxy.getKind() == AiProxyException.Kind.ADMISSION) {
+            return AiCallOutcome.RATE_LIMITED;
+        }
         return AiCallOutcome.ERROR;
     }
 }
