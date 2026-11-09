@@ -165,9 +165,11 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
 
     /**
      * Check whether the client runs in local discovery mode.
+     *
      * <p>In registry discovery modes (e.g. nacos), upstream instances are sourced
      * from the registry, so local URI registration must be skipped to avoid
      * dual upstream registration for the same selector.
+     *
      * <p>The flag is deliberately resolved from the environment of the context that
      * fired {@link org.springframework.context.event.ContextRefreshedEvent} instead of
      * reusing the pre-computed {@code discoveryLocalMode} flag the starters store into
@@ -190,6 +192,7 @@ public abstract class AbstractContextRefreshedEventListener<T, A extends Annotat
      * {@link #buildURIRegisterDTO(ApplicationContext, Map, String)} with an empty bean map,
      * but only when the discovery mode is local. In registry discovery modes the upstream
      * instances come from the registry watcher, so the URI payload must not be published.
+     *
      * <p>This is the single place enforcing that invariant for full-mode (isFull)
      * registrations; subclasses must not inline the check.
      *
