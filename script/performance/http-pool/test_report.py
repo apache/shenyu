@@ -107,6 +107,57 @@ class ComparisonTest(unittest.TestCase):
         self.assertEqual(4, self.after["runs"][0]["pendingAcquireMaxCount"])
         validate_comparison(self.before, self.after)
 
+    def test_queue_override_cannot_change_between_repetitions(self):
+        for arm_name in ("before", "after"):
+            with self.subTest(arm=arm_name):
+                before, after = copy.deepcopy(self.before), copy.deepcopy(self.after)
+                arm = before if arm_name == "before" else after
+                arm["runs"][12]["pendingAcquireMaxCount"] = 99
+                with self.assertRaisesRegex(ValueError, "pendingAcquireMaxCount"):
+                    validate_comparison(before, after)
+
+    def test_queue_override_cannot_change_between_cases(self):
+        for sample in self.after["runs"]:
+            if sample["case"] == "elastic-overload":
+                sample["pendingAcquireMaxCount"] = 8
+        with self.assertRaisesRegex(ValueError, "pendingAcquireMaxCount"):
+            validate_comparison(self.before, self.after)
+
+    def test_invalid_queue_overrides_are_rejected(self):
+        for value in (True, False, 0, -2, 1.5, "4", float("nan"), float("inf")):
+            with self.subTest(value=value):
+                after = copy.deepcopy(self.after)
+                for sample in after["runs"]:
+                    sample["pendingAcquireMaxCount"] = value
+                with self.assertRaisesRegex(ValueError, "pendingAcquireMaxCount"):
+                    validate_comparison(self.before, after)
+
+    def test_missing_queue_override_is_not_an_implicit_default(self):
+        del self.after["runs"][0]["pendingAcquireMaxCount"]
+        with self.assertRaises((KeyError, ValueError)):
+            validate_comparison(self.before, self.after)
+
+    def test_report_describes_actual_queue_overrides(self):
+        for value, description in ((8, "8"), (None, "implementation default (no override)"),
+                                   (-1, "-1 (unbounded where supported)")):
+            with self.subTest(value=value):
+                for sample in self.before["runs"]:
+                    sample["pendingAcquireMaxCount"] = 16
+                for sample in self.after["runs"]:
+                    sample["pendingAcquireMaxCount"] = value
+                result, output = self.render()
+                self.assertEqual(0, result.returncode, result.stderr)
+                report = output["http-pool-results.md"]
+                self.assertIn("Queue override requested: baseline **16**, candidate **" + description + "**", report)
+                self.assertNotIn("explicitly selected queue of 4", report)
+                self.assertNotIn("shorter candidate queue", report)
+
+    def test_mixed_queue_overrides_keep_published_artifacts_unchanged(self):
+        self.after["runs"][12]["pendingAcquireMaxCount"] = 99
+        result, output = self.render(retained=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertTrue(all(value == "retained" for value in output.values()))
+
     def test_missing_measurements_are_not_zero_measurements(self):
         for name in ("http_reqs", "http_req_failed", "successful_requests", "successful_duration"):
             with self.subTest(metric=name):

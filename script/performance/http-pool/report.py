@@ -95,6 +95,13 @@ def latency_range(runs):
     return "N/A" if None in values else f"{min(values):.2f}–{max(values):.2f}"
 
 
+def queue_override(arm):
+    value = arm["runs"][0]["pendingAcquireMaxCount"]
+    if value is None:
+        return "implementation default (no override)"
+    return "-1 (unbounded where supported)" if value == -1 else str(value)
+
+
 def validate_comparison(before, after):
     """Reject incomplete or incomparable arms before publishing a report."""
     from run import CASES
@@ -114,7 +121,15 @@ def validate_comparison(before, after):
             raise ValueError(f"{label}: repeat must be an integer")
         if len(observed) != len(expected) or set(observed) != expected:
             raise ValueError(f"{label}: incomplete or duplicate case/repetition samples")
+        # The runner accepts one queue override for the whole arm. Combining
+        # different settings would make its repeat medians incomparable.
+        pending = arm["runs"][0]["pendingAcquireMaxCount"]
         for run in arm["runs"]:
+            value = run["pendingAcquireMaxCount"]
+            if value is not None and (type(value) is not int or value == 0 or value < -1):
+                raise ValueError(f"{label}: pendingAcquireMaxCount must be null, -1 or a positive integer")
+            if value != pending:
+                raise ValueError(f"{label}: mismatched pendingAcquireMaxCount across samples")
             try:
                 validate_measurements(run)
             except (KeyError, TypeError, ValueError) as error:
@@ -162,7 +177,7 @@ def main():
         "## Contract", "",
         "- Reviewed source baseline: `" + before["build"]["commit"] + "`.",
         "- Baseline uses the original factory bytecode. The fixture/property accessor and optional Micrometer dependency were added before snapshotting, without changing that factory's policy.",
-        "- Candidate uses the changed factory. Baseline: implicit FIXED queue `2 * 8 = 16`, legacy unlimited ELASTIC. Candidate: 8 connections and an explicitly selected queue of 4 for both types, 250 ms acquisition timeout.",
+        "- Queue override requested: baseline **" + queue_override(before) + "**, candidate **" + queue_override(after) + "**. This is the runner's `--pending` input, not an observed effective capacity. An unset override retains each snapshot's implementation default; an older factory may ignore an unsupported override. The AI and direct-upstream controls do not use this queue.",
         "- Keep-alive is an explicit test variable; its production default is unchanged. Both arms have metrics enabled. The AI client control uses the unchanged `HttpClient.create()` construction path, not the HTTP factory's provider or a complete AI engine.",
         "- Each case has a fresh JVM, " + str(before["warmupSeconds"]) + " s warmup and " + str(before["measurementSeconds"]) + " s fixed-arrival measurement, repeated " + str(before["repetitions"]) + " times. All figures below are medians; individual samples and variability are retained.",
         "- Benchmark runtime: `" + before["javaVersion"].splitlines()[0] + "`" + verified_runtime + ". Build/test JDK: `" + str(before["build"]["java"]) + "`; OS: `" + before["build"]["os"] + "`; host logical CPUs: " + str(before["build"]["hostLogicalCpus"]) + ".",
@@ -203,8 +218,8 @@ def main():
         lines.append(f"| {case} | {latency_range(old)} | {latency_range(new)} |")
     drops = sum(metric(run, "dropped_iterations", "count", 0) for arm in (before, after) for run in arm["runs"])
     lines += ["", "- Total generator dropped iterations: " + str(drops) + ".",
-              "- The unchanged FIXED default is not being presented as an unbounded queue: the before measurement exposes its existing 16-slot limit. The shorter candidate queue is an explicit configuration choice.",
-              "- ELASTIC shedding under the new 8-connection budget is intentional admission control, not a throughput improvement. Before ELASTIC can complete more requests by consuming more upstream connections.",
+              "- A FIXED implementation can already have a bounded default queue. Interpret the requested overrides above together with each snapshot's factory policy; an unset override does not mean an unbounded queue.",
+              "- Compare ELASTIC throughput with its open upstream connections. Shedding under a finite connection budget is intentional admission control, not by itself a throughput improvement.",
               "- The direct control and AI-construction stream control prevent attributing upstream or generator limits to the new HTTP pool. The AI control is not an end-to-end AI transport or model benchmark.",
               "- Pending lifetimes in the raw data measure queue residence, including timeout/cancellation; the production acquisition timer additionally includes connection establishment.",
               "- Heap peaks are sampled live heap, not retained-heap/leak measurements. Direct-buffer peaks and open connections are separate quantities. This short run cannot establish long-term memory stability.",
