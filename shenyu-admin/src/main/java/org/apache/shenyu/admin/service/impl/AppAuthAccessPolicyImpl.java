@@ -23,6 +23,8 @@ import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AppAuthRequestDO;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 import org.apache.shenyu.admin.service.AppAuthAccessPolicy;
 import org.apache.shenyu.admin.service.NamespaceUserService;
 import org.apache.shenyu.admin.utils.SessionUtil;
@@ -62,13 +64,16 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
     public String requireServiceCaller(final String permission) {
         final String userId = SessionUtil.visitorId();
         if (Objects.isNull(userId) || "-1".equals(userId) || "unknown".equals(userId)) {
-            throw new ShenyuAdminException("Service identity check failed: call with a configured service account");
+            throw deny("service_identity_unknown", null, permission,
+                    "Service identity check failed: call with a configured service account");
         }
         if (!properties.getServiceUserIds().contains(userId)) {
-            throw new ShenyuAdminException("Service identity check failed: current account is not in the service whitelist");
+            throw deny("service_identity_not_whitelisted", null, permission,
+                    "Service identity check failed: current account is not in the service whitelist");
         }
         if (!isPermitted(permission)) {
-            throw new ShenyuAdminException("Service identity check failed: missing action permission " + permission);
+            throw deny("service_identity_no_permission", null, permission,
+                    "Service identity check failed: missing action permission " + permission);
         }
         // callerKey is the immutable userId: renaming the user never changes the identity key
         return userId;
@@ -77,7 +82,7 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
     @Override
     public void requireNamespace(final String callerKey, final String namespaceId) {
         if (!namespaceUserService.listNamespaceIdByUserId(callerKey).contains(namespaceId)) {
-            throw new ShenyuAdminException("Namespace ownership check failed");
+            throw deny("namespace_ownership_denied", namespaceId, null, "Namespace ownership check failed");
         }
     }
 
@@ -88,11 +93,11 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
                 || !callerKey.equals(record.getCallerKey())
                 || !namespaceId.equals(record.getNamespaceId())
                 || !"CREATED".equals(record.getState())) {
-            throw new ShenyuAdminException("App auth ownership check failed");
+            throw deny("app_auth_ownership_denied", namespaceId, authId, "App auth ownership check failed");
         }
         final AppAuthDO auth = appAuthMapper.selectById(authId);
         if (Objects.isNull(auth) || !namespaceId.equals(auth.getNamespaceId())) {
-            throw new ShenyuAdminException("App auth ownership check failed");
+            throw deny("app_auth_ownership_denied", namespaceId, authId, "App auth ownership check failed");
         }
         return record;
     }
@@ -107,5 +112,29 @@ public class AppAuthAccessPolicyImpl implements AppAuthAccessPolicy {
             // reject whenever no Shiro context exists (unexpected call path or direct invocation)
             return false;
         }
+    }
+
+    /**
+     * emit exactly one app_auth_access denial audit event and build the exception to throw. The
+     * ShenyuAdminException then propagates to the global handler, which never re-audits it, so a
+     * single denial produces a single audit record. The exception message stays unchanged because
+     * it is part of the API response; the audit event carries only fixed reasons and sanitized context.
+     *
+     * @param reason fixed denial reason
+     * @param namespaceId namespace context, null when not yet known
+     * @param resourceId resource context (permission or authId), null when not applicable
+     * @param message unchanged API error message
+     * @return the exception to throw
+     */
+    private ShenyuAdminException deny(final String reason, final String namespaceId, final String resourceId, final String message) {
+        SecurityAuditLog.event(SecurityAuditEventType.APP_AUTH_ACCESS)
+                .outcome(SecurityAuditLog.Outcome.DENIED)
+                .action("app_auth_access")
+                .reason(reason)
+                .actor(SessionUtil.visitorName())
+                .namespace(namespaceId)
+                .resource(resourceId)
+                .emit();
+        return new ShenyuAdminException(message);
     }
 }

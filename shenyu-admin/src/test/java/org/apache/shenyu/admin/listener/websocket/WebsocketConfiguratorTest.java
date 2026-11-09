@@ -17,23 +17,30 @@
 
 package org.apache.shenyu.admin.listener.websocket;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 import jakarta.websocket.HandshakeResponse;
 import jakarta.websocket.server.HandshakeRequest;
 import jakarta.websocket.server.ServerEndpointConfig;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +75,12 @@ public class WebsocketConfiguratorTest {
         ApplicationContext applicationContext = mock(ApplicationContext.class);
         when(applicationContext.getBean(WebsocketSyncProperties.class)).thenReturn(websocketSyncProperties);
         SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
+    }
+
+    @AfterEach
+    void tearDown() {
+        MDC.clear();
+        SecurityAuditLog.resetRateLimiter();
     }
 
     @Test
@@ -255,5 +268,134 @@ public class WebsocketConfiguratorTest {
 
         verify(servletContext, org.mockito.Mockito.never())
                 .setInitParameter(org.mockito.Mockito.anyString(), org.mockito.Mockito.anyString());
+    }
+
+    @Test
+    void testSyncTokenDenialsEmitFixedReasonAuditWithoutTokenLeak() {
+        final String configuredToken = "configured-token-8179-do-not-log";
+        final String suppliedToken = "supplied-token-8179-do-not-log";
+        List<ILoggingEvent> events = captureAuditLogs(() -> {
+            websocketSyncProperties.setToken(" ");
+            ShenyuException notConfigured = assertThrows(ShenyuException.class, () -> websocketConfigurator
+                    .modifyHandshake(mock(ServerEndpointConfig.class), mockHandshakeRequest(null, null), mock(HandshakeResponse.class)));
+            assertEquals("websocket sync token is not configured", notConfigured.getMessage());
+            websocketSyncProperties.setToken(configuredToken);
+            ShenyuException missing = assertThrows(ShenyuException.class, () -> websocketConfigurator
+                    .modifyHandshake(mock(ServerEndpointConfig.class), mockHandshakeRequest(null, "10.0.0.9"), mock(HandshakeResponse.class)));
+            assertEquals("websocket sync token is invalid", missing.getMessage());
+            ShenyuException invalid = assertThrows(ShenyuException.class, () -> websocketConfigurator
+                    .modifyHandshake(mock(ServerEndpointConfig.class), mockHandshakeRequest(suppliedToken, "10.0.0.9"), mock(HandshakeResponse.class)));
+            assertEquals("websocket sync token is invalid", invalid.getMessage());
+        });
+        assertEquals(3, events.size());
+        String first = events.get(0).getFormattedMessage();
+        assertTrue(first.contains("eventType=websocket_sync_auth"), first);
+        assertTrue(first.contains("outcome=denied"), first);
+        assertTrue(first.contains("action=websocket_sync_auth"), first);
+        assertTrue(first.contains("reason=sync_token_not_configured"), first);
+        assertTrue(first.contains("actor=unknown"), first);
+        String second = events.get(1).getFormattedMessage();
+        assertTrue(second.contains("reason=missing_sync_token"), second);
+        assertTrue(second.contains("resource=/websocket"), second);
+        assertTrue(second.contains("remoteAddr=10.0.0.9"), second);
+        String third = events.get(2).getFormattedMessage();
+        assertTrue(third.contains("reason=invalid_sync_token"), third);
+        for (ILoggingEvent event : events) {
+            String message = event.getFormattedMessage();
+            assertFalse(message.contains(configuredToken), "configured token must not appear in audit logs");
+            assertFalse(message.contains(suppliedToken), "supplied token must not appear in audit logs");
+        }
+    }
+
+    @Test
+    void testOriginForbiddenEmitsFixedReasonAuditWithoutOriginValue() {
+        final String sentinelOrigin = "http://sentinel-origin-8179.attacker.example";
+        websocketSyncProperties.setAllowOrigins("http://allowed.example");
+        ch.qos.logback.classic.Logger configuratorLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(WebsocketConfigurator.class);
+        ListAppender<ILoggingEvent> classAppender = new ListAppender<>();
+        classAppender.start();
+        configuratorLogger.addAppender(classAppender);
+        final List<ILoggingEvent> events;
+        try {
+            events = captureAuditLogs(() -> assertFalse(websocketConfigurator.checkOrigin(sentinelOrigin)));
+        } finally {
+            configuratorLogger.detachAppender(classAppender);
+        }
+        assertEquals(1, events.size());
+        String message = events.get(0).getFormattedMessage();
+        assertTrue(message.contains("eventType=websocket_sync_auth"), message);
+        assertTrue(message.contains("outcome=denied"), message);
+        assertTrue(message.contains("action=websocket_origin_check"), message);
+        assertTrue(message.contains("reason=origin_forbidden"), message);
+        assertTrue(message.contains("resource=/websocket"), message);
+        assertFalse(message.contains("sentinel-origin-8179"), "raw origin value must not appear in audit logs");
+        assertTrue(classAppender.list.isEmpty(), "the forbidden origin must no longer be written to the class logger");
+    }
+
+    @Test
+    void testPassingHandshakeChecksEmitNoAudit() {
+        final String configuredToken = "configured-token-8179";
+        websocketSyncProperties.setToken(configuredToken);
+        websocketSyncProperties.setAllowOrigins("http://allowed.example");
+        List<ILoggingEvent> events = captureAuditLogs(() -> {
+            assertTrue(websocketConfigurator.checkOrigin("http://allowed.example"));
+            ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
+            when(sec.getUserProperties()).thenReturn(new HashMap<>());
+            websocketConfigurator.modifyHandshake(sec, mockHandshakeRequest(configuredToken, null), mock(HandshakeResponse.class));
+        });
+        assertTrue(events.isEmpty(), "passing handshake checks must not emit denial audit events");
+    }
+
+    @Test
+    void testDenialAuditUsesMdcRequestIdOrPlaceholder() {
+        websocketSyncProperties.setToken(" ");
+        MDC.put(SecurityAuditLog.REQUEST_ID_MDC_KEY, "req-8179-websocket");
+        List<ILoggingEvent> withRequestId = captureAuditLogs(() -> assertThrows(ShenyuException.class, () -> websocketConfigurator
+                .modifyHandshake(mock(ServerEndpointConfig.class), mockHandshakeRequest(null, null), mock(HandshakeResponse.class))));
+        assertTrue(withRequestId.get(0).getFormattedMessage().contains("requestId=req-8179-websocket"), withRequestId.get(0).getFormattedMessage());
+        MDC.clear();
+        List<ILoggingEvent> withoutRequestId = captureAuditLogs(() -> assertThrows(ShenyuException.class, () -> websocketConfigurator
+                .modifyHandshake(mock(ServerEndpointConfig.class), mockHandshakeRequest(null, null), mock(HandshakeResponse.class))));
+        assertTrue(withoutRequestId.get(0).getFormattedMessage().contains("requestId=no-request"), withoutRequestId.get(0).getFormattedMessage());
+    }
+
+    /**
+     * build a handshake request mock with the given sync token header and client ip session attribute.
+     *
+     * @param token sync token header value, null for a request without the header
+     * @param remoteAddr value of the ClientIP session attribute, null when absent
+     * @return mocked handshake request
+     */
+    private HandshakeRequest mockHandshakeRequest(final String token, final String remoteAddr) {
+        HandshakeRequest request = mock(HandshakeRequest.class);
+        if (Objects.nonNull(token)) {
+            when(request.getHeaders()).thenReturn(Collections.singletonMap(Constants.X_SHENYU_SYNC_TOKEN, List.of(token)));
+        } else {
+            when(request.getHeaders()).thenReturn(Collections.emptyMap());
+        }
+        when(request.getRequestURI()).thenReturn(URI.create("/websocket"));
+        HttpSession session = mock(HttpSession.class);
+        when(session.getAttribute(WebsocketListener.CLIENT_IP_NAME)).thenReturn(remoteAddr);
+        when(request.getHttpSession()).thenReturn(session);
+        return request;
+    }
+
+    /**
+     * capture the logback events emitted on the security audit logger while running the given action.
+     *
+     * @param runnable action to run
+     * @return captured logging events
+     */
+    private List<ILoggingEvent> captureAuditLogs(final Runnable runnable) {
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SecurityAuditLog.LOGGER_NAME);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            runnable.run();
+        } finally {
+            logger.detachAppender(appender);
+        }
+        return appender.list;
     }
 }

@@ -21,10 +21,17 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.AlgorithmMismatchException;
+import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.util.StringUtils;
 import org.slf4j.Logger;
@@ -149,7 +156,9 @@ public final class JwtUtils {
             }
             return builder.sign(Algorithm.HMAC256(key));
         } catch (IllegalArgumentException | JWTCreationException e) {
-            LOG.error("JWTToken generate fail ", e);
+            // the exception message and stack trace may expose signing internals,
+            // so only the exception type is logged (issue #8179)
+            LOG.warn("JWTToken generate fail, type={}", e.getClass().getSimpleName());
         }
         return StringUtils.EMPTY_STRING;
     }
@@ -160,8 +169,40 @@ public final class JwtUtils {
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException e) {
-            LOG.error("jwt decode fail, token: {} ", token, e);
+            SecurityAuditLog.event(SecurityAuditEventType.TOKEN_VERIFICATION)
+                    .outcome(SecurityAuditLog.Outcome.FAILURE)
+                    .action("token_verification")
+                    .reason(classifyVerificationFailure(e))
+                    .actor("unauthenticated")
+                    .fingerprint(SecurityAuditUtils.fingerprint(token))
+                    .emit();
         }
         return false;
+    }
+
+    /**
+     * classify the verification failure into a fixed safe reason, without logging the raw exception message
+     * which may carry untrusted token content.
+     *
+     * @param exception verification exception
+     * @return fixed reason category
+     */
+    private static String classifyVerificationFailure(final JWTVerificationException exception) {
+        if (exception instanceof TokenExpiredException) {
+            return "expired";
+        }
+        if (exception instanceof SignatureVerificationException) {
+            return "signature_invalid";
+        }
+        if (exception instanceof JWTDecodeException) {
+            return "malformed";
+        }
+        if (exception instanceof InvalidClaimException) {
+            return "invalid_claim";
+        }
+        if (exception instanceof AlgorithmMismatchException) {
+            return "algorithm_mismatch";
+        }
+        return "verification_failed";
     }
 }

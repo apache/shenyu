@@ -17,13 +17,17 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.apache.shenyu.admin.config.AppAuthLifecycleProperties;
+import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.entity.AppAuthDO;
 import org.apache.shenyu.admin.model.entity.AppAuthRequestDO;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 import org.apache.shenyu.admin.service.NamespaceUserService;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shiro.subject.Subject;
@@ -31,11 +35,15 @@ import org.apache.shiro.util.ThreadContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -76,6 +84,7 @@ class AppAuthAccessPolicyImplTest {
     void tearDown() {
         ThreadContext.unbindSubject();
         SessionUtil.setLocalVisitor(null);
+        SecurityAuditLog.resetRateLimiter();
     }
 
     private void loginAs(final String userId) {
@@ -175,5 +184,106 @@ class AppAuthAccessPolicyImplTest {
         assertThrows(ShenyuAdminException.class, () -> policy.requireOwnedAuth(SVC_USER, "ns-1", "auth-1"));
         when(requestMapper.selectByAuthId("auth-1")).thenReturn(null);
         assertThrows(ShenyuAdminException.class, () -> policy.requireOwnedAuth(SVC_USER, "ns-1", "auth-1"));
+    }
+
+    @Test
+    void serviceIdentityDenialsEmitFixedReasonAudit() {
+        List<ILoggingEvent> events = captureAuditLogs(() -> {
+            SessionUtil.setLocalVisitor(null);
+            assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleApply"));
+            loginAs("20002");
+            permit("system:authen:lifecycleApply", true);
+            assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleApply"));
+            loginAs(SVC_USER);
+            permit("system:authen:lifecycleResult", false);
+            assertThrows(ShenyuAdminException.class, () -> policy.requireServiceCaller("system:authen:lifecycleResult"));
+        });
+        assertEquals(3, events.size());
+        String first = events.get(0).getFormattedMessage();
+        assertTrue(first.contains("eventType=app_auth_access"), first);
+        assertTrue(first.contains("outcome=denied"), first);
+        assertTrue(first.contains("reason=service_identity_unknown"), first);
+        assertTrue(first.contains("actor=unknown"), first);
+        String second = events.get(1).getFormattedMessage();
+        assertTrue(second.contains("reason=service_identity_not_whitelisted"), second);
+        assertTrue(second.contains("actor=name-20002"), second);
+        assertTrue(second.contains("resource=system:authen:lifecycleApply"), second);
+        String third = events.get(2).getFormattedMessage();
+        assertTrue(third.contains("reason=service_identity_no_permission"), third);
+        assertTrue(third.contains("resource=system:authen:lifecycleResult"), third);
+    }
+
+    @Test
+    void namespaceDenialEmitsAuditWithContext() {
+        when(namespaceUserService.listNamespaceIdByUserId(SVC_USER))
+                .thenReturn(Collections.singletonList("ns-owned"));
+        loginAs(SVC_USER);
+        List<ILoggingEvent> events = captureAuditLogs(() ->
+                assertThrows(ShenyuAdminException.class, () -> policy.requireNamespace(SVC_USER, "ns-other")));
+        assertEquals(1, events.size());
+        String message = events.get(0).getFormattedMessage();
+        assertTrue(message.contains("reason=namespace_ownership_denied"), message);
+        assertTrue(message.contains("namespace=ns-other"), message);
+        assertTrue(message.contains("actor=name-" + SVC_USER), message);
+    }
+
+    @Test
+    void appAuthOwnershipDenialEmitsAuditWithContext() {
+        loginAs(SVC_USER);
+        when(requestMapper.selectByAuthId("auth-1")).thenReturn(null);
+        List<ILoggingEvent> events = captureAuditLogs(() ->
+                assertThrows(ShenyuAdminException.class, () -> policy.requireOwnedAuth(SVC_USER, "ns-1", "auth-1")));
+        assertEquals(1, events.size());
+        String message = events.get(0).getFormattedMessage();
+        assertTrue(message.contains("reason=app_auth_ownership_denied"), message);
+        assertTrue(message.contains("namespace=ns-1"), message);
+        assertTrue(message.contains("resource=auth-1"), message);
+    }
+
+    @Test
+    void passingChecksEmitNoAudit() {
+        loginAs(SVC_USER);
+        permit("system:authen:lifecycleApply", true);
+        List<ILoggingEvent> events = captureAuditLogs(() ->
+                assertEquals(SVC_USER, policy.requireServiceCaller("system:authen:lifecycleApply")));
+        assertTrue(events.isEmpty(), "passing checks must not emit denial audit events");
+    }
+
+    @Test
+    void denialIsNotAuditedAgainByGlobalExceptionHandler() throws Exception {
+        loginAs(SVC_USER);
+        when(requestMapper.selectByAuthId("auth-1")).thenReturn(null);
+        final ShenyuAdminException thrown = assertThrows(ShenyuAdminException.class,
+                () -> policy.requireOwnedAuth(SVC_USER, "ns-1", "auth-1"));
+        assertEquals("App auth ownership check failed", thrown.getMessage());
+        Method handler = ExceptionHandlers.class.getDeclaredMethod("handleShenyuException", org.apache.shenyu.common.exception.ShenyuException.class);
+        handler.setAccessible(true);
+        List<ILoggingEvent> events = captureAuditLogs(() -> {
+            try {
+                handler.invoke(new ExceptionHandlers(null), thrown);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
+        assertTrue(events.isEmpty(), "the global handler must not duplicate the business denial audit event");
+    }
+
+    /**
+     * capture the logback events emitted on the security audit logger while running the given action.
+     *
+     * @param runnable action to run
+     * @return captured logging events
+     */
+    private List<ILoggingEvent> captureAuditLogs(final Runnable runnable) {
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SecurityAuditLog.LOGGER_NAME);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            runnable.run();
+        } finally {
+            logger.detachAppender(appender);
+        }
+        return appender.list;
     }
 }

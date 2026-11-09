@@ -24,11 +24,11 @@ import jakarta.websocket.server.HandshakeRequest;
 import jakarta.websocket.server.ServerEndpointConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
+import org.apache.shenyu.admin.security.SecurityAuditEventType;
+import org.apache.shenyu.admin.security.SecurityAuditLog;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -39,6 +39,7 @@ import java.security.MessageDigest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.apache.tomcat.websocket.server.Constants.BINARY_BUFFER_SIZE_SERVLET_CONTEXT_INIT_PARAM;
@@ -53,7 +54,12 @@ import static org.apache.tomcat.websocket.server.Constants.TEXT_BUFFER_SIZE_SERV
 @Configuration
 public class WebsocketConfigurator extends ServerEndpointConfig.Configurator implements ServletContextInitializer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebsocketConfigurator.class);
+    /**
+     * fixed handshake path of the sync endpoint, kept in sync with the
+     * {@code @ServerEndpoint("/websocket")} mapping on {@link WebsocketCollector}; used as the
+     * audit resource for origin rejections, where the handshake request object is not exposed.
+     */
+    private static final String WEBSOCKET_ENDPOINT_PATH = "/websocket";
 
     @Autowired
     private WebsocketSyncProperties websocketSyncProperties;
@@ -80,7 +86,9 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
                     return true;
                 }
             }
-            LOG.error("originHeaderValue is forbidden: {}", originHeaderValue);
+            // the raw origin value is client controlled and must not be logged, so only the
+            // fixed reason and the handshake path are recorded (review decision D2)
+            auditHandshakeDenied("websocket_origin_check", "origin_forbidden", WEBSOCKET_ENDPOINT_PATH, null);
             return false;
         }
         return super.checkOrigin(originHeaderValue);
@@ -100,12 +108,48 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator imp
     private void checkSyncToken(final HandshakeRequest request) {
         String configuredToken = getWebsocketSyncProperties().getToken();
         if (StringUtils.isBlank(configuredToken)) {
+            auditHandshakeDenied("websocket_sync_auth", "sync_token_not_configured", requestUriOf(request), remoteAddrOf(request));
             throw new ShenyuException("websocket sync token is not configured");
         }
         String requestToken = getHeader(request.getHeaders(), Constants.X_SHENYU_SYNC_TOKEN);
-        if (StringUtils.isBlank(requestToken) || !isSameToken(configuredToken, requestToken)) {
+        if (StringUtils.isBlank(requestToken)) {
+            auditHandshakeDenied("websocket_sync_auth", "missing_sync_token", requestUriOf(request), remoteAddrOf(request));
             throw new ShenyuException("websocket sync token is invalid");
         }
+        if (!isSameToken(configuredToken, requestToken)) {
+            auditHandshakeDenied("websocket_sync_auth", "invalid_sync_token", requestUriOf(request), remoteAddrOf(request));
+            throw new ShenyuException("websocket sync token is invalid");
+        }
+    }
+
+    /**
+     * record one handshake denial audit event. The supplied token, the configured token and any
+     * derived form of them (fingerprint, length, full headers) are never recorded.
+     *
+     * @param action audit action distinguishing token checks from the origin check
+     * @param reason fixed denial reason
+     * @param resourceUri handshake request URI, null when unavailable
+     * @param remoteAddr client address from the session attribute, null when unavailable
+     */
+    private void auditHandshakeDenied(final String action, final String reason, final String resourceUri, final String remoteAddr) {
+        SecurityAuditLog.event(SecurityAuditEventType.WEBSOCKET_SYNC_AUTH)
+                .outcome(SecurityAuditLog.Outcome.DENIED)
+                .action(action)
+                .reason(reason)
+                .actor("unknown")
+                .resource(resourceUri)
+                .remoteAddr(remoteAddr)
+                .emit();
+    }
+
+    private String requestUriOf(final HandshakeRequest request) {
+        return Objects.isNull(request.getRequestURI()) ? null : request.getRequestURI().toString();
+    }
+
+    private String remoteAddrOf(final HandshakeRequest request) {
+        HttpSession session = (HttpSession) request.getHttpSession();
+        Object value = Objects.isNull(session) ? null : session.getAttribute(WebsocketListener.CLIENT_IP_NAME);
+        return value instanceof String ? (String) value : null;
     }
 
     private WebsocketSyncProperties getWebsocketSyncProperties() {
