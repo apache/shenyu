@@ -104,7 +104,9 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = buildWsRealPath(exchange, upstream, shenyuContext);
-        LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("websocket upstream url: {}", toLogUrl(wsRequestUrl));
+        }
         HttpHeaders headers = exchange.getRequest().getHeaders();
         // The Mono returned by the WebSocket service completes when the upgrade handshake finishes; the
         // proxied session then runs on its own subscription. The count therefore has to be attached to the
@@ -127,6 +129,22 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             protocol = "ws://";
         }
         return RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain(protocol));
+    }
+
+    /**
+     * Describe the upstream url for logging without the query, fragment or user info,
+     * which may carry credentials such as {@code ?token=...}.
+     *
+     * @param uri the upstream url
+     * @return scheme, host, port and path of the url
+     */
+    static String toLogUrl(final URI uri) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(uri.getScheme()).append("://").append(uri.getHost());
+        if (uri.getPort() != -1) {
+            builder.append(':').append(uri.getPort());
+        }
+        return builder.append(Objects.toString(uri.getRawPath(), "")).toString();
     }
 
     private List<String> buildWsProtocols(final HttpHeaders headers) {
