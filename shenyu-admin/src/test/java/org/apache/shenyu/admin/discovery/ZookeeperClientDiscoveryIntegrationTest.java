@@ -181,15 +181,20 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     private ShenyuInstanceRegisterRepository startInstance(final TestingServer server, final String app, final int port) throws Exception {
         // The Admin health checker remains active while testing registry removal.
-        // Keep registered backends reachable so health eviction cannot replace that event.
-        // Swagger discovery must receive a response rather than block the registry event thread.
+        // Answer document pulls too: a listening socket alone blocks the registry event thread.
         HttpServer backend = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
         backend.createContext("/", exchange -> {
-            exchange.sendResponseHeaders(404, -1);
-            exchange.close();
+            byte[] document = "{\"openapi\":\"3.0.3\",\"info\":{\"title\":\"Discovery fixture\",\"version\":\"1\"},\"paths\":{}}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, document.length);
+            try (java.io.OutputStream output = exchange.getResponseBody()) {
+                output.write(document);
+            } finally {
+                exchange.close();
+            }
         });
-        backend.start();
         backends.add(backend);
+        backend.start();
         String appName = "zk-6525-" + app;
         Properties properties = new Properties();
         properties.setProperty("name", appName);
