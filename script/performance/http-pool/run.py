@@ -52,6 +52,11 @@ def write_json(path, value):
     path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
 
+def write_java_argfile(path, arguments):
+    # Java argument files support quoted escapes, but not JSON's Unicode escapes.
+    path.write_text("\n".join(json.dumps(value, ensure_ascii=False) for value in arguments), encoding="utf-8")
+
+
 def extended(path):
     return Path("\\\\?\\" + str(path.resolve())) if os.name == "nt" else path
 
@@ -145,7 +150,7 @@ def run(args):
                 flags += ["-XX:StartFlightRecording=filename=" + str(prefix) + ".jfr,settings=profile,dumponexit=true"]
             classpath = (args.build / "classpath.txt").read_text(encoding="utf-8")
             argfile = Path(str(prefix) + ".args")
-            argfile.write_text("\n".join(json.dumps(value) for value in [*flags, "-cp", classpath, MAIN]), encoding="utf-8")
+            write_java_argfile(argfile, [*flags, "-cp", classpath, MAIN])
             fixture_log = open(str(prefix) + ".fixture.log", "w", encoding="utf-8")
             process = subprocess.Popen([args.java, "@" + str(argfile)], stdout=fixture_log, stderr=subprocess.STDOUT)
             try:

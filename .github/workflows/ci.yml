@@ -70,6 +70,8 @@ jobs:
         run: python3 script/performance/http-pool/test_snapshot.py
       - name: Test HTTP pool benchmark report integrity
         run: python3 script/performance/http-pool/test_report.py
+      - name: Test HTTP pool Java argument files
+        run: python3 script/performance/http-pool/test_runner.py
       - name: Test Maven transfer retries
         run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
