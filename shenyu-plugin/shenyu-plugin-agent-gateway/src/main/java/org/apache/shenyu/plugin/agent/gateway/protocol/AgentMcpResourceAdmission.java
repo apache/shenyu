@@ -22,6 +22,7 @@ import org.apache.shenyu.common.metrics.AgentAdmissionMetrics;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 /** Optional resource-admission port; the no-op implementation preserves existing behavior. */
@@ -126,7 +127,7 @@ public interface AgentMcpResourceAdmission {
          * Read the live states of the active controller.
          * @return immutable controller snapshots
          */
-        public java.util.List<AgentAdmissionMetrics.Snapshot> snapshot() {
+        public List<AgentAdmissionMetrics.Snapshot> snapshot() {
             return current.snapshot();
         }
     }

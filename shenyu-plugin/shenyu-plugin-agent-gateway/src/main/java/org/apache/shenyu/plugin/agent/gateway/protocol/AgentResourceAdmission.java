@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -58,7 +59,7 @@ public final class AgentResourceAdmission implements AutoCloseable {
      * Acquire global and LOCAL admission around the single local provider execution.
      * @param deadline absolute request deadline, including queue wait
      * @param action execution after all permits are acquired
- *    @param <T> response type
+     * @param <T> response type
      * @return one execution result with terminal permit release
      */
     public <T> Mono<T> withLocal(final Instant deadline, final Mono<T> action) {
@@ -70,7 +71,7 @@ public final class AgentResourceAdmission implements AutoCloseable {
      * @param server configured remote target name
      * @param deadline absolute request deadline, including queue wait
      * @param action execution after all permits are acquired
-*    @param <T> response type
+     * @param <T> response type
      * @return one execution result with terminal permit release
      */
     public <T> Mono<T> withRemote(final String server, final Instant deadline, final Mono<T> action) {
@@ -89,7 +90,7 @@ public final class AgentResourceAdmission implements AutoCloseable {
             }
             return acquired.wait.admission()
                     .timeout(Duration.between(Instant.now(), deadline))
-                    .onErrorMap(java.util.concurrent.TimeoutException.class,
+                    .onErrorMap(TimeoutException.class,
                             error -> AgentAdmissionException.deadline())
                     .then(Mono.defer(() -> Instant.now().isBefore(deadline) ? action : Mono.error(AgentAdmissionException.deadline())))
                     .doFinally(signal -> scope.release(acquired.wait));

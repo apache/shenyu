@@ -18,8 +18,11 @@
 package org.apache.shenyu.sdk.httpclient;
 
 import com.sun.net.httpserver.HttpServer;
+import org.apache.http.HttpVersion;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.message.BasicHttpResponse;
 import org.apache.shenyu.sdk.core.ShenyuRequest;
 import org.apache.shenyu.sdk.core.ShenyuResponse;
 import org.apache.shenyu.sdk.core.client.ShenyuSdkClient;
@@ -41,8 +44,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -53,6 +58,108 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HttpShenyuSdkClientTest {
+
+    @Test
+    public void testHeadResponseWithoutEntity() throws Exception {
+        assertTransportResponse(ShenyuRequest.HttpMethod.HEAD, 200, "OK", null);
+    }
+
+    @Test
+    public void testNoContentResponseWithoutEntity() throws Exception {
+        assertTransportResponse(ShenyuRequest.HttpMethod.GET, 204, "No Content", null);
+    }
+
+    @Test
+    public void testNotModifiedResponseWithoutEntity() throws Exception {
+        assertTransportResponse(ShenyuRequest.HttpMethod.GET, 304, "Not Modified", null);
+    }
+
+    @Test
+    public void testResponseWithEntity() throws Exception {
+        assertTransportResponse(ShenyuRequest.HttpMethod.GET, 200, "OK", "ok");
+    }
+
+    @Test
+    public void testResponseWithEmptyEntity() throws Exception {
+        assertTransportResponse(ShenyuRequest.HttpMethod.GET, 200, "OK", "");
+    }
+
+    private void assertTransportResponse(final ShenyuRequest.HttpMethod method, final int status, final String reason, final String body) throws Exception {
+        BasicHttpResponse httpResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, status, reason);
+        httpResponse.addHeader("X-Fixture", "first");
+        httpResponse.addHeader("X-Fixture", "second");
+        if (Objects.nonNull(body)) {
+            httpResponse.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
+        }
+        CloseableHttpAsyncClient httpAsyncClient = mock(CloseableHttpAsyncClient.class);
+        when(httpAsyncClient.execute(Mockito.any(HttpUriRequest.class), Mockito.<FutureCallback<HttpResponse>>any()))
+                .thenReturn(CompletableFuture.completedFuture(httpResponse));
+        HttpShenyuSdkClient client = new HttpShenyuSdkClient();
+        setHttpAsyncClient(client, httpAsyncClient);
+        ShenyuRequest request = ShenyuRequest.create(method, "http://localhost/test", new HashMap<>(), null, null, null);
+
+        ShenyuResponse response = client.doRequest(request);
+
+        Assert.assertEquals(status, response.getStatus());
+        Assert.assertEquals(reason, response.getReason());
+        Assert.assertEquals(body, response.getBody());
+        Assert.assertEquals(Arrays.asList("first", "second"), response.getHeaders().get("X-Fixture"));
+        Assert.assertSame(request, response.getRequest());
+    }
+
+    @Test(timeout = 15000)
+    public void testHeadResponseWithoutEntityOverHttp() throws IOException {
+        assertResponseWithoutEntityOverHttp(ShenyuRequest.HttpMethod.HEAD, 200);
+    }
+
+    @Test(timeout = 15000)
+    public void testNoContentResponseWithoutEntityOverHttp() throws IOException {
+        assertResponseWithoutEntityOverHttp(ShenyuRequest.HttpMethod.GET, 204);
+    }
+
+    @Test(timeout = 15000)
+    public void testNotModifiedResponseWithoutEntityOverHttp() throws IOException {
+        assertResponseWithoutEntityOverHttp(ShenyuRequest.HttpMethod.GET, 304);
+    }
+
+    private void assertResponseWithoutEntityOverHttp(final ShenyuRequest.HttpMethod method, final int status) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        HttpShenyuSdkClient client = new HttpShenyuSdkClient();
+        AtomicReference<String> requestMethod = new AtomicReference<>();
+        try {
+            server.createContext("/sdk", exchange -> {
+                try {
+                    requestMethod.set(exchange.getRequestMethod());
+                    exchange.getResponseHeaders().set("X-Fixture", "no-entity");
+                    exchange.sendResponseHeaders(status, -1);
+                } finally {
+                    exchange.close();
+                }
+            });
+            server.start();
+            Properties props = new Properties();
+            props.setProperty("http.serverRequestTimeOut", "5000");
+            props.setProperty("http.serverResponseTimeOut", "5000");
+            client.initClient(props);
+            String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/sdk";
+            ShenyuRequest request = ShenyuRequest.create(method, url, new HashMap<>(), null, null, null);
+
+            ShenyuResponse response = client.doRequest(request);
+
+            Assert.assertEquals(method.name(), requestMethod.get());
+            Assert.assertEquals(status, response.getStatus());
+            Assert.assertNull(response.getBody());
+            Assert.assertSame(request, response.getRequest());
+            Assert.assertTrue(response.getHeaders().entrySet().stream()
+                    .anyMatch(header -> "X-Fixture".equalsIgnoreCase(header.getKey()) && header.getValue().contains("no-entity")));
+        } finally {
+            try {
+                client.close();
+            } finally {
+                server.stop(0);
+            }
+        }
+    }
 
     @Test(timeout = 15000)
     public void testShenyuHttpClient() throws IOException {
