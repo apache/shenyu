@@ -43,7 +43,6 @@ public interface AgentMcpRemoteCatalog {
         return AgentMcpResourceAdmission.NOOP;
     }
 
-
     /** Distinguishes an unavailable catalog from unexpected gateway failures. */
     final class CatalogUnavailableException extends IllegalStateException {
 
