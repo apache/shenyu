@@ -29,15 +29,11 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -48,11 +44,7 @@ public final class AiProxyEngine {
 
     private final AiExchangePlanner exchangePlanner;
 
-    private final AiProxyRetryProperties retryProperties;
-
     private final AiCallObserver observer;
-
-    private final AiExactResponseCache responseCache;
 
     private final AiExecutionCoordinator executionCoordinator;
 
@@ -154,14 +146,15 @@ public final class AiProxyEngine {
                          final AiProxyRetryProperties retryProperties, final AiCallObserver observer,
                          final AiProxyAttemptListener attemptListener, final AiExactResponseCache responseCache) {
         this.exchangePlanner = new AiExchangePlanner(protocols, providers, routeResolver);
-        this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
+        AiProxyRetryProperties effectiveRetryProperties =
+                Objects.requireNonNull(retryProperties, "retryProperties must not be null");
         this.observer = observer;
-        this.responseCache = responseCache;
         this.executionCoordinator = new AiExecutionCoordinator(
                 exchangePlanner,
                 transport,
-                this.retryProperties,
-                attemptListener);
+                effectiveRetryProperties,
+                attemptListener,
+                responseCache);
     }
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
@@ -213,42 +206,20 @@ public final class AiProxyEngine {
                     : new AiRequestObservation(observer, AiObservationSupport.context(view, null, null));
             AtomicReference<Integer> status = new AtomicReference<>();
             return Mono.defer(() -> {
-                long deadlineNanos = System.nanoTime() + retryProperties.getRequestDeadline().toNanos();
-                String invocationId = UUID.randomUUID().toString();
-                AiPreparedExchange primary = exchangePlanner.prepare(requestBody, new AiCommonConfig(primaryConfig));
-                Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
-                    AiCommonConfig copy = new AiCommonConfig(config);
-                    copy.setStream(primary.stream());
-                    // Fallback changes the upstream, never the already selected client protocol.
-                    copy.setProtocol(primary.clientProtocol());
-                    return copy;
-                });
-                final int maxRetries = retryProperties.maxRetries(primary.stream());
-                final boolean fallbackProviderDeclaredReplaySafe = fallback
-                        .map(config -> exchangePlanner.providerDeclaredReplaySafe(config, primary.operation()))
-                        .orElse(false);
+                AiPreparedExchange primary = exchangePlanner.prepare(
+                        requestBody, new AiCommonConfig(primaryConfig));
+
                 Function<AiUpstreamResponse, Mono<Void>> observedConsumer = response -> {
                     status.set(response.getStatusCode());
                     return responseConsumer.apply(response);
                 };
-                Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream = consumer -> {
-                    AiExecutionState execution = new AiExecutionState(requestBody, consumer, new AtomicBoolean(), new AtomicInteger(),
-                            invocationId, deadlineNanos, observation);
-                    return executionCoordinator.execute(
-                            execution,
-                            primary,
-                            fallback,
-                            maxRetries,
-                            fallbackProviderDeclaredReplaySafe);
-                };
-                if (Objects.nonNull(responseCache) && primary.cacheCompatible()) {
-                    return responseCache.execute(requestBody, primary.request(), primary.provider(), primary.clientProtocol(),
-                            primary.targetProtocol(), primary.stream(), fallback.isPresent(), observedConsumer, upstream)
-                            .timeout(Duration.ofNanos(Math.max(1L, deadlineNanos - System.nanoTime())),
-                                    Mono.error(new AiTransportException(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
-                                            "AI proxy request deadline exceeded", null)));
-                }
-                return upstream.apply(observedConsumer);
+
+                return executionCoordinator.execute(
+                        requestBody,
+                        primary,
+                        fallbackConfig,
+                        observation,
+                        observedConsumer);
             }).doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .doFinally(signal -> {
                         if (Objects.isNull(inherited)) {
