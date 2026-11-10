@@ -83,6 +83,10 @@ public class AdaptiveLoadBalancer extends AbstractLoadBalancer {
 
     @Override
     public Upstream select(final List<Upstream> upstreamList, final LoadBalanceData data) {
+        // maintenance must cover the singleton fast path too: completed singleton
+        // attempts still record statistics, and removed addresses would otherwise
+        // linger forever while traffic keeps using singleton candidate lists
+        stats.pruneIfNeeded(System.currentTimeMillis());
         Upstream picked = super.select(upstreamList, data);
         // AbstractLoadBalancer short-circuits a singleton candidate list before doSelect
         // runs, so the in-flight reservation made here pairs the completion decrement in
@@ -97,7 +101,6 @@ public class AdaptiveLoadBalancer extends AbstractLoadBalancer {
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         long now = System.currentTimeMillis();
-        stats.pruneIfNeeded(now);
         Upstream[] upstreams = pickTwoUpstreams(upstreamList);
         Upstream picked;
         Upstream unpicked;
