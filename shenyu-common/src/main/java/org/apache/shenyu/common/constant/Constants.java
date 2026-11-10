@@ -1089,6 +1089,11 @@ public interface Constants {
     String ROLE = "role";
 
     /**
+     * The constant aiProtocol.
+     */
+    String AI_PROTOCOL = "aiProtocol";
+
+    /**
      * The constant USAGE.
      */
     String USAGE = "usage";

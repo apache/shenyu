@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.pii.profile;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class OpenAiResponsesProfile implements PiiProtocolProfile {
     /**
      * The profile identifier.
      */
-    public static final String ID = "openai-responses";
+    public static final String ID = AiProtocols.OPENAI_RESPONSES;
 
     @Override
     public String id() {

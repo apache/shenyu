@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -35,14 +34,6 @@ public interface AiProxyProtocol {
      * @return protocol identifier
      */
     String name();
-
-    /**
-     * Determine whether the JSON body uses this protocol.
-     *
-     * @param payload request JSON
-     * @return whether it matches
-     */
-    boolean matches(JsonNode payload);
 
     /**
      * Decode client request into ShenYu internal request.

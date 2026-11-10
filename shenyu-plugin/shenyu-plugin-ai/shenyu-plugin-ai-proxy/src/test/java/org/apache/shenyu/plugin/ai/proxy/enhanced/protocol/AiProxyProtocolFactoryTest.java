@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.jupiter.api.Test;
 
@@ -28,25 +27,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AiProxyProtocolFactoryTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @Test
-    void testGetAndDetectProtocol() throws Exception {
+    void testGetProtocol() {
         final OpenAiChat protocol = new OpenAiChat();
         final AiProxyProtocolFactory factory = new AiProxyProtocolFactory(List.of(protocol));
 
         assertSame(protocol, factory.getProtocol(OpenAiChat.NAME));
-        assertSame(protocol, factory.detect(OBJECT_MAPPER.readTree("{\"messages\":[]}")));
     }
 
     @Test
-    void testRejectsDuplicateAndUnsupportedProtocols() throws Exception {
+    void testRejectsDuplicateAndUnsupportedProtocols() {
         assertThrows(IllegalArgumentException.class,
                 () -> new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiChat())));
 
         final AiProxyProtocolFactory factory = new AiProxyProtocolFactory(List.of(new OpenAiChat()));
         assertThrows(ShenyuException.class, () -> factory.getProtocol("unknown"));
-        assertThrows(ShenyuException.class,
-                () -> factory.detect(OBJECT_MAPPER.readTree("{\"prompt\":\"hello\"}")));
     }
 }

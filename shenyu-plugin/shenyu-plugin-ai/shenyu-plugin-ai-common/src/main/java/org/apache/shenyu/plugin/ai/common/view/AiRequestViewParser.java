@@ -18,10 +18,11 @@
 package org.apache.shenyu.plugin.ai.common.view;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.shenyu.common.ai.AiNormalizedRequestView;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,18 +32,15 @@ import java.util.Objects;
  * Structural parser behind the bounded normalized request view.
  *
  * <p>This is a lightweight structural interpretation, not the native protocol
- * decoding owned by the AI proxy: it recognizes the openai-chat message shape and
- * the openai-responses input shape, treats every other body as an explicitly
- * unsupported representation, and never retains the original body. Structured
- * message content is reported by kind and size, never flattened into text.</p>
+ * decoding owned by the AI proxy. It interprets the body through the protocol
+ * identity resolved by the shared detector instead of classifying the shape on
+ * its own, treats every other body as an explicitly unsupported representation,
+ * and never retains the original body. Structured message content is reported by
+ * kind and size, never flattened into text.</p>
  */
 final class AiRequestViewParser {
 
     private static final ObjectMapper MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-
-    private static final String PROTOCOL_CHAT = "openai-chat";
-
-    private static final String PROTOCOL_RESPONSES = "openai-responses";
 
     private static final String OPERATION_CHAT_COMPLETION = "CHAT_COMPLETION";
 
@@ -55,45 +53,69 @@ final class AiRequestViewParser {
      * Parse one body version into a bounded view.
      *
      * @param body the body version to interpret
+     * @param parsedRoot the already parsed body, {@code null} lets the parser decode it
      * @param viewKind whether this is the wire or an effective view
      * @param mutator component that produced an effective body, {@code null} for wire views
      * @param generation publication generation, one-based
+     * @param protocolId the resolved protocol identity; {@code null} or
+     *                   {@link AiProtocols#UNKNOWN} keeps the identity unresolved and
+     *                   derives no hint from the body
      * @return the bounded view; unsupported bodies yield a visible unsupported view
      */
-    static AiNormalizedRequestView parse(final String body, final AiNormalizedRequestView.ViewKind viewKind,
-                                         final String mutator, final long generation) {
-        if (Objects.isNull(body) || body.isBlank()) {
-            return unsupported(viewKind, mutator, generation, "request body is empty");
-        }
+    static AiNormalizedRequestView parse(final String body, final JsonNode parsedRoot,
+                                         final AiNormalizedRequestView.ViewKind viewKind,
+                                         final String mutator, final long generation, final String protocolId) {
         final JsonNode root;
-        try {
-            root = MAPPER.readTree(body);
-        } catch (JsonProcessingException error) {
-            return unsupported(viewKind, mutator, generation, "request body is not valid JSON");
+        if (Objects.nonNull(parsedRoot)) {
+            root = parsedRoot;
+        } else {
+            if (Objects.isNull(body) || body.isBlank()) {
+                return unsupported(viewKind, mutator, generation, null, "request body is empty");
+            }
+            try {
+                root = MAPPER.readTree(body);
+            } catch (JsonProcessingException error) {
+                return unsupported(viewKind, mutator, generation, null, "request body is not valid JSON");
+            }
         }
-        if (!root.isObject()) {
-            return unsupported(viewKind, mutator, generation, "request body is not a JSON object");
+        if (Objects.isNull(root) || !root.isObject()) {
+            return unsupported(viewKind, mutator, generation, null, "request body is not a JSON object");
         }
-        JsonNode messages = root.get("messages");
-        if (Objects.nonNull(messages) && messages.isArray()) {
-            String model = textualOrNull(root.get("model"));
-            return new AiNormalizedRequestView(PROTOCOL_CHAT, OPERATION_CHAT_COMPLETION, model,
-                    boolOrFalse(root.get("stream")), boundedMessages(messages), hasArrayEntries(root.get("tools")),
-                    carriesToolCalls(messages), viewKind, mutator, generation, false, null);
-        }
-        if (Objects.nonNull(root.get("input"))) {
-            // responses shape: structural metadata only, deep coverage is a follow-up
-            String model = textualOrNull(root.get("model"));
-            return new AiNormalizedRequestView(PROTOCOL_RESPONSES, OPERATION_RESPONSE, model,
-                    boolOrFalse(root.get("stream")), List.of(), hasArrayEntries(root.get("tools")), false,
+        final String protocol = resolvedProtocol(protocolId);
+        if (AiProtocols.OPENAI_CHAT.equals(protocol)) {
+            JsonNode messages = root.get("messages");
+            if (Objects.isNull(messages) || !messages.isArray()) {
+                return unsupported(viewKind, mutator, generation, protocol,
+                        "request body does not match the resolved AI protocol");
+            }
+            return new AiNormalizedRequestView(AiProtocols.OPENAI_CHAT, OPERATION_CHAT_COMPLETION,
+                    textualOrNull(root.get("model")), boolOrFalse(root.get("stream")), boundedMessages(messages),
+                    hasArrayEntries(root.get("tools")), carriesToolCalls(messages),
                     viewKind, mutator, generation, false, null);
         }
-        return unsupported(viewKind, mutator, generation, "no known AI protocol fields");
+        if (AiProtocols.OPENAI_RESPONSES.equals(protocol)) {
+            if (!root.has("input")) {
+                return unsupported(viewKind, mutator, generation, protocol,
+                        "request body does not match the resolved AI protocol");
+            }
+            // responses shape: structural metadata only, deep coverage is a follow-up
+            return new AiNormalizedRequestView(AiProtocols.OPENAI_RESPONSES, OPERATION_RESPONSE,
+                    textualOrNull(root.get("model")), boolOrFalse(root.get("stream")), List.of(),
+                    hasArrayEntries(root.get("tools")), false,
+                    viewKind, mutator, generation, false, null);
+        }
+        return unsupported(viewKind, mutator, generation, protocol,
+                Objects.isNull(protocol) ? "no known AI protocol fields" : "unsupported AI protocol view");
+    }
+
+    private static String resolvedProtocol(final String protocolId) {
+        return Objects.isNull(protocolId) || protocolId.isBlank() ? null : protocolId;
     }
 
     private static AiNormalizedRequestView unsupported(final AiNormalizedRequestView.ViewKind viewKind,
-                                                       final String mutator, final long generation, final String reason) {
-        return new AiNormalizedRequestView(null, null, null, false, List.of(), false, false,
+                                                       final String mutator, final long generation,
+                                                       final String protocol, final String reason) {
+        return new AiNormalizedRequestView(protocol, null, null, false, List.of(), false, false,
                 viewKind, mutator, generation, true, reason);
     }
 
