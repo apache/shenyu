@@ -248,7 +248,7 @@ public final class AiProxyEngine {
             return Mono.defer(() -> {
                 long deadlineNanos = System.nanoTime() + retryProperties.getRequestDeadline().toNanos();
                 String invocationId = UUID.randomUUID().toString();
-                PreparedExchange primary = prepare(requestBody, new AiCommonConfig(primaryConfig));
+                AiPreparedExchange primary = prepare(requestBody, new AiCommonConfig(primaryConfig));
                 Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
                     AiCommonConfig copy = new AiCommonConfig(config);
                     copy.setStream(primary.stream());
@@ -300,7 +300,7 @@ public final class AiProxyEngine {
         return prepare(requestBody, config).request();
     }
 
-    private Mono<Void> attempt(final Execution execution, final PreparedExchange prepared,
+    private Mono<Void> attempt(final Execution execution, final AiPreparedExchange prepared,
                                final Optional<AiCommonConfig> fallback, final int maxRetries, final int retriesRemaining,
                                final AiProxyAttemptEvent.Phase phase,
                                final boolean fallbackProviderDeclaredReplaySafe) {
@@ -345,7 +345,7 @@ public final class AiProxyEngine {
         });
     }
 
-    private Mono<Void> handleResponse(final AiUpstreamResponse response, final PreparedExchange prepared,
+    private Mono<Void> handleResponse(final AiUpstreamResponse response, final AiPreparedExchange prepared,
                                       final Optional<AiCommonConfig> fallback, final int retriesRemaining,
                                       final Execution execution, final int currentAttempt,
                                       final AiProxyAttemptEvent.Phase phase,
@@ -364,7 +364,7 @@ public final class AiProxyEngine {
         });
     }
 
-    private Mono<Void> resumeAttempt(final Throwable error, final PreparedExchange prepared,
+    private Mono<Void> resumeAttempt(final Throwable error, final AiPreparedExchange prepared,
                                      final Optional<AiCommonConfig> fallback, final int maxRetries,
                                      final int retriesRemaining,
                                      final Execution execution,
@@ -412,7 +412,7 @@ public final class AiProxyEngine {
         });
     }
 
-    private Mono<Void> retry(final Throwable error, final PreparedExchange prepared,
+    private Mono<Void> retry(final Throwable error, final AiPreparedExchange prepared,
                              final Optional<AiCommonConfig> fallback, final int maxRetries,
                              final int retriesRemaining, final int currentAttempt,
                              final Execution execution,
@@ -447,7 +447,7 @@ public final class AiProxyEngine {
         });
     }
 
-    private Mono<Void> fallback(final Throwable error, final PreparedExchange prepared,
+    private Mono<Void> fallback(final Throwable error, final AiPreparedExchange prepared,
                                 final Optional<AiCommonConfig> fallback,
                                 final int currentAttempt, final Execution execution,
                                 final AiProxyAttemptEvent.Phase phase,
@@ -470,7 +470,7 @@ public final class AiProxyEngine {
         });
     }
 
-    private Mono<Void> handleStatusFailure(final AiUpstreamResponse response, final PreparedExchange prepared,
+    private Mono<Void> handleStatusFailure(final AiUpstreamResponse response, final AiPreparedExchange prepared,
                                            final Optional<AiCommonConfig> fallback, final int retriesRemaining,
                                            final Execution execution,
                                            final int currentAttempt,
@@ -525,7 +525,7 @@ public final class AiProxyEngine {
                 .then();
     }
 
-    private PreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
+    private AiPreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
         if (Objects.isNull(requestBody) || requestBody.isBlank()) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must not be empty", null);
         }
@@ -585,7 +585,7 @@ public final class AiProxyEngine {
                             preparedRequest.responseAdapter().adapt(response)), stream);
             boolean providerDeclaredReplaySafe = provider.capabilities()
                     .isReplaySafe(providerRequest.getOperation());
-            return new PreparedExchange(preparedRequest.request(), responseAdapter,
+            return new AiPreparedExchange(preparedRequest.request(), responseAdapter,
                     route.clientProtocol(), route.targetProtocol(), stream,
                     AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
                     providerDeclaredReplaySafe, provider.name(),
@@ -648,19 +648,6 @@ public final class AiProxyEngine {
             String invocationId,
             long deadlineNanos,
             AiRequestObservation observation) {
-    }
-
-    private record PreparedExchange(
-            AiUpstreamRequest request,
-            AiResponseAdapter responseAdapter,
-            String clientProtocol,
-            String targetProtocol,
-            boolean stream,
-            boolean conservativeReplaySafe,
-            ShenyuAiRequest.Operation operation,
-            boolean providerDeclaredReplaySafe,
-            String provider,
-            boolean cacheCompatible) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {
