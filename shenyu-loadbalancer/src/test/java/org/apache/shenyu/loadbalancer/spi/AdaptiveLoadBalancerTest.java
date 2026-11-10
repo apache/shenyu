@@ -249,13 +249,14 @@ class AdaptiveLoadBalancerTest {
     }
 
     private Upstream upstream(final String url, final int weight) {
+        // Disable warm-up so a millisecond boundary cannot change effective weights during a comparison.
         Upstream upstream = Upstream.builder()
                 .protocol("http://")
                 .url(url)
                 .weight(weight)
                 .status(true)
                 .timestamp(System.currentTimeMillis())
-                .warmup(10 * 60 * 1000)
+                .warmup(0)
                 .build();
         upstream.setLastPicked(System.currentTimeMillis());
         return upstream;
