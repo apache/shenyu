@@ -245,7 +245,7 @@ public final class AiProxyEngine {
                     return responseConsumer.apply(response);
                 };
                 Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream = consumer -> {
-                    Execution execution = new Execution(requestBody, consumer, new AtomicBoolean(), new AtomicInteger(),
+                    AiExecutionState execution = new AiExecutionState(requestBody, consumer, new AtomicBoolean(), new AtomicInteger(),
                             invocationId, deadlineNanos, observation);
                     return attempt(execution, primary, fallback, maxRetries, maxRetries,
                             AiProxyAttemptEvent.Phase.PRIMARY, fallbackProviderDeclaredReplaySafe);
@@ -279,7 +279,7 @@ public final class AiProxyEngine {
         return exchangePlanner.prepare(requestBody, config).request();
     }
 
-    private Mono<Void> attempt(final Execution execution, final AiPreparedExchange prepared,
+    private Mono<Void> attempt(final AiExecutionState execution, final AiPreparedExchange prepared,
                                final Optional<AiCommonConfig> fallback, final int maxRetries, final int retriesRemaining,
                                final AiProxyAttemptEvent.Phase phase,
                                final boolean fallbackProviderDeclaredReplaySafe) {
@@ -326,7 +326,7 @@ public final class AiProxyEngine {
 
     private Mono<Void> handleResponse(final AiUpstreamResponse response, final AiPreparedExchange prepared,
                                       final Optional<AiCommonConfig> fallback, final int retriesRemaining,
-                                      final Execution execution, final int currentAttempt,
+                                      final AiExecutionState execution, final int currentAttempt,
                                       final AiProxyAttemptEvent.Phase phase,
                                       final boolean fallbackProviderDeclaredReplaySafe, final AiRequestObservation.Attempt observation) {
         return Mono.defer(() -> {
@@ -346,7 +346,7 @@ public final class AiProxyEngine {
     private Mono<Void> resumeAttempt(final Throwable error, final AiPreparedExchange prepared,
                                      final Optional<AiCommonConfig> fallback, final int maxRetries,
                                      final int retriesRemaining,
-                                     final Execution execution,
+                                     final AiExecutionState execution,
                                      final int currentAttempt, final AiProxyAttemptEvent.Phase phase,
                                      final boolean fallbackProviderDeclaredReplaySafe) {
         return Mono.defer(() -> {
@@ -394,7 +394,7 @@ public final class AiProxyEngine {
     private Mono<Void> retry(final Throwable error, final AiPreparedExchange prepared,
                              final Optional<AiCommonConfig> fallback, final int maxRetries,
                              final int retriesRemaining, final int currentAttempt,
-                             final Execution execution,
+                             final AiExecutionState execution,
                              final AiProxyAttemptEvent.Phase phase, final boolean fallbackProviderDeclaredReplaySafe,
                              final Map<String, List<String>> responseHeaders) {
         return Mono.defer(() -> {
@@ -428,7 +428,7 @@ public final class AiProxyEngine {
 
     private Mono<Void> fallback(final Throwable error, final AiPreparedExchange prepared,
                                 final Optional<AiCommonConfig> fallback,
-                                final int currentAttempt, final Execution execution,
+                                final int currentAttempt, final AiExecutionState execution,
                                 final AiProxyAttemptEvent.Phase phase,
                                 final Map<String, List<String>> responseHeaders) {
         return Mono.defer(() -> {
@@ -451,7 +451,7 @@ public final class AiProxyEngine {
 
     private Mono<Void> handleStatusFailure(final AiUpstreamResponse response, final AiPreparedExchange prepared,
                                            final Optional<AiCommonConfig> fallback, final int retriesRemaining,
-                                           final Execution execution,
+                                           final AiExecutionState execution,
                                            final int currentAttempt,
                                            final AiProxyAttemptEvent.Phase phase,
                                            final boolean fallbackProviderDeclaredReplaySafe) {
@@ -518,27 +518,6 @@ public final class AiProxyEngine {
 
     private long elapsedSince(final long startNanos) {
         return System.nanoTime() - startNanos;
-    }
-
-    /**
-     * Mutable state shared by the primary and fallback phases of one logical request.
-     *
-     * @param requestBody original client request body
-     * @param responseConsumer client response boundary
-     * @param emitted whether response bytes have reached the client
-     * @param attemptIndex attempt sequence shared by primary and fallback
-     * @param invocationId opaque logical invocation identifier
-     * @param deadlineNanos absolute shared request deadline
-     * @param observation subscription-local terminal observation
-     */
-    private record Execution(
-            String requestBody,
-            Function<AiUpstreamResponse, Mono<Void>> responseConsumer,
-            AtomicBoolean emitted,
-            AtomicInteger attemptIndex,
-            String invocationId,
-            long deadlineNanos,
-            AiRequestObservation observation) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {
