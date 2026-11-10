@@ -42,6 +42,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -109,9 +110,10 @@ public final class IngressControllerConfigurationTest {
                     is("shenyu-k8s-ingress-controller"));
 
             lifecycle.start();
+            // Startup runs on the executor; wait for it before checking shutdown.
+            verify(controllerManager, timeout(5000)).run();
             lifecycle.stop();
 
-            verify(controllerManager).run();
             verify(controllerManager).shutdown();
         } finally {
             executorService.shutdownNow();

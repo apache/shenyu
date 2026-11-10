@@ -101,6 +101,7 @@ rules:
   resources:
   - services
   - endpoints
+  - namespaces
   verbs:
   - get
   - list
@@ -131,7 +132,7 @@ rules:
   verbs:
   - get
   - patch
-# Required for cross-namespace parentRef validation via ReferenceGrant
+# Required for cross-namespace backendRef validation via ReferenceGrant
 - apiGroups:
   - gateway.networking.k8s.io
   resources:
