@@ -62,12 +62,21 @@ public interface DiscoveryUpstreamService {
     void nativeCreateOrUpdate(DiscoveryUpstreamDTO discoveryUpstreamDTO);
 
     /**
-     * delete.
+     * Delete upstreams in the system default namespace.
      *
      * @param ids id list
      * @return the string
      */
     String delete(List<String> ids);
+
+    /**
+     * Delete upstreams only when every existing row and its handler belong to the requested namespace.
+     *
+     * @param ids id list
+     * @param namespaceId namespace to delete from
+     * @return the result message
+     */
+    String delete(List<String> ids, String namespaceId);
 
     /**
      * listAll.
@@ -140,6 +149,17 @@ public interface DiscoveryUpstreamService {
      * @param enabled    enabled
      */
     void changeStatusBySelectorIdAndUrl(String selectorId, String url, Boolean enabled);
+
+    /**
+     * Update the upstream status unless the address is protected by registration fencing.
+     * The protection check and update share one transaction and selector lock.
+     *
+     * @param selectorId selectorId
+     * @param url upstream URL
+     * @param enabled enabled
+     * @return whether the update was allowed
+     */
+    boolean tryChangeStatusBySelectorIdAndUrl(String selectorId, String url, Boolean enabled);
 
     /**
      * Merge a draining marker into the props of the upstream matching the selector

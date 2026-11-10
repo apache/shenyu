@@ -35,17 +35,21 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
-import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
+import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.BufferedReader;
@@ -54,7 +58,7 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -81,12 +85,16 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
      */
     private static final Pattern QUERY_PATTERN = Pattern.compile("^(%[0-9a-fA-F]{2}|[a-zA-Z0-9\\-._~!$&'()*+,;=:@/?])*$");
 
-    private final List<HttpMessageReader<?>> messageReaders;
+    /**
+     * Maximum number of request body bytes buffered for the model prompt and for replaying the
+     * original body when the transformation does not apply. A larger body is forwarded untouched
+     * without AI transformation, so the buffer stays bounded.
+     */
+    private static final int MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024;
 
     private final AiModelFactoryRegistry aiModelFactoryRegistry;
 
-    public AiRequestTransformerPlugin(final List<HttpMessageReader<?>> messageReaders, final AiModelFactoryRegistry aiModelFactoryRegistry) {
-        this.messageReaders = messageReaders;
+    public AiRequestTransformerPlugin(final AiModelFactoryRegistry aiModelFactoryRegistry) {
         this.aiModelFactoryRegistry = aiModelFactoryRegistry;
     }
 
@@ -131,43 +139,127 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             client = ChatClientCache.getInstance().init(rule.getId(), aiModel);
         }
 
-        AiRequestTransformerTemplate aiRequestTransformerTemplate = new AiRequestTransformerTemplate(aiRequestTransformerConfig.getContent(), exchange.getRequest());
-        ChatClient finalClient = client;
+        // The declared size is checked before the body is buffered, so an oversized request is
+        // forwarded without transformation instead of being collected in memory.
+        long declaredSize = exchange.getRequest().getHeaders().getContentLength();
+        if (declaredSize > MAX_REQUEST_BODY_SIZE_BYTES) {
+            LOG.warn("AI request transformer skipped: the request body of {} bytes exceeds the {} byte limit",
+                    declaredSize, MAX_REQUEST_BODY_SIZE_BYTES);
+            return chain.execute(exchange);
+        }
 
-        return aiRequestTransformerTemplate.assembleMessage()
-                .flatMap(message -> finalClient.prompt().user(message).stream().content()
+        ChatClient finalClient = client;
+        AiRequestTransformerConfig finalConfig = aiRequestTransformerConfig;
+        // The inbound body is subscribed once. Its bytes are then replayed through a decorator, so
+        // the model prompt and the fallback path never touch the one-shot network body again.
+        return readRequestBody(exchange.getRequest().getBody())
+                .flatMap(requestBody -> transform(exchange, chain, finalConfig, finalClient, requestBody));
+    }
+
+    private Mono<Void> transform(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                 final AiRequestTransformerConfig config, final ChatClient client,
+                                 final byte[] requestBody) {
+        ServerWebExchange replayExchange = replayBody(exchange, requestBody);
+        AiRequestTransformerTemplate aiRequestTransformerTemplate =
+                new AiRequestTransformerTemplate(config.getContent(), replayExchange.getRequest());
+        String requestBodyString = new String(requestBody, StandardCharsets.UTF_8);
+        // Recover model, preparation and transformation failures before entering the downstream chain:
+        // re-entering the chain after it has started would resume a partially advanced cursor instead
+        // of replaying the original request. The replay exchange carries the original body intact.
+        return aiRequestTransformerTemplate.assembleMessage(requestBodyString)
+                .flatMap(message -> client.prompt().user(message).stream().content()
                         .filter(Objects::nonNull)
                         .collect(StringBuilder::new, StringBuilder::append)
                         .map(StringBuilder::toString)
                         .flatMap(aiResponse -> {
                             LOG.debug("Request rewritten to: {}", aiResponse);
-                            return convertHeader(exchange, aiResponse)
-                                    .flatMap(serverWebExchange -> convertBody(serverWebExchange, messageReaders, aiResponse))
-                                    .flatMap(serverWebExchange -> rewriteRequestPath(serverWebExchange, aiResponse))
-                                    .flatMap(chain::execute);
-                                }
-                        )
+                            return convertHeader(replayExchange, aiResponse)
+                                    .flatMap(serverWebExchange -> convertBody(serverWebExchange, aiResponse))
+                                    .flatMap(serverWebExchange -> rewriteRequestPath(serverWebExchange, aiResponse));
+                        })
                 )
                 .onErrorResume(throwable -> {
                     LOG.error("AI request transformation failed, proceeding without AI transformation", throwable);
-                    return chain.execute(exchange);
-                });
+                    return Mono.just(replayExchange);
+                })
+                .flatMap(chain::execute);
     }
 
-    private static Mono<ServerWebExchange> convertBody(final ServerWebExchange exchange,
-                                                       final List<HttpMessageReader<?>> readers,
-                                                       final String aiResponse) {
+    /**
+     * Reads the inbound body once, bounded by {@link #MAX_REQUEST_BODY_SIZE_BYTES}. The joined
+     * buffer is released before the bytes are cached, so no pooled buffer outlives this call.
+     *
+     * @param body the inbound body stream
+     * @return the body bytes, empty when the request has no body
+     */
+    private static Mono<byte[]> readRequestBody(final Flux<DataBuffer> body) {
+        return DataBufferUtils.join(body, MAX_REQUEST_BODY_SIZE_BYTES)
+                .map(dataBuffer -> {
+                    try {
+                        byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                        dataBuffer.read(bytes);
+                        return bytes;
+                    } finally {
+                        DataBufferUtils.release(dataBuffer);
+                    }
+                })
+                .defaultIfEmpty(new byte[0]);
+    }
+
+    /**
+     * Replays the original body from the cached bytes. The original headers are kept because the
+     * body is forwarded unchanged, including its content length.
+     *
+     * @param exchange the exchange to decorate
+     * @param body     the original body bytes
+     * @return an exchange whose request replays the original body
+     */
+    private static ServerWebExchange replayBody(final ServerWebExchange exchange, final byte[] body) {
+        return exchange.mutate().request(bodyRequest(exchange, body, false)).build();
+    }
+
+    private static Mono<ServerWebExchange> convertBody(final ServerWebExchange exchange, final String aiResponse) {
         MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
-            return ServerWebExchangeUtils.rewriteRequestBody(exchange, readers, requestBodyString ->
-                    Mono.just(convertBodyJson(aiResponse)));
+            return replaceBody(exchange, convertBodyJson(aiResponse));
         } else if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
-            return ServerWebExchangeUtils.rewriteRequestBody(exchange, readers, requestBodyString ->
-                    Mono.just(convertBodyFormData(aiResponse)));
+            return replaceBody(exchange, convertBodyFormData(aiResponse));
         } else {
             return Mono.just(exchange);
         }
 
+    }
+
+    /**
+     * Builds the transformed body from the generated content, without reading the inbound body.
+     *
+     * @param exchange  the exchange to rewrite
+     * @param body      the generated body, or null when the model answer has no usable body
+     * @return an exchange carrying the generated body
+     */
+    private static Mono<ServerWebExchange> replaceBody(final ServerWebExchange exchange, final String body) {
+        if (Objects.isNull(body)) {
+            return Mono.error(new IllegalStateException("The model answer does not contain a transformable body"));
+        }
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        // The generated body has a different length, so the original content length no longer applies.
+        return Mono.just(exchange.mutate().request(bodyRequest(exchange, bytes, true)).build());
+    }
+
+    private static ServerHttpRequest bodyRequest(final ServerWebExchange exchange, final byte[] body, final boolean chunked) {
+        ServerHttpRequest request = exchange.getRequest();
+        DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
+        return new ServerHttpRequestDecorator(request) {
+            @Override
+            public Flux<DataBuffer> getBody() {
+                return body.length == 0 ? Flux.empty() : Flux.defer(() -> Flux.just(bufferFactory.wrap(body)));
+            }
+
+            @Override
+            public HttpHeaders getHeaders() {
+                return chunked ? ResponseUtils.chunkedHeader(request.getHeaders()) : request.getHeaders();
+            }
+        };
     }
 
     /**

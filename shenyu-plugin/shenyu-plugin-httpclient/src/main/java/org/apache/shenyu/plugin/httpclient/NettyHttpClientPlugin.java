@@ -23,15 +23,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -48,6 +51,8 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
     private static final Logger LOG = LoggerFactory.getLogger(NettyHttpClientPlugin.class);
 
     private final HttpClient httpClient;
+
+    private final UpstreamPoolGroupRegistry poolGroups;
 
     /**
      * Instantiates a new Netty http client plugin.
@@ -67,8 +72,36 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
      * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
      */
     public NettyHttpClientPlugin(final HttpClient httpClient, final long maxInMemorySize) {
+        this(httpClient, maxInMemorySize, UpstreamPoolGroupRegistry.empty());
+    }
+
+    /**
+     * Instantiates a new Netty http client plugin.
+     *
+     * @param httpClient the http client
+     * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
+     * @param poolGroups the upstream pool group registry
+     */
+    public NettyHttpClientPlugin(final HttpClient httpClient, final long maxInMemorySize,
+                                 final UpstreamPoolGroupRegistry poolGroups) {
         super(maxInMemorySize);
         this.httpClient = httpClient;
+        this.poolGroups = poolGroups;
+    }
+
+    /**
+     * Resolve the client for this request: the group client when the divide rule handle
+     * selected a configured pool group, the shared default client otherwise.
+     *
+     * @param exchange the current exchange
+     * @return the client to use
+     */
+    private HttpClient resolveClient(final ServerWebExchange exchange) {
+        String group = exchange.getAttribute(Constants.HTTP_POOL_GROUP);
+        if (StringUtils.isBlank(group)) {
+            return httpClient;
+        }
+        return poolGroups.httpClientFor(group);
     }
 
     @Override
@@ -80,7 +113,13 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         if (LOG.isDebugEnabled()) {
             LOG.debug("NettyHttpClient request: method={}, uri={}", httpMethod, uri);
         }
-        return Mono.from(httpClient.headers(headers -> {
+        final HttpClient client;
+        try {
+            client = resolveClient(exchange);
+        } catch (IllegalStateException ex) {
+            return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), ex));
+        }
+        return Mono.from(client.headers(headers -> {
             httpHeaders.forEach(headers::set);
             headers.remove(HttpHeaders.HOST);
             Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
