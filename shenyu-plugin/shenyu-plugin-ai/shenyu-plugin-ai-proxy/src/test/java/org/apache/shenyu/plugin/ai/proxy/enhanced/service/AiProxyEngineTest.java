@@ -91,7 +91,8 @@ class AiProxyEngineTest {
                 new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
                 protocolRouteResolver(),
-                transport);
+                transport,
+                AiProxyEngineOptions.defaults());
         config = new AiCommonConfig();
         config.setProvider("OpenAI");
         config.setProtocol(OpenAiChat.NAME);
@@ -348,7 +349,8 @@ class AiProxyEngineTest {
                 new AiProxyProviderFactory(List.of(new OpenAi(), fallback)), protocolRouteResolver(), request -> {
                     transports.incrementAndGet();
                     return Mono.error(new AiTransportException(AiTransportException.Kind.IO_FAILURE, "unavailable", null));
-                }, Duration.ZERO);
+                }, new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), null, event -> {
+                }, null));
         config.setStream(true);
         final AiCommonConfig fallbackConfig = new AiCommonConfig(config);
         fallbackConfig.setProvider("custom");
@@ -399,7 +401,8 @@ class AiProxyEngineTest {
                 request -> transports.incrementAndGet() == 1
                         ? Mono.error(new AiTransportException(AiTransportException.Kind.IO_FAILURE, "unavailable", null))
                         : Mono.just(upstreamResponse),
-                new AiProxyRetryProperties(0, 0, Duration.ZERO));
+                new AiProxyEngineOptions(new AiProxyRetryProperties(0, 0, Duration.ZERO), null, event -> {
+                }, null));
         config.setProvider("primary");
         config.setProtocol(OpenAiResponses.NAME);
         final AiCommonConfig fallbackConfig = new AiCommonConfig(config);
@@ -430,7 +433,7 @@ class AiProxyEngineTest {
                 new AiProxyProviderFactory(List.of(customProvider(capabilities, builds))), protocolRouteResolver(), request -> {
                     transportedRequest.set(request);
                     return Mono.just(upstreamResponse);
-                });
+                }, AiProxyEngineOptions.defaults());
         config.setProvider("custom");
     }
 
@@ -439,7 +442,7 @@ class AiProxyEngineTest {
                 new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(
                         new OpenAiCompatible("DeepSeek", OpenAiProviderOptions.deepSeek()))),
-                protocolRouteResolver(), request -> Mono.just(upstreamResponse));
+                protocolRouteResolver(), request -> Mono.just(upstreamResponse), AiProxyEngineOptions.defaults());
         config.setProvider("DeepSeek");
         config.setBaseUrl("https://api.deepseek.com");
     }

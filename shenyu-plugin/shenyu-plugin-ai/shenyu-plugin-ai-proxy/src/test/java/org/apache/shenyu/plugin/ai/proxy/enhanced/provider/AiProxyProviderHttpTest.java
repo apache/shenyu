@@ -24,6 +24,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -132,7 +133,7 @@ class AiProxyProviderHttpTest {
     private AiProxyEngine engine(final AiProxyProvider provider) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(),
-                new WebClientAiProxyTransport(WebClient.builder().build()));
+                new WebClientAiProxyTransport(WebClient.builder().build()), AiProxyEngineOptions.defaults());
     }
 
     private AiCommonConfig config(final DisposableServer server, final String provider, final String protocol) {

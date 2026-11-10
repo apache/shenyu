@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -280,7 +281,9 @@ class AiProxyFallbackAuthorizationTest {
 
     private AiProxyPlugin plugin(final AiProxyPluginHandler handler) {
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())), new AiProxyProviderFactory(List.of(new OpenAi())),
-                protocolRouteResolver(), new WebClientAiProxyTransport(WebClient.builder().build()), new AiProxyRetryProperties(0, 0, Duration.ZERO));
+                protocolRouteResolver(), new WebClientAiProxyTransport(WebClient.builder().build()),
+                new AiProxyEngineOptions(new AiProxyRetryProperties(0, 0, Duration.ZERO), null, event -> {
+                }, null));
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 

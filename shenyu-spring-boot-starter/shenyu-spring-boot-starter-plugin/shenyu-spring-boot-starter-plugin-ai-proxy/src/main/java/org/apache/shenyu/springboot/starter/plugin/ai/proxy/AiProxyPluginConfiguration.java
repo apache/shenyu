@@ -40,6 +40,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber.CommonAiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
@@ -148,10 +149,14 @@ public class AiProxyPluginConfiguration {
                                        final AiProxyRetryProperties retryProperties,
                                        final ObjectProvider<AiProxyAttemptListener> attemptListener,
                                        final ObjectProvider<AiExactResponseCache> responseCache) {
+        AiProxyEngineOptions options = new AiProxyEngineOptions(
+                retryProperties,
+                observer(observers),
+                attemptListener.getIfAvailable(() -> event -> {
+                }),
+                responseCache.getIfAvailable());
         return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
-                aiProtocolRouteResolver, aiProxyTransport, retryProperties,
-                observer(observers), attemptListener.getIfAvailable(() -> event -> {
-                }), responseCache.getIfAvailable());
+                aiProtocolRouteResolver, aiProxyTransport, options);
     }
 
     private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {

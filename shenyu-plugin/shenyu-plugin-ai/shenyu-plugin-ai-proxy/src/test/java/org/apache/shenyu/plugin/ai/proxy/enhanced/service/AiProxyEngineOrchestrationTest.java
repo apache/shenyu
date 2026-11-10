@@ -283,7 +283,8 @@ class AiProxyEngineOrchestrationTest {
                     return attempt == 1
                             ? Mono.just(response(429, Map.of("Retry-After", List.of("1")), Flux.just(bytes("busy"))))
                             : Mono.just(response(200, Flux.just(bytes("ok"))));
-                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
+                }, new AiProxyEngineOptions(retryProperties(Duration.ZERO, Duration.ofMinutes(1)), null,
+                        events::add, null));
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(),
                 response -> response.getBody().then())).verifyComplete();
@@ -307,7 +308,7 @@ class AiProxyEngineOrchestrationTest {
                     return body.contains("\"model\":\"fallback\"")
                             ? Mono.just(response(200, Flux.just(bytes("fallback response"))))
                             : Mono.just(response(429, Flux.just(bytes("busy"))));
-                }, properties, (AiProxyAttemptListener) events::add);
+                }, new AiProxyEngineOptions(properties, null, events::add, null));
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"),
                         Optional.of(config(false, "fallback")), response -> response.getBody().then()))
@@ -355,7 +356,8 @@ class AiProxyEngineOrchestrationTest {
                 protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.just(response(429, Flux.just(bytes("busy"))));
-                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)));
+                }, new AiProxyEngineOptions(retryProperties(Duration.ZERO, Duration.ofMinutes(1)), null, event -> {
+                }, null));
 
         AiProxyRetryProperties properties = retryProperties(Duration.ZERO, Duration.ofMinutes(1));
         properties.getReplay().setResponseStatus(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED);
@@ -364,7 +366,8 @@ class AiProxyEngineOrchestrationTest {
                 protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.just(response(429, Flux.just(bytes("busy"))));
-                }, properties);
+                }, new AiProxyEngineOptions(properties, null, event -> {
+                }, null));
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(fallbackConfig),
                         response -> response.getBody().then()))
@@ -619,7 +622,8 @@ class AiProxyEngineOrchestrationTest {
                 protocolRouteResolver(), request -> {
             calls.incrementAndGet();
             return Mono.just(response(200, Flux.just(bytes("data: {\"first\":true}\n\n")).concatWith(Flux.error(networkFailure()))));
-        }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
+        }, new AiProxyEngineOptions(retryProperties(Duration.ZERO, Duration.ofMinutes(1)), null,
+                events::add, null));
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> consume(response, received)))
                 .expectError(AiTransportException.class).verify();
         assertEquals(1, calls.get());
@@ -720,7 +724,9 @@ class AiProxyEngineOrchestrationTest {
         AiCommonConfig config = config(false, "model");
         config.setProvider("custom");
         AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(protocol)), new AiProxyProviderFactory(List.of(provider)),
-                protocolRouteResolver(), request -> Mono.just(response(200, Flux.just(bytes("ok")))), Duration.ZERO);
+                protocolRouteResolver(), request -> Mono.just(response(200, Flux.just(bytes("ok")))),
+                new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), null, event -> {
+                }, null));
         StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then())).verifyComplete();
         assertEquals(List.of("provider", "protocol"), conversions);
         supported.set(false);
@@ -795,7 +801,8 @@ class AiProxyEngineOrchestrationTest {
         };
         AiProxyEngine engine = new AiProxyEngine(
                 new AiProxyProtocolFactory(List.of(clientProtocol, targetProtocol)),
-                new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(), request -> Mono.empty());
+                new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(), request -> Mono.empty(),
+                AiProxyEngineOptions.defaults());
         AiCommonConfig config = config(false, "model");
         config.setProvider("custom");
         config.setProtocol(OpenAiResponses.NAME);
@@ -827,7 +834,9 @@ class AiProxyEngineOrchestrationTest {
     private AiProxyEngine engine(final AiProxyTransport transport) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolRouteResolver(), transport, Duration.ZERO);
+                protocolRouteResolver(), transport,
+                new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), null, event -> {
+                }, null));
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties retryProperties) {
@@ -839,7 +848,8 @@ class AiProxyEngineOrchestrationTest {
                                  final AiProxyAttemptListener listener) {
         return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolRouteResolver(), transport, retryProperties, listener);
+                protocolRouteResolver(), transport,
+                new AiProxyEngineOptions(retryProperties, null, listener, null));
     }
 
     private AiProxyRetryProperties retryProperties(final Duration initialBackoff, final Duration requestDeadline) {

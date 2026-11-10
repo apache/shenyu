@@ -32,6 +32,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -274,7 +275,7 @@ class OpenAiProviderOptionsTest {
                 new AiProxyProviderFactory(List.of(custom)), protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.empty();
-                });
+                }, AiProxyEngineOptions.defaults());
         config.setProvider("restricted");
         config.setProtocol(OpenAiResponses.NAME);
         StepVerifier.create(engine.execute("{\"input\":\"hi\"}", config, java.util.Optional.empty(), response -> response.getBody().then()))

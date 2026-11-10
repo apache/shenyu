@@ -57,6 +57,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.ai.token.limiter.AiTokenLimiterPlugin;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
@@ -292,7 +294,9 @@ class AgentGovernanceHttpTest {
             AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().cachedHandle(limiter.named(), redis);
             AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                     new AiProxyProviderFactory(List.of(new OpenAi())), new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())),
-                    new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
+                    new WebClientAiProxyTransport(WebClient.builder().build()),
+                    new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), null, event -> {
+                    }, null));
             AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler);
             final RuleData proxyRule = register(proxy, "{}");
             AiProxyHandle handle = new AiProxyHandle();

@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,7 +90,8 @@ class AiProxyCacheScopeTest {
                     calls.incrementAndGet();
                     return Mono.just(new AiUpstreamResponse(200, Map.of("Content-Type", List.of("application/json")),
                             Flux.just(RESPONSE.getBytes(StandardCharsets.UTF_8))));
-                }, new AiProxyRetryProperties(), null, event -> { }, new AiExactResponseCache(properties));
+                }, new AiProxyEngineOptions(new AiProxyRetryProperties(), null, event -> { },
+                        new AiExactResponseCache(properties)));
     }
 
     @Test

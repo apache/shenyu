@@ -216,7 +216,8 @@ class AiStreamCompletionTest {
                     new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("fixture-chat"))), protocolRouteResolver(), request -> {
                         calls.incrementAndGet();
                         return Mono.just(new AiUpstreamResponse(200, Map.of(), body));
-                    }, new AiProxyRetryProperties(1, 1, Duration.ZERO), this, event -> reasons.add(event.reason()));
+                    }, new AiProxyEngineOptions(new AiProxyRetryProperties(1, 1, Duration.ZERO), this,
+                            event -> reasons.add(event.reason()), null));
         }
 
         private Mono<Void> execute(final List<String> output) {

@@ -32,6 +32,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -144,7 +146,8 @@ class AiProxyPluginViewTest {
                 new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
                 request -> Mono.just(new AiUpstreamResponse(HttpStatus.OK.value(), Map.of(),
                         Flux.just("{}".getBytes(StandardCharsets.UTF_8)))),
-                Duration.ZERO, null);
+                new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), null, event -> {
+                }, null));
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, null);
     }
 
