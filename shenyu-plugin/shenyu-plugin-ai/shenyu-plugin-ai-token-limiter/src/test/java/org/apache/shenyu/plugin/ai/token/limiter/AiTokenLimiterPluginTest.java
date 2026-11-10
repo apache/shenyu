@@ -260,14 +260,21 @@ class AiTokenLimiterPluginTest {
         System.arraycopy(compressed, 8, chunk2, 0, chunk2.length);
 
         GzipStreamDecoder decoder = new GzipStreamDecoder();
-        byte[] result1 = decoder.decode(chunk1);
+        ByteArrayOutputStream observed = new ByteArrayOutputStream();
+        decoder.decode(chunk1, chunk -> {
+            observed.writeBytes(chunk);
+            return true;
+        });
         // Header incomplete
-        assertEquals(0, result1.length);
+        assertEquals(0, observed.size());
 
-        byte[] result2 = decoder.decode(chunk2);
+        decoder.decode(chunk2, chunk -> {
+            observed.writeBytes(chunk);
+            return true;
+        });
         // Should decompress now
-        assertTrue(result2.length > 0);
-        assertEquals(sseContent, new String(result2, StandardCharsets.UTF_8));
+        assertTrue(observed.size() > 0);
+        assertEquals(sseContent, observed.toString(StandardCharsets.UTF_8));
         decoder.close();
     }
 
@@ -277,8 +284,7 @@ class AiTokenLimiterPluginTest {
         byte[] compressed = compressGzip(sseContent);
 
         GzipStreamDecoder decoder = new GzipStreamDecoder();
-        byte[] result = decoder.decode(compressed);
-        assertEquals(sseContent, new String(result, StandardCharsets.UTF_8));
+        assertEquals(sseContent, decodeCollecting(decoder, compressed, Integer.MAX_VALUE).observed.toString(StandardCharsets.UTF_8));
         decoder.close();
     }
 
@@ -298,10 +304,10 @@ class AiTokenLimiterPluginTest {
         assertTrue(compressed.length > 266, "Compressed data must exceed header buffer size");
 
         GzipStreamDecoder decoder = new GzipStreamDecoder();
-        byte[] result = decoder.decode(compressed);
+        DecodeResult result = decodeCollecting(decoder, compressed, Integer.MAX_VALUE);
         decoder.close();
 
-        assertEquals(sseContent, new String(result, StandardCharsets.UTF_8));
+        assertEquals(sseContent, result.observed.toString(StandardCharsets.UTF_8));
     }
 
     @Test
@@ -312,19 +318,146 @@ class AiTokenLimiterPluginTest {
         byte[][] chunks = splitIntoThreeChunks(compressed);
 
         GzipStreamDecoder decoder = new GzipStreamDecoder();
-        StringBuilder decompressed = new StringBuilder();
+        ByteArrayOutputStream decompressed = new ByteArrayOutputStream();
 
         for (byte[] chunk : chunks) {
-            byte[] result = decoder.decode(chunk);
-            if (result.length > 0) {
-                decompressed.append(new String(result, StandardCharsets.UTF_8));
-            }
+            decoder.decode(chunk, inflated -> {
+                decompressed.writeBytes(inflated);
+                return true;
+            });
         }
         decoder.close();
 
         // Verify decompression succeeded
-        assertEquals(sseContent, decompressed.toString());
-        assertTrue(decompressed.toString().contains("completion_tokens\":75"));
+        assertEquals(sseContent, decompressed.toString(StandardCharsets.UTF_8));
+        assertTrue(decompressed.toString(StandardCharsets.UTF_8).contains("completion_tokens\":75"));
+    }
+
+    @Test
+    void testHighExpansionChunkStopsAtTheInspectionBudget() throws IOException {
+        // Issue #8385: a small compressed chunk must not materialize its whole expansion
+        // before the budget is checked; observation stops as soon as the budget is spent
+        byte[] payload = new byte[8 * 1024 * 1024];
+        Arrays.fill(payload, (byte) 'a');
+        byte[] compressed = compressGzip(payload);
+        assertTrue(compressed.length < 64 * 1024, "the fixture must be highly compressible");
+
+        GzipStreamDecoder decoder = new GzipStreamDecoder();
+        int budget = 64 * 1024;
+        DecodeResult result = decodeCollecting(decoder, compressed, budget);
+        decoder.close();
+
+        assertTrue(result.stopped, "the sink must have refused once the budget was exhausted");
+        assertTrue(result.observed.size() <= budget + 4096,
+                "observed output must stay within the budget plus one inflate chunk, got " + result.observed.size());
+        assertTrue(result.observed.size() < payload.length / 16,
+                "the full expansion must never be materialized");
+    }
+
+    @Test
+    void testDecoderStopsInflatingAfterObservationStops() throws IOException {
+        byte[] payload = new byte[1024 * 1024];
+        Arrays.fill(payload, (byte) 'a');
+        byte[] compressed = compressGzip(payload);
+
+        GzipStreamDecoder decoder = new GzipStreamDecoder();
+        int[] calls = {0};
+        decoder.decode(compressed, chunk -> {
+            calls[0]++;
+            return false;
+        });
+        assertEquals(1, calls[0], "the first refused chunk must end the observation");
+
+        decoder.decode(compressed, chunk -> {
+            calls[0]++;
+            return true;
+        });
+        decoder.close();
+        assertEquals(1, calls[0], "later input must not resume inflation after the budget is exhausted");
+    }
+
+    @Test
+    void testManySmallCompressedChunksStillDecodeFully() throws IOException {
+        String sseContent = buildSseContentWithTokens(75);
+        byte[] compressed = compressGzip(sseContent);
+
+        GzipStreamDecoder decoder = new GzipStreamDecoder();
+        ByteArrayOutputStream observed = new ByteArrayOutputStream();
+        for (int offset = 0; offset < compressed.length; offset += 7) {
+            byte[] chunk = Arrays.copyOfRange(compressed, offset, Math.min(offset + 7, compressed.length));
+            decoder.decode(chunk, inflated -> {
+                observed.writeBytes(inflated);
+                return true;
+            });
+        }
+        decoder.close();
+        assertEquals(sseContent, observed.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void testMalformedCompressionAbandonsObservationWithoutError() throws IOException {
+        byte[] compressed = compressGzip(buildSseContentWithTokens(75));
+        // corrupt the deflate payload after the 10-byte fixed header
+        compressed[12] = (byte) 0xFF;
+        compressed[13] = (byte) 0xFF;
+        compressed[14] = (byte) 0xFF;
+
+        GzipStreamDecoder decoder = new GzipStreamDecoder();
+        ByteArrayOutputStream observed = new ByteArrayOutputStream();
+        decoder.decode(compressed, inflated -> {
+            observed.writeBytes(inflated);
+            return true;
+        });
+        // a later chunk must stay a no-op instead of throwing into the pipeline
+        decoder.decode(compressed, inflated -> {
+            observed.writeBytes(inflated);
+            return true;
+        });
+        decoder.close();
+        assertTrue(observed.size() < buildSseContentWithTokens(75).length(),
+                "malformed input must not produce the full payload");
+    }
+
+    @Test
+    void testCloseIsIdempotentAndDecodeAfterCloseIsNoOp() throws IOException {
+        byte[] compressed = compressGzip(buildSseContentWithTokens(75));
+        GzipStreamDecoder decoder = new GzipStreamDecoder();
+        decoder.close();
+        decoder.close();
+        DecodeResult result = decodeCollecting(decoder, compressed, Integer.MAX_VALUE);
+        assertEquals(0, result.observed.size(), "decoding after close must be a no-op");
+    }
+
+    @Test
+    void testGzipCancellationRecordsUsageAndForwardsBytes() throws IOException {
+        // cancellation path with a gzip body: the inflater must be closed exactly once
+        // through doFinally while complete usage observed before cancel is still recorded
+        byte[] compressed = compressGzip(USAGE_EVENT);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
+        exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
+        exchange.getResponse().setWriteHandler(body -> body.doOnNext(DataBufferUtils::release).then());
+        List<Long> recorded = new ArrayList<>();
+        AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
+                exchange, exchange.getResponse(), recorded::add);
+        Flux<DataBuffer> body = Flux.concat(
+                Mono.just(exchange.getResponse().bufferFactory().wrap(compressed)),
+                Mono.never());
+        Disposable subscription = response.writeWith(body).subscribe();
+        assertTrue(recorded.isEmpty());
+
+        subscription.dispose();
+        assertEquals(List.of(12L), recorded);
+    }
+
+    @Test
+    void testOversizedGzipBodyReportsUnknownUsageAndForwardsIntact() throws IOException {
+        // the documented oversized policy: usage becomes unavailable (not zero) and the
+        // response bytes are forwarded unchanged even though observation stopped early
+        String oversized = "{\"usage\":{\"completion_tokens\":12},\"padding\":\"" + "a".repeat(128 * 1024) + "\"}";
+        byte[] compressed = compressGzip(oversized);
+        assertResponseUsage(compressed, splitIntoThreeChunks(compressed), MediaType.APPLICATION_JSON,
+                false, true, List.of());
     }
 
     @Test
@@ -414,12 +547,29 @@ class AiTokenLimiterPluginTest {
                 + "data: [DONE]\n\n";
     }
 
-    private byte[] compressGzip(final String content) throws IOException {
+    private byte[] compressGzip(final byte[] content) throws IOException {
         ByteArrayOutputStream compressedStream = new ByteArrayOutputStream();
         try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(compressedStream)) {
-            gzipOutputStream.write(content.getBytes(StandardCharsets.UTF_8));
+            gzipOutputStream.write(content);
         }
         return compressedStream.toByteArray();
+    }
+
+    private byte[] compressGzip(final String content) throws IOException {
+        return compressGzip(content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private DecodeResult decodeCollecting(final GzipStreamDecoder decoder, final byte[] compressed, final int budget) {
+        DecodeResult result = new DecodeResult();
+        decoder.decode(compressed, chunk -> {
+            result.observed.writeBytes(chunk);
+            if (result.observed.size() >= budget) {
+                result.stopped = true;
+                return false;
+            }
+            return true;
+        });
+        return result;
     }
 
     private byte[][] splitIntoThreeChunks(final byte[] data) {
@@ -441,5 +591,12 @@ class AiTokenLimiterPluginTest {
             chunks[i] = new byte[] {data[i]};
         }
         return chunks;
+    }
+
+    private static final class DecodeResult {
+
+        private final ByteArrayOutputStream observed = new ByteArrayOutputStream();
+
+        private boolean stopped;
     }
 }

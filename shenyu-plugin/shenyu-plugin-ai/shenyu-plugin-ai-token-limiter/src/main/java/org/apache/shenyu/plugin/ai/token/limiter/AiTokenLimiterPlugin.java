@@ -278,9 +278,15 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] inBytes = new byte[ro.remaining()];
                                 ro.get(inBytes);
 
-                                byte[] processedBytes = Objects.nonNull(decoder) ? decoder.decode(inBytes) : inBytes;
-                                if (processedBytes.length > 0) {
-                                    extractor.accept(processedBytes);
+                                if (Objects.nonNull(decoder)) {
+                                    // bounded observation: inflated chunks flow straight into the
+                                    // extractor, and its exhaustion stops further inflation
+                                    decoder.decode(inBytes, chunk -> {
+                                        extractor.accept(chunk);
+                                        return extractor.isActive();
+                                    });
+                                } else if (extractor.isActive()) {
+                                    extractor.accept(inBytes);
                                 }
                             });
                         } catch (Exception e) {
@@ -352,6 +358,16 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
             ResponseUsageExtractor(final boolean eventStream) {
                 this.eventStream = eventStream;
+            }
+
+            /**
+             * Whether the observation can still accept bytes; once stopped, invalid or
+             * finished the budget is exhausted and decoders must stop inflating.
+             *
+             * @return true while the extractor still accepts observations
+             */
+            synchronized boolean isActive() {
+                return !stopped && !invalid && !finished;
             }
 
             synchronized void accept(final byte[] bytes) {

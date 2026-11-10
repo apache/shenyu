@@ -20,34 +20,51 @@ package org.apache.shenyu.plugin.ai.token.limiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 /**
  * Streaming gzip decoder for handling cross-buffer gzip decompression.
  * Package-visible for testing.
+ *
+ * <p>Decoding is sink-driven and bounded: inflated output is handed to the observer
+ * in chunks of at most {@link #CHUNK_SIZE} bytes as it is produced, never accumulated
+ * into a whole-chunk expansion first. The observer returns {@code false} once its
+ * inspection budget is exhausted, and the decoder then stops inflating for the rest
+ * of the response instead of spending work on output nobody will read. Response
+ * forwarding is unaffected: observation only reads a copy of the bytes.</p>
  */
 class GzipStreamDecoder {
 
     private static final Logger LOG = LoggerFactory.getLogger(GzipStreamDecoder.class);
 
+    /**
+     * Upper bound of one inflated chunk handed to the sink; also the only temporary
+     * output buffer, so a highly compressible input cannot materialize its full
+     * expansion before the inspection budget is checked.
+     */
+    private static final int CHUNK_SIZE = 4096;
+
     private final Inflater inflater = new Inflater(true);
 
-    private final byte[] decompressBuffer = new byte[4096];
+    private final byte[] decompressBuffer = new byte[CHUNK_SIZE];
 
     private final GzipHeaderState headerState = new GzipHeaderState();
 
     private boolean abandoned;
 
+    private boolean closed;
+
     /**
-     * Decode a chunk of gzip data.
+     * Decode a chunk of gzip data, feeding bounded inflated chunks to the sink.
+     *
      * @param inBytes compressed input bytes
-     * @return decompressed bytes, or empty array if header incomplete or abandoned
+     * @param sink the observer of inflated chunks; may stop the observation
      */
-    byte[] decode(final byte[] inBytes) {
-        if (abandoned) {
-            return new byte[0];
+    void decode(final byte[] inBytes, final ChunkSink sink) {
+        if (abandoned || closed) {
+            return;
         }
 
         int offset = 0;
@@ -55,30 +72,55 @@ class GzipStreamDecoder {
             offset = headerState.process(inBytes);
             if (headerState.isCapacityExceeded()) {
                 abandoned = true;
-                return new byte[0];
+                return;
             }
             if (!headerState.isComplete()) {
-                return new byte[0];
+                return;
             }
         }
 
         inflater.setInput(inBytes, offset, inBytes.length - offset);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             int cnt;
             while (!inflater.needsInput() && (cnt = inflater.inflate(decompressBuffer)) > 0) {
-                baos.write(decompressBuffer, 0, cnt);
+                byte[] chunk = cnt == decompressBuffer.length ? decompressBuffer : Arrays.copyOf(decompressBuffer, cnt);
+                if (!sink.accept(chunk)) {
+                    // the inspection budget is exhausted; stop inflating for the rest
+                    // of the response instead of expanding output nobody will read
+                    abandoned = true;
+                    return;
+                }
             }
         } catch (DataFormatException ex) {
             LOG.error("Inflater decompression failed", ex);
             abandoned = true;
-            return new byte[0];
         }
-        return baos.toByteArray();
     }
 
+    /**
+     * Release the inflater exactly once across success, error and cancellation paths.
+     */
     void close() {
-        inflater.end();
+        if (!closed) {
+            closed = true;
+            inflater.end();
+        }
+    }
+
+    /**
+     * Observer of inflated chunks. Returning {@code false} stops the observation
+     * permanently, e.g. when the usage-inspection budget is exhausted.
+     */
+    @FunctionalInterface
+    interface ChunkSink {
+
+        /**
+         * Consume one inflated chunk.
+         *
+         * @param chunk the inflated bytes, owned by the sink for the call's duration
+         * @return true to keep observing, false to stop the observation
+         */
+        boolean accept(byte[] chunk);
     }
 
     /**
