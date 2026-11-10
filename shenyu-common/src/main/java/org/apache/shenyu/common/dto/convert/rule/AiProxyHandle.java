@@ -80,7 +80,9 @@ public class AiProxyHandle {
     private Map<String, FallbackConfig> fallbackTargets = Collections.emptyMap();
 
     /**
-     * AI protocol identifier.
+     * AI protocol identifier. The canonical identifiers live in
+     * {@code org.apache.shenyu.plugin.ai.protocol.AiProtocols} (module {@code shenyu-plugin-ai-protocol});
+     * the default literal is kept here to avoid the reverse dependency.
      */
     private String protocol = "openai-chat";
 

@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.plugin.ai.common.view;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.shenyu.common.ai.AiNormalizedRequestView;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocolDetector;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
@@ -62,7 +65,42 @@ public final class AiRequestViewOperations {
      */
     public static AiNormalizedRequestView ensurePublished(final ServerWebExchange exchange, final String body,
                                                           final String mutatorName) {
-        return holder(exchange).ensurePublished(body, mutatorName);
+        String protocol = AiProtocolDetector.detect(exchange.getRequest().getPath().value(),
+                exchange.getRequest().getHeaders(), body).orElse(AiProtocols.UNKNOWN);
+        return holder(exchange).ensurePublished(body, null, mutatorName, protocol);
+    }
+
+    /**
+     * Publish the view of a body version whose protocol identity is already resolved.
+     *
+     * @param exchange the current exchange
+     * @param body the body version the caller observed
+     * @param mutatorName component that produced the body, used for effective views
+     * @param protocolId the resolved protocol identity, {@link AiProtocols#UNKNOWN}
+     *                   when the request stayed unresolved
+     * @return the view of the current body version
+     */
+    public static AiNormalizedRequestView ensurePublished(final ServerWebExchange exchange, final String body,
+                                                          final String mutatorName, final String protocolId) {
+        return holder(exchange).ensurePublished(body, null, mutatorName, protocolId);
+    }
+
+    /**
+     * Publish the view of an already parsed body version with its resolved protocol
+     * identity, so no consumer parses the same body twice.
+     *
+     * @param exchange the current exchange
+     * @param body the body version the caller observed
+     * @param parsedRoot the already parsed body
+     * @param mutatorName component that produced the body, used for effective views
+     * @param protocolId the resolved protocol identity, {@link AiProtocols#UNKNOWN}
+     *                   when the request stayed unresolved
+     * @return the view of the current body version
+     */
+    public static AiNormalizedRequestView ensurePublished(final ServerWebExchange exchange, final String body,
+                                                          final JsonNode parsedRoot, final String mutatorName,
+                                                          final String protocolId) {
+        return holder(exchange).ensurePublished(body, parsedRoot, mutatorName, protocolId);
     }
 
     /**

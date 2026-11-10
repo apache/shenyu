@@ -118,8 +118,8 @@ class AiExchangePlannerTest {
     }
 
     @Test
-    void testDetectsNativeResponsesProtocolAndBuildsPreparedMetadata() throws Exception {
-        config.setProtocol(null);
+    void testPlansNativeResponsesProtocolAndBuildsPreparedMetadata() throws Exception {
+        config.setProtocol(OpenAiResponses.NAME);
         final AiPreparedExchange prepared = planner.prepare(
                 "{\"model\":\"gpt-4o-mini\",\"input\":\"hello\"}", config);
         final JsonNode payload = MAPPER.readTree(prepared.request().getBody());

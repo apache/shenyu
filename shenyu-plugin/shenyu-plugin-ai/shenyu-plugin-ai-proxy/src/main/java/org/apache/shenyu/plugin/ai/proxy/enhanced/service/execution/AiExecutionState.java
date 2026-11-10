@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service.execution;
 
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -62,11 +63,13 @@ public record AiExecutionState(
      * Original wire payload retained for fallback and repair preparation.
      *
      * @param body original client request body
+     * @param parsed original parsed object shared by primary and fallback planning
      */
-    public record RequestPayload(String body) {
+    public record RequestPayload(String body, ObjectNode parsed) {
 
         public RequestPayload {
             Objects.requireNonNull(body, "body must not be null");
+            Objects.requireNonNull(parsed, "parsed must not be null");
         }
     }
 

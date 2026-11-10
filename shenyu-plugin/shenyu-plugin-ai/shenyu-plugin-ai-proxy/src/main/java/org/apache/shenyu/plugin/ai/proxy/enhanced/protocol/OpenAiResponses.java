@@ -20,6 +20,8 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
+import org.apache.shenyu.plugin.ai.protocol.OpenAiResponsesProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiUpstreamUsageTap;
 
@@ -37,7 +39,9 @@ public final class OpenAiResponses implements AiProxyProtocol {
     /**
      * Selector handle protocol identifier for Responses clients.
      */
-    public static final String NAME = "openai-responses";
+    public static final String NAME = AiProtocols.OPENAI_RESPONSES;
+
+    private static final OpenAiResponsesProtocol DESCRIPTOR = new OpenAiResponsesProtocol();
 
     @Override
     public String name() {
@@ -52,7 +56,7 @@ public final class OpenAiResponses implements AiProxyProtocol {
 
     @Override
     public boolean matches(final JsonNode payload) {
-        return Objects.nonNull(payload) && payload.isObject() && payload.has("input") && !payload.has("messages");
+        return DESCRIPTOR.bodyMatches(payload);
     }
 
     @Override

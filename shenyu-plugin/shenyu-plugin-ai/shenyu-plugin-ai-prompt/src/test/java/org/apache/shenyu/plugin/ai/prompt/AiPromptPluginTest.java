@@ -243,6 +243,82 @@ class AiPromptPluginTest {
         assertEquals(2, messages.size());
     }
 
+    @Test
+    void testResponsesStringInputConvertedToItemsArray() throws Exception {
+        AiPromptConfig config = new AiPromptConfig();
+        config.setPrepend("X");
+        config.setPreRole("system");
+        Map<String, Object> result = GsonUtils.getInstance().convertToMap(
+                forwardThroughPlugin(config, "/v1/responses", "{\"input\":\"hi\",\"stream\":false}"));
+        assertEquals(List.of(Map.of("role", "system", "content", "X"), Map.of("role", "user", "content", "hi")), result.get("input"));
+        assertEquals(Boolean.FALSE, result.get("stream"));
+    }
+
+    @Test
+    void testResponsesArrayInputInjectedAtHeadAndTail() throws Exception {
+        AiPromptConfig config = new AiPromptConfig();
+        config.setPrepend("X");
+        config.setPreRole("system");
+        config.setAppend("Y");
+        config.setPostRole("assistant");
+        Map<String, Object> result = GsonUtils.getInstance().convertToMap(
+                forwardThroughPlugin(config, "/generate", "{\"model\":\"gpt-5\",\"input\":[{\"role\":\"user\",\"content\":\"hi\"}]}"));
+        assertEquals(List.of(Map.of("role", "system", "content", "X"), Map.of("role", "user", "content", "hi"),
+                Map.of("role", "assistant", "content", "Y")), result.get("input"));
+        assertEquals("gpt-5", result.get("model"));
+    }
+
+    @Test
+    void testResponsesBodyWithoutInjectionIsForwardedUnchanged() throws Exception {
+        String body = "{\"input\":\"hi\"}";
+        assertEquals(body, forwardThroughPlugin(new AiPromptConfig(), "/v1/responses", body));
+    }
+
+    @Test
+    void testResponsesNonObjectBodyIsForwardedUnchanged() throws Exception {
+        AiPromptConfig config = new AiPromptConfig();
+        config.setPrepend("X");
+        config.setPreRole("system");
+        assertEquals("[]", forwardThroughPlugin(config, "/v1/responses", "[]"));
+    }
+
+    @Test
+    void testUnknownProtocolForwardsBodyUnchanged() throws Exception {
+        AiPromptConfig config = new AiPromptConfig();
+        config.setPrepend("X");
+        config.setPreRole("system");
+        String body = "{\"prompt\":\"x\"}";
+        assertEquals(body, forwardThroughPlugin(config, "/generate", body));
+    }
+
+    private String forwardThroughPlugin(final AiPromptConfig config, final String path, final String body) throws Exception {
+        AiPromptConfig previousConfig = Singleton.INST.get(AiPromptConfig.class);
+        List<HttpMessageReader<?>> readers = ServerCodecConfigurer.create().getReaders();
+        AiPromptPlugin requestPlugin = new AiPromptPlugin(readers);
+        List<String> bodies = new ArrayList<>();
+        ShenyuPluginChain chain = exchange -> ServerRequest.create(exchange, readers).bodyToMono(String.class)
+                .doOnNext(bodies::add).then();
+        RuleData rule = RuleData.builder().selectorId("prompt-protocol").id("protocol-rule").build();
+        try {
+            Singleton.INST.single(AiPromptConfig.class, config);
+            MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post(path)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body));
+            StepVerifier.create(requestPlugin.doExecute(exchange, chain, null, rule)).verifyComplete();
+        } finally {
+            Field singlesField = Singleton.class.getDeclaredField("SINGLES");
+            singlesField.setAccessible(true);
+            Map<?, ?> singles = (Map<?, ?>) singlesField.get(null);
+            if (Objects.isNull(previousConfig)) {
+                singles.remove(AiPromptConfig.class.getName());
+            } else {
+                Singleton.INST.single(AiPromptConfig.class, previousConfig);
+            }
+        }
+        assertEquals(1, bodies.size());
+        return bodies.get(0);
+    }
+
     private MockServerWebExchange promptExchange() {
         return MockServerWebExchange.from(MockServerHttpRequest.post("/ai/prompt")
                 .contentType(MediaType.APPLICATION_JSON)
