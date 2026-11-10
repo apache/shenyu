@@ -57,6 +57,19 @@ ALTER TABLE mock_request_record RENAME COLUMN header_clob TO header;
 ALTER TABLE mock_request_record MODIFY header DEFAULT EMPTY_CLOB() NOT NULL;
 COMMENT ON COLUMN mock_request_record.header IS 'the request param in header';
 
+-- Agent Gateway OpenAPI import ownership: Admin-only provenance, never synchronized to gateways.
+CREATE TABLE agent_gateway_import
+(
+    id             VARCHAR2(128) not null,
+    rule_id        VARCHAR2(128) not null,
+    namespace_id   VARCHAR2(50) not null,
+    manifest       CLOB not null,
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    CONSTRAINT pk_agent_gateway_import PRIMARY KEY (id),
+    CONSTRAINT uk_agent_gateway_import_rule UNIQUE (rule_id)
+);
+
 
 CREATE TABLE registration_fencing_target (
     id varchar2(128) NOT NULL,

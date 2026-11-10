@@ -3549,6 +3549,19 @@ CREATE TABLE app_auth_request
 );
 CREATE INDEX idx_app_auth_request_auth ON app_auth_request (auth_id);
 
+-- Admin-only import ownership; no runtime synchronization or backend credentials.
+CREATE TABLE agent_gateway_import
+(
+    id             VARCHAR2(128) not null,
+    rule_id        VARCHAR2(128) not null,
+    namespace_id   VARCHAR2(50) not null,
+    manifest       CLOB not null,
+    date_created   timestamp(3) default SYSDATE not null,
+    date_updated   timestamp(3) default SYSDATE not null,
+    CONSTRAINT pk_agent_gateway_import PRIMARY KEY (id),
+    CONSTRAINT uk_agent_gateway_import_rule UNIQUE (rule_id)
+);
+
 -- app auth lifecycle button resources
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116921', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.APPLY', '', '', '', 2, 21, '', 1, 0, 'system:authen:lifecycleApply', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX("resource" (id)) */ INTO "resource" (id, parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status, date_created, date_updated) VALUES ('1953048313980116922', '1346777766301888512', 'SHENYU.BUTTON.AUTHEN.LIFECYCLE.RESULT', '', '', '', 2, 22, '', 1, 0, 'system:authen:lifecycleResult', 1, TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'), TO_DATE('2026-10-20 00:00:00', 'SYYYY-MM-DD HH24:MI:SS'));
