@@ -166,7 +166,7 @@ public class RuleServiceImpl implements RuleService {
             return "";
         }
         validateRuleHandle(ruleDTO);
-        validateCanaryConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleMapper.insertSelective(ruleDO);
@@ -192,7 +192,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public int create(final RuleDTO ruleDTO) {
         validateRuleHandle(ruleDTO);
-        validateCanaryConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.insertSelective(ruleDO);
         addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -207,7 +207,7 @@ public class RuleServiceImpl implements RuleService {
         validateRuleHandle(ruleDTO);
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
-        validateCanaryConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
+        validateCanaryAndStickyConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
 
@@ -243,8 +243,8 @@ public class RuleServiceImpl implements RuleService {
         return ruleCount;
     }
 
-    private void validateCanaryConfig(final String selectorId, final String handle) {
-        RuleImportValidator.validateCanaryConfig(selectorMapper, pluginMapper, shenyuDictMapper, selectorId, handle);
+    private void validateCanaryAndStickyConfig(final String selectorId, final String handle) {
+        RuleImportValidator.validateCanaryAndStickyConfig(selectorMapper, pluginMapper, shenyuDictMapper, selectorId, handle);
     }
 
     /**
@@ -329,7 +329,7 @@ public class RuleServiceImpl implements RuleService {
             return ConfigImportResult.success();
         }
         ruleList.forEach(ConfigsImportInputValidator::requireValidRule);
-        ruleList.forEach(rule -> validateCanaryConfig(rule.getSelectorId(), rule.getHandle()));
+        ruleList.forEach(rule -> validateCanaryAndStickyConfig(rule.getSelectorId(), rule.getHandle()));
         Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
                 .selectAll()
                 .stream()
@@ -377,7 +377,7 @@ public class RuleServiceImpl implements RuleService {
         ruleList.forEach(ConfigsImportInputValidator::requireValidRule);
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         ruleList.stream().filter(rule -> selectorIdMapping.containsKey(rule.getSelectorId()))
-                .forEach(rule -> validateCanaryConfig(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
+                .forEach(rule -> validateCanaryAndStickyConfig(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
         RuleImportResolver resolver = RuleImportResolver.from(ruleMapper, namespace, selectorIdMapping);
 
         int successCount = 0;

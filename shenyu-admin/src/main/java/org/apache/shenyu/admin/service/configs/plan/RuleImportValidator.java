@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValida
 import org.apache.shenyu.admin.validation.validator.RewriteRuleHandleValidator;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfigValidator;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.sticky.StickySessionConfigValidator;
 import org.apache.shenyu.common.enums.PluginEnum;
 
 import java.util.Objects;
@@ -42,7 +43,7 @@ public final class RuleImportValidator {
     }
 
     /**
-     * Validate canary configuration for one rule handle.
+     * Validate canary and sticky configuration for one rule handle.
      *
      * @param selectorMapper selector mapper
      * @param pluginMapper plugin mapper
@@ -50,11 +51,11 @@ public final class RuleImportValidator {
      * @param selectorId target selector id
      * @param handle rule handle
      */
-    public static void validateCanaryConfig(final SelectorMapper selectorMapper,
-                                            final PluginMapper pluginMapper,
-                                            final ShenyuDictMapper dictMapper,
-                                            final String selectorId,
-                                            final String handle) {
+    public static void validateCanaryAndStickyConfig(final SelectorMapper selectorMapper,
+                                                     final PluginMapper pluginMapper,
+                                                     final ShenyuDictMapper dictMapper,
+                                                     final String selectorId,
+                                                     final String handle) {
         if (StringUtils.isBlank(handle)) {
             return;
         }
@@ -62,45 +63,46 @@ public final class RuleImportValidator {
         if (Objects.isNull(selector)) {
             return;
         }
-        validateCanaryConfig(pluginMapper.selectById(selector.getPluginId()), dictMapper, handle);
+        validateCanaryAndStickyConfig(pluginMapper.selectById(selector.getPluginId()), dictMapper, handle);
     }
 
     /**
-     * Validate canary configuration against an already resolved plugin.
+     * Validate canary and sticky configuration against an already resolved plugin.
      *
      * @param plugin target plugin, or null when it cannot be resolved
      * @param dictMapper dictionary mapper
      * @param handle rule handle
      */
-    public static void validateCanaryConfig(final PluginDO plugin,
-                                            final ShenyuDictMapper dictMapper,
-                                            final String handle) {
+    public static void validateCanaryAndStickyConfig(final PluginDO plugin,
+                                                     final ShenyuDictMapper dictMapper,
+                                                     final String handle) {
         if (Objects.isNull(plugin)) {
             return;
         }
-        validateCanaryConfig(plugin.getName(), dictMapper, handle);
+        validateCanaryAndStickyConfig(plugin.getName(), dictMapper, handle);
     }
 
     /**
-     * Validate canary configuration against an already resolved plugin name.
+     * Validate canary and sticky configuration against an already resolved plugin name.
      *
      * @param pluginName target plugin name
      * @param dictMapper dictionary mapper
      * @param handle rule handle
      */
-    public static void validateCanaryConfig(final String pluginName,
-                                            final ShenyuDictMapper dictMapper,
-                                            final String handle) {
+    public static void validateCanaryAndStickyConfig(final String pluginName,
+                                                     final ShenyuDictMapper dictMapper,
+                                                     final String handle) {
         if (StringUtils.isBlank(handle) || !PluginEnum.DIVIDE.getName().equals(pluginName)) {
             return;
         }
         try {
             DivideRuleHandle divide = CanaryConfigValidator.parseHandle(handle);
-            if (Objects.nonNull(divide) && Objects.nonNull(divide.getCanary())) {
+            if (Objects.nonNull(divide.getCanary())) {
                 CanaryConfigValidator.validateExtensions(divide.getCanary(),
                         name -> validateCanaryDictionary(dictMapper, "paramType", name),
                         name -> validateCanaryDictionary(dictMapper, "operator", name));
             }
+            StickySessionConfigValidator.validate(divide.getSticky());
         } catch (IllegalArgumentException ex) {
             throw new ShenyuAdminException(ex.getMessage(), ex);
         }

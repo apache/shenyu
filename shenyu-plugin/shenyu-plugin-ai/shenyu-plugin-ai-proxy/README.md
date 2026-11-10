@@ -93,6 +93,14 @@ application contexts do not share plugin configuration through a process-wide
 `Singleton`. Programmatic construction must pass the same `AiProxyPluginHandler`
 to `new AiProxyConfigService(handler)` and the plugin.
 
+## Exact response caching
+
+An opt-in, tenant/subject-isolated local cache is available for explicitly approved,
+bounded nonstreaming text Chat routes. It is disabled by default and requires an
+application-owned cache authorization adapter; diagnostic identity and client
+headers do not authorize reuse. Streams, tools, sessions, fallback and unsupported
+payloads bypass. See [configuration, isolation and lifecycle limits](../../../docs/ai-exact-response-cache.md).
+
 ## Configuration and use
 
 Add the existing AI Proxy starter to the gateway. Its configuration registers

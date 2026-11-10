@@ -553,7 +553,7 @@ public class ConfigsImportPreviewServiceImpl implements ConfigsImportPreviewServ
                 continue;
             }
             try {
-                RuleImportValidator.validateCanaryConfig(pluginName, shenyuDictMapper, ruleDTO.getHandle());
+                RuleImportValidator.validateCanaryAndStickyConfig(pluginName, shenyuDictMapper, ruleDTO.getHandle());
             } catch (ShenyuAdminException ex) {
                 blocking = true;
                 decisions.add(reject(ruleDTO.getId(), ruleDTO.getName(), INVALID_CANARY_CONFIG));

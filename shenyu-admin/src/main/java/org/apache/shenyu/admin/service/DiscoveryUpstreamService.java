@@ -62,12 +62,21 @@ public interface DiscoveryUpstreamService {
     void nativeCreateOrUpdate(DiscoveryUpstreamDTO discoveryUpstreamDTO);
 
     /**
-     * delete.
+     * Delete upstreams in the system default namespace.
      *
      * @param ids id list
      * @return the string
      */
     String delete(List<String> ids);
+
+    /**
+     * Delete upstreams only when every existing row and its handler belong to the requested namespace.
+     *
+     * @param ids id list
+     * @param namespaceId namespace to delete from
+     * @return the result message
+     */
+    String delete(List<String> ids, String namespaceId);
 
     /**
      * listAll.

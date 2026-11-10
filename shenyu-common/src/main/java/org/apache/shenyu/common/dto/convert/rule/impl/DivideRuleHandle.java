@@ -77,6 +77,32 @@ public class DivideRuleHandle implements RuleHandle {
     private StickySessionConfig sticky;
 
     /**
+     * Optional name of a configured upstream connection-pool group (see
+     * {@code shenyu.httpclient.pool-groups}); null selects the default shared pool.
+     * The name must reference a group that exists at gateway startup; an unknown
+     * reference visibly fails the request instead of falling back silently.
+     */
+    private String poolGroup;
+
+    /**
+     * Gets the optional pool group name.
+     *
+     * @return the pool group name, or null for the default pool
+     */
+    public String getPoolGroup() {
+        return poolGroup;
+    }
+
+    /**
+     * Sets the optional pool group name.
+     *
+     * @param poolGroup the pool group name
+     */
+    public void setPoolGroup(final String poolGroup) {
+        this.poolGroup = poolGroup;
+    }
+
+    /**
      * New instance divide rule handle.
      *
      * @return the divide rule handle
@@ -251,12 +277,12 @@ public class DivideRuleHandle implements RuleHandle {
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
                 && Objects.equals(retryStrategy, that.retryStrategy)
                 && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary)
-                && Objects.equals(sticky, that.sticky);
+                && Objects.equals(sticky, that.sticky) && Objects.equals(poolGroup, that.poolGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, headerMaxSize, requestMaxSize, canary, sticky);
+        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, headerMaxSize, requestMaxSize, canary, sticky, poolGroup);
     }
 
     @Override
@@ -283,6 +309,9 @@ public class DivideRuleHandle implements RuleHandle {
                 + canary
                 + ", sticky="
                 + sticky
+                + ", poolGroup='"
+                + poolGroup
+                + '\''
                 + '}';
     }
 }
