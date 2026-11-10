@@ -151,6 +151,59 @@ class AdaptiveLoadBalancerTest {
     }
 
     @Test
+    void sustainedSlowerSamplesConvergeDespiteShortFeedbackIntervals() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("latency:8080", 50).identity();
+        stats.record(identity, 1L, AdaptiveOutcome.SUCCESS, 0L);
+        for (int time = 1; time <= 10_000; time++) {
+            stats.record(identity, 100L, AdaptiveOutcome.SUCCESS, time);
+        }
+
+        long smoothed = stats.statsOf(identity).ewmaLatencyMillis();
+        assertTrue(smoothed >= 99L && smoothed <= 100L,
+                "10,000 sustained 100 ms samples spaced 1 ms apart must converge toward 100 ms, got " + smoothed);
+    }
+
+    @Test
+    void sameTimestampObservationsStillMoveTheEstimate() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        stats.record(identity, 1L, AdaptiveOutcome.SUCCESS, 0L);
+        for (int i = 0; i < 2_000; i++) {
+            stats.record(identity, 100L, AdaptiveOutcome.SUCCESS, 0L);
+        }
+
+        assertTrue(stats.statsOf(identity).ewmaLatencyMillis() > 1L,
+                "same-timestamp completions must blend with the minimum decay interval, not be discarded");
+    }
+
+    @Test
+    void decreasingLatencyPullsTheEstimateDownAtShortIntervals() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        stats.record(identity, 100L, AdaptiveOutcome.SUCCESS, 0L);
+        for (int time = 1; time <= 10_000; time++) {
+            stats.record(identity, 1L, AdaptiveOutcome.SUCCESS, time);
+        }
+
+        assertTrue(stats.statsOf(identity).ewmaLatencyMillis() <= 2L,
+                "sustained faster samples must pull the smoothing down even at 1 ms feedback intervals");
+    }
+
+    @Test
+    void failurePenaltySurvivesShortIntervalSmoothing() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        stats.record(identity, 1L, AdaptiveOutcome.SERVER_ERROR, 0L);
+        for (int time = 1; time <= 20; time++) {
+            stats.record(identity, 1L, AdaptiveOutcome.SERVER_ERROR, time);
+        }
+
+        assertEquals(AdaptiveUpstreamStats.FAILURE_PENALTY_MILLIS, stats.statsOf(identity).ewmaLatencyMillis(),
+                "the synthetic failure floor must hold while every sample is a fast failure");
+    }
+
+    @Test
     void idleNodeKeepsTheForcedExploration() {
         Upstream preferred = upstream("preferred:8080", 50);
         Upstream starved = upstream("starved:8080", 50);

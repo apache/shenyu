@@ -29,7 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Each upstream identity holds one immutable statistics record that is replaced
  * atomically on every feedback. The record carries a smoothed latency in the same
- * EWMA family as the p2c trigger. Feedback classification follows
+ * EWMA family as the p2c trigger. The smoothing keeps double precision internally
+ * (in milliseconds): truncating every update to whole milliseconds would discard
+ * sub-millisecond increments at short feedback intervals and could pin the estimate
+ * at its old value forever. Rounding happens only where a long leaves the record,
+ * namely {@link Stats#ewmaLatencyMillis()} and the ceiling of {@link #score}. Feedback
+ * classification follows
  * {@link AdaptiveOutcome}: a 4xx is neutral (the observation says nothing about the
  * upstream), while a 5xx or a transport failure enters the smoothing as a synthetic
  * latency sample of at least {@link #FAILURE_PENALTY_MILLIS} — this is what keeps a
@@ -55,6 +60,13 @@ public class AdaptiveUpstreamStats {
      * EWMA time-constant in millis, the same family as the p2c response trigger.
      */
     public static final long EWMA_WINDOW_MILLIS = 600L;
+
+    /**
+     * Minimum decay interval in millis applied to same-timestamp observations: a
+     * zero gap would give the new sample zero weight and discard it permanently,
+     * so concurrent completions are blended with at least this much evidence.
+     */
+    public static final long MIN_DECAY_INTERVAL_MILLIS = 1L;
 
     /**
      * Synthetic latency floor for a failed attempt: a 5xx or transport failure costs
@@ -110,7 +122,7 @@ public class AdaptiveUpstreamStats {
         if (Objects.isNull(current) || current.samples() < MIN_SAMPLES) {
             return OptionalLong.empty();
         }
-        double score = (current.ewmaLatencyMillis() + 1) * (inflight + 1)
+        double score = (current.ewmaLatency() + 1) * (inflight + 1)
                 / (double) Math.max(effectiveWeight, 1);
         return OptionalLong.of((long) Math.ceil(score));
     }
@@ -168,29 +180,42 @@ public class AdaptiveUpstreamStats {
     /**
      * One immutable statistics snapshot.
      *
-     * @param ewmaLatencyMillis smoothed latency of latency-bearing attempts
+     * @param ewmaLatency smoothed latency of latency-bearing attempts, kept as a
+     *                    double in millis so sub-millisecond increments survive
+     *                    short feedback intervals; always finite and non-negative
      * @param samples number of latency-bearing observations
      * @param lastFeedbackMillis receipt time of the last feedback of any class
      */
-    record Stats(long ewmaLatencyMillis, long samples, long lastFeedbackMillis) {
+    record Stats(double ewmaLatency, long samples, long lastFeedbackMillis) {
 
         static Stats first(final long elapsedMillis, final AdaptiveOutcome outcome, final long nowMillis) {
             return new Stats(latencyOf(elapsedMillis, outcome), samplesOf(outcome), nowMillis);
         }
 
+        /**
+         * The smoothed latency rounded to whole millis; the internal double keeps
+         * the unrounded estimate for the next update and for scoring.
+         *
+         * @return the smoothed latency in millis, rounded to the nearest long
+         */
+        long ewmaLatencyMillis() {
+            return Math.round(ewmaLatency);
+        }
+
         Stats next(final long elapsedMillis, final AdaptiveOutcome outcome, final long nowMillis) {
             if (outcome == AdaptiveOutcome.CLIENT_ERROR) {
                 // neutral: the observation says nothing about the upstream
-                return new Stats(ewmaLatencyMillis, samples, nowMillis);
+                return new Stats(ewmaLatency, samples, nowMillis);
             }
             long latency = latencyOf(elapsedMillis, outcome);
-            long updated = samples <= 0L ? latency : smooth(latency, nowMillis - lastFeedbackMillis);
+            double updated = samples <= 0L ? latency : smooth(latency, nowMillis - lastFeedbackMillis);
             return new Stats(updated, samples + 1L, nowMillis);
         }
 
-        private long smooth(final long latency, final long sinceLastMillis) {
-            double w = Math.exp((double) -Math.max(sinceLastMillis, 0L) / (double) EWMA_WINDOW_MILLIS);
-            return (long) ((double) ewmaLatencyMillis * w + (double) latency * (1.0 - w));
+        private double smooth(final long latency, final long sinceLastMillis) {
+            long interval = Math.max(sinceLastMillis, MIN_DECAY_INTERVAL_MILLIS);
+            double w = Math.exp((double) -interval / (double) EWMA_WINDOW_MILLIS);
+            return ewmaLatency * w + (double) latency * (1.0 - w);
         }
 
         private static long latencyOf(final long elapsedMillis, final AdaptiveOutcome outcome) {
