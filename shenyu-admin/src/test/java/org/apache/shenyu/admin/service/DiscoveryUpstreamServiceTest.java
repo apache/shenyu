@@ -394,10 +394,14 @@ public final class DiscoveryUpstreamServiceTest {
     @Test
     public void testDelete() {
         DiscoveryUpstreamDO existing = buildDiscoveryUpstreamDO("123", "123", "localhost:8080");
+        existing.setNamespaceId(org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID);
         when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
         when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("123"))).thenReturn(Collections.singletonList(existing));
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
         configureSync();
+        SelectorDO selector = buildSelectorDO();
+        selector.setNamespaceId(org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID);
+        when(selectorMapper.selectByDiscoveryHandlerId(any())).thenReturn(selector);
         String delete = discoveryUpstreamService.delete(Collections.singletonList("123"));
         assertEquals(ShenyuResultMessage.DELETE_SUCCESS, delete);
         verify(discoveryUpstreamMapper).deleteByIds(Collections.singletonList("123"));
@@ -409,6 +413,7 @@ public final class DiscoveryUpstreamServiceTest {
         final DiscoveryUpstreamDO upstream = new DiscoveryUpstreamDO();
         upstream.setId("upstream-1");
         upstream.setDiscoveryHandlerId("handler-1");
+        upstream.setNamespaceId(org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID);
         when(discoveryUpstreamMapper.selectByIds(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(upstream));
         when(discoveryUpstreamMapper.selectByIdsForUpdate(Collections.singletonList("upstream-1"))).thenReturn(Collections.singletonList(upstream));
         when(discoveryUpstreamMapper.deleteByIds(any())).thenReturn(1);
@@ -421,6 +426,7 @@ public final class DiscoveryUpstreamServiceTest {
         final SelectorDO selector = new SelectorDO();
         selector.setId("selector-1");
         selector.setPluginId("plugin-1");
+        selector.setNamespaceId(org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID);
         when(selectorMapper.selectByDiscoveryHandlerId("handler-1")).thenReturn(selector);
         final PluginDO plugin = new PluginDO();
         plugin.setName("divide");

@@ -47,6 +47,7 @@ import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.DiscoveryUpstreamPropsValidator;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -256,6 +257,13 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
+        return delete(ids, Constants.SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String delete(final List<String> ids, final String namespaceId) {
+        Assert.notBlack(namespaceId, "Discovery upstream namespace must not be blank");
         // resolve the owning handlers before the rows disappear, so the gateways can be
         // notified with the remaining upstream snapshot (including an empty one)
         if (CollectionUtils.isEmpty(ids)) {
@@ -266,9 +274,33 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (deleted.isEmpty()) {
             return ShenyuResultMessage.DELETE_SUCCESS;
         }
+        validateDeleteNamespace(deleted, namespaceId);
         discoveryUpstreamMapper.deleteByIds(deletedById.keySet().stream().sorted().collect(Collectors.toList()));
         deleted.stream().map(DiscoveryUpstreamDO::getDiscoveryHandlerId).distinct().forEach(this::fetchAll);
         return ShenyuResultMessage.DELETE_SUCCESS;
+    }
+
+    private void validateDeleteNamespace(final Collection<DiscoveryUpstreamDO> upstreams, final String namespaceId) {
+        Set<String> validatedHandlers = new HashSet<>();
+        for (DiscoveryUpstreamDO upstream : upstreams) {
+            Assert.isTrue(Objects.equals(namespaceId, upstream.getNamespaceId()),
+                    "Discovery upstream namespace does not match request: " + upstream.getId());
+            String handlerId = upstream.getDiscoveryHandlerId();
+            if (validatedHandlers.add(handlerId)) {
+                Assert.notNull(discoveryHandlerMapper.selectById(handlerId), "Discovery handler does not exist: " + handlerId);
+                ProxySelectorDO proxySelector = proxySelectorMapper.selectByHandlerId(handlerId);
+                String handlerNamespace;
+                if (Objects.nonNull(proxySelector)) {
+                    handlerNamespace = proxySelector.getNamespaceId();
+                } else {
+                    SelectorDO selector = selectorMapper.selectByDiscoveryHandlerId(handlerId);
+                    Assert.notNull(selector, "Selector binding does not exist for discovery handler: " + handlerId);
+                    handlerNamespace = selector.getNamespaceId();
+                }
+                Assert.isTrue(Objects.equals(namespaceId, handlerNamespace),
+                        "Discovery upstream namespace does not match handler: " + handlerId);
+            }
+        }
     }
 
     @Override
