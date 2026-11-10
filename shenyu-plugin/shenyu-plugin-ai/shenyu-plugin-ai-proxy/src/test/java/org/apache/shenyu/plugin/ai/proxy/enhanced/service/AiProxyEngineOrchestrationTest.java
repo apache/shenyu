@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
@@ -667,6 +666,22 @@ class AiProxyEngineOrchestrationTest {
     }
 
     @Test
+    void unresolvedProtocolFailsBeforeUpstream() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.just(response(200, Flux.just(bytes("ok"))));
+        });
+        AiCommonConfig config = config(false, "main");
+        config.setProtocol("");
+        StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then()))
+                .expectErrorMatches(error -> error instanceof AiProxyException exception
+                        && exception.getKind() == AiProxyException.Kind.REQUEST)
+                .verify();
+        assertEquals(0, calls.get());
+    }
+
+    @Test
     void providerResponseAdapterAndProtocolConvertTheResponseInOrder() {
         List<String> conversions = new ArrayList<>();
         AtomicBoolean supported = new AtomicBoolean(true);
@@ -699,11 +714,6 @@ class AiProxyEngineOrchestrationTest {
             @Override
             public String name() {
                 return delegate.name();
-            }
-
-            @Override
-            public boolean matches(final JsonNode payload) {
-                return delegate.matches(payload);
             }
 
             @Override
@@ -741,11 +751,6 @@ class AiProxyEngineOrchestrationTest {
             }
 
             @Override
-            public boolean matches(final JsonNode payload) {
-                return responses.matches(payload);
-            }
-
-            @Override
             public ShenyuAiRequest decodeRequest(final String rawBody, final ObjectNode payload) {
                 return responses.decodeRequest(rawBody, payload);
             }
@@ -761,11 +766,6 @@ class AiProxyEngineOrchestrationTest {
             @Override
             public String name() {
                 return chat.name();
-            }
-
-            @Override
-            public boolean matches(final JsonNode payload) {
-                return chat.matches(payload);
             }
 
             @Override

@@ -35,13 +35,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public final class PiiProtocolProfilesTest {
 
     @Test
-    public void testSelectByShape() {
+    public void testSelectByProtocolId() {
         assertEquals(OpenAiChatProfile.ID,
-                PiiProtocolProfiles.select(parse("{\"messages\":[]}")).id());
+                PiiProtocolProfiles.select(parse("{\"messages\":[]}"), OpenAiChatProfile.ID).id());
         assertEquals(OpenAiResponsesProfile.ID,
-                PiiProtocolProfiles.select(parse("{\"input\":\"hi\"}")).id());
-        assertNull(PiiProtocolProfiles.select(parse("{\"tools\":[]}")));
-        assertNull(PiiProtocolProfiles.select(null));
+                PiiProtocolProfiles.select(parse("{\"input\":\"hi\"}"), OpenAiResponsesProfile.ID).id());
+        assertNull(PiiProtocolProfiles.select(parse("{\"tools\":[]}"), OpenAiChatProfile.ID));
+        assertNull(PiiProtocolProfiles.select(null, OpenAiChatProfile.ID));
+    }
+
+    @Test
+    public void testUnknownOrNullProtocolIdIsUnsupported() {
+        assertNull(PiiProtocolProfiles.select(parse("{\"messages\":[]}"), null));
+        assertNull(PiiProtocolProfiles.select(parse("{\"input\":\"hi\"}"), null));
+        assertNull(PiiProtocolProfiles.select(parse("{\"messages\":[]}"), "other-protocol"));
     }
 
     @Test
@@ -122,17 +129,22 @@ public final class PiiProtocolProfilesTest {
 
     @Test
     public void testMalformedRequestExtractionShapesAreUnsupported() {
-        String[] payloads = {
+        String[] chatPayloads = {
                 "{\"messages\":\"bad\"}", "{\"messages\":null}", "{\"messages\":[42]}",
                 "{\"messages\":[{}]}", "{\"messages\":[{\"content\":123}]}",
                 "{\"messages\":[{\"content\":[\"bad\"]}]}",
                 "{\"messages\":[{\"content\":[{\"type\":\"text\"}]}]}",
                 "{\"messages\":[{\"content\":[{\"text\":false}]}]}",
+        };
+        for (String payload : chatPayloads) {
+            assertNull(PiiProtocolProfiles.select(parse(payload), OpenAiChatProfile.ID), payload);
+        }
+        String[] responsesPayloads = {
                 "{\"input\":123}", "{\"input\":null}", "{\"input\":[{}]}",
                 "{\"input\":[{\"type\":\"message\",\"content\":{}}]}",
         };
-        for (String payload : payloads) {
-            assertNull(PiiProtocolProfiles.select(parse(payload)), payload);
+        for (String payload : responsesPayloads) {
+            assertNull(PiiProtocolProfiles.select(parse(payload), OpenAiResponsesProfile.ID), payload);
         }
     }
 
@@ -162,8 +174,10 @@ public final class PiiProtocolProfilesTest {
         assertEquals(OpenAiResponsesProfile.ID, PiiProtocolProfiles.selectResponse(responses).id());
         assertTrue(new OpenAiResponsesProfile().responseSlots(responses).isEmpty());
         assertEquals(OpenAiResponsesProfile.ID,
-                PiiProtocolProfiles.select(parse("{\"input\":[{\"type\":\"function_call_output\",\"output\":\"ok\"}]}")).id());
-        assertEquals(OpenAiChatProfile.ID, PiiProtocolProfiles.select(parse("{\"messages\":[{\"content\":[]}]}")).id());
+                PiiProtocolProfiles.select(parse("{\"input\":[{\"type\":\"function_call_output\",\"output\":\"ok\"}]}"),
+                        OpenAiResponsesProfile.ID).id());
+        assertEquals(OpenAiChatProfile.ID,
+                PiiProtocolProfiles.select(parse("{\"messages\":[{\"content\":[]}]}"), OpenAiChatProfile.ID).id());
     }
 
     private JsonObject parse(final String json) {

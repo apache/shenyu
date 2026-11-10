@@ -17,8 +17,12 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.shenyu.common.ai.AiNormalizedRequestView;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.dto.ProxyApiKeyData;
@@ -32,6 +36,8 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.common.view.AiRequestViewOperations;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
@@ -45,12 +51,15 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
@@ -77,6 +86,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Compatibility tests through AiProxyEngine instead of Spring AI clients.
@@ -170,6 +183,92 @@ class AiProxyPluginTest {
         assertEquals("admin.example", requests.get(4).getUri().getHost());
         assertEquals(List.of("Bearer admin-key"), requests.get(4).getHeaders().get("Authorization"));
         assertEquals(HttpStatus.ACCEPTED, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
+    void testExecuteWithBlankProtocolResolvedFromRequestPath() {
+        // a fresh handler carries no global defaults, so a blank selector protocol reaches the engine blank
+        handle.setProtocol("");
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/v1/responses").body("{\"input\":\"hello\"}"));
+        AiProxyEngine engine = mock(AiProxyEngine.class);
+        when(engine.execute(any(), any(JsonNode.class), any(), any(), any())).thenReturn(Mono.empty());
+        handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
+        AiProxyPlugin plugin = new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, null);
+        StepVerifier.create(execute(plugin)).verifyComplete();
+        ArgumentCaptor<JsonNode> payloadCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        ArgumentCaptor<AiCommonConfig> configCaptor = ArgumentCaptor.forClass(AiCommonConfig.class);
+        verify(engine).execute(any(), payloadCaptor.capture(), configCaptor.capture(), any(), any());
+        assertEquals("openai-responses", configCaptor.getValue().getProtocol());
+        assertEquals("hello", payloadCaptor.getValue().get("input").asText());
+    }
+
+    @Test
+    void blankProtocolPublishesTheResolvedIdentityOnTheView() {
+        handle.setProtocol("");
+        // the path resolves responses even though the body keeps the chat shape
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/v1/responses").body(REQUEST_BODY));
+        AiProxyEngine engine = mock(AiProxyEngine.class);
+        when(engine.execute(any(), any(JsonNode.class), any(), any(), any())).thenReturn(Mono.empty());
+        handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
+        AiProxyPlugin plugin = new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, null);
+        StepVerifier.create(execute(plugin)).verifyComplete();
+
+        AiNormalizedRequestView view = AiRequestViewOperations.snapshot(exchange).orElseThrow();
+        assertEquals("openai-responses", view.protocol());
+        assertFalse(view.supported());
+    }
+
+    @Test
+    void configuredProtocolStaysAuthoritativeAndReportsADetectionMismatch() {
+        Logger logger = (Logger) LoggerFactory.getLogger(AiProxyPlugin.class);
+        ListAppender<ILoggingEvent> messages = new ListAppender<>();
+        messages.start();
+        logger.addAppender(messages);
+        try {
+            // a preceding AI plugin already published the detected identity
+            handle.setProtocol(AiProtocols.OPENAI_CHAT);
+            exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/v1/responses").body(REQUEST_BODY));
+            exchange.getAttributes().put(Constants.AI_PROTOCOL, AiProtocols.OPENAI_RESPONSES);
+            AiProxyEngine engine = mock(AiProxyEngine.class);
+            when(engine.execute(any(), any(JsonNode.class), any(), any(), any())).thenReturn(Mono.empty());
+            handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
+            AiProxyPlugin plugin = new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, null);
+            StepVerifier.create(execute(plugin)).verifyComplete();
+
+            ArgumentCaptor<AiCommonConfig> configCaptor = ArgumentCaptor.forClass(AiCommonConfig.class);
+            verify(engine).execute(any(), any(JsonNode.class), configCaptor.capture(), any(), any());
+            assertEquals(AiProtocols.OPENAI_CHAT, configCaptor.getValue().getProtocol());
+            assertTrue(messages.list.stream().map(ILoggingEvent::getFormattedMessage)
+                    .anyMatch(message -> message.contains("contradicts") && message.contains("/v1/responses")));
+        } finally {
+            logger.detachAppender(messages);
+            messages.stop();
+        }
+    }
+
+    @Test
+    void detectionMismatchIsNotReportedForACustomProtocol() {
+        Logger logger = (Logger) LoggerFactory.getLogger(AiProxyPlugin.class);
+        ListAppender<ILoggingEvent> messages = new ListAppender<>();
+        messages.start();
+        logger.addAppender(messages);
+        try {
+            // a custom protocol bean is outside the built-in descriptors, so detection cannot contradict it
+            handle.setProtocol("custom-chat");
+            exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/v1/responses").body(REQUEST_BODY));
+            exchange.getAttributes().put(Constants.AI_PROTOCOL, AiProtocols.OPENAI_RESPONSES);
+            AiProxyEngine engine = mock(AiProxyEngine.class);
+            when(engine.execute(any(), any(JsonNode.class), any(), any(), any())).thenReturn(Mono.empty());
+            handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
+            AiProxyPlugin plugin = new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, null);
+            StepVerifier.create(execute(plugin)).verifyComplete();
+
+            assertTrue(messages.list.stream().map(ILoggingEvent::getFormattedMessage)
+                    .noneMatch(message -> message.contains("contradicts")));
+        } finally {
+            logger.detachAppender(messages);
+            messages.stop();
+        }
     }
 
     @Test

@@ -110,7 +110,20 @@ public class AiProxyConfigService {
      */
     public Optional<AiCommonConfig> resolveDynamicFallbackConfig(final AiCommonConfig primaryConfig,
                                                               final AiProxyHandle handle, final String requestBody) {
-        JsonNode root = requestObject(requestBody);
+        return resolveDynamicFallbackConfig(primaryConfig, handle, requestObject(requestBody));
+    }
+
+    /**
+     * Resolve a request-selected target from an already parsed request body, so a
+     * caller that parsed the body for other request work does not parse it again.
+     *
+     * @param primaryConfig primary configuration, including any resolved proxy credential
+     * @param handle selector-owned authorization and target definitions
+     * @param root parsed request body, null when the request has no body
+     * @return selected, credential-bound fallback, or empty when none was requested
+     */
+    public Optional<AiCommonConfig> resolveDynamicFallbackConfig(final AiCommonConfig primaryConfig,
+                                                              final AiProxyHandle handle, final JsonNode root) {
         if (Objects.isNull(root) || !root.has(FALLBACK_CONFIG)) {
             return Optional.empty();
         }
@@ -142,10 +155,16 @@ public class AiProxyConfigService {
                 .map(fallback -> bindFallback(primaryConfig, fallback));
     }
 
-    private JsonNode requestObject(final String requestBody) {
-        if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
-            return null;
-        }
+    /**
+     * Parse an AI request body with the strictness used by the proxy request path:
+     * trailing tokens and duplicate fields are rejected and a non-object root is
+     * invalid.
+     *
+     * @param requestBody raw request body
+     * @return the parsed JSON object
+     * @throws ShenyuException when the body is not a valid JSON object
+     */
+    public static ObjectNode parseRequestBody(final String requestBody) {
         final JsonNode root;
         try {
             root = REQUEST_MAPPER.readTree(requestBody);
@@ -155,7 +174,14 @@ public class AiProxyConfigService {
         if (Objects.isNull(root) || !root.isObject()) {
             throw new ShenyuException("AI request body must be a valid JSON object");
         }
-        return root;
+        return (ObjectNode) root;
+    }
+
+    private JsonNode requestObject(final String requestBody) {
+        if (Objects.isNull(requestBody) || requestBody.isEmpty()) {
+            return null;
+        }
+        return parseRequestBody(requestBody);
     }
 
     private AiCommonConfig bindFallback(final AiCommonConfig primary, final AiProxyHandle.FallbackConfig target) {

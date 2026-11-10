@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.dto.RuleData;
@@ -29,6 +30,8 @@ import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.common.view.AiRequestViewOperations;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocolDetector;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScope;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScopeResolver;
@@ -160,17 +163,41 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         } finally {
                             DataBufferUtils.release(buffer);
                         }
+                        final JsonNode payload = AiProxyConfigService.parseRequestBody(body);
+                        String protocol = config.getProtocol();
+                        if (Objects.isNull(protocol) || protocol.isBlank()) {
+                            // a blank protocol opts into detection and must be resolved here: the engine rejects
+                            // an unresolved protocol instead of guessing the body shape
+                            Optional<String> resolved = AiProtocolDetector.resolve(exchange, payload);
+                            resolved.ifPresent(config::setProtocol);
+                            protocol = resolved.orElse(null);
+                        } else {
+                            warnOnDetectionMismatch(exchange, protocol);
+                        }
                         // the body about to be decoded is authoritative; publishing it keeps the
                         // view generation current and makes stale consumer inspections observable
-                        AiRequestViewOperations.ensurePublished(exchange, body, PluginEnum.AI_PROXY.getName());
-                        Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, handle, body)
+                        AiRequestViewOperations.ensurePublished(exchange, body, payload, PluginEnum.AI_PROXY.getName(),
+                                Objects.isNull(protocol) ? AiProtocols.UNKNOWN : protocol);
+                        Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, handle, payload)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
                         return cacheScope(exchange, selector, rule).flatMap(scope ->
-                                aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response))
+                                aiProxyEngine.execute(body, payload, config, fallback, response -> writeResponse(exchange.getResponse(), response))
                                         .contextWrite(context -> scope.map(value -> context.put(AiResponseCacheScope.REACTOR_KEY, value))
                                                 .orElseGet(() -> context.delete(AiResponseCacheScope.REACTOR_KEY))));
                     });
         });
+    }
+
+    private void warnOnDetectionMismatch(final ServerWebExchange exchange, final String configuredProtocol) {
+        // the configured protocol stays authoritative: the plugins before this one can only detect,
+        // so a contradiction is reported and the configured decoder still decides the request validity
+        if (!AiProtocolDetector.isDetectable(configuredProtocol)) {
+            return;
+        }
+        AiProtocolDetector.resolved(exchange)
+                .filter(detected -> !detected.equals(configuredProtocol))
+                .ifPresent(detected -> LOG.warn("configured AI protocol {} contradicts the detected protocol {} of path {}",
+                        configuredProtocol, detected, exchange.getRequest().getPath().value()));
     }
 
     private Mono<Optional<AiResponseCacheScope>> cacheScope(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {

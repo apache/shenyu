@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.pii.profile;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class OpenAiChatProfile implements PiiProtocolProfile {
     /**
      * The profile identifier.
      */
-    public static final String ID = "openai-chat";
+    public static final String ID = AiProtocols.OPENAI_CHAT;
 
     @Override
     public String id() {
