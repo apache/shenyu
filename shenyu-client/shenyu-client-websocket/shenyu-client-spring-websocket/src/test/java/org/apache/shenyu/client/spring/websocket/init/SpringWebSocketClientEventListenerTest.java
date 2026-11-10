@@ -35,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -44,6 +45,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
@@ -87,6 +89,9 @@ public class SpringWebSocketClientEventListenerTest {
 
     @Mock
     private ApplicationContext applicationContext;
+
+    @Mock
+    private Environment environment;
 
     @Mock
     private SpringWebSocketClientEventListener eventListener;
@@ -262,20 +267,43 @@ public class SpringWebSocketClientEventListenerTest {
             ShenyuClientRegisterEventPublisher mockPublisher = mock(ShenyuClientRegisterEventPublisher.class);
             publisherMockedStatic.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(mockPublisher);
             SpringWebSocketClientEventListener fullModeEventListener = buildEventListener(true);
+            // non-local discovery: metadata published, no URIRegisterDTO
+            when(applicationContext.getEnvironment()).thenReturn(environment);
+            when(environment.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("nacos");
             ContextRefreshedEvent event = new ContextRefreshedEvent(applicationContext);
             fullModeEventListener.onApplicationEvent(event);
             fullModeEventListener.onApplicationEvent(event);
             verify(mockPublisher, times(1)).start(any());
             ArgumentCaptor<MetaDataRegisterDTO> metadataCaptor = ArgumentCaptor.forClass(MetaDataRegisterDTO.class);
             verify(mockPublisher).publishEvent(metadataCaptor.capture());
-            verify(mockPublisher).publishEvent(any(URIRegisterDTO.class));
+            verify(mockPublisher, never()).publishEvent(any(URIRegisterDTO.class));
             assertEquals("/contextPath", metadataCaptor.getValue().getContextPath());
             assertEquals("appName", metadataCaptor.getValue().getAppName());
             assertEquals(RpcTypeEnum.WEB_SOCKET.getName(), metadataCaptor.getValue().getRpcType());
-            assertEquals("/contextPath", metadataCaptor.getValue().getPath());
+            // The isFull metadata path must be contextPath + "/**": admin derives the websocket
+            // rule pathPattern from this value, and an exact path would leave every endpoint
+            // below the context path unmatched at the gateway (issue #8372).
+            assertEquals("/contextPath/**", metadataCaptor.getValue().getPath());
             assertEquals("/contextPath", metadataCaptor.getValue().getRuleName());
             assertEquals("127.0.0.1", metadataCaptor.getValue().getHost());
             assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, metadataCaptor.getValue().getNamespaceId());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"local", "nacos"})
+    void testIsFullUriRegistrationFollowsDiscoveryMode(final String discoveryType) {
+        try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMockedStatic = mockStatic(ShenyuClientRegisterEventPublisher.class)) {
+            ShenyuClientRegisterEventPublisher mockPublisher = mock(ShenyuClientRegisterEventPublisher.class);
+            publisherMockedStatic.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(mockPublisher);
+            when(applicationContext.getEnvironment()).thenReturn(environment);
+            when(environment.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn(discoveryType);
+            SpringWebSocketClientEventListener fullModeEventListener = buildEventListener(true);
+            fullModeEventListener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
+            // metadata is always published in full mode
+            verify(mockPublisher, times(1)).publishEvent(any(MetaDataRegisterDTO.class));
+            // URI payload only in local discovery mode
+            verify(mockPublisher, times("local".equals(discoveryType) ? 1 : 0)).publishEvent(any(URIRegisterDTO.class));
         }
     }
 

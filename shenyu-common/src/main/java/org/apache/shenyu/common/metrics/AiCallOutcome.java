@@ -19,6 +19,8 @@ package org.apache.shenyu.common.metrics;
 
 /**
  * Bounded outcomes, independent of any AI implementation or exception message.
+ * SUCCESS describes the transport/HTTP owner outcome, not model or business correctness.
+ * Consult the independent stream completion evidence before asserting upstream completion.
  */
 public enum AiCallOutcome {
     SUCCESS, REJECTED, RATE_LIMITED, TIMEOUT, CANCELLED, ERROR
