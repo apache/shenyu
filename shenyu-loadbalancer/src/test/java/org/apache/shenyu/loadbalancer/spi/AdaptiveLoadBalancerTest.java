@@ -25,8 +25,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -115,6 +119,116 @@ class AdaptiveLoadBalancerTest {
         assertEquals(before.ewmaLatencyMillis(), after.ewmaLatencyMillis(), "a 4xx must not move the latency");
         assertEquals(before.samples(), after.samples(), "a 4xx must not count as a latency sample");
         assertTrue(after.lastFeedbackMillis() >= before.lastFeedbackMillis());
+    }
+
+    @Test
+    void clientErrorDoesNotReshapeTheNextLatencyUpdate() {
+        Upstream node = upstream("node:8080", 50);
+        AdaptiveUpstreamStats normal = new AdaptiveUpstreamStats();
+        AdaptiveUpstreamStats with4xx = new AdaptiveUpstreamStats();
+        normal.record(node.identity(), 1000L, AdaptiveOutcome.SERVER_ERROR, 0L);
+        with4xx.record(node.identity(), 1000L, AdaptiveOutcome.SERVER_ERROR, 0L);
+        with4xx.record(node.identity(), 1L, AdaptiveOutcome.CLIENT_ERROR, 999L);
+        normal.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, 1000L);
+        with4xx.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, 1000L);
+
+        assertEquals(normal.statsOf(node.identity()).ewmaLatencyMillis(),
+                with4xx.statsOf(node.identity()).ewmaLatencyMillis(),
+                "an unrelated 4xx must not change the decay of the next latency-bearing sample");
+        assertEquals(normal.statsOf(node.identity()).samples(), with4xx.statsOf(node.identity()).samples());
+    }
+
+    @Test
+    void manyClientErrorsLeaveSubsequentUpdatesEquivalent() {
+        Upstream node = upstream("node:8080", 50);
+        AdaptiveUpstreamStats normal = new AdaptiveUpstreamStats();
+        AdaptiveUpstreamStats with4xx = new AdaptiveUpstreamStats();
+        for (int time = 0; time <= 5_000; time += 100) {
+            normal.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, time);
+            with4xx.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, time);
+            for (int i = 1; i <= 5; i++) {
+                with4xx.record(node.identity(), 1L, AdaptiveOutcome.CLIENT_ERROR, time + i);
+            }
+        }
+
+        assertEquals(normal.statsOf(node.identity()).ewmaLatencyMillis(),
+                with4xx.statsOf(node.identity()).ewmaLatencyMillis(),
+                "any number of interleaved 4xx observations must leave the latency path equivalent");
+        assertEquals(normal.statsOf(node.identity()).samples(), with4xx.statsOf(node.identity()).samples());
+    }
+
+    @Test
+    void clientErrorAloneNeverWarmsAColdTarget() {
+        Upstream node = upstream("cold:8080", 50);
+        Upstream warm = upstream("warm:8080", 50);
+        feed(balancer, warm, AdaptiveOutcome.SUCCESS, 10L, 20);
+        for (int i = 0; i < 20; i++) {
+            balancer.onFeedback(node, 1L, AdaptiveOutcome.CLIENT_ERROR);
+        }
+
+        AdaptiveUpstreamStats.Stats stats = balancer.stats().statsOf(node.identity());
+        assertEquals(0L, stats.samples(), "a 4xx must never count as a latency sample");
+        assertTrue(balancer.stats().score(node.identity(), 1L, 50).isEmpty(),
+                "a target seen only through 4xx must stay cold");
+        assertFalse(balancer.stats().bothAdaptive(node.identity(), warm.identity()));
+    }
+
+    @Test
+    void identityFirstSeenThroughClientErrorStartsFromTheFirstRealSample() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        stats.record(identity, 1L, AdaptiveOutcome.CLIENT_ERROR, 0L);
+        stats.record(identity, 50L, AdaptiveOutcome.SUCCESS, 1000L);
+
+        AdaptiveUpstreamStats.Stats record = stats.statsOf(identity);
+        assertEquals(1L, record.samples());
+        assertEquals(50L, record.ewmaLatencyMillis(),
+                "the first real sample must be taken as-is, not decayed from the 4xx timestamp");
+    }
+
+    @Test
+    void clientErrorActivityStillCountsForRetention() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity retained = upstream("retained:8080", 50).identity();
+        stats.record(retained, 10L, AdaptiveOutcome.SUCCESS, 0L);
+        stats.record(retained, 1L, AdaptiveOutcome.CLIENT_ERROR, AdaptiveUpstreamStats.IDLE_MILLIS);
+        for (int i = 0; i < AdaptiveUpstreamStats.PRUNE_THRESHOLD + 10; i++) {
+            stats.record(upstream("filler-" + i + ":8080", 50).identity(), 10L, AdaptiveOutcome.SUCCESS, 0L);
+        }
+
+        stats.pruneIfNeeded(AdaptiveUpstreamStats.IDLE_MILLIS + 1L);
+        assertNotNull(stats.statsOf(retained),
+                "a recent 4xx keeps the identity alive for retention even without a new latency sample");
+    }
+
+    @Test
+    void concurrentFeedbackKeepsSampleAccountingConsistent() throws Exception {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        int workers = 4;
+        int perWorker = 250;
+        ExecutorService pool = Executors.newFixedThreadPool(workers);
+        try {
+            for (int w = 0; w < workers; w++) {
+                final int worker = w;
+                pool.submit(() -> {
+                    for (int i = 0; i < perWorker; i++) {
+                        long now = (long) worker * perWorker + i;
+                        stats.record(identity, 50L, AdaptiveOutcome.SUCCESS, now);
+                        stats.record(identity, 1L, AdaptiveOutcome.CLIENT_ERROR, now);
+                    }
+                });
+            }
+            pool.shutdown();
+            assertTrue(pool.awaitTermination(30, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+
+        AdaptiveUpstreamStats.Stats record = stats.statsOf(identity);
+        assertEquals((long) workers * perWorker, record.samples(),
+                "only latency-bearing observations may count, regardless of interleaving");
+        assertTrue(Double.isFinite(record.ewmaLatency()) && record.ewmaLatency() >= 0.0);
     }
 
     @Test

@@ -40,7 +40,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * latency sample of at least {@link #FAILURE_PENALTY_MILLIS} — this is what keeps a
  * fast failing node unattractive: finishing quickly can never make its score smaller
  * than the failure floor, and a clean node recovers because subsequent successful
- * samples dominate the smoothing.</p>
+ * samples dominate the smoothing. Neutrality also covers timing: a 4xx refreshes the
+ * activity timestamp used for retention, but never the effective-sample timestamp
+ * that drives the decay of the next latency-bearing observation.</p>
  *
  * <p>The map is bounded: once it holds more than {@link #PRUNE_THRESHOLD} entries a
  * selection prunes the identities whose last feedback is older than
@@ -184,12 +186,16 @@ public class AdaptiveUpstreamStats {
      *                    double in millis so sub-millisecond increments survive
      *                    short feedback intervals; always finite and non-negative
      * @param samples number of latency-bearing observations
-     * @param lastFeedbackMillis receipt time of the last feedback of any class
+     * @param lastFeedbackMillis receipt time of the last feedback of any class;
+     *                           activity bookkeeping for retention and pruning only
+     * @param lastSampleMillis receipt time of the last latency-bearing observation;
+     *                         the decay of the next sample is measured from here, so
+     *                         a neutral 4xx cannot reshape the next latency update
      */
-    record Stats(double ewmaLatency, long samples, long lastFeedbackMillis) {
+    record Stats(double ewmaLatency, long samples, long lastFeedbackMillis, long lastSampleMillis) {
 
         static Stats first(final long elapsedMillis, final AdaptiveOutcome outcome, final long nowMillis) {
-            return new Stats(latencyOf(elapsedMillis, outcome), samplesOf(outcome), nowMillis);
+            return new Stats(latencyOf(elapsedMillis, outcome), samplesOf(outcome), nowMillis, nowMillis);
         }
 
         /**
@@ -204,12 +210,13 @@ public class AdaptiveUpstreamStats {
 
         Stats next(final long elapsedMillis, final AdaptiveOutcome outcome, final long nowMillis) {
             if (outcome == AdaptiveOutcome.CLIENT_ERROR) {
-                // neutral: the observation says nothing about the upstream
-                return new Stats(ewmaLatency, samples, nowMillis);
+                // neutral: the observation says nothing about the upstream; only the
+                // activity timestamp moves, the effective-sample timing stays intact
+                return new Stats(ewmaLatency, samples, nowMillis, lastSampleMillis);
             }
             long latency = latencyOf(elapsedMillis, outcome);
-            double updated = samples <= 0L ? latency : smooth(latency, nowMillis - lastFeedbackMillis);
-            return new Stats(updated, samples + 1L, nowMillis);
+            double updated = samples <= 0L ? latency : smooth(latency, nowMillis - lastSampleMillis);
+            return new Stats(updated, samples + 1L, nowMillis, nowMillis);
         }
 
         private double smooth(final long latency, final long sinceLastMillis) {
