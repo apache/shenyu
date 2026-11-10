@@ -109,7 +109,24 @@ public class AiCommonConfig {
         this.protocol = other.getProtocol();
         this.requestBodyOverrides = copyRequestBodyOverrides(other.getRequestBodyOverrides());
         this.requestBodyForceOverride = other.getRequestBodyForceOverride();
-        this.structuredOutput = other.getStructuredOutput();
+        this.structuredOutput = copyStructuredOutput(other.getStructuredOutput());
+    }
+
+    /**
+     * Defensive copy of the nested structured-output policy: the DTO is Gson-parsed
+     * and mutable, so a config copy must never share the nested instance.
+     */
+    private static AiStructuredOutputConfig copyStructuredOutput(final AiStructuredOutputConfig config) {
+        if (Objects.isNull(config)) {
+            return null;
+        }
+        AiStructuredOutputConfig copy = new AiStructuredOutputConfig();
+        copy.setSchema(config.getSchema());
+        copy.setRepairEnabled(config.getRepairEnabled());
+        copy.setRepairPrompt(config.getRepairPrompt());
+        copy.setRepairMaxAttempts(config.getRepairMaxAttempts());
+        copy.setRepairMaxTokens(config.getRepairMaxTokens());
+        return copy;
     }
 
     /**

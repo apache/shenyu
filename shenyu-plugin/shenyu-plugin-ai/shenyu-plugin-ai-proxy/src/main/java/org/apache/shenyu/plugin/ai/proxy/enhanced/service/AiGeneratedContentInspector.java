@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiContentCompliance;
+import org.apache.shenyu.plugin.base.schema.BoundedJsonSchemaValidator;
 
 import java.util.Objects;
 
@@ -39,13 +40,13 @@ public final class AiGeneratedContentInspector {
      * Maximum characters of prior model output carried into a repair request as
      * data; longer outputs are represented by their prefix.
      */
-    public static final int MAX_PREVIOUS_OUTPUT_CHARS = 2048;
+    private static final int MAX_PREVIOUS_OUTPUT_CHARS = 2048;
 
     /**
      * Maximum characters of the classification summary carried into a repair
      * request and failure messages.
      */
-    public static final int MAX_SUMMARY_CHARS = 512;
+    private static final int MAX_SUMMARY_CHARS = 512;
 
     private static final ObjectMapper MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
@@ -87,7 +88,7 @@ public final class AiGeneratedContentInspector {
             return new AiContentInspection(AiContentCompliance.TRUNCATED, "upstream declared finish_reason length", null);
         }
         JsonNode content = message.path("content");
-        if (content.isMissingNode() || content.isNull() || content.isTextual() && content.asText().isBlank()) {
+        if (content.isMissingNode() || content.isNull() || (content.isTextual() && content.asText().isBlank())) {
             return new AiContentInspection(AiContentCompliance.EMPTY, "generated content is absent or blank", null);
         }
         if (!content.isTextual()) {
@@ -104,6 +105,12 @@ public final class AiGeneratedContentInspector {
         }
         try {
             policy.validator().validateValue(generatedJson);
+        } catch (BoundedJsonSchemaValidator.SchemaBudgetExceededException error) {
+            // an oversized document may be perfectly valid: rejecting it is fail-closed,
+            // but regenerating it can only waste billable work
+            return new AiContentInspection(AiContentCompliance.SCHEMA_BUDGET_EXCEEDED,
+                    bounded("generated content exceeds the bounded validation budget: " + error.getMessage()),
+                    boundedOutput(generated));
         } catch (IllegalArgumentException error) {
             return new AiContentInspection(AiContentCompliance.SCHEMA_MISMATCH,
                     bounded("generated content violates the operator schema: " + error.getMessage()),
@@ -118,7 +125,7 @@ public final class AiGeneratedContentInspector {
      * @param generated the prior generated content
      * @return the bounded prefix
      */
-    public static String boundedOutput(final String generated) {
+    private static String boundedOutput(final String generated) {
         if (Objects.isNull(generated) || generated.length() <= MAX_PREVIOUS_OUTPUT_CHARS) {
             return generated;
         }

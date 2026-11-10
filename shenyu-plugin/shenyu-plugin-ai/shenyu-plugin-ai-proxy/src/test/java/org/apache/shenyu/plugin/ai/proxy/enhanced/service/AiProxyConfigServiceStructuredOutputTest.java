@@ -37,6 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class AiProxyConfigServiceStructuredOutputTest {
 
+    private static final String SCHEMA = "{\"type\":\"object\"}";
+
     private static final String HANDLE_JSON = "{\"provider\":\"OpenAI\",\"baseUrl\":\"https://main.example\","
             + "\"apiKey\":\"main-key\",\"model\":\"main-model\","
             + "\"structuredOutput\":{\"schema\":\"{\\\"type\\\":\\\"object\\\"}\",\"repairEnabled\":true,"
@@ -55,11 +57,31 @@ class AiProxyConfigServiceStructuredOutputTest {
         AiCommonConfig resolved = service().resolvePrimaryConfig(handle);
         assertSame(policy, resolved.getStructuredOutput());
 
+        // the config copy must deep-copy the mutable nested policy
         AiCommonConfig copy = new AiCommonConfig(resolved);
-        assertSame(policy, copy.getStructuredOutput());
+        org.junit.jupiter.api.Assertions.assertNotSame(policy, copy.getStructuredOutput());
+        assertEquals(policy.getSchema(), copy.getStructuredOutput().getSchema());
+        copy.getStructuredOutput().setRepairPrompt("mutated");
+        assertEquals("Fix the output", policy.getRepairPrompt(), "a mutated copy must not poison the source config");
         assertTrue(AiStructuredOutputPolicy.of(copy.getStructuredOutput()).isActive());
         assertTrue(AiStructuredOutputPolicy.of(copy.getStructuredOutput()).canRepair(
                 org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiContentCompliance.SCHEMA_MISMATCH));
+    }
+
+    @Test
+    void theCompiledValidatorIsCachedBySchemaText() {
+        AiStructuredOutputConfig first = new AiStructuredOutputConfig();
+        first.setSchema(SCHEMA);
+        AiStructuredOutputConfig second = new AiStructuredOutputConfig();
+        second.setSchema(SCHEMA);
+
+        org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiStructuredOutputPolicy one =
+                AiStructuredOutputPolicy.of(first);
+        org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiStructuredOutputPolicy two =
+                AiStructuredOutputPolicy.of(second);
+
+        assertSame(one.validator(), two.validator(),
+                "compiling a schema builds a registry: the same text must reuse it");
     }
 
     @Test

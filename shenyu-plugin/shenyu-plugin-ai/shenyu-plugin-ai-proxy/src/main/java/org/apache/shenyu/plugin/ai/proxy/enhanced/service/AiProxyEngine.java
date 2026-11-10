@@ -56,7 +56,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
@@ -78,7 +77,6 @@ public final class AiProxyEngine {
 
     private static final AiProxyRetryPolicy RETRY_POLICY = new AiProxyRetryPolicy();
 
-    private static final int MAX_VALIDATION_BODY_BYTES = 5 * 1024 * 1024;
 
     private final AiProxyProtocolFactory aiProxyProtocolFactory;
 
@@ -275,7 +273,8 @@ public final class AiProxyEngine {
                 Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream = consumer -> {
                     Execution execution = new Execution(requestBody, consumer, new AtomicBoolean(), new AtomicInteger(),
                             invocationId, deadlineNanos, observation, primaryConfig, structuredOutputPolicy,
-                            new AtomicInteger(structuredOutputPolicy.repairMaxAttempts()));
+                            new AtomicInteger(structuredOutputPolicy.repairMaxAttempts()),
+                            new AtomicReference<>(primaryConfig));
                     return attempt(execution, primary, fallback, maxRetries, maxRetries,
                             AiProxyAttemptEvent.Phase.PRIMARY, fallbackProviderDeclaredReplaySafe);
                 };
@@ -424,12 +423,25 @@ public final class AiProxyEngine {
     private boolean requestDeclaresTools(final String requestBody) {
         try {
             JsonNode root = OBJECT_MAPPER.readTree(requestBody);
-            JsonNode tools = Objects.isNull(root) ? null : root.get("tools");
-            return Objects.nonNull(tools) && tools.isArray() && tools.size() > 0;
+            if (Objects.isNull(root)) {
+                return true;
+            }
+            // both the current tools array and the legacy functions/function_call
+            // shapes make the traffic effectful: repair stays off for all of them
+            return hasEntries(root.get("tools")) || hasEntries(root.get("functions"))
+                    || hasNonNull(root.get("function_call"));
         } catch (JsonProcessingException error) {
             // an unreadable request body is treated as tool-bearing: repair stays off
             return true;
         }
+    }
+
+    private static boolean hasEntries(final JsonNode node) {
+        return Objects.nonNull(node) && node.isArray() && node.size() > 0;
+    }
+
+    private static boolean hasNonNull(final JsonNode node) {
+        return Objects.nonNull(node) && !node.isNull();
     }
 
     private Mono<Void> handleRepairOutcome(final AiUpstreamResponse adapted, final Execution execution,
@@ -437,7 +449,10 @@ public final class AiProxyEngine {
         AiStructuredOutputPolicy policy = execution.policy();
         return materialize(adapted).flatMap(body -> {
             AiGeneratedContentInspector.AiContentInspection inspection = AiGeneratedContentInspector.classify(policy, body);
-            if (inspection.compliance() == AiContentCompliance.VALID) {
+            // a repaired answer is consumed like a primary one: valid content forwards,
+            // and a tool-call answer stays the client's workflow decision, not a 502
+            if (inspection.compliance() == AiContentCompliance.VALID
+                    || inspection.compliance() == AiContentCompliance.TOOL_CALLS_PRESENT) {
                 return consumeResponse(withBody(adapted, body), execution.responseConsumer(), execution.emitted());
             }
             if (execution.repairsRemaining().decrementAndGet() > 0 && policy.canRepair(inspection.compliance())) {
@@ -461,9 +476,10 @@ public final class AiProxyEngine {
                     "AI proxy request deadline exceeded before repair", null));
         }
         // a repair regeneration never draws on the network retry budget and carries
-        // its own attempt identity, usage and cost like every other attempt
+        // its own attempt identity, usage and cost like every other attempt; it
+        // re-asks the upstream that produced the failing response, not the primary
         PreparedExchange repairPrepared = prepare(
-                repairRequestBody(execution.requestBody(), policy, inspection), execution.primaryConfig());
+                repairRequestBody(execution.requestBody(), policy, inspection), execution.activeConfig().get());
         emit(execution.invocationId(), currentAttempt, phase, AiProxyAttemptEvent.Reason.CONTENT_REPAIR, null);
         return attempt(execution, repairPrepared, Optional.empty(), 0, 0,
                 AiProxyAttemptEvent.Phase.REPAIR, false)
@@ -526,18 +542,17 @@ public final class AiProxyEngine {
     }
 
     private Mono<String> materialize(final AiUpstreamResponse response) {
-        return response.getBody().reduceWith(ByteArrayOutputStream::new, (buffer, bytes) -> {
-            if (bytes.length > MAX_VALIDATION_BODY_BYTES - buffer.size()) {
-                throw new AiProxyException(AiProxyException.Kind.CONTENT,
-                        "AI response exceeds the validation size limit", null);
-            }
-            buffer.writeBytes(bytes);
-            return buffer;
-        }).map(buffer -> buffer.toString(StandardCharsets.UTF_8));
+        return AiProxyBodies.materialize(response.getBody(), () -> new AiProxyException(AiProxyException.Kind.CONTENT,
+                "AI response exceeds the validation size limit", null));
     }
 
     private AiUpstreamResponse withBody(final AiUpstreamResponse response, final String body) {
-        return new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(),
+        // the body is re-framed from the materialized bytes: the old framing headers
+        // (length and transfer encoding) no longer describe it and must not leak
+        Map<String, List<String>> headers = new java.util.LinkedHashMap<>(response.getHeaders());
+        headers.keySet().removeIf(name -> "content-length".equalsIgnoreCase(name)
+                || "content-encoding".equalsIgnoreCase(name));
+        return new AiUpstreamResponse(response.getStatusCode(), headers,
                 Flux.just(body.getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -647,6 +662,7 @@ public final class AiProxyEngine {
                     error instanceof AiTransportException
                             ? AiProxyAttemptEvent.Reason.FALLBACK_TRANSPORT : AiProxyAttemptEvent.Reason.FALLBACK_STATUS,
                     AiProxyRetryPolicy.retryAfter(responseHeaders, retryProperties));
+            execution.activeConfig().set(fallback.get());
             return attempt(execution, prepare(execution.requestBody(), fallback.get()),
                     Optional.empty(), 0, 0, AiProxyAttemptEvent.Phase.FALLBACK, false);
         });
@@ -827,9 +843,11 @@ public final class AiProxyEngine {
      * @param invocationId opaque logical invocation identifier
      * @param deadlineNanos absolute shared request deadline
      * @param observation subscription-local terminal observation
-     * @param primaryConfig resolved primary configuration a repair generation reuses
+     * @param primaryConfig resolved primary configuration the invocation started with
      * @param policy opt-in structured output policy built from the primary config
      * @param repairsRemaining bounded regeneration budget shared by repair phases
+     * @param activeConfig the configuration of the upstream that produced the current
+     *                     response — a repair generation re-asks this upstream
      */
     private record Execution(
             String requestBody,
@@ -841,7 +859,8 @@ public final class AiProxyEngine {
             AiRequestObservation observation,
             AiCommonConfig primaryConfig,
             AiStructuredOutputPolicy policy,
-            AtomicInteger repairsRemaining) {
+            AtomicInteger repairsRemaining,
+            AtomicReference<AiCommonConfig> activeConfig) {
     }
 
     private record PreparedExchange(

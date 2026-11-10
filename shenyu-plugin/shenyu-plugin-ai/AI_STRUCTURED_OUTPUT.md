@@ -19,7 +19,7 @@ existing configuration pipeline:
 | `repairEnabled` | whether repairable failures regenerate | `false` (reject only) |
 | `repairPrompt` | the operator's repair instruction; required when repair is enabled | — |
 | `repairMaxAttempts` | bounded regeneration budget | `1`, hard-capped at `3` |
-| `repairMaxTokens` | optional upper bound applied to `max_tokens` of a repair generation | unset |
+| `repairMaxTokens` | upper bound applied to `max_tokens` of a repair generation (the provider dialect may rename the field, e.g. `max_completion_tokens`) | `1024` |
 
 Misconfiguration fails fast (unsupported schema, repair without prompt, out-of-range
 budget) — nothing silently degrades. Without a schema the response bytes are
@@ -38,6 +38,7 @@ upstream attempt.
 | TOOL_CALLS_PRESENT | `finish_reason: tool_calls` or message `tool_calls` | forwarded untouched — the client's workflow decision | never |
 | INVALID_JSON | content field present but not parseable | REJECT (HTTP 502, reason `CONTENT`) | yes |
 | SCHEMA_MISMATCH | bounded validator rejects the content | REJECT (HTTP 502) | yes |
+| SCHEMA_BUDGET_EXCEEDED | content exceeds the bounded validator's size/complexity budget — it may be perfectly valid, just too large to validate | REJECT (HTTP 502) | no — a regeneration of a merely oversized document wastes billable work |
 | MALFORMED_ENVELOPE | outer response is not a parseable chat completion | REJECT (HTTP 502) | no |
 | EMPTY | content absent or blank | REJECT (HTTP 502) | no |
 | TRUNCATED | `finish_reason: length` | REJECT (HTTP 502) | no |
@@ -52,8 +53,17 @@ A repairable failure regenerates by re-preparing the original request with one
 appended user message: the operator's `repairPrompt` (the only instruction source),
 the authoritative schema, the bounded classification evidence, and the previous
 output as clearly labeled **data** — model text cannot inject repair instructions.
-`stream` is forced off, model/provider references are preserved, and an optional
-`repairMaxTokens` clamps `max_tokens`.
+`stream` is forced off, model/provider references are preserved, and
+`repairMaxTokens` clamps the generation's token bound. The repair re-asks the
+upstream that produced the failing response (primary after a primary failure,
+the fallback after a fallback failure). Tool-bearing traffic — the `tools` array
+as well as the legacy `functions`/`function_call` shapes — never enters repair.
+
+Refusal detection is deliberately protocol-level only (`finish_reason:
+content_filter`): a refusal delivered as plain text with `finish_reason: stop`
+is a semantic judgement owned by the semantic-safety boundary (#7623), not
+something the gateway guesses — such traffic is classified like any other
+content, never specially repaired.
 
 Every actual regeneration is a correlated billable attempt: it has its own
 `Phase.REPAIR` attempt identity (`AiAttemptEvent.Kind.REPAIR`), its own usage tap,

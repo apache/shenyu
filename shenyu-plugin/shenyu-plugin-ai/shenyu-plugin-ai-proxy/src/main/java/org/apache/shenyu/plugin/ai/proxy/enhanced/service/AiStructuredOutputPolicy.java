@@ -20,10 +20,12 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.dto.convert.rule.AiStructuredOutputConfig;
+import org.apache.shenyu.common.cache.WindowTinyLFUMap;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiContentCompliance;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.base.schema.BoundedJsonSchemaValidator;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -47,6 +49,15 @@ public final class AiStructuredOutputPolicy {
             AiContentCompliance.INVALID_JSON, AiContentCompliance.SCHEMA_MISMATCH);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * Bounded cache of compiled validators keyed by the schema text: compiling a
+     * schema parses it and builds a registry, which must never run per request on
+     * the event loop. Failures are not cached, so an operator fixing a schema gets
+     * a fresh attempt; the cache is hard-capped so churned schemas cannot grow the
+     * state without bound.
+     */
+    private static final Map<String, BoundedJsonSchemaValidator> VALIDATORS = new WindowTinyLFUMap<>(4, 32, false);
 
     private final BoundedJsonSchemaValidator validator;
 
@@ -88,12 +99,15 @@ public final class AiStructuredOutputPolicy {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER,
                     "structured output schema is not valid JSON", error);
         }
-        BoundedJsonSchemaValidator validator;
-        try {
-            validator = new BoundedJsonSchemaValidator(schemaNode);
-        } catch (IllegalArgumentException error) {
-            throw new AiProxyException(AiProxyException.Kind.PROVIDER,
-                    "structured output schema is unsupported by the bounded validator", error);
+        BoundedJsonSchemaValidator validator = VALIDATORS.get(config.getSchema());
+        if (Objects.isNull(validator)) {
+            try {
+                validator = new BoundedJsonSchemaValidator(schemaNode);
+            } catch (IllegalArgumentException error) {
+                throw new AiProxyException(AiProxyException.Kind.PROVIDER,
+                        "structured output schema is unsupported by the bounded validator", error);
+            }
+            VALIDATORS.put(config.getSchema(), validator);
         }
         boolean repairEnabled = Boolean.TRUE.equals(config.getRepairEnabled());
         String repairPrompt = config.getRepairPrompt();

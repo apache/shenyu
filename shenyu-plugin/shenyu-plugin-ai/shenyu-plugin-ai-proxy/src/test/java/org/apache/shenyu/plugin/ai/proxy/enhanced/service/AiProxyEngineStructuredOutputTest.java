@@ -127,6 +127,9 @@ class AiProxyEngineStructuredOutputTest {
             assertTrue(content.contains(MISMATCH_CONTENT), "the previous output must be carried as data");
             assertEquals(false, repair.path("stream").asBoolean());
             assertEquals("main-model", repair.path("model").asText());
+            // the provider dialect may legally rename the field (max_completion_tokens)
+            int repairTokenBound = Math.max(repair.path("max_tokens").asInt(), repair.path("max_completion_tokens").asInt());
+            assertEquals(1024, repairTokenBound, "the conservative default token bound must apply when unset");
         } catch (Exception error) {
             throw new IllegalStateException(error);
         }
@@ -208,6 +211,110 @@ class AiProxyEngineStructuredOutputTest {
         StepVerifier.create(engine.execute(body, config(), Optional.empty(), consumeBody()))
                 .verifyError(AiProxyException.class);
         assertEquals(1, calls.get());
+    }
+
+    @Test
+    void legacyFunctionBearingRequestsNeverTriggerRepair() {
+        structuredOutput = policy();
+        String legacy = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],"
+                + "\"functions\":[{\"name\":\"ping\"}],\"function_call\":\"auto\"}";
+        AiProxyEngine engine = engine(transport(of(200, envelope(MISMATCH_CONTENT, "stop"))));
+        StepVerifier.create(engine.execute(legacy, config(), Optional.empty(), consumeBody()))
+                .verifyError(AiProxyException.class);
+        assertEquals(1, calls.get(), "legacy functions/function_call traffic is effectful: repair stays off");
+    }
+
+    @Test
+    void aRepairedToolCallAnswerIsForwardedNotRejected() {
+        structuredOutput = policy();
+        String toolCalls = "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"tool_calls\":[{\"id\":\"1\"}]},"
+                + "\"finish_reason\":\"tool_calls\"}]}";
+        AiProxyEngine engine = engine(transport(index -> index == 1
+                ? of(200, envelope(MISMATCH_CONTENT, "stop"))
+                : of(200, toolCalls)));
+        StepVerifier.create(execute()).verifyComplete();
+        assertEquals(2, calls.get());
+        assertEquals(toolCalls, String.join("", received), "a repair returning tool calls is the client's decision");
+    }
+
+    @Test
+    void aValidatedAnswerDropsTheStaleFramingHeaders() {
+        structuredOutput = policy();
+        List<Map<String, List<String>>> seenHeaders = new ArrayList<>();
+        AiProxyEngine engine = engine(transport(index -> Mono.just(new AiUpstreamResponse(200,
+                Map.of("Content-Length", List.of("999"), "Content-Encoding", List.of("gzip")),
+                Flux.just(bytes(envelope(VALID_CONTENT, "stop")))))));
+        StepVerifier.create(engine.execute(BODY, config(), Optional.empty(),
+                response -> {
+                    seenHeaders.add(response.getHeaders());
+                    return response.getBody().then();
+                })).verifyComplete();
+        Map<String, List<String>> headers = seenHeaders.get(0);
+        assertTrue(!headers.containsKey("Content-Length") && !headers.containsKey("Content-Encoding"),
+                "the re-framed body must not keep the upstream framing headers");
+    }
+
+    @Test
+    void anOversizedValidDocumentIsRejectedWithoutRepair() {
+        structuredOutput = policy();
+        StringBuilder oversized = new StringBuilder("{");
+        for (int i = 0; i < 2100; i++) {
+            if (i > 0) {
+                oversized.append(',');
+            }
+            oversized.append("\"k").append(i).append("\":\"v\"");
+        }
+        oversized.append('}');
+        AiProxyEngine engine = engine(transport(of(200, envelope(oversized.toString(), "stop"))));
+        StepVerifier.create(execute()).verifyError(AiProxyException.class);
+        assertEquals(1, calls.get(), "a merely oversized document must not be regenerated");
+        assertTrue(events.stream().anyMatch(event -> event.reason() == AiProxyAttemptEvent.Reason.CONTENT_REJECTED));
+    }
+
+    @Test
+    void repairAfterFallbackReAsksTheFallbackUpstream() {
+        structuredOutput = policy();
+        AiProxyRetryProperties noRetries = new AiProxyRetryProperties(0, 1, Duration.ofMillis(10));
+        noRetries.setJitterFraction(0d);
+        AiCommonConfig fallbackConfig = fallbackConfig();
+        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                protocolRouteResolver(),
+                request -> {
+                    int index = calls.incrementAndGet();
+                    requests.add(request);
+                    if (index == 1) {
+                        return Mono.just(new AiUpstreamResponse(500, Map.of(), Flux.just(bytes("{}"))));
+                    }
+                    if (index == 2) {
+                        return of(200, envelope(MISMATCH_CONTENT, "stop"));
+                    }
+                    return of(200, envelope(VALID_CONTENT, "stop"));
+                }, noRetries, (AiProxyAttemptListener) events::add);
+        StepVerifier.create(engine.execute(BODY, config(), Optional.of(fallbackConfig), consumeBody()))
+                .verifyComplete();
+        assertEquals(3, calls.get(), "primary fails, fallback mismatches, the repair re-asks the fallback");
+        assertEquals("fallback.example", requests.get(1).getUri().getHost());
+        assertEquals("fallback.example", requests.get(2).getUri().getHost(), "the repair re-asks the fallback upstream");
+        assertEquals("fallback-model", upstreamModel(requests.get(2)));
+    }
+
+    private String upstreamModel(final AiUpstreamRequest request) {
+        try {
+            return MAPPER.readTree(request.getBody()).path("model").asText();
+        } catch (Exception error) {
+            throw new IllegalStateException(error);
+        }
+    }
+
+    private AiCommonConfig fallbackConfig() {
+        AiCommonConfig fallback = new AiCommonConfig();
+        fallback.setProvider("OpenAI");
+        fallback.setBaseUrl("https://fallback.example");
+        fallback.setApiKey("fallback-key");
+        fallback.setModel("fallback-model");
+        fallback.setStream(false);
+        return fallback;
     }
 
     @Test

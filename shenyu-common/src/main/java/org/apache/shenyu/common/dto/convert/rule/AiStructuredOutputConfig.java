@@ -36,6 +36,13 @@ public class AiStructuredOutputConfig implements Serializable {
      */
     public static final int MAX_REPAIR_ATTEMPTS_LIMIT = 3;
 
+    /**
+     * Conservative default token bound of one repair generation (issue #8257
+     * requires an explicit conservative default); an operator raises it by
+     * configuring {@code repairMaxTokens} explicitly.
+     */
+    public static final int REPAIR_DEFAULT_MAX_TOKENS = 1024;
+
     private static final long serialVersionUID = -4216685160670534827L;
 
     /**
@@ -49,7 +56,7 @@ public class AiStructuredOutputConfig implements Serializable {
 
     private Integer repairMaxAttempts = 1;
 
-    private Integer repairMaxTokens;
+    private Integer repairMaxTokens = REPAIR_DEFAULT_MAX_TOKENS;
 
     public String getSchema() {
         return schema;

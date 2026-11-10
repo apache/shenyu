@@ -159,19 +159,19 @@ public final class BoundedJsonSchemaValidator {
     private void budget(final JsonNode node, final int depth, final AtomicInteger nodes, final AtomicLong characters,
                         final int maximumNodes, final long maximumCharacters) {
         if (depth > 16 || nodes.incrementAndGet() > maximumNodes || node.isPojo() || node.isBinary() || node.isMissingNode()) {
-            throw invalid();
+            throw budgetExceeded();
         }
         if (node.isArray() && node.size() > 128) {
-            throw invalid();
+            throw budgetExceeded();
         }
         if (node.isObject()) {
             node.fieldNames().forEachRemaining(name -> {
                 if (characters.addAndGet(name.length()) > maximumCharacters) {
-                    throw invalid();
+                    throw budgetExceeded();
                 }
             });
         } else if (node.isValueNode() && (node.asText().length() > 4096 || characters.addAndGet(node.asText().length()) > maximumCharacters)) {
-            throw invalid();
+            throw budgetExceeded();
         }
         for (JsonNode child : node) {
             budget(child, depth + 1, nodes, characters, maximumNodes, maximumCharacters);
@@ -180,5 +180,25 @@ public final class BoundedJsonSchemaValidator {
 
     private IllegalArgumentException invalid() {
         return new IllegalArgumentException("Schema or document is unsupported by the bounded validator or invalid");
+    }
+
+    private SchemaBudgetExceededException budgetExceeded() {
+        return new SchemaBudgetExceededException("Schema or document exceeds the bounded validator budget");
+    }
+
+    /**
+     * A size or complexity bound of the validator was exceeded. This is not a
+     * schema mismatch: the document may be perfectly valid, just too large for
+     * the bounded validation, so callers treat it as a distinct outcome instead
+     * of a repairable mismatch. Extends {@link IllegalArgumentException} so
+     * existing callers catching that type keep working unchanged.
+     */
+    public static final class SchemaBudgetExceededException extends IllegalArgumentException {
+
+        private static final long serialVersionUID = 1L;
+
+        private SchemaBudgetExceededException(final String message) {
+            super(message);
+        }
     }
 }

@@ -46,6 +46,13 @@ public enum AiContentCompliance {
     SCHEMA_MISMATCH,
 
     /**
+     * The generated content exceeded the bounded validator's size or complexity
+     * budget; it may be perfectly valid, just too large to validate, so it is
+     * rejected without a repair regeneration.
+     */
+    SCHEMA_BUDGET_EXCEEDED,
+
+    /**
      * The generated content field was absent or blank.
      */
     EMPTY,
