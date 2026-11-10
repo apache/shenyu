@@ -70,6 +70,11 @@ public final class OpenAiChat implements AiProxyProtocol {
     }
 
     @Override
+    public boolean isExactResponseCacheCompatible() {
+        return true;
+    }
+
+    @Override
     public boolean matches(final JsonNode payload) {
         return Objects.nonNull(payload)
                 && payload.isObject()

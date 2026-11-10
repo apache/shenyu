@@ -75,4 +75,9 @@ public final class OpenAiCompatible implements AiProxyProvider {
     public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
         return delegate.prepareRequest(request, config);
     }
+
+    @Override
+    public boolean isExactResponseCacheCompatible(final String protocol) {
+        return delegate.isExactResponseCacheCompatible(protocol);
+    }
 }

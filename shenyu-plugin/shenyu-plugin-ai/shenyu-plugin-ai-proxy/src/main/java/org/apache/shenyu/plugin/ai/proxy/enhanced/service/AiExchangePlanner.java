@@ -32,12 +32,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolRequestOverrides;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRoute;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 
@@ -129,8 +126,9 @@ final class AiExchangePlanner {
                     route.clientProtocol(), route.targetProtocol(), stream,
                     AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
                     providerDeclaredReplaySafe, provider.name(),
-                    protocol instanceof OpenAiChat && targetProtocol instanceof OpenAiChat
-                            && (provider instanceof OpenAi || provider instanceof OpenAiCompatible));
+                    protocol.isExactResponseCacheCompatible()
+                            && targetProtocol.isExactResponseCacheCompatible()
+                            && provider.isExactResponseCacheCompatible(route.targetProtocol()));
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }

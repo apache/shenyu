@@ -51,6 +51,13 @@ class OpenAiTest {
     }
 
     @Test
+    void exactResponseCacheCompatibilityIsProtocolSpecific() {
+        assertTrue(provider.isExactResponseCacheCompatible(OpenAiChat.NAME));
+        assertFalse(provider.isExactResponseCacheCompatible(OpenAiResponses.NAME));
+        assertFalse(provider.isExactResponseCacheCompatible("unknown"));
+    }
+
+    @Test
     void testBuildRequestPreservesExplicitStreamUsageSetting() throws Exception {
         final String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],"
                 + "\"stream\":true,\"stream_options\":{\"include_usage\":false}}";

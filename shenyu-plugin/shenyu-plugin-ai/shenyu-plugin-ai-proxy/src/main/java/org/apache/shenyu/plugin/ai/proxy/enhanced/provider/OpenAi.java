@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -208,5 +209,10 @@ public final class OpenAi implements AiProxyProvider {
     @Override
     public boolean supports(final String protocol) {
         return Objects.nonNull(protocol) && capabilities().protocols().contains(protocol);
+    }
+
+    @Override
+    public boolean isExactResponseCacheCompatible(final String protocol) {
+        return OpenAiChat.NAME.equals(protocol);
     }
 }

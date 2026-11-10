@@ -77,4 +77,14 @@ public interface AiProxyProvider {
     default PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
         return new PreparedAiRequest(buildRequest(request, config), AiResponseAdapter.identity());
     }
+
+    /**
+     * Check whether one native protocol is compatible with exact response caching.
+     *
+     * @param protocol native target protocol
+     * @return whether exact response caching is supported
+     */
+    default boolean isExactResponseCacheCompatible(final String protocol) {
+        return false;
+    }
 }

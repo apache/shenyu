@@ -80,4 +80,13 @@ public interface AiProxyProtocol {
     default AiUpstreamResponse encodeResponse(final AiUpstreamResponse response, final boolean stream) {
         return response;
     }
+
+    /**
+     * Check whether this protocol is compatible with exact response caching.
+     *
+     * @return whether exact response caching is supported
+     */
+    default boolean isExactResponseCacheCompatible() {
+        return false;
+    }
 }
