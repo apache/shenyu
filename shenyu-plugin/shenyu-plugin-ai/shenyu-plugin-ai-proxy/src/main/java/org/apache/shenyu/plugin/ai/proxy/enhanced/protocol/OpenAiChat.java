@@ -54,6 +54,16 @@ public final class OpenAiChat implements AiProxyProtocol {
 
     private static final String FIELD_TEMPERATURE = "temperature";
 
+    private final AiStreamCompletionProperties.Mode completionMode;
+
+    public OpenAiChat() {
+        this(AiStreamCompletionProperties.Mode.COMPATIBILITY);
+    }
+
+    public OpenAiChat(final AiStreamCompletionProperties.Mode completionMode) {
+        this.completionMode = Objects.requireNonNull(completionMode);
+    }
+
     @Override
     public String name() {
         return NAME;
@@ -288,6 +298,6 @@ public final class OpenAiChat implements AiProxyProtocol {
         Map<String, List<String>> headers = new LinkedHashMap<>(response.getHeaders());
         headers.keySet().removeIf(name -> name.equalsIgnoreCase("Content-Length") || name.equalsIgnoreCase("Content-Type"));
         headers.put("Content-Type", List.of("text/event-stream"));
-        return new AiUpstreamResponse(response.getStatusCode(), headers, OpenAiChatSse.encode(response.getBody()));
+        return new AiUpstreamResponse(response.getStatusCode(), headers, OpenAiChatSse.encode(response.getBody(), completionMode));
     }
 }

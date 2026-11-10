@@ -36,6 +36,10 @@ Build the producer before running the independent consumer (Java 17):
 installed artifacts rather than reactor test classes. The same artifacts may be installed in a
 fixed staging repository with `-Dmaven.repo.local=/path/to/staging` on both commands.
 
+The `plugin_contract` CI job runs these producer and consumer phases as separate Maven
+invocations on Java 17 for code changes. It also checks the consumer's license headers and
+fails if no consumer tests run. Its result is required by the stable `build` gate.
+
 For another repository, pin the same core version on both dependencies and provide the test
 libraries explicitly: Maven does not propagate a producer's test dependencies from a test-jar.
 This dependency list uses Spring Boot 3.3.1 dependency management, as does the example; import
