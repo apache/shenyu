@@ -21,7 +21,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import test from 'node:test';
-import { execFile, execFileSync } from 'node:child_process';
+import { execFile, execFileSync, spawnSync } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -147,6 +147,82 @@ test('manual E2E runs keep all sync channels and invalid selections fail', () =>
     cwd: root, env: { ...process.env, SHENYU_E2E_SYNC: 'unsupported' }, stdio: 'pipe',
   }));
 });
+
+function runWebSocketCompose(failure = '', channel = 'websocket', failLogs = false) {
+  const temporary = mkdtempSync(resolve(root, '.github/scripts/.websocket-test-'));
+  const trace = resolve(temporary, 'trace');
+  const environment = resolve(temporary, 'environment.sh');
+  try {
+    writeFileSync(trace, '');
+    writeFileSync(environment, `
+record() {
+  printf '%s\\n' "$1" >> "$RUN_TRACE"
+  if [[ "$1" == "$FAIL_STAGE" ]]; then return 23; fi
+}
+docker() {
+  if [[ "$1" == network ]]; then record network; return; fi
+  if [[ "$1" == ps ]]; then record ps; return; fi
+  local stage=sync
+  if [[ "$3" == *shenyu-examples-websocket-compose.yml ]]; then stage=example; fi
+  record "$stage:$4"
+  if [[ "$4" == logs && "$FAIL_LOGS" == true ]]; then return 24; fi
+}
+bash() {
+  case "$1" in
+    */storage_init_mysql.sh) record storage ;;
+    .github/scripts/maven-with-retry.sh) record maven ;;
+    *) return 99 ;;
+  esac
+}
+sh() {
+  case "$2" in
+    http://localhost:31095/actuator/health) record admin-health ;;
+    http://localhost:31195/actuator/health) record gateway-health ;;
+    http://localhost:31191/actuator/health) record example-health ;;
+    *) return 99 ;;
+  esac
+}
+sleep() { :; }
+`);
+    const result = spawnSync('bash', [
+      'shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-websocket/compose/script/e2e-websocket-sync-compose.sh',
+    ], { cwd: root, encoding: 'utf8', timeout: 5000, env: {
+      ...process.env, BASH_ENV: environment, RUN_TRACE: trace, FAIL_STAGE: failure, SHENYU_E2E_SYNC: channel, FAIL_LOGS: String(failLogs),
+    } });
+    assert.ifError(result.error);
+    return { ...result, calls: readFileSync(trace, 'utf8').trim().split('\n') };
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
+}
+
+const webSocketStartup = ['storage', 'network', 'sync:up', 'admin-health', 'gateway-health', 'example:up', 'example-health'];
+for (const [index, stage] of webSocketStartup.entries()) {
+  test(`WebSocket Compose stops before Maven when ${stage} fails`, () => {
+    const result = runWebSocketCompose(stage);
+    assert.equal(result.status, 23, result.stderr);
+    assert.deepEqual(result.calls, webSocketStartup.slice(0, index + 1));
+  });
+}
+
+for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
+  test(`WebSocket Compose retains successful setup, tests and cleanup for ${channel || 'all channels'}`, () => {
+    const result = runWebSocketCompose('', channel);
+    assert.equal(result.status, 0, result.stderr);
+    const iteration = [...webSocketStartup.slice(2), 'ps', 'maven', 'sync:down', 'example:down'];
+    const iterations = channel ? iteration : [iteration, iteration, iteration].flat();
+    assert.deepEqual(result.calls, [...webSocketStartup.slice(0, 2), ...iterations]);
+  });
+}
+
+for (const failLogs of [false, true]) {
+  test(`WebSocket Compose retains Maven failure and all diagnostics when logs ${failLogs ? 'fail' : 'succeed'}`, () => {
+    const result = runWebSocketCompose('maven', '', failLogs);
+    assert.equal(result.status, 1, result.stderr);
+    assert.deepEqual(result.calls, [...webSocketStartup, 'ps', 'maven', 'sync:logs', 'sync:logs', 'example:logs']);
+    assert.ok(result.stdout.includes('websocket-sync-e2e-test failed'));
+  });
+}
 
 
 test('cluster health polling retains its previous startup grace and returns as soon as ready', () => {
