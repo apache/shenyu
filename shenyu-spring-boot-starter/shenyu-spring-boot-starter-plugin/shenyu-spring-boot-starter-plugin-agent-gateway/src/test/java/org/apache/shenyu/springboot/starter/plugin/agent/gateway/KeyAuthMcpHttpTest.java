@@ -47,6 +47,17 @@ class KeyAuthMcpHttpTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"json", "sse"})
+    void resourcePermissionsUseBindingAndRuleIntersection(final String mode) {
+        try (KeyAuthMcpTestFixture fixture = new KeyAuthMcpTestFixture(mode, false)) {
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.request("/a", "key-a", method, uri), true);
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.request("/b", "key-b", method, uri), false);
+            fixture.mutateBinding();
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.request("/a", "key-a", method, uri), true);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
     void listsAndCallsOnlyEffectiveTools(final String mode) {
         try (KeyAuthMcpTestFixture fixture = new KeyAuthMcpTestFixture(mode, false)) {
             JsonObject listed = fixture.success("/a", "key-a", "tools/list", "");

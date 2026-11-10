@@ -95,6 +95,7 @@ equal the nonblank `sub` claim. It reads these dedicated, verified claims:
 | `tenant_id` | Nonblank tenant string. Only an absent claim can use explicit `default-tenant`; null/invalid values are rejected. Startup requires exactly one of `tenant-claim-required: true` or `default-tenant`, so missing-tenant behavior is an explicit deployment policy. |
 | `tool_grants` | Optional array of exact tool names; absence grants nothing. Generic OAuth scopes/roles are not implicitly MCP permissions. |
 | `tool_denies` | Optional array of exact tool names; deny takes precedence over grant. |
+| `resource_grants` | Optional array of exact resource definition names, including `server.name` for remote resources; intersected with `allowedResources`. |
 
 For example, signed claims `"tool_grants":["orders.lookup","inventory.lookup"]`
 and `"tool_denies":["inventory.lookup"]` grant only `orders.lookup`, still
@@ -124,6 +125,111 @@ The tenant is available to a provider through the request-local Reactor
 MCP calls. The bridge neither logs credentials/claims nor owns SDK/key lifecycles.
 Cross-request context/event unification and additional authentication adapters
 remain separate work.
+
+### Explicit resource grants in built-in adapters
+
+Resource permissions are separate from tools. All built-in adapters default to
+an empty resource grant set; neither `tool_grants`, generic scopes/roles, request
+headers, arguments nor `_meta` grant resources. The effective set is the exact
+intersection of the verified identity's resource grants and rule
+`allowedResources`, shared by `resources/list`, `resources/templates/list` and
+`resources/read`. Grants name definitions, not URIs or URI-template expansions.
+For example, `local_status` names a local provider and `orders.status` names the
+upstream `status` resource exposed by configured server `orders`.
+
+Use only one security adapter. The JWT bridge above accepts the following
+**verified** JWT claims (the Resource Server still owns token verification):
+
+```json
+{
+  "iss": "https://issuer.example",
+  "aud": ["mcp"],
+  "sub": "service",
+  "tenant_id": "tenant-a",
+  "tool_grants": ["orders.lookup"],
+  "tool_denies": [],
+  "resource_grants": ["local_status", "local_record", "orders.status"]
+}
+```
+
+Key Auth uses an explicit deployment-owned binding to the authenticated rule,
+not the API key or caller-supplied identity headers:
+
+```yaml
+shenyu:
+  plugins:
+    agent:
+      gateway:
+        enabled: true
+        security:
+          key-auth:
+            enabled: true
+            bindings:
+              - namespace-id: production
+                selector-id: service-selector
+                rule-id: service-rule
+                tenant: tenant-a
+                subject: service
+                tool-grants: [orders.lookup]
+                tool-denials: []
+                resource-grants: [local_status, local_record, orders.status]
+```
+
+The Principal adapter supports the same `resource_grants` array from trusted
+JWT, introspection or OAuth2-login attributes, subject to its configured source
+and authority checks. Optionally map an exact verified scope explicitly:
+
+```yaml
+shenyu:
+  plugins:
+    agent:
+      gateway:
+        enabled: true
+        security:
+          principal:
+            enabled: true
+            source: jwt
+            issuer: https://issuer.example
+            audience: mcp
+            scope-mappings:
+              - scope: inventory:read
+                tool-grants: [orders.lookup]
+                resource-grants: [local_status, local_record, orders.status]
+```
+
+For this Principal example the authenticated claims include `sub: service`,
+`tenant_id: tenant-a`, the configured issuer/audience and `scope: inventory:read`.
+For `opaque-token`, configure the same issuer/audience checks and obtain these
+attributes from the trusted introspector. For `oauth2-login`, select that source
+and configure `registration-id` instead of issuer/audience; only attributes from
+that authenticated registration are used. An explicit `default-tenant` may fill
+an absent tenant claim, never a malformed one. Unmapped scopes grant nothing.
+
+Each example also requires registered providers/catalog entries and a separate
+Agent Gateway rule, for example:
+
+```json
+{
+  "trafficType": "mcp",
+  "mcp": {
+    "allowedTools": ["orders.lookup"],
+    "allowedResources": ["local_status", "local_record", "orders.status"],
+    "responseMode": "json"
+  }
+}
+```
+
+`local_record` may name a template such as `record://items/{id}`; authorization
+uses `local_record`, not `record://items/42`. Remote permission names keep their
+`server.name` prefix; use the catalog's canonical `mcp-resource://` URI for reads.
+Resource grant arrays are limited to 1,024 entries and names to 256 characters,
+using the resource definition name validation (including namespaced names), with
+no controls, surrounding whitespace, blank names or wildcard `*`. Malformed
+explicit claims reject the identity as a whole; malformed bindings/scope mappings
+fail startup. Collections are copied into immutable snapshots so later policy
+bean mutation, concurrent identities and subscription reuse cannot mutate grants.
+Tool denial precedence, legacy identity constructors and custom resolvers are
+unchanged. Resource access still requires the independent rule intersection.
 
 ## Rule handle
 

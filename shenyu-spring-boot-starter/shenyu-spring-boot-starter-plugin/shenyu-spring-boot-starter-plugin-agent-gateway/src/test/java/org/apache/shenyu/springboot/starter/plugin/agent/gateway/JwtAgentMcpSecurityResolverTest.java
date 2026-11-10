@@ -147,6 +147,24 @@ class JwtAgentMcpSecurityResolverTest {
         assertEquals(1, identities.stream().filter(identity -> identity.getToolGrants().contains("read")).count());
     }
 
+    @Test
+    void resourceClaimIsBoundedExplicitAndImmutable() {
+        Map<String, Object> claims = claims();
+        java.util.ArrayList<String> resources = new java.util.ArrayList<>(List.of("local_status", "orders.status"));
+        claims.put("resource_grants", resources);
+        AgentMcpIdentity identity = resolve(resolver, authenticated(claims));
+        resources.clear();
+        assertEquals(Set.of("local_status", "orders.status"), identity.getResourceGrants());
+        assertThrows(UnsupportedOperationException.class, () -> identity.getResourceGrants().clear());
+        claims.remove("resource_grants");
+        assertTrue(resolve(resolver, authenticated(claims)).getResourceGrants().isEmpty());
+        for (Object invalid : List.of("local_status", List.of("*"), List.of(42), List.of(" bad"),
+                List.of("bad\nname"), List.of("x".repeat(257)), java.util.Collections.nCopies(1025, "local_status"))) {
+            claims.put("resource_grants", invalid);
+            assertNull(resolve(resolver, authenticated(claims)));
+        }
+    }
+
     private AgentMcpIdentity resolve(final JwtAgentMcpSecurityResolver adapter, final Principal principal) {
         return resolveAsync(adapter, principal).block();
     }
