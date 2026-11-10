@@ -17,9 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
-import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiCallObserver;
-import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
@@ -34,7 +32,6 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -44,9 +41,9 @@ public final class AiProxyEngine {
 
     private final AiExchangePlanner exchangePlanner;
 
-    private final AiCallObserver observer;
-
     private final AiExecutionCoordinator executionCoordinator;
+
+    private final AiCallObservationScope observationScope;
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers, final AiProxyTransport transport) {
         this(protocols, providers, defaultRouteResolver(), transport, new AiProxyRetryProperties(), null, event -> {
@@ -148,7 +145,7 @@ public final class AiProxyEngine {
         this.exchangePlanner = new AiExchangePlanner(protocols, providers, routeResolver);
         AiProxyRetryProperties effectiveRetryProperties =
                 Objects.requireNonNull(retryProperties, "retryProperties must not be null");
-        this.observer = observer;
+        this.observationScope = new AiCallObservationScope(observer);
         this.executionCoordinator = new AiExecutionCoordinator(
                 exchangePlanner,
                 transport,
@@ -197,37 +194,20 @@ public final class AiProxyEngine {
      * @param responseConsumer response boundary consuming the reactive body once
      * @return completion or a classified failure
      */
-    public Mono<Void> execute(final String requestBody, final AiCommonConfig primaryConfig,
+    public Mono<Void> execute(final String requestBody,
+                              final AiCommonConfig primaryConfig,
                               final Optional<AiCommonConfig> fallbackConfig,
                               final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
-        return Mono.deferContextual(view -> {
-            AiRequestObservation inherited = view.getOrDefault(AiRequestObservation.REACTOR_KEY, null);
-            AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
-                    : new AiRequestObservation(observer, AiObservationSupport.context(view, null, null));
-            AtomicReference<Integer> status = new AtomicReference<>();
-            return Mono.defer(() -> {
-                AiPreparedExchange primary = exchangePlanner.prepare(
-                        requestBody, new AiCommonConfig(primaryConfig));
-
-                Function<AiUpstreamResponse, Mono<Void>> observedConsumer = response -> {
-                    status.set(response.getStatusCode());
-                    return responseConsumer.apply(response);
-                };
-
-                return executionCoordinator.execute(
-                        requestBody,
-                        primary,
-                        fallbackConfig,
-                        observation,
-                        observedConsumer);
-            }).doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
-                    .doFinally(signal -> {
-                        if (Objects.isNull(inherited)) {
-                            observation.finish(signal, status.get());
-                        }
-                    }).contextWrite(context -> context.put(AiRequestObservation.REACTOR_KEY, observation)
-                            .put(AgentRequestContext.REACTOR_KEY, observation.getContext()));
-        });
+        return observationScope.observe(responseConsumer, observedConsumer ->
+                Mono.defer(() -> {
+                    AiPreparedExchange primary = exchangePlanner.prepare(
+                            requestBody, new AiCommonConfig(primaryConfig));
+                    return executionCoordinator.execute(
+                            requestBody,
+                            primary,
+                            fallbackConfig,
+                            observedConsumer);
+                }));
     }
 
     /**

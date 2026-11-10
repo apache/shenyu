@@ -79,9 +79,11 @@ final class AiExecutionCoordinator {
     Mono<Void> execute(final String requestBody,
                        final AiPreparedExchange primary,
                        final Optional<AiCommonConfig> fallbackConfig,
-                       final AiRequestObservation observation,
                        final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
-        return Mono.defer(() -> {
+        return Mono.deferContextual(view -> {
+            AiRequestObservation observation = Objects.requireNonNull(
+                    view.getOrDefault(AiRequestObservation.REACTOR_KEY, null),
+                    "AI request observation must be established");
             long deadlineNanos = System.nanoTime()
                     + retryProperties.getRequestDeadline().toNanos();
             String invocationId = UUID.randomUUID().toString();
