@@ -119,6 +119,8 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Replay registration contract and check resolved client boundaries
         run: |
           python3 .github/scripts/test-client-boundary.py
@@ -147,6 +149,8 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Run Apache RAT check
         run: ./mvnw -B -ntp apache-rat:check
 
@@ -162,6 +166,8 @@ jobs:
           java-version: "17"
           distribution: "temurin"
           cache: maven
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Install the packaged plugin contract kit
         run: |
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-web -am install \
@@ -186,6 +192,8 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Build with Maven
         shell: bash
         env:
@@ -212,6 +220,8 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Build ShenYu local Maven repository
         shell: bash
         run: |
@@ -277,6 +287,8 @@ jobs:
         with:
           name: shenyu-local-maven-repository
           path: /tmp/shenyu-m2
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Restore ShenYu local Maven repository
         run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
       # The producer already checks main and test source style for the complete reactor.
@@ -339,6 +351,8 @@ jobs:
         with:
           name: shenyu-local-maven-repository
           path: /tmp/shenyu-m2
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Restore ShenYu local Maven repository
         run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
       # Reuse the producer's Checkstyle result; preserve all Java 21 test execution.
