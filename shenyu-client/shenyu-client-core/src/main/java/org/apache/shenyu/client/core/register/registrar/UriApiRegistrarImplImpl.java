@@ -27,6 +27,13 @@ import org.apache.shenyu.register.common.enums.EventType;
 /**
  * UriApiRegistrarImplImpl.
  *
+ * <p>Like the full-mode branches of the client event listeners, URI publication must
+ * only happen in local discovery mode. This registrar is not wired by any starter yet;
+ * when it becomes reachable, gate {@link #doRegisterApi} / {@link #doRegisterBean} on
+ * the discovery mode (see
+ * {@code AbstractContextRefreshedEventListener#isDiscoveryLocalMode}) to avoid dual
+ * upstream registration for the same selector.
+ *
  * @see URIRegisterDTO
  */
 public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {

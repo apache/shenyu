@@ -22,7 +22,9 @@ import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties.Pool.PoolType;
+import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -98,8 +100,8 @@ class HttpClientPoolCapacityTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void cancellationReleasesQueueCapacityIndependentlyOfMetrics(final boolean metrics) throws Exception {
+    @CsvSource({"false,false", "true,false", "false,true", "true,true"})
+    void cancellationReleasesQueueCapacityIndependentlyOfMetrics(final boolean metrics, final boolean grouped) throws Exception {
         Sinks.One<Void> release = Sinks.one();
         CountDownLatch entered = new CountDownLatch(1);
         DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle((request, response) -> {
@@ -108,7 +110,15 @@ class HttpClientPoolCapacityTest {
         }).bindNow();
         HttpClientProperties properties = properties(PoolType.FIXED, 3000L);
         properties.getPool().setMetrics(metrics);
-        HttpClient client = new HttpClientFactory(properties, null, new ServerProperties()).createInstance();
+        if (grouped) {
+            properties.getPool().setName("bulk");
+            properties.getPoolGroups().add(properties.getPool());
+            properties.setPool(new HttpClientProperties.Pool());
+            properties.getPool().setType(PoolType.DISABLED);
+        }
+        HttpClientFactory factory = new HttpClientFactory(properties, null, new ServerProperties());
+        UpstreamPoolGroupRegistry groups = factory.buildGroupRegistry();
+        HttpClient client = grouped ? groups.httpClientFor("bulk") : factory.createInstance();
         CompletableFuture<String> active = request(client, server, "/").toFuture();
         CompletableFuture<String> pending = null;
         try {
@@ -127,6 +137,7 @@ class HttpClientPoolCapacityTest {
                 pending.cancel(true);
             }
             client.configuration().connectionProvider().disposeLater().block(Duration.ofSeconds(5));
+            groups.close();
             server.disposeNow();
         }
     }

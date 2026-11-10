@@ -42,6 +42,11 @@
             <artifactId>shenyu-infra-redis</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-plugin-ai-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- The observer is covered against the bytes the AI proxy actually produces. -->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

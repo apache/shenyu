@@ -14,13 +14,15 @@
 // limitations under the License.
 
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import test from 'node:test';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+import { promisify } from 'node:util';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const bundle = resolve(root, 'actions/paths-filter/dist/index.js');
@@ -202,5 +204,83 @@ test('aggregate jobs still report failures but do not keep cancelled PR runs ali
     const condition = workflows.get(workflow).jobs[job].if;
     assert.ok(condition.includes('!cancelled()'), workflow);
     assert.ok(!condition.includes('always()'), workflow);
+  }
+});
+
+test('ingress validates the Maven wrapper before its first Maven invocation', () => {
+  const steps = workflows.get('integrated-test-k8s-ingress.yml').jobs.build.steps;
+  const preflight = steps.findIndex(step => step.name === 'Ensure Maven wrapper JAR');
+  const firstMaven = steps.findIndex(step => /\.\/mvnw\b/.test(step.run ?? ''));
+  assert.ok(preflight >= 0 && firstMaven > preflight);
+  assert.equal(steps[preflight].shell, 'bash');
+});
+
+test('ingress Maven wrapper preflight handles cached, downloaded and failed artifacts', { timeout: 45000 }, async t => {
+  const preflight = workflows.get('integrated-test-k8s-ingress.yml').jobs.build.steps
+    .find(step => step.name === 'Ensure Maven wrapper JAR');
+  assert.ok(preflight, 'The ingress job must validate the wrapper before running Maven');
+  const temporary = mkdtempSync(resolve(root, '.github/scripts/.wrapper-test-'));
+  t.after(() => rmSync(temporary, { recursive: true, force: true }));
+
+  // Only the archive/launcher-entry contract is under test; no Maven download is needed.
+  const classes = resolve(temporary, 'classes');
+  const launcher = 'org/apache/maven/wrapper/MavenWrapperMain.class';
+  mkdirSync(dirname(resolve(classes, launcher)), { recursive: true });
+  writeFileSync(resolve(classes, launcher), 'launcher entry fixture');
+  const validJar = resolve(temporary, 'valid.jar');
+  const otherJar = resolve(temporary, 'other.jar');
+  execFileSync('jar', ['cf', validJar, '-C', classes, '.']);
+  writeFileSync(resolve(classes, 'Other.class'), 'unrelated entry fixture');
+  execFileSync('jar', ['cf', otherJar, '-C', classes, 'Other.class']);
+  const valid = readFileSync(validJar);
+  const corrupt = Buffer.from('incomplete cached download');
+  const fixtures = [
+    { name: 'valid cache avoids downloading', initial: valid, requests: 0, succeeds: true },
+    { name: 'missing wrapper is downloaded', requests: 1, succeeds: true },
+    { name: 'corrupt cache is replaced', initial: corrupt, requests: 1, succeeds: true },
+    { name: 'two transient 503s are retried', failures: 2, requests: 3, succeeds: true },
+    { name: 'invalid download preserves the old file', initial: corrupt, payload: Buffer.from('not a jar'), requests: 1 },
+    { name: 'archive without launcher is rejected', payload: readFileSync(otherJar), requests: 1 },
+    { name: 'persistent 503s stop after bounded retries', failures: 6, initial: corrupt, requests: 6 },
+    { name: 'missing wrapper URL fails without a request', missingUrl: true, requests: 0 },
+  ];
+  const run = promisify(execFile);
+  for (const [index, fixture] of fixtures.entries()) {
+    await t.test(fixture.name, async subtest => {
+      const working = resolve(temporary, `case-${index}`);
+      const wrapper = resolve(working, '.mvn/wrapper');
+      const target = resolve(wrapper, 'maven-wrapper.jar');
+      mkdirSync(wrapper, { recursive: true });
+      if (fixture.initial) writeFileSync(target, fixture.initial);
+      let requests = 0;
+      const server = createServer((_request, response) => {
+        requests += 1;
+        response.writeHead(requests <= (fixture.failures ?? 0) ? 503 : 200);
+        response.end(requests <= (fixture.failures ?? 0) ? 'unavailable' : fixture.payload ?? valid);
+      });
+      await new Promise((resolve, reject) => {
+        server.once('error', reject);
+        server.listen(0, '127.0.0.1', resolve);
+      });
+      subtest.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
+      writeFileSync(resolve(wrapper, 'maven-wrapper.properties'), fixture.missingUrl
+        ? 'distributionUrl=unused\n'
+        : `wrapperUrl=http://127.0.0.1:${server.address().port}/wrapper.jar\n`);
+      const execution = run('bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', preflight.run], {
+        cwd: working,
+        env: { ...process.env, NO_PROXY: '127.0.0.1', no_proxy: '127.0.0.1' },
+        timeout: 20000,
+      });
+      if (fixture.succeeds) {
+        await execution;
+        assert.deepEqual(readFileSync(target), valid);
+      } else {
+        await assert.rejects(execution, error => Number.isInteger(error.code) && error.code !== 0);
+        if (fixture.initial) assert.deepEqual(readFileSync(target), fixture.initial);
+        else assert.equal(existsSync(target), false);
+      }
+      assert.equal(requests, fixture.requests);
+      assert.ok(readdirSync(wrapper).every(name => !name.startsWith('maven-wrapper.jar.')), 'Temporary downloads must be removed');
+    });
   }
 });

@@ -61,6 +61,7 @@ jobs:
       - name: Test workflow scope and example image selection
         run: |
           node --test .github/scripts/test-ci-workflows.mjs
+          node --test .github/scripts/issue-spec-policy-test.mjs
           python3 -B .github/scripts/test-resolve-example-projects.py
           python3 -B .github/scripts/test-actions-timings.py
           python3 -B .github/scripts/test-restore-shenyu-local-repo.py
