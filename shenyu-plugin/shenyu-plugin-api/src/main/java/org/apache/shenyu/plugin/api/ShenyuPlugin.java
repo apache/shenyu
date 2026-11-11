@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -99,7 +98,13 @@ public interface ShenyuPlugin {
         }
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
-        return Arrays.stream(rpcTypes).anyMatch(type -> Objects.equals(shenyuContext.getRpcType(), type.getName()));
+        for (int i = 0; i < rpcTypes.length; i++) {
+            RpcTypeEnum type = rpcTypes[i];
+            if (Objects.equals(shenyuContext.getRpcType(), type.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
