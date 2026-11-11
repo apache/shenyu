@@ -20,18 +20,69 @@ package org.apache.shenyu.client.core.utils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * get the port number exposed by the current tomcat.
  */
 public class PortUtils {
+
+    /**
+     * Guard against malformed context parent chains when walking up to the
+     * application context that owns the running web server.
+     */
+    private static final int MAX_CONTEXT_DEPTH = 8;
+
+    /**
+     * Referenced reflectively so this module keeps no compile-time spring-boot dependency.
+     */
+    private static final String WEB_SERVER_APPLICATION_CONTEXT_CLASS_NAME =
+            "org.springframework.boot.web.context.WebServerApplicationContext";
+
+    /**
+     * Referenced reflectively so this module keeps no compile-time spring-boot dependency.
+     */
+    private static final String WEB_SERVER_CLASS_NAME =
+            "org.springframework.boot.web.server.WebServer";
+
+    /**
+     * Find the port the application's own embedded web server actually bound.
+     * Note: preferred over {@link #findPort(BeanFactory)} whenever an
+     * {@link ApplicationContext} is at hand: the factory-reflective variant
+     * reports the <em>configured</em> port, which is {@code 0} when the server
+     * was started on a random port ({@code server.port=0}). This variant asks
+     * the running {@code WebServer} for its bound port, walking up the context
+     * parent chain so classic child contexts resolve to their owning server
+     * context; a management context is never in that chain and is therefore
+     * never selected. When no bound port can be observed (no embedded server,
+     * external deployment), discovery falls back to the legacy chain and a
+     * non-positive resolution fails loudly instead of registering an unusable
+     * address.
+     *
+     * @param applicationContext the application context the client is registering from
+     * @return the positive port the owned web server bound
+     * @throws ShenyuException when no usable port can be discovered
+     */
+    public static int findPort(final ApplicationContext applicationContext) {
+        final Integer bound = findBoundWebServerPort(applicationContext);
+        if (Objects.nonNull(bound) && bound > 0) {
+            return bound;
+        }
+        final int legacy = findPort(applicationContext.getAutowireCapableBeanFactory());
+        if (legacy <= 0) {
+            throw new ShenyuException("can not find port automatically: port discovery resolved the non-positive port "
+                    + legacy + "; configure the advertised port explicitly, e.g. shenyu.client.http.props.port");
+        }
+        return legacy;
+    }
 
     /**
      * Note: springboot 1.x version has been made compatible.
@@ -106,6 +157,50 @@ public class PortUtils {
             return Integer.parseInt(port);
         }
         throw new IllegalStateException("failed to get the HTTP port of the current tomcat");
+    }
+
+    /**
+     * Read the port the running web server bound from the application context
+     * owning it, walking up the parent chain so classic child contexts resolve
+     * to their owning server context. Both spring-boot types are resolved
+     * reflectively because this module has no compile-time spring-boot
+     * dependency.
+     *
+     * @param applicationContext starting context of the walk
+     * @return the bound port, or {@code null} when it cannot be observed
+     */
+    private static Integer findBoundWebServerPort(final ApplicationContext applicationContext) {
+        final Class<?> webServerApplicationContextClass;
+        try {
+            webServerApplicationContextClass = Class.forName(WEB_SERVER_APPLICATION_CONTEXT_CLASS_NAME);
+        } catch (ClassNotFoundException e) {
+            //spring-boot web classes are not on the classpath: nothing to probe
+            return null;
+        }
+        final Class<?> webServerClass;
+        try {
+            webServerClass = Class.forName(WEB_SERVER_CLASS_NAME);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+        ApplicationContext current = applicationContext;
+        int depth = 0;
+        while (Objects.nonNull(current) && depth++ < MAX_CONTEXT_DEPTH) {
+            if (webServerApplicationContextClass.isInstance(current)) {
+                try {
+                    final Object webServer = webServerApplicationContextClass
+                            .getMethod("getWebServer").invoke(current);
+                    if (Objects.nonNull(webServer)) {
+                        return (Integer) webServerClass.getMethod("getPort").invoke(webServer);
+                    }
+                } catch (ReflectiveOperationException ignored) {
+                    //fall through to legacy discovery in the caller
+                    return null;
+                }
+            }
+            current = current.getParent();
+        }
+        return null;
     }
 
 }
