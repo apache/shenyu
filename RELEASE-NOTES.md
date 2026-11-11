@@ -216,6 +216,14 @@
   users of the compatibility starter are unaffected; Apollo was never part of that
   aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
   provider table and migration steps. (#7578)
+- Admin now enforces the plugin-specific selector and rule grants
+  (`plugin:<name><Selector|Rule>:<add|edit|delete>`) on selector and rule writes.
+  The server previously checked only the global `system:plugin:*` grants and the
+  dashboard used the plugin-specific ones to show buttons. Global grants keep their
+  meaning, so no role loses access and no SQL migration is required. A role that
+  holds a plugin-specific grant without the matching global grant can now write to
+  that plugin, where its requests were rejected before. Review such roles when
+  upgrading; `db/upgrade/upgrade-guide.md` has a query that lists them. (#8174)
 
 ## [v2.7.0]- 2024-12-23
 
