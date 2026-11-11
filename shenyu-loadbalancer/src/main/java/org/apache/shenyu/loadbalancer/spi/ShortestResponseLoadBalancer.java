@@ -42,7 +42,7 @@ public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
         int shortestCount = 0;
         int[] shortestIndexes = new int[length];
         int[] weights = new int[length];
-        int totalWeight = 0;
+        long totalWeight = 0;
         int firstWeight = 0;
         boolean sameWeight = true;
 
@@ -74,7 +74,7 @@ public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
             return upstreamList.get(shortestIndexes[0]);
         }
         if (!sameWeight && totalWeight > 0) {
-            int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+            long offsetWeight = ThreadLocalRandom.current().nextLong(totalWeight);
             for (int i = 0; i < shortestCount; i++) {
                 int shortestIndex = shortestIndexes[i];
                 offsetWeight -= weights[shortestIndex];

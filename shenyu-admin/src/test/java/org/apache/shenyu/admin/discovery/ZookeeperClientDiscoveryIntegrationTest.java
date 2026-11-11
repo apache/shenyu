@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.discovery;
 
 import com.google.gson.JsonObject;
+import com.sun.net.httpserver.HttpServer;
 import jakarta.annotation.Resource;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
@@ -42,7 +43,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -81,7 +82,7 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     private final List<ShenyuInstanceRegisterRepository> clients = new CopyOnWriteArrayList<>();
 
-    private final List<ServerSocket> backends = new CopyOnWriteArrayList<>();
+    private final List<HttpServer> backends = new CopyOnWriteArrayList<>();
 
     private final List<DiscoverySyncData> snapshots = new CopyOnWriteArrayList<>();
 
@@ -95,8 +96,8 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
             websocket.abort();
         }
         clients.forEach(this::stopInstance);
-        for (ServerSocket backend : backends) {
-            backend.close();
+        for (HttpServer backend : backends) {
+            backend.stop(0);
         }
         List<DiscoveryDO> discoveries = registeredDiscoveries();
         discoveries.forEach(discovery -> processorHolder.chooseProcessor("zookeeper").removeDiscovery(discovery));
@@ -180,8 +181,20 @@ public class ZookeeperClientDiscoveryIntegrationTest extends AbstractSpringInteg
 
     private ShenyuInstanceRegisterRepository startInstance(final TestingServer server, final String app, final int port) throws Exception {
         // The Admin health checker remains active while testing registry removal.
-        // Keep registered backends reachable so health eviction cannot replace that event.
-        backends.add(new ServerSocket(port));
+        // Answer document pulls too: a listening socket alone blocks the registry event thread.
+        HttpServer backend = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
+        backend.createContext("/", exchange -> {
+            byte[] document = "{\"openapi\":\"3.0.3\",\"info\":{\"title\":\"Discovery fixture\",\"version\":\"1\"},\"paths\":{}}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, document.length);
+            try (java.io.OutputStream output = exchange.getResponseBody()) {
+                output.write(document);
+            } finally {
+                exchange.close();
+            }
+        });
+        backends.add(backend);
+        backend.start();
         String appName = "zk-6525-" + app;
         Properties properties = new Properties();
         properties.setProperty("name", appName);
