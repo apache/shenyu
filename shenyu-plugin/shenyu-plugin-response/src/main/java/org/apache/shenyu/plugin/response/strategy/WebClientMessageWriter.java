@@ -165,9 +165,9 @@ public class WebClientMessageWriter implements MessageWriter {
     }
 
     private void clean(final ServerWebExchange exchange) {
-        HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
-        if (Objects.nonNull(attempt)) {
-            attempt.abandon();
+        if (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.ATTEMPT))) {
+            // The HTTP client owns this handoff. Let cancellation reach the body subscriber before
+            // releasing its transport; closing it here can look like an empty successful response.
             return;
         }
         ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
