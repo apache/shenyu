@@ -61,10 +61,14 @@ public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
                 .build();
     }
 
+    /**
+     * Release this client's idle connections without making the client terminal.
+     * Subsequent synchronous requests remain supported and may populate the pool again.
+     * In-flight requests are not cancelled.
+     */
     @Override
     public void close() {
         if (Objects.nonNull(okHttpClient)) {
-            okHttpClient.dispatcher().executorService().shutdown();
             okHttpClient.connectionPool().evictAll();
         }
     }
