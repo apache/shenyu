@@ -35,12 +35,14 @@ import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.common.JsonFields;
 import org.apache.shenyu.k8s.common.ListenerSupport;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelation;
 import org.apache.shenyu.k8s.observability.K8sResourceCorrelationCache;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -106,14 +108,18 @@ public class GatewayReconciler implements Reconciler {
             }
 
             if (!GatewayClassReconciler.isShenyuGateway(gateway, gatewayClassLister)) {
-                if (!previouslyServedByShenyu(gateway, request.getNamespace(), request.getName())) {
+                boolean wasServed = previouslyServedByShenyu(gateway, request.getNamespace(), request.getName());
+                boolean hasCorrelatedRoutes = hasCorrelatedRoutes(request.getNamespace(), request.getName());
+                if (!wasServed && !hasCorrelatedRoutes) {
                     LOG.debug("Gateway {} is not managed by ShenYu, skipping", request);
                     return new Result(false);
                 }
                 LOG.info("Gateway {} is no longer managed by ShenYu, cleaning associated routes", request);
                 deleteAssociatedRoutes(request.getNamespace(), request.getName());
-                // Accepted must not stay True; the flip also re-triggers recovery on class restore.
-                updateGatewayNotAcceptedStatus(gateway);
+                if (wasServed) {
+                    // Accepted must not stay True; the flip also re-triggers recovery on class restore.
+                    updateGatewayNotAcceptedStatus(gateway);
+                }
                 requeueAllGatewayClasses();
                 return new Result(false);
             }
@@ -198,26 +204,66 @@ public class GatewayReconciler implements Reconciler {
     private void deleteAssociatedRoutes(final String gatewayNamespace, final String gatewayName) {
         GatewayRouteCache cache = GatewayRouteCache.getInstance();
         Set<String> routeKeys = cache.getRoutesByGateway(gatewayNamespace, gatewayName);
-        if (CollectionUtils.isEmpty(routeKeys)) {
-            return;
-        }
-        cache.removeRoutesByGateway(gatewayNamespace, gatewayName);
-        for (String routeKey : routeKeys) {
-            String[] parts = routeKey.split("/", 2);
-            if (parts.length != 2) {
-                continue;
-            }
-            String routeNamespace = parts[0];
-            String routeName = parts[1];
-            if (CollectionUtils.isNotEmpty(cache.getGatewaysForRoute(routeNamespace, routeName))) {
-                LOG.info("Route {}/{} still served by another ShenYu Gateway, keeping its config",
-                        routeNamespace, routeName);
+        Set<String> handledRoutes = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(routeKeys)) {
+            cache.removeRoutesByGateway(gatewayNamespace, gatewayName);
+            for (String routeKey : routeKeys) {
+                String[] parts = routeKey.split("/", 2);
+                if (parts.length != 2) {
+                    continue;
+                }
+                String routeNamespace = parts[0];
+                String routeName = parts[1];
+                handledRoutes.add(routeKey);
+                if (CollectionUtils.isNotEmpty(cache.getGatewaysForRoute(routeNamespace, routeName))) {
+                    LOG.info("Route {}/{} still served by another ShenYu Gateway, keeping its config",
+                            routeNamespace, routeName);
+                    httpRouteWorkQueue.add(new Request(routeNamespace, routeName));
+                    continue;
+                }
+                deleteRouteConfig(routeNamespace, routeName, cache);
+                LOG.info("Deleted ShenYu config for route {}/{} due to Gateway removal", routeNamespace, routeName);
                 httpRouteWorkQueue.add(new Request(routeNamespace, routeName));
+            }
+        }
+        withdrawOrphanedCorrelations(gatewayNamespace + "/" + gatewayName, cache, handledRoutes);
+        requeueBoundRoutesIfNeeded(gatewayNamespace, gatewayName, handledRoutes);
+    }
+
+    private boolean hasCorrelatedRoutes(final String gatewayNamespace, final String gatewayName) {
+        return !K8sResourceCorrelationCache.getInstance()
+                .getCorrelationsByParentGateway(GatewayApiConstants.HTTP_ROUTE_KIND, gatewayNamespace + "/" + gatewayName)
+                .isEmpty();
+    }
+
+    private void withdrawOrphanedCorrelations(final String gatewayKey, final GatewayRouteCache cache,
+                                              final Set<String> handledRoutes) {
+        K8sResourceCorrelationCache correlationCache = K8sResourceCorrelationCache.getInstance();
+        List<K8sResourceCorrelation> correlated = correlationCache.getCorrelationsByParentGateway(
+                GatewayApiConstants.HTTP_ROUTE_KIND, gatewayKey);
+        for (K8sResourceCorrelation correlation : correlated) {
+            String routeNamespace = correlation.getNamespace();
+            String routeName = correlation.getName();
+            if (!handledRoutes.add(routeNamespace + "/" + routeName)) {
                 continue;
             }
-            deleteRouteConfig(routeNamespace, routeName, cache);
-            LOG.info("Deleted ShenYu config for route {}/{} due to Gateway removal", routeNamespace, routeName);
+            if (CollectionUtils.isEmpty(cache.getGatewaysForRoute(routeNamespace, routeName))) {
+                correlationCache.recordDeleted(GatewayApiConstants.HTTP_ROUTE_KIND, routeNamespace, routeName);
+            }
             httpRouteWorkQueue.add(new Request(routeNamespace, routeName));
+        }
+    }
+
+    private void requeueBoundRoutesIfNeeded(final String gatewayNamespace, final String gatewayName,
+                                            final Set<String> handledRoutes) {
+        for (DynamicKubernetesObject route : httpRouteLister.list()) {
+            String routeNamespace = Objects.requireNonNull(route.getMetadata()).getNamespace();
+            String routeName = route.getMetadata().getName();
+            String routeKey = routeNamespace + "/" + routeName;
+            if (!handledRoutes.contains(routeKey) && isBoundToGateway(route, gatewayNamespace, gatewayName)) {
+                handledRoutes.add(routeKey);
+                httpRouteWorkQueue.add(new Request(routeNamespace, routeName));
+            }
         }
     }
 

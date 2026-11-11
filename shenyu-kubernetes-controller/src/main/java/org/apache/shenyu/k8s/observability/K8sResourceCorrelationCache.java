@@ -253,6 +253,22 @@ public final class K8sResourceCorrelationCache {
     }
 
     /**
+     * Gets all correlations of the given kind currently referencing the specified parent gateway.
+     *
+     * @param kind resource kind
+     * @param gatewayKey parent gateway key formatted as "namespace/name"
+     * @return list of matching correlations
+     */
+    public List<K8sResourceCorrelation> getCorrelationsByParentGateway(final String kind, final String gatewayKey) {
+        if (Objects.isNull(kind) || Objects.isNull(gatewayKey)) {
+            return Collections.emptyList();
+        }
+        return correlations.values().stream()
+                .filter(c -> kind.equals(c.getKind()) && c.getParentGateways().contains(gatewayKey))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Clears all cached correlations.
      */
     public void clear() {

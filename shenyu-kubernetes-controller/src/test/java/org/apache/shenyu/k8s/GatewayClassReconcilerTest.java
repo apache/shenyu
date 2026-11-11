@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
 import org.apache.shenyu.k8s.common.GatewayApiCrdVersions;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelationCache;
 import org.apache.shenyu.k8s.reconciler.GatewayClassReconciler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +75,7 @@ public final class GatewayClassReconcilerTest {
     @BeforeEach
     public void setUp() {
         GatewayRouteCache.getInstance().clear();
+        K8sResourceCorrelationCache.getInstance().clear();
     }
 
     /** A ShenYu GatewayClass without Accepted status gets Accepted=True patched together with the SupportedVersion condition and the supportedFeatures list. */
@@ -178,6 +180,23 @@ public final class GatewayClassReconcilerTest {
         JsonObject patched = ((JsonObject) bodyCaptor.getValue()).getAsJsonObject("status");
         Assertions.assertEquals("False", condition(patched, "Accepted").get("status").getAsString());
         Assertions.assertEquals("Unsupported", condition(patched, "Accepted").get("reason").getAsString());
+    }
+
+    /** Ownership loss on a class with only a correlated route still re-queues its Gateway immediately. */
+    @Test
+    public void testOwnershipLossWithCorrelatedRouteRequeuesGateway() throws Exception {
+        DynamicKubernetesObject rejectedClass = gatewayClass("shenyu", "example.com/other-controller", null);
+        K8sResourceCorrelationCache.getInstance().recordRejected(
+                "HTTPRoute", "mockedNamespace", "rejected-route", "uid-rej", 1L, "v1",
+                Set.of("mockedNamespace/shenyu-gateway"), "NoMatchingListenerHostname", "mismatch");
+
+        GatewayClassReconciler reconciler = reconciler(
+                rejectedClass,
+                gateway("mockedNamespace", "shenyu-gateway", "shenyu"));
+
+        Result result = reconciler.reconcile(new Request("", "shenyu"));
+        Assertions.assertEquals(new Result(false), result);
+        verify(gatewayWorkQueue).add(new Request("mockedNamespace", "shenyu-gateway"));
     }
 
     /** A foreign class ShenYu never served (no bindings, no ShenYu-written status) must be skipped entirely: re-queuing its Gateways or patching its status would fight the controller that owns it. */
