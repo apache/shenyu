@@ -57,6 +57,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -192,6 +193,37 @@ public final class MetaDataServiceTest {
         verify(subject).checkPermission("system:meta:add");
         verify(subject, never()).checkPermission("system:meta:edit");
         verify(metaDataMapper).insert(any());
+    }
+
+
+    /**
+     * A path change must publish a DELETE for the old path so path-based sync
+     * centers remove the stale node.
+     */
+    @Test
+    public void testPathChangePublishesDeleteForOldPath() {
+        MetaDataDTO dto = new MetaDataDTO();
+        dto.setId("id");
+        dto.setPath("/a/y");
+        dto.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
+        MetaDataDO before = MetaDataDO.builder().id("id").path("/a/x").enabled(true).build();
+        when(metaDataMapper.pathExistedExclude("/a/y", SYS_DEFAULT_NAMESPACE_ID, Collections.singletonList("id"))).thenReturn(null);
+        when(metaDataMapper.selectById("id")).thenReturn(before);
+        when(metaDataMapper.update(any())).thenReturn(1);
+
+        metaDataService.createOrUpdate(dto);
+
+        final org.mockito.ArgumentCaptor<DataChangedEvent> eventCaptor =
+                org.mockito.ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher, org.mockito.Mockito.times(2)).publishEvent(eventCaptor.capture());
+        final DataChangedEvent deleteEvent = eventCaptor.getAllValues().stream()
+                .filter(e -> Objects.nonNull(e.getSource()) && e.getSource().size() == 1
+                        && e.getSource().get(0) instanceof MetaData
+                        && "/a/x".equals(((MetaData) e.getSource().get(0)).getPath()))
+                .findFirst().orElse(null);
+        assertNotNull(deleteEvent, "a DELETE event for the old path must be published");
+        final MetaData removed = (MetaData) deleteEvent.getSource().get(0);
+        org.junit.jupiter.api.Assertions.assertEquals("/a/x", removed.getPath(), "the DELETE must carry the old path");
     }
 
     /**
