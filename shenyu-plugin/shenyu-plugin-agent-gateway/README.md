@@ -427,6 +427,10 @@ Save this secret-free **plugin** configuration in Admin, not a rule handle:
 {"aggregation":{"revision":"orders-v1","servers":[{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1"}]}}
 ```
 
+Each Server may also carry the optional trusted payload budgets described in
+[Remote payload budgets](#remote-payload-budgets). Omitting both keeps the legacy
+8 KiB transport limit, so existing configurations are unchanged.
+
 Admin validates unknown/duplicate/missing fields, bounds and endpoint syntax
 before saving or importing; the gateway uses the same parser. Existing data-sync
 channels feed an owned, bounded configuration worker. No custom production HTTP
@@ -457,6 +461,60 @@ the gateway operator/service account and not writable by gateway/API clients:
 ```json
 {"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1","bearerToken":"<service-token>"}
 ```
+
+### Remote payload budgets
+
+Every remote Server accepts two optional integer fields, `remoteRequestBytes` and
+`remoteResponseBytes`. They are trusted **plugin** configuration: they are parsed
+and validated by the same shared parser in Admin and gateway, captured in the
+immutable `RemoteServerBinding.Config` snapshot when a directory generation is
+created, and never read from a rule handle, Agent request, request `_meta` or
+result metadata.
+
+| Field | Default | Minimum | Hard maximum |
+|---|---|---|---|
+| `remoteRequestBytes` | `8192` | `1024` | `65536` |
+| `remoteResponseBytes` | `8192` | `1024` | `1048576` |
+
+```json
+{"aggregation":{"revision":"orders-v2","servers":[{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1","remoteRequestBytes":16384,"remoteResponseBytes":32768}]}}
+```
+
+Budgets count remote **wire** bytes of one JSON-RPC message, not the inbound
+gateway request and not the rendered MCP response:
+
+- request bytes are the UTF-8 bytes of the serialized JSON-RPC request body;
+- response bytes are the bytes received before any decoding, including JSON
+  envelope and, for SSE, the `event:`/`data:` framing of the single final message;
+- the remote budget covers every message to that Server: `initialize` and
+  `notifications/initialized`, `tools/list` and `resources/list` / templates
+  pagination, `tools/call` and `resources/read`.
+
+The entry budgets configured on the rule handle (`maxRequestBytes`,
+`maxResponseBytes`, with their own hard maxima) remain independent and unchanged.
+Raising an entry budget never raises the remote transport budget: the effective
+remote limit is the configured per-Server value, and it also applies after entry
+transformation when the final rendered response is checked.
+
+Rejection happens at the earliest layer that can decide:
+
+- Admin/import rejects out-of-range, non-integer, duplicate or unknown fields
+  before persistence, through the shared configuration contract;
+- the gateway rejects the same configuration while validating a data-sync update
+  and keeps the previous generation;
+- the remote client refuses to serialize a request above `remoteRequestBytes`
+  without any upstream side effect;
+- the response body subscriber is selected from headers only: a declared
+  `Content-Length` above the budget, or a body over budget while being received,
+  cancels the upstream body immediately, so nothing beyond the bound is buffered
+  or decoded. Chunked and SSE bodies stop mid-stream the same way, and the owned
+  request future, active counter and in-flight registration are released.
+
+`Content-Encoding` other than absent or `identity` is refused before reading the
+body; compressed responses are never inflated and never retried with a different
+encoding. Unsupported `Content-Type` handling is unchanged (JSON or a single final
+`text/event-stream`). Cancellation, deadline, credential isolation and the
+no-replay rule are unchanged, and no fallback to a larger budget exists.
 
 The resolver reads a bounded versioned file and verifies its independent name,
 full endpoint, reference and version binding. Paths must remain inside the real
@@ -498,7 +556,8 @@ Outbound support remains fixed `2025-06-18` initialize/initialized, bounded tool
 pagination/call, opt-in resource pagination/read and JSON or a single final SSE response. It does not add GET stream
 recovery, OAuth, Tasks or nonempty request `_meta` delegation, nor change the inbound
 version. Conservative limits retained from verified experiments: 8 Servers, 4 pages
-per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per client,
+per Server, 16 remote tools, 8 KiB request/response by default (per-Server configurable
+within the documented bounds), 64 in-flight requests per client,
 5-second directory update and 2-second session DELETE completion. The trusted
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.

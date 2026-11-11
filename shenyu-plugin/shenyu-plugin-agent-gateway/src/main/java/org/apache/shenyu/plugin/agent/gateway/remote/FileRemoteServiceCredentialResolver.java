@@ -78,11 +78,14 @@ public final class FileRemoteServiceCredentialResolver implements RemoteServiceC
                     throw new SecurityException("Invalid credential file value");
                 }
             }
+            // Budgets are trusted plugin configuration, never part of the secret file: carry them into the comparison.
             RemoteServerBinding.Config bound = new RemoteServerBinding.Config(
                 value.get("name").textValue(),
                 URI.create(value.get("endpoint").textValue()),
                 value.get("credentialRef").textValue(),
-                value.get("credentialVersion").textValue()
+                value.get("credentialVersion").textValue(),
+                target.requestBytes(),
+                target.responseBytes()
             );
             if (!target.equals(bound)) {
                 throw new SecurityException("Credential target binding mismatch");

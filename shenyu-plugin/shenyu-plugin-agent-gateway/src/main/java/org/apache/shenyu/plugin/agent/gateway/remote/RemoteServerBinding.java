@@ -105,7 +105,10 @@ public final class RemoteServerBinding {
         return "RemoteServerBinding[" + config.name() + ", " + config.credentialVersion() + ", credential=REDACTED]";
     }
 
-    public record Config(String name, URI endpoint, String credentialRef, String credentialVersion) {
+    /** Immutable target and credential binding, including the trusted payload budget snapshot. */
+    public record Config(String name, URI endpoint, String credentialRef, String credentialVersion,
+                         int requestBytes, int responseBytes) {
+
         public Config {
             if (Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
                 throw new IllegalArgumentException("Invalid stable server name");
@@ -119,6 +122,20 @@ public final class RemoteServerBinding {
             ) {
                 throw new IllegalArgumentException("Invalid credential reference or version");
             }
+            org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.validateRemotePayloadBudget(requestBytes, responseBytes);
+        }
+
+        /**
+         * Legacy binding without explicit budgets: keep the fixed 8 KiB transport limit.
+         * @param name stable server name
+         * @param endpoint exact configured endpoint
+         * @param credentialRef service credential reference
+         * @param credentialVersion service credential version
+         */
+        public Config(final String name, final URI endpoint, final String credentialRef, final String credentialVersion) {
+            this(name, endpoint, credentialRef, credentialVersion,
+                    org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.DEFAULT_REMOTE_REQUEST_BYTES,
+                    org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.DEFAULT_REMOTE_RESPONSE_BYTES);
         }
     }
 
