@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
+import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -57,8 +58,6 @@ public class PluginDataPermissionChecker {
     private static final String GLOBAL_DISABLE = "system:plugin:disable";
 
     private static final String GLOBAL_DELETE = "system:plugin:delete";
-
-    private static final String PLUGIN_PERMISSION_PREFIX = "plugin:";
 
     private final SelectorMapper selectorMapper;
 
@@ -162,7 +161,7 @@ public class PluginDataPermissionChecker {
             return;
         }
         final Set<String> names = pluginNames.get();
-        if (names.isEmpty() || !names.stream().allMatch(name -> subject.isPermitted(PLUGIN_PERMISSION_PREFIX + name + pluginAction))) {
+        if (names.isEmpty() || !names.stream().allMatch(name -> subject.isPermitted(ResourceUtil.buildPluginPermission(name, pluginAction)))) {
             throw new UnauthorizedException("Subject does not have the permission of the plugin data: " + pluginAction);
         }
     }
