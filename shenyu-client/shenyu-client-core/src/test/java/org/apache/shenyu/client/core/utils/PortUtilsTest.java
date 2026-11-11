@@ -135,4 +135,18 @@ public class PortUtilsTest {
         }
     }
 
+    @Test
+    public void testFindPortDiagnosesTotalDiscoveryFailure() {
+        //no embedded server, no factory bean, no external connector: the
+        //failure must carry the advertised-port diagnostic, not the bare
+        //legacy message (issue #8426 "clearly diagnose" acceptance)
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.refresh();
+            final ShenyuException e = Assertions.assertThrows(ShenyuException.class,
+                    () -> PortUtils.findPort(context));
+            Assertions.assertTrue(e.getMessage().contains("advertised port"),
+                    "unexpected diagnostic: " + e.getMessage());
+        }
+    }
+
 }

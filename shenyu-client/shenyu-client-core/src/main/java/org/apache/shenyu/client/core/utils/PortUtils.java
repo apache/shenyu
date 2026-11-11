@@ -76,7 +76,14 @@ public class PortUtils {
         if (Objects.nonNull(bound) && bound > 0) {
             return bound;
         }
-        final int legacy = findPort(applicationContext.getAutowireCapableBeanFactory());
+        final int legacy;
+        try {
+            legacy = findPort(applicationContext.getAutowireCapableBeanFactory());
+        } catch (ShenyuException e) {
+            throw new ShenyuException("can not find port automatically: no embedded web server reported a bound port "
+                    + "and no external container connector was detected; configure the advertised port explicitly, "
+                    + "e.g. shenyu.client.http.props.port", e);
+        }
         if (legacy <= 0) {
             throw new ShenyuException("can not find port automatically: port discovery resolved the non-positive port "
                     + legacy + "; configure the advertised port explicitly, e.g. shenyu.client.http.props.port");
