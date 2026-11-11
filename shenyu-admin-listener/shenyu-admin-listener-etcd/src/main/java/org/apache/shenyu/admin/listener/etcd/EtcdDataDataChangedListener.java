@@ -17,9 +17,14 @@
 
 package org.apache.shenyu.admin.listener.etcd;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.listener.AbstractPathDataChangedListener;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.infra.etcd.client.EtcdClient;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * EtcdDataDataChangedListener.
@@ -45,5 +50,15 @@ public class EtcdDataDataChangedListener extends AbstractPathDataChangedListener
     @Override
     public void deletePathRecursive(final String selectorParentPath) {
         etcdClient.deleteEtcdPathRecursive(selectorParentPath);
+    }
+
+    @Override
+    public List<String> getChildren(final String path) {
+        final String prefix = StringUtils.appendIfMissing(path, DefaultPathConstants.PATH_SEPARATOR);
+        return etcdClient.getKeysMapByPrefix(prefix).keySet().stream()
+                .map(key -> key.substring(prefix.length()))
+                .map(relative -> StringUtils.substringBefore(relative, DefaultPathConstants.PATH_SEPARATOR))
+                .distinct()
+                .collect(Collectors.toList());
     }
 }
