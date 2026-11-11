@@ -62,6 +62,14 @@ public class OkHttpShenyuSdkClient extends AbstractShenyuSdkClient {
     }
 
     @Override
+    public void close() {
+        if (Objects.nonNull(okHttpClient)) {
+            okHttpClient.dispatcher().executorService().shutdown();
+            okHttpClient.connectionPool().evictAll();
+        }
+    }
+
+    @Override
     protected ShenyuResponse doRequest(final ShenyuRequest request) throws IOException {
         String url = request.getUrl();
         String body = request.getBody();
