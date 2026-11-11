@@ -38,6 +38,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.Test;
@@ -681,6 +683,11 @@ class AiProxyEngineOrchestrationTest {
             }
 
             @Override
+            public AiProviderCapabilities capabilities() {
+                return AiProviderCapabilities.chat();
+            }
+
+            @Override
             public boolean supports(final String protocol) {
                 return supported.get();
             }
@@ -786,19 +793,7 @@ class AiProxyEngineOrchestrationTest {
                 return payload;
             }
         };
-        AiProxyProvider provider = new AiProxyProvider() {
-            @Override
-            public String name() {
-                return "custom";
-            }
-
-            @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                AiUpstreamRequest upstream = new AiUpstreamRequest();
-                upstream.setBody(request.getRawBody().getBytes(StandardCharsets.UTF_8));
-                return upstream;
-            }
-        };
+        AiProxyProvider provider = rawBodyProvider();
         AiProxyEngine engine = new AiProxyEngine(
                 new AiProxyProtocolFactory(List.of(clientProtocol, targetProtocol)),
                 new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(), request -> Mono.empty(),
@@ -850,6 +845,27 @@ class AiProxyEngineOrchestrationTest {
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
                 protocolRouteResolver(), transport,
                 new AiProxyEngineOptions(retryProperties, null, listener, null));
+    }
+
+    private AiProxyProvider rawBodyProvider() {
+        return new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "custom";
+            }
+
+            @Override
+            public AiProviderCapabilities capabilities() {
+                return AiProviderCapabilities.chat();
+            }
+
+            @Override
+            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                AiUpstreamRequest upstream = new AiUpstreamRequest();
+                upstream.setBody(request.getRawBody().getBytes(StandardCharsets.UTF_8));
+                return upstream;
+            }
+        };
     }
 
     private AiProxyRetryProperties retryProperties(final Duration initialBackoff, final Duration requestDeadline) {

@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -63,6 +62,23 @@ final class AiExchangePlanner {
     }
 
     AiPreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
+        ObjectNode payload = parseRequestPayload(requestBody);
+        String upstreamBody = removeFallbackConfig(payload, requestBody);
+        AiProxyProtocol clientProtocol = resolveClientProtocol(payload, config);
+        validateClientProtocol(clientProtocol, payload);
+        ShenyuAiRequest clientRequest = decodeClientRequest(clientProtocol, upstreamBody, payload, config);
+        AiProxyProvider provider = resolveProvider(config);
+        boolean stream = resolveStreamingMode(clientRequest, config);
+        AiProtocolRoute route = resolveUpstreamRoute(clientRequest, provider, stream);
+        ShenyuAiRequest providerRequest = route.conversion().request();
+        validateProviderRequest(provider, providerRequest, stream);
+        AiProxyProtocol targetProtocol = protocolFactory.getProtocol(route.targetProtocol());
+        prepareOutgoingPayload(providerRequest, targetProtocol, provider, config, stream);
+        return createPreparedExchange(
+                providerRequest, provider, clientProtocol, targetProtocol, route, config, stream);
+    }
+
+    private ObjectNode parseRequestPayload(final String requestBody) {
         if (Objects.isNull(requestBody) || requestBody.isBlank()) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must not be empty", null);
         }
@@ -75,30 +91,61 @@ final class AiExchangePlanner {
         if (!root.isObject()) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must be a JSON object", null);
         }
-        ObjectNode payload = (ObjectNode) root;
-        String upstreamBody = requestBody;
+        return (ObjectNode) root;
+    }
+
+    private String removeFallbackConfig(final ObjectNode payload, final String requestBody) {
         if (payload.has("fallbackConfig")) {
             payload.remove("fallbackConfig");
-            upstreamBody = payload.toString();
+            return payload.toString();
         }
-        AiProxyProtocol protocol = Objects.isNull(config.getProtocol()) || config.getProtocol().isBlank()
+        return requestBody;
+    }
+
+    private AiProxyProtocol resolveClientProtocol(final ObjectNode payload, final AiCommonConfig config) {
+        return Objects.isNull(config.getProtocol()) || config.getProtocol().isBlank()
                 ? protocolFactory.detect(payload) : protocolFactory.getProtocol(config.getProtocol());
+    }
+
+    private void validateClientProtocol(final AiProxyProtocol protocol, final ObjectNode payload) {
         if (!protocol.matches(payload)) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST,
                     "Request body does not match AI protocol: " + protocol.name(), null);
         }
-        ShenyuAiRequest decoded = applyModelOverride(protocol.decodeRequest(upstreamBody, payload), protocol, config);
-        AiProxyProvider provider = providerFactory.getProvider(providerName(config));
-        boolean stream = decoded.hasStream() ? decoded.isStream() : Boolean.TRUE.equals(config.getStream());
-        AiProtocolRoute route = routeResolver.resolve(
-                decoded, provider.capabilities().protocols(), stream);
-        ShenyuAiRequest providerRequest = route.conversion().request();
+    }
+
+    private ShenyuAiRequest decodeClientRequest(final AiProxyProtocol protocol, final String requestBody,
+                                                final ObjectNode payload, final AiCommonConfig config) {
+        return applyModelOverride(protocol.decodeRequest(requestBody, payload), protocol, config);
+    }
+
+    private AiProxyProvider resolveProvider(final AiCommonConfig config) {
+        return providerFactory.getProvider(providerName(config));
+    }
+
+    private boolean resolveStreamingMode(final ShenyuAiRequest request, final AiCommonConfig config) {
+        return request.hasStream() ? request.isStream() : Boolean.TRUE.equals(config.getStream());
+    }
+
+    private AiProtocolRoute resolveUpstreamRoute(final ShenyuAiRequest request, final AiProxyProvider provider,
+                                                 final boolean stream) {
+        return routeResolver.resolve(request, provider.capabilities().protocols(), stream);
+    }
+
+    private void validateProviderRequest(final AiProxyProvider provider, final ShenyuAiRequest providerRequest,
+                                         final boolean stream) {
         if (!provider.supports(providerRequest.getProtocol())) {
             throw new ShenyuException("Unsupported AI upstream protocol/provider combination: "
                     + providerRequest.getProtocol() + " -> " + provider.name());
         }
         provider.capabilities().validate(providerRequest, stream);
-        AiProxyProtocol targetProtocol = protocolFactory.getProtocol(route.targetProtocol());
+    }
+
+    private void prepareOutgoingPayload(final ShenyuAiRequest providerRequest,
+                                        final AiProxyProtocol targetProtocol,
+                                        final AiProxyProvider provider,
+                                        final AiCommonConfig config,
+                                        final boolean stream) {
         AiProtocolRequestOverrides requestOverrides = new AiProtocolRequestOverrides(
                 config.getTemperature(), config.getMaxTokens(), provider.capabilities().features().contains(
                         AiProviderCapabilities.Feature.STREAM_USAGE));
@@ -115,18 +162,28 @@ final class AiExchangePlanner {
             providerRequest.setRawBody(outgoingPayload.toString());
         }
         providerRequest.setStream(stream);
+    }
+
+    private AiPreparedExchange createPreparedExchange(final ShenyuAiRequest providerRequest,
+                                                       final AiProxyProvider provider,
+                                                       final AiProxyProtocol clientProtocol,
+                                                       final AiProxyProtocol targetProtocol,
+                                                       final AiProtocolRoute route,
+                                                       final AiCommonConfig config,
+                                                       final boolean stream) {
         try {
             PreparedAiRequest preparedRequest = provider.prepareRequest(providerRequest, config);
-            AiResponseAdapter responseAdapter = response -> protocol.encodeResponse(
+            AiResponseAdapter clientResponseAdapter = response -> clientProtocol.encodeResponse(
                     route.conversion().responseAdapter().adapt(
                             preparedRequest.responseAdapter().adapt(response)), stream);
             boolean providerDeclaredReplaySafe = provider.capabilities()
                     .isReplaySafe(providerRequest.getOperation());
-            return new AiPreparedExchange(preparedRequest.request(), responseAdapter,
+            return new AiPreparedExchange(preparedRequest.request(), clientResponseAdapter,
+                    targetProtocol.responseInspector(),
                     route.clientProtocol(), route.targetProtocol(), stream,
                     AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
                     providerDeclaredReplaySafe, provider.name(),
-                    protocol.isExactResponseCacheCompatible()
+                    clientProtocol.isExactResponseCacheCompatible()
                             && targetProtocol.isExactResponseCacheCompatible()
                             && provider.isExactResponseCacheCompatible(route.targetProtocol()));
         } catch (IllegalArgumentException error) {

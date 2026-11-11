@@ -17,20 +17,34 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
+import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
 /**
  * Entry point for planning and executing reactive AI proxy exchanges.
+ *
+ * <p>Request flow: client protocol decoding, native-protocol routing or conversion,
+ * target protocol preparation, provider adaptation, then transport execution.
+ * Response flow: raw target-protocol inspection, provider adaptation, optional
+ * reverse conversion, then client protocol encoding and response consumption.</p>
+ *
+ * <p>The execution pipeline owns observation, caching and primary/retry/fallback
+ * lifetimes. Protocol and provider extensions register through their factories
+ * without changing this flow. Start with OpenAiResponses and OpenAi for native
+ * extension implementations, and OpenAiChat for stream framing.</p>
  */
 public final class AiProxyEngine {
 
@@ -52,13 +66,28 @@ public final class AiProxyEngine {
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
                          final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
                          final AiProxyEngineOptions options) {
-        this(AiProxyEngineComponents.create(protocols, providers, routeResolver, transport, options));
+        Objects.requireNonNull(options, "options must not be null");
+        this.exchangePlanner = new AiExchangePlanner(protocols, providers, routeResolver);
+        AiAttemptExecutor attemptExecutor = new AiAttemptExecutor(transport);
+        AiAttemptOrchestrator attemptOrchestrator = new AiAttemptOrchestrator(
+                exchangePlanner, attemptExecutor, options.retryProperties(), options.attemptListener());
+        this.executionCoordinator = new AiExecutionCoordinator(
+                attemptOrchestrator, options.retryProperties(), options.responseCache());
+        this.observationScope = new AiCallObservationScope(options.observer());
     }
 
-    private AiProxyEngine(final AiProxyEngineComponents components) {
-        this.exchangePlanner = components.exchangePlanner();
-        this.executionCoordinator = components.executionCoordinator();
-        this.observationScope = components.observationScope();
+    /**
+     * Create a builder from the required extension points.
+     *
+     * @param protocols protocol registry
+     * @param providers provider registry
+     * @param routeResolver protocol routing resolver
+     * @param transport upstream transport
+     * @return engine builder with default optional policies
+     */
+    public static Builder builder(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                                  final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport) {
+        return new Builder(protocols, providers, routeResolver, transport);
     }
 
     /**
@@ -75,16 +104,11 @@ public final class AiProxyEngine {
                               final AiCommonConfig primaryConfig,
                               final Optional<AiCommonConfig> fallbackConfig,
                               final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
-        return observationScope.observe(responseConsumer, observedConsumer ->
-                Mono.defer(() -> {
-                    AiPreparedExchange primary = exchangePlanner.prepare(
-                            requestBody, new AiCommonConfig(primaryConfig));
-                    return executionCoordinator.execute(
-                            requestBody,
-                            primary,
-                            fallbackConfig,
-                            observedConsumer);
-                }));
+        return observationScope.observe(responseConsumer, observedConsumer -> Mono.defer(() -> {
+            AiPreparedExchange primary = exchangePlanner.prepare(
+                    requestBody, new AiCommonConfig(primaryConfig));
+            return executionCoordinator.execute(requestBody, primary, fallbackConfig, observedConsumer);
+        }));
     }
 
     /**
@@ -96,6 +120,91 @@ public final class AiProxyEngine {
      */
     public AiUpstreamRequest buildRequest(final String requestBody, final AiCommonConfig config) {
         return exchangePlanner.prepare(requestBody, config).request();
+    }
+
+    /**
+     * Incrementally configures optional engine policies without exposing execution assembly types.
+     */
+    public static final class Builder {
+
+        private final AiProxyProtocolFactory protocols;
+
+        private final AiProxyProviderFactory providers;
+
+        private final AiProtocolRouteResolver routeResolver;
+
+        private final AiProxyTransport transport;
+
+        private AiProxyRetryProperties retryProperties = new AiProxyRetryProperties();
+
+        private AiCallObserver observer;
+
+        private AiProxyAttemptListener attemptListener = event -> {
+        };
+
+        private AiExactResponseCache responseCache;
+
+        private Builder(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                        final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport) {
+            this.protocols = Objects.requireNonNull(protocols, "protocols must not be null");
+            this.providers = Objects.requireNonNull(providers, "providers must not be null");
+            this.routeResolver = Objects.requireNonNull(routeResolver, "routeResolver must not be null");
+            this.transport = Objects.requireNonNull(transport, "transport must not be null");
+        }
+
+        /**
+         * Configure retry, replay and shared-deadline policies.
+         *
+         * @param retryProperties retry policies
+         * @return this builder
+         */
+        public Builder retryProperties(final AiProxyRetryProperties retryProperties) {
+            this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
+            return this;
+        }
+
+        /**
+         * Configure the optional logical-call observer.
+         *
+         * @param observer logical-call observer, or null to disable standalone observation export
+         * @return this builder
+         */
+        public Builder observer(final AiCallObserver observer) {
+            this.observer = observer;
+            return this;
+        }
+
+        /**
+         * Configure attempt lifecycle events.
+         *
+         * @param attemptListener attempt listener
+         * @return this builder
+         */
+        public Builder attemptListener(final AiProxyAttemptListener attemptListener) {
+            this.attemptListener = Objects.requireNonNull(attemptListener, "attemptListener must not be null");
+            return this;
+        }
+
+        /**
+         * Configure the optional exact response cache.
+         *
+         * @param responseCache exact response cache, or null to disable caching
+         * @return this builder
+         */
+        public Builder responseCache(final AiExactResponseCache responseCache) {
+            this.responseCache = responseCache;
+            return this;
+        }
+
+        /**
+         * Assemble an engine while keeping its execution graph private.
+         *
+         * @return configured engine
+         */
+        public AiProxyEngine build() {
+            return new AiProxyEngine(protocols, providers, routeResolver, transport,
+                    new AiProxyEngineOptions(retryProperties, observer, attemptListener, responseCache));
+        }
     }
 
 }

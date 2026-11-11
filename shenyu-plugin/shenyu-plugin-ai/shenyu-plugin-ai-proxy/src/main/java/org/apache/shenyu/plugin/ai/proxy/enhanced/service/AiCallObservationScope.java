@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiObservationSupport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import reactor.core.publisher.Mono;
 

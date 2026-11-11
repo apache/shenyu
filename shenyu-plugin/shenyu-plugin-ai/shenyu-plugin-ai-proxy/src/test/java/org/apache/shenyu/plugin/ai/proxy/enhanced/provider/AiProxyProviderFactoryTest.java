@@ -56,12 +56,17 @@ class AiProxyProviderFactoryTest {
     }
 
     @Test
-    void testExistingProviderRetainsSafeDefaults() {
+    void testProviderRetainsPreparationAndCacheDefaults() {
         final AiUpstreamRequest upstreamRequest = new AiUpstreamRequest();
         final AiProxyProvider provider = new AiProxyProvider() {
             @Override
             public String name() {
                 return "legacy";
+            }
+
+            @Override
+            public AiProviderCapabilities capabilities() {
+                return AiProviderCapabilities.chat();
             }
 
             @Override

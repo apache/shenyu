@@ -19,11 +19,16 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptListener;
 
 import java.util.Objects;
 
 /**
  * Optional policies and integrations used to assemble an AI proxy engine.
+ *
+ * <p>This type is retained for source compatibility. New integrations should
+ * configure optional policies through {@link AiProxyEngine#builder} so internal
+ * assembly details do not become part of their construction contract.</p>
  *
  * @param retryProperties retry and deadline properties
  * @param observer optional logical-call observer

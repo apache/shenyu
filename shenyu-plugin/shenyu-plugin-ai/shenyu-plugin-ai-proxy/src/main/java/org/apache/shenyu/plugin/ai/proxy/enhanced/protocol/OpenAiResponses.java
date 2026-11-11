@@ -25,7 +25,11 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import java.util.Objects;
 
 /**
- * Responses request boundary; Connect owns conversion of its protocol fields.
+ * Native OpenAI Responses protocol.
+ *
+ * <p>Decodes client requests and maps gateway overrides to Responses fields.
+ * Native responses use the default byte passthrough behavior. Cross-protocol
+ * request and response conversion belongs to registered converters.</p>
  */
 public final class OpenAiResponses implements AiProxyProtocol {
 
@@ -46,32 +50,45 @@ public final class OpenAiResponses implements AiProxyProtocol {
 
     @Override
     public ShenyuAiRequest decodeRequest(final String rawBody, final ObjectNode payload) {
-        JsonNode input = payload.get("input");
-        if (Objects.isNull(input) || !(input.isTextual() || input.isArray())) {
-            throw new ShenyuException("OpenAI Responses input must be a string or array");
-        }
-        JsonNode stream = payload.get("stream");
-        if (Objects.nonNull(stream) && !stream.isNull() && !stream.isBoolean()) {
-            throw new ShenyuException("OpenAI Responses stream must be boolean");
-        }
+        validateRequest(payload);
+
         JsonNode model = payload.get("model");
-        if (Objects.nonNull(model) && !model.isNull() && !model.isTextual()) {
-            throw new ShenyuException("OpenAI Responses model must be a string");
-        }
+        JsonNode stream = payload.get("stream");
         JsonNode maxTokens = payload.get("max_output_tokens");
-        if (Objects.nonNull(maxTokens) && !maxTokens.isNull()
-                && (!maxTokens.isIntegralNumber() || !maxTokens.canConvertToInt() || maxTokens.intValue() <= 0)) {
-            throw new ShenyuException("OpenAI Responses max_output_tokens must be a positive integer");
-        }
+
         ShenyuAiRequest request = new ShenyuAiRequest();
         request.setProtocol(NAME);
         request.setOperation(ShenyuAiRequest.Operation.RESPONSE);
         request.setRawBody(rawBody);
         request.setRawPayload(payload.deepCopy());
-        request.setModel(Objects.isNull(model) || model.isNull() ? null : model.textValue());
-        request.setStream(Objects.isNull(stream) || stream.isNull() ? null : stream.booleanValue());
-        request.setMaxTokens(Objects.isNull(maxTokens) || maxTokens.isNull() ? null : maxTokens.intValue());
+        request.setModel(hasValue(model) ? model.textValue() : null);
+        request.setStream(hasValue(stream) ? stream.booleanValue() : null);
+        request.setMaxTokens(hasValue(maxTokens) ? maxTokens.intValue() : null);
         return request;
+    }
+
+    private void validateRequest(final ObjectNode payload) {
+        JsonNode input = payload.get("input");
+        if (Objects.isNull(input) || !(input.isTextual() || input.isArray())) {
+            throw new ShenyuException("OpenAI Responses input must be a string or array");
+        }
+        JsonNode stream = payload.get("stream");
+        if (hasValue(stream) && !stream.isBoolean()) {
+            throw new ShenyuException("OpenAI Responses stream must be boolean");
+        }
+        JsonNode model = payload.get("model");
+        if (hasValue(model) && !model.isTextual()) {
+            throw new ShenyuException("OpenAI Responses model must be a string");
+        }
+        JsonNode maxTokens = payload.get("max_output_tokens");
+        if (hasValue(maxTokens)
+                && (!maxTokens.isIntegralNumber() || !maxTokens.canConvertToInt() || maxTokens.intValue() <= 0)) {
+            throw new ShenyuException("OpenAI Responses max_output_tokens must be a positive integer");
+        }
+    }
+
+    private static boolean hasValue(final JsonNode node) {
+        return Objects.nonNull(node) && !node.isNull();
     }
 
     @Override

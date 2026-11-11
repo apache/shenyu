@@ -27,6 +27,15 @@ import java.util.Objects;
 
 /**
  * Contract for adapting a ShenYu AI request to a provider request.
+ *
+ * <p>The engine calls {@link #prepareRequest(ShenyuAiRequest, AiCommonConfig)}
+ * after protocol routing and outgoing protocol preparation. Providers own native
+ * endpoints, authentication and vendor adaptation. They construct request data;
+ * the engine owns HTTP execution, retries, fallback and downstream writing.</p>
+ *
+ * <p>Use {@link OpenAi} for complete request preparation, or
+ * {@link OpenAiCompatible} with {@link OpenAiProviderOptions} for a named profile
+ * that reuses the existing request construction.</p>
  */
 public interface AiProxyProvider {
 
@@ -40,6 +49,11 @@ public interface AiProxyProvider {
     /**
      * Build the provider-specific upstream request.
      *
+     * <p>Implement this method when no request-bound response adaptation is needed;
+     * the default prepare method delegates here. When overriding prepare instead,
+     * keep this entry point consistent by delegating to that implementation,
+     * as {@link OpenAi} does. Do not open an HTTP connection here.</p>
+     *
      * @param request decoded AI request
      * @param config provider configuration
      * @return upstream request
@@ -48,13 +62,11 @@ public interface AiProxyProvider {
 
     /**
      * Get provider feature and operation declarations.
-     * Existing custom providers retain the general Chat capability default.
+     * Native protocol bindings declare the supported protocols and their provider behavior.
      *
      * @return provider capabilities
      */
-    default AiProviderCapabilities capabilities() {
-        return AiProviderCapabilities.chat();
-    }
+    AiProviderCapabilities capabilities();
 
     /**
      * Check whether the provider natively accepts an upstream protocol.
@@ -69,6 +81,11 @@ public interface AiProxyProvider {
     /**
      * Prepare an upstream request and the response conversion bound to it.
      * Existing providers receive an identity response adapter by default.
+     *
+     * <p>This is the engine entry point. Override it when response adaptation
+     * needs state from request preparation. Allocate that state per preparation
+     * and return it through the response adapter, keeping body transformations
+     * lazy and preserving upstream cancellation.</p>
      *
      * @param request decoded AI request
      * @param config provider configuration

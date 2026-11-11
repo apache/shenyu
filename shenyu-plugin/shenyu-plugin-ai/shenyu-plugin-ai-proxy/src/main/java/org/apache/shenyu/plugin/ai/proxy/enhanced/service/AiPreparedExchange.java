@@ -20,30 +20,33 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolResponseInspector;
 
 /**
  * Prepared request-scoped AI exchange passed from request planning to execution.
  *
  * @param request provider-ready upstream request
- * @param responseAdapter request-scoped response adaptation chain
+ * @param clientResponseAdapter request-scoped client response adaptation chain
+ * @param upstreamResponseInspector target-protocol upstream response inspector
  * @param clientProtocol client-facing protocol
  * @param targetProtocol provider-facing protocol
  * @param stream effective streaming mode
  * @param conservativeReplaySafe whether the prepared request has no known tool-bearing fields
  * @param operation prepared AI operation
  * @param providerDeclaredReplaySafe whether the Provider declares the operation replay-safe
- * @param provider selected Provider identifier
+ * @param providerName selected Provider identifier
  * @param cacheCompatible whether the prepared exchange is compatible with exact response caching
  */
 record AiPreparedExchange(
         AiUpstreamRequest request,
-        AiResponseAdapter responseAdapter,
+        AiResponseAdapter clientResponseAdapter,
+        AiProtocolResponseInspector upstreamResponseInspector,
         String clientProtocol,
         String targetProtocol,
         boolean stream,
         boolean conservativeReplaySafe,
         ShenyuAiRequest.Operation operation,
         boolean providerDeclaredReplaySafe,
-        String provider,
+        String providerName,
         boolean cacheCompatible) {
 }

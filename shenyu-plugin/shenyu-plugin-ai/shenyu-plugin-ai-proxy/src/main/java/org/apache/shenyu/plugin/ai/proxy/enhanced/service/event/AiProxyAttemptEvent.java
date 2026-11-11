@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.event;
 
 import java.time.Duration;
 import java.util.Objects;

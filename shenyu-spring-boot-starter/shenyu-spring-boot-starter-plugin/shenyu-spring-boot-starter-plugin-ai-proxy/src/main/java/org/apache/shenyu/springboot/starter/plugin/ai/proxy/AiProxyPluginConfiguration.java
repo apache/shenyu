@@ -37,11 +37,10 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyAttemptListener;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.subscriber.CommonAiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
@@ -149,14 +148,14 @@ public class AiProxyPluginConfiguration {
                                        final AiProxyRetryProperties retryProperties,
                                        final ObjectProvider<AiProxyAttemptListener> attemptListener,
                                        final ObjectProvider<AiExactResponseCache> responseCache) {
-        AiProxyEngineOptions options = new AiProxyEngineOptions(
-                retryProperties,
-                observer(observers),
-                attemptListener.getIfAvailable(() -> event -> {
-                }),
-                responseCache.getIfAvailable());
-        return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
-                aiProtocolRouteResolver, aiProxyTransport, options);
+        return AiProxyEngine.builder(aiProxyProtocolFactory, aiProxyProviderFactory,
+                        aiProtocolRouteResolver, aiProxyTransport)
+                .retryProperties(retryProperties)
+                .observer(observer(observers))
+                .attemptListener(attemptListener.getIfAvailable(() -> event -> {
+                }))
+                .responseCache(responseCache.getIfAvailable())
+                .build();
     }
 
     private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
@@ -213,7 +212,7 @@ public class AiProxyPluginConfiguration {
     }
 
     /**
-     * OpenAI Responses protocol backed by Connect conversion to Chat upstreams.
+     * Native OpenAI Responses protocol; routing selects conversion for Chat-only upstreams.
      *
      * @return the OpenAI Responses protocol
      */

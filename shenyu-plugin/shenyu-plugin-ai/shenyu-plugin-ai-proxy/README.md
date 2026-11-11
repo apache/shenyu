@@ -15,7 +15,131 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# AI Proxy protocol conversion with Connect
+# AI Proxy
+
+AI Proxy decodes a client AI request, selects a provider-native protocol, prepares
+the upstream request, and returns the response in the client protocol. The engine
+owns HTTP execution, retries, fallback, caching and observation. Protocol and
+provider implementations describe their own formats and service behavior.
+
+## Developer entry points
+
+The built-in implementations are the extension references:
+
+| Task | Start here | What to learn |
+| --- | --- | --- |
+| Understand the public execution entry point | [AiProxyEngine](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/service/AiProxyEngine.java) | Request and response stages, execution ownership |
+| Follow request planning | [AiExchangePlanner](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/service/execution/AiExchangePlanner.java) | Decode, route, prepare, and bind response adaptation |
+| Add a native protocol | [OpenAiResponses](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/OpenAiResponses.java) | Envelope validation, decoded request fields, outgoing options, native response passthrough |
+| Add protocol stream framing or inspection | [OpenAiChat](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/OpenAiChat.java) | SSE encoding, usage and completion inspection |
+| Implement provider request construction | [OpenAi](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/OpenAi.java) | Defaults, model mapping, provider transformation, endpoint and authentication |
+| Reuse request construction for a compatible service | [OpenAiCompatible](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/OpenAiCompatible.java) and [OpenAiProviderOptions](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/OpenAiProviderOptions.java) | Named profiles, native bindings and the built-in DeepSeek profile |
+| Add a directional protocol conversion | [ConnectResponsesToChatConverter](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/conversion/ConnectResponsesToChatConverter.java) | Request conversion and the matching reverse response adapter |
+| Register implementations | [AiProxyPluginConfiguration](../../../shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-ai-proxy/src/main/java/org/apache/shenyu/springboot/starter/plugin/ai/proxy/AiProxyPluginConfiguration.java) | Protocol and provider beans collected by their factories |
+
+## Request and response flow
+
+```mermaid
+flowchart TD
+    A[Client protocol decoding] --> B[Native protocol routing or conversion]
+    B --> C[Target protocol request preparation]
+    C --> D[Provider request adaptation]
+    D --> E[Transport execution]
+    E --> F[Raw target protocol response inspection]
+    F --> G[Provider response adaptation]
+    G --> H[Optional reverse protocol conversion]
+    H --> I[Client protocol response encoding]
+    I --> J[Downstream response consumption]
+```
+
+The client protocol and target protocol can differ in one exchange. For example,
+a Responses request uses the OpenAI provider's native Responses binding, while a
+Responses request to the Chat-only DeepSeek profile uses a Responses-to-Chat
+converter. Both paths use the same engine and transport.
+
+The internal execution pipeline coordinates observation and caching, attempt
+orchestration owns primary/retry/fallback transitions, and the attempt executor
+owns one upstream subscription. Protocol and provider extensions can start from
+the interfaces and built-in implementations above without following these
+execution internals.
+
+Programmatic integrations should construct the public execution facade through
+`AiProxyEngine.builder(protocols, providers, routeResolver, transport)` and add
+only the optional policies they need. Planning, coordination and attempt classes
+are package-private implementation details; protocol, provider, converter and
+transport contracts remain the supported extension surface. The existing
+`AiProxyEngineOptions` constructor remains available for source compatibility.
+
+## Extending a native protocol
+
+Use [AiProxyProtocol](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/AiProxyProtocol.java)
+and `OpenAiResponses` as the starting point:
+
+1. Choose a unique `name()` and implement `matches()` to recognize the envelope.
+   Matching also runs when a selector explicitly names the protocol.
+2. In `decodeRequest()`, validate the envelope and populate the protocol,
+   operation, raw body and a request-owned payload. Decode model, stream and token
+   settings when present. Preserve an absent stream value so configuration can
+   supply its default; keep the raw body and payload consistent.
+3. Implement `prepareOutgoingRequest()` to map gateway options to native fields,
+   such as Responses `max_output_tokens`. The engine calls this on the target
+   protocol after routing/conversion and before provider preparation.
+4. Choose response hooks according to the protocol. Native Responses currently
+   uses default byte passthrough. `OpenAiChat.encodeResponse()` demonstrates
+   protocol framing, while its `responseInspector()` attaches passive usage and
+   completion inspection. Inspectors run on the raw target-protocol response;
+   encoders run after provider adaptation and reverse conversion.
+5. Register a protocol bean and declare a matching native binding in the provider
+   capabilities. Set the selector's `protocol` and `provider` identifiers.
+
+`detectionOrder()` resolves overlapping envelope detection. Exact response caching
+is an explicit opt-in; its existing native text Chat eligibility rules still apply.
+Implement a converter only when clients need this protocol against an upstream
+that speaks another protocol. Register its directional route and return the
+request-scoped reverse response adapter together with the converted request.
+
+## Extending a provider
+
+Use [AiProxyProvider](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/AiProxyProvider.java)
+to choose the appropriate implementation path:
+
+- For an OpenAI-compatible service, follow the existing DeepSeek registration:
+  `new OpenAiCompatible("DeepSeek", OpenAiProviderOptions.deepSeek())`. A profile
+  declares native protocol bindings, endpoint paths, authentication, model aliases,
+  defaults and provider transformations. The built-in profile shows where vendor
+  token and dialect differences belong.
+- For independent request construction, implement `name()`, `capabilities()` and
+  `buildRequest()`. The default `prepareRequest()` wraps that request with an
+  identity response adapter. Return HTTP request data for the shared transport.
+- When response adaptation needs request state, override `prepareRequest()` and
+  return both the upstream request and its matching adapter. Keep `buildRequest()`
+  consistent by delegating to the override, as `OpenAi` does. That override must
+  perform preparation rather than delegating back to `buildRequest()`.
+
+`OpenAi.prepareRequest()` is the complete built-in reference: validate the
+configuration and capabilities, prepare the provider payload, validate the final
+stream setting and features, then construct the HTTP request. Its payload stage
+applies defaults, model mappings and the selected native binding in that order.
+Endpoint and authentication handling stay in the provider. Response adapters
+transform the body lazily so the engine retains subscription and cancellation
+ownership.
+
+Register the provider as a bean with a unique provider identifier. The existing
+factory collects provider beans and rejects duplicate normalized identifiers.
+Native bindings declare accepted protocols; converters supply any supported
+cross-protocol routes. Ordinary protocol and provider additions use the existing
+engine, transport and synchronized selector configuration.
+
+Use the built-in tests as verification references:
+[OpenAiResponsesTest](src/test/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/OpenAiResponsesTest.java),
+[OpenAiTest](src/test/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/OpenAiTest.java),
+[AiProxyProviderHttpTest](src/test/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/AiProxyProviderHttpTest.java)
+and [AiProxyEngineOrchestrationTest](src/test/java/org/apache/shenyu/plugin/ai/proxy/enhanced/service/AiProxyEngineOrchestrationTest.java).
+Check envelope validation, optional/default values, prepared requests, response
+adaptation and source-data isolation. Streaming extensions also exercise framing,
+error, cancellation and backpressure through the existing engine and transport.
+
+## Protocol conversion with Connect
 
 The AI Proxy uses `io.github.agentic-ai-java:connect:0.1.0` for JSON protocol
 conversion and explicitly selected provider dialects. ShenYu remains the
@@ -242,32 +366,10 @@ names and prefixes (including Bearer); query credentials and unauthenticated loc
 services are also available. Generated content-type, accept and credential headers
 replace conflicting profile headers case-insensitively.
 
-Register another Chat-compatible service as a Spring bean without changing Engine,
-Protocol or Transport. For example:
-
-```java
-@Bean
-public AiProxyProvider tenantProvider() {
-    ObjectNode defaults = JsonNodeFactory.instance.objectNode();
-    defaults.put("temperature", 0.7);
-    OpenAiProviderOptions options = new OpenAiProviderOptions(
-            "/generate", OpenAiProviderOptions.Authentication.HEADER, "api-key", "",
-            Map.of("X-Tenant", "tenant-a"), Map.of("api-version", "2026-01"),
-            Map.of("client-alias", "upstream-model"), defaults,
-            AiProviderCapabilities.chat(), null)
-            .withRequestTransformer(OpenAiChat.NAME, (payload, context) -> {
-                JsonNode tokens = payload.remove("max_completion_tokens");
-                if (Objects.nonNull(tokens)) {
-                    payload.set("max_tokens", tokens);
-                }
-                return payload;
-            });
-    return new OpenAiCompatible("tenant-provider", options);
-}
-```
-
-Set the selector's `provider` to `tenant-provider`, its `baseUrl` to the service base
-URL and its `apiKey` to the credential. The profile also works with a collection-based
+Register another Chat-compatible service as a Spring bean using the built-in
+DeepSeek profile and registration as the reference described above. Set the
+selector's `provider` to the registered identifier, its `baseUrl` to the service
+base URL and its `apiKey` to the credential. The profile also works with a collection-based
 `AiProxyProviderFactory` without Spring. Existing custom implementations keep their
 interface contract and the `OpenAi(ProviderProfile)` constructor remains available.
 
@@ -281,7 +383,8 @@ are copied and per-request changes do not mutate the registered profile. Profile
 representations omit headers, query values and body defaults.
 
 Provider response differences remain in the request-bound Connect response adapter or
-the existing `AiProxyProvider.adaptResponse` hook. DeepSeek Chat response fields, including
+the `PreparedAiRequest.responseAdapter()` returned by `AiProxyProvider.prepareRequest`.
+DeepSeek Chat response fields, including
 `reasoning_content` and vendor usage fields, remain passthrough for Chat clients; Connect
 converts reasoning and usage for Responses clients. Providers do not open connections,
 configure pools/timeouts, write client responses, or implement retry/fallback policy.

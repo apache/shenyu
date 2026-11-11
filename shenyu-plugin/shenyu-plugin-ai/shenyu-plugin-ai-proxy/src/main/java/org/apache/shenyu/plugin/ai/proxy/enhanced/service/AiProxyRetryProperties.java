@@ -17,17 +17,10 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
-import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Map;
-
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
 /**
  * Retry properties and backoff calculation for AI upstream requests.
@@ -35,8 +28,6 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 public final class AiProxyRetryProperties {
 
     private static final int MAX_EXPONENTIAL_RETRIES = 30;
-
-    private static final long MAX_RETRY_AFTER_SECONDS = 86_400L;
 
     private int maxRetries = 3;
 
@@ -255,85 +246,12 @@ public final class AiProxyRetryProperties {
         this.requestDeadline = requestDeadline;
     }
 
-    int maxRetries(final boolean stream) {
-        return stream ? streamingMaxRetries : maxRetries;
-    }
-
-    Duration retryDelay(final boolean stream, final int retryIndex, final long seed) {
-        if (retryIndex < 0 || retryIndex >= MAX_EXPONENTIAL_RETRIES) {
-            throw new IllegalArgumentException(
-                    "retryIndex must be between 0 and " + (MAX_EXPONENTIAL_RETRIES - 1));
-        }
-        if (stream) {
-            return Duration.ZERO;
-        }
-        Duration capped = initialBackoff;
-        for (int power = 0; power < retryIndex && capped.compareTo(maxBackoff) < 0; power++) {
-            capped = capped.multipliedBy(2);
-        }
-        return jitter(maxBackoff.compareTo(capped) < 0 ? maxBackoff : capped, seed);
-    }
-
-    Duration clampRetryAfter(final Duration delay) {
-        if (Objects.isNull(delay) || delay.isNegative() || delay.compareTo(maxRetryAfter) > 0) {
-            return null;
-        }
-        return delay;
-    }
-
-    boolean acceptsRetryAfter(final Duration delay) {
-        return Objects.nonNull(delay) && !delay.isNegative() && delay.compareTo(maxRetryAfter) <= 0;
-    }
-
-    private Duration jitter(final Duration delay, final long seed) {
-        if (jitterFraction == 0d || delay.isZero()) {
-            return delay;
-        }
-        double fraction = randomFraction(seed);
-        double offset = delay.toNanos() * jitterFraction * fraction;
-        return delay.plusNanos(Math.round(offset));
-    }
-
     private int requireRetryCount(final int value, final String name) {
         if (value < 0 || value > MAX_EXPONENTIAL_RETRIES) {
             throw new IllegalArgumentException(
                     name + " must be between 0 and " + MAX_EXPONENTIAL_RETRIES);
         }
         return value;
-    }
-
-    private double randomFraction(final long seed) {
-        long mixed = seed * 0x9E3779B97F4A7C15L;
-        mixed ^= mixed >>> 32;
-        return ((mixed & 0x7fffffffL) + 1d) / 0x80000000L;
-    }
-
-    long parseRetryAfter(final String value, final Clock clock) {
-        if (Objects.isNull(value) || value.isBlank()) {
-            return -1L;
-        }
-        String trimmed = value.trim();
-        try {
-            long seconds = Long.parseLong(trimmed);
-            if (seconds < 0 || seconds > MAX_RETRY_AFTER_SECONDS) {
-                return -1L;
-            }
-            return seconds;
-        } catch (NumberFormatException ignored) {
-            return parseHttpDateRetryAfter(trimmed, clock);
-        }
-    }
-
-    private long parseHttpDateRetryAfter(final String value, final Clock clock) {
-        try {
-            Instant retryAt = value.endsWith("Z")
-                    ? Instant.parse(value)
-                    : ZonedDateTime.parse(value, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant();
-            long seconds = Duration.between(clock.instant(), retryAt).toSeconds();
-            return seconds >= 0 && seconds <= MAX_RETRY_AFTER_SECONDS ? seconds : -1L;
-        } catch (DateTimeParseException ignored) {
-            return -1L;
-        }
     }
 
     /**
@@ -391,22 +309,6 @@ public final class AiProxyRetryProperties {
             this.operations = new LinkedHashMap<>(operations);
         }
 
-        ReplayMode mode(final ShenyuAiRequest.Operation operation, final boolean executionAmbiguous,
-                        final boolean transportFailure) {
-            ReplayMode configured = operations.get(operation.name());
-            if (Objects.isNull(configured)) {
-                configured = operations.get(operation.name()
-                        .replace('_', '-')
-                        .toLowerCase(java.util.Locale.ROOT));
-            }
-            if (Objects.nonNull(configured)) {
-                return configured;
-            }
-            if (transportFailure) {
-                return executionAmbiguous ? ambiguousTransport : definiteTransport;
-            }
-            return responseStatus;
-        }
     }
 
     /**

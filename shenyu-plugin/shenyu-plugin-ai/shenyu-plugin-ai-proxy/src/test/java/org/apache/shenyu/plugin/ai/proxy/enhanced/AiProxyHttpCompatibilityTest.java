@@ -33,7 +33,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;

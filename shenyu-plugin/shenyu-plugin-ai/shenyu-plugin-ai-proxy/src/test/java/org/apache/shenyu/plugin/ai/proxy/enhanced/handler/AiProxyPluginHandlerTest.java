@@ -25,7 +25,7 @@ import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

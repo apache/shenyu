@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiMessage;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiUpstreamUsageTap;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import reactor.core.publisher.Flux;
@@ -67,6 +68,12 @@ public final class OpenAiChat implements AiProxyProtocol {
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public AiProtocolResponseInspector responseInspector() {
+        return (response, observation, stream) -> new AiUpstreamUsageTap(
+                observation, response.getHeaders(), stream, true).attach(response);
     }
 
     @Override

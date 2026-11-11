@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

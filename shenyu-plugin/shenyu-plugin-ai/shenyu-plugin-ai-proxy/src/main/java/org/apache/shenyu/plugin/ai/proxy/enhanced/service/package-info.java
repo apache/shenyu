@@ -16,10 +16,11 @@
  */
 
 /**
- * AI Proxy orchestration and configuration resolution.
+ * Public AI Proxy execution facade and policy configuration.
  *
- * <p>The terminal plugin now invokes AiProxyEngine for both response modes. The
- * engine discovers the configured or detected Protocol, validates its Provider,
+ * <p>The terminal plugin invokes AiProxyEngine for both response modes. Internal
+ * planning and execution collaborators are package-private so the engine remains
+ * the only public execution entry point. The engine discovers the configured or detected Protocol, validates its Provider,
  * decodes and adapts the request, executes Transport, adapts the Provider response,
  * and encodes the Protocol response. The response consumer belongs to the plugin
  * and writes status, end-to-end headers and byte chunks to WebFlux.

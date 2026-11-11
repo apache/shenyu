@@ -17,17 +17,25 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
+import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import reactor.core.publisher.Mono;
+
 /**
- * Observer for bounded AI attempt facts. This integration point belongs to retry
- * policy; implementations must not implement another usage metering platform.
+ * Handles one observed upstream response.
  */
 @FunctionalInterface
-public interface AiProxyAttemptListener {
+interface AiAttemptResponseHandler {
 
     /**
-     * Receive an attempt identity and retry reason.
+     * Handle an upstream response within the current attempt observation.
      *
-     * @param event bounded attempt facts without request or response content
+     * <p>The returned publisher must terminate only after response-body processing has completed,
+     * failed or been cancelled.</p>
+     *
+     * @param response observed upstream response
+     * @param observation current attempt observation
+     * @return response processing completion
      */
-    void onAttempt(AiProxyAttemptEvent event);
+    Mono<Void> handle(AiUpstreamResponse response, AiRequestObservation.Attempt observation);
 }

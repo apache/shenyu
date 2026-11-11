@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiUpstreamUsageTap;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
