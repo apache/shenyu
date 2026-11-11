@@ -985,4 +985,29 @@ public final class RuleServiceTest {
         verify(ruleMapper).updateEnable("rule-own", false);
         verify(ruleMapper, never()).updateEnable("rule-foreign", false);
     }
+
+    @Test
+    public void updateWithForeignNamespaceLeavesRuleUntouched() {
+        when(ruleMapper.selectById("rule-1")).thenReturn(new RuleDO());
+        when(ruleMapper.updateSelective(any())).thenReturn(0);
+
+        final RuleDTO dto = new RuleDTO();
+        dto.setId("rule-1");
+        dto.setSelectorId("sel-1");
+        final SelectorDO selectorDO = new SelectorDO();
+        selectorDO.setPluginId("plugin-1");
+        when(selectorMapper.selectById("sel-1")).thenReturn(selectorDO);
+        final PluginDO pluginDO = new PluginDO();
+        pluginDO.setName("divide");
+        when(pluginMapper.selectById("plugin-1")).thenReturn(pluginDO);
+        dto.setRuleConditions(Collections.singletonList(RuleConditionDTO.builder()
+                .ruleId("rule-1").operator("=").paramName("path").paramType("uri").paramValue("/x").build()));
+
+        final int count = ruleService.update(dto);
+
+        assertEquals(0, count);
+        verify(ruleConditionMapper, never()).deleteByQuery(any());
+        verify(ruleEventPublisher, never()).onUpdated(any(), any(), any(), any());
+    }
+
 }
