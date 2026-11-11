@@ -121,11 +121,21 @@ the dashboard showed.
 | enable or disable | `system:plugin:disable` | `plugin:<name><Selector\|Rule>:edit` |
 | delete | `system:plugin:delete` | `plugin:<name><Selector\|Rule>:delete` |
 
-There is no SQL migration and no role loses access, because the global grants keep
-their meaning. The change widens access in one case: a role that holds a
+There is no SQL migration, and the global grants keep their meaning on the selector
+and rule endpoints. The change widens access in one case: a role that holds a
 plugin-specific grant without the matching global grant was rejected by the server
 before and can now write to that plugin. Review these roles before or right after
 upgrading, and remove any plugin-specific grant a role should not act on.
+
+Two requests are stricter than before:
+
+- Deleting an API (`DELETE /api/batch`, `system:api:delete`) removes the selectors
+  and rules registered for it. That cleanup now needs the delete grant from the
+  table above, and the whole deletion is rejected without it. The `system:api:*`
+  permissions are not part of the default resources, so this only concerns
+  deployments that created them.
+- An update can no longer change the plugin of an existing selector or move a rule
+  to a selector of another plugin. This applies to every user, including `admin`.
 
 This query lists the plugin-specific write grants of every role that does not hold
 all three global grants:

@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.controller;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shiro.web.servlet.AbstractShiroFilter;
@@ -70,6 +71,8 @@ public final class PluginDataPermissionIntegrationTest extends AbstractSpringInt
 
     @BeforeEach
     public void setUp() {
+        // unit tests replace this shared holder with a mock context, and a cached application context does not set it again
+        SpringBeanUtils.getInstance().setApplicationContext(context);
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .addFilters(context.getBean(AbstractShiroFilter.class))
                 .build();

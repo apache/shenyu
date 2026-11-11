@@ -230,10 +230,14 @@
   (`plugin:<name><Selector|Rule>:<add|edit|delete>`) on selector and rule writes.
   The server previously checked only the global `system:plugin:*` grants and the
   dashboard used the plugin-specific ones to show buttons. Global grants keep their
-  meaning, so no role loses access and no SQL migration is required. A role that
-  holds a plugin-specific grant without the matching global grant can now write to
-  that plugin, where its requests were rejected before. Review such roles when
-  upgrading; `db/upgrade/upgrade-guide.md` has a query that lists them. (#8174)
+  meaning on the selector and rule endpoints and no SQL migration is required. A
+  role that holds a plugin-specific grant without the matching global grant can now
+  write to that plugin, where its requests were rejected before. Review such roles
+  when upgrading; `db/upgrade/upgrade-guide.md` has a query that lists them. Two
+  requests are stricter than before: deleting an API (`DELETE /api/batch`) also
+  needs the delete grant for the selectors and rules it cleans up, and an update
+  can no longer change the plugin of a selector or move a rule to a selector of
+  another plugin. (#8174)
 
 - The admin now validates the `sticky` section of a divide rule handle when a rule is
   saved: `onUnavailable` must be exactly `REBIND` or `STRICT`, `maxAgeSeconds` must be
