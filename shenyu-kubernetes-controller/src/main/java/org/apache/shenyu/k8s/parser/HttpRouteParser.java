@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -75,6 +76,10 @@ import java.util.regex.Pattern;
 public class HttpRouteParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpRouteParser.class);
+
+    private static final Pattern DURATION = Pattern.compile("(?:[0-9]{1,5}(?:ms|h|m|s)){1,4}");
+
+    private static final Pattern COMPONENT = Pattern.compile("([0-9]{1,5})(ms|h|m|s)");
 
     private static final String ID_PREFIX = "gwapi-";
 
@@ -128,6 +133,7 @@ public class HttpRouteParser {
             }
             res.setAllBackendsResolved(!resolveState.anyUnresolved);
             res.setUnresolvedReason(resolveState.reason);
+            res.setTimeoutError(resolveState.timeoutError);
             res.setHasUnsupportedFilters(resolveState.unsupportedFilters);
         }
         return res;
@@ -143,6 +149,14 @@ public class HttpRouteParser {
             resolveState.unsupportedFilters = true;
             LOG.warn("HTTPRoute {}/{} rule {} declares filters which are not supported; the rule is not programmed",
                     namespace, routeName, ruleIndex);
+            return;
+        }
+
+        String handle;
+        try {
+            handle = buildRuleHandle(rule);
+        } catch (IllegalArgumentException ex) {
+            resolveState.timeoutError = "rule " + ruleIndex + ": " + ex.getMessage();
             return;
         }
 
@@ -166,7 +180,7 @@ public class HttpRouteParser {
         if (result.upstreams.isEmpty()) {
             return;
         }
-        emitRuleSelectors(rule, hostnames, namespace, routeName, ruleIndex, routeConfigList, result.upstreams);
+        emitRuleSelectors(rule, hostnames, namespace, routeName, ruleIndex, routeConfigList, result.upstreams, handle);
     }
 
     /**
@@ -176,7 +190,7 @@ public class HttpRouteParser {
     private void emitRuleSelectors(final JsonObject rule, final List<String> hostnames, final String namespace,
                                    final String routeName, final int ruleIndex,
                                    final List<IngressConfiguration> routeConfigList,
-                                   final List<DivideUpstream> upstreamList) {
+                                   final List<DivideUpstream> upstreamList, final String handle) {
         // One selector per hostname: AND semantics cannot express "any of these hostnames".
         JsonArray matches = JsonFields.getJsonArray(rule, "matches");
         if (Objects.nonNull(matches) && !matches.isEmpty()) {
@@ -189,12 +203,12 @@ public class HttpRouteParser {
                 appendMatchConditions(matchConditions, match);
                 if (hostnames.isEmpty()) {
                     addSelectorRule(routeConfigList, namespace, routeName, ruleIndex, null,
-                            matchIndex, selectorSort(null, match, ruleIndex), matchConditions, upstreamList);
+                            matchIndex, selectorSort(null, match, ruleIndex), matchConditions, upstreamList, handle);
                 } else {
                     for (String hostname : hostnames) {
                         addSelectorRule(routeConfigList, namespace, routeName, ruleIndex,
                                 hostname, matchIndex, selectorSort(hostname, match, ruleIndex),
-                                composeConditions(hostname, matchConditions), upstreamList);
+                                composeConditions(hostname, matchConditions), upstreamList, handle);
                     }
                 }
             }
@@ -203,12 +217,12 @@ public class HttpRouteParser {
             JsonObject noMatch = new JsonObject();
             if (hostnames.isEmpty()) {
                 addSelectorRule(routeConfigList, namespace, routeName, ruleIndex, null,
-                        0, selectorSort(null, noMatch, ruleIndex), new ArrayList<>(), upstreamList);
+                        0, selectorSort(null, noMatch, ruleIndex), new ArrayList<>(), upstreamList, handle);
             } else {
                 for (String hostname : hostnames) {
                     addSelectorRule(routeConfigList, namespace, routeName, ruleIndex,
                             hostname, 0, selectorSort(hostname, noMatch, ruleIndex),
-                            composeConditions(hostname, new ArrayList<>()), upstreamList);
+                            composeConditions(hostname, new ArrayList<>()), upstreamList, handle);
                 }
             }
         }
@@ -217,7 +231,7 @@ public class HttpRouteParser {
     private void addSelectorRule(final List<IngressConfiguration> routeConfigList,
                                  final String namespace, final String routeName, final int ruleIndex,
                                  final String hostname, final int matchIndex, final int sort,
-                                 final List<ConditionData> conditions, final List<DivideUpstream> upstreamList) {
+                                 final List<ConditionData> conditions, final List<DivideUpstream> upstreamList, final String handle) {
         // A CUSTOM_FLOW selector with no conditions never matches; match-all fills the gap.
         if (conditions.isEmpty()) {
             conditions.add(matchAllCondition());
@@ -229,7 +243,7 @@ public class HttpRouteParser {
         // Only the selector is padded: rules compete only within their own selector, so padding them would add nothing.
         SelectorData selectorData = buildSelectorData(selectorId, selectorName, sort,
                 padToConditionFloor(conditions), upstreamList);
-        RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, conditions);
+        RuleData ruleData = buildRuleData(ruleId, selectorId, selectorName, conditions, handle);
         routeConfigList.add(new IngressConfiguration(selectorData, List.of(ruleData), null));
     }
 
@@ -308,13 +322,53 @@ public class HttpRouteParser {
                 .build();
     }
 
-    private RuleData buildRuleData(final String ruleId, final String selectorId,
-                                   final String selectorName, final List<ConditionData> conditions) {
-        DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-        divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-        divideRuleHandle.setRetry(3);
-        divideRuleHandle.setTimeout(3000L);
+    private static String buildRuleHandle(final JsonObject rule) {
+        DivideRuleHandle handle = new DivideRuleHandle();
+        handle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
+        handle.setRetry(3);
+        handle.setTimeout(3000L);
+        if (rule.has("timeouts")) {
+            JsonObject timeouts = JsonFields.getJsonObject(rule, "timeouts");
+            if (Objects.isNull(timeouts)) {
+                throw new IllegalArgumentException("timeouts must be an object");
+            }
+            Long request = durationMillis(timeouts, "request");
+            Long backend = durationMillis(timeouts, "backendRequest");
+            if (Objects.nonNull(request) || Objects.nonNull(backend)) {
+                if (Objects.nonNull(request) && request > 0 && Objects.nonNull(backend) && backend > request) {
+                    throw new IllegalArgumentException("timeouts.backendRequest exceeds timeouts.request");
+                }
+                handle.setRequestTimeout(Objects.requireNonNullElse(request, 0L));
+                handle.setTimeout(Objects.requireNonNullElse(backend, 3000L));
+            }
+        }
+        return GsonUtils.getInstance().toJson(handle);
+    }
 
+    private static Long durationMillis(final JsonObject timeouts, final String key) {
+        if (!timeouts.has(key)) {
+            return null;
+        }
+        JsonElement field = timeouts.get(key);
+        if (!field.isJsonPrimitive() || !field.getAsJsonPrimitive().isString() || !DURATION.matcher(field.getAsString()).matches()) {
+            throw new IllegalArgumentException("timeouts." + key + " must be a Gateway API duration");
+        }
+        Matcher parts = COMPONENT.matcher(field.getAsString());
+        long millis = 0;
+        while (parts.find()) {
+            long multiplier = switch (parts.group(2)) {
+                case "h" -> 3600000L;
+                case "m" -> 60000L;
+                case "s" -> 1000L;
+                default -> 1L;
+            };
+            millis += Long.parseLong(parts.group(1)) * multiplier;
+        }
+        return millis;
+    }
+
+    private RuleData buildRuleData(final String ruleId, final String selectorId,
+                                   final String selectorName, final List<ConditionData> conditions, final String handle) {
         return RuleData.builder()
                 .id(ruleId)
                 .selectorId(selectorId)
@@ -323,7 +377,7 @@ public class HttpRouteParser {
                 .sort(1)
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(conditions)
-                .handle(GsonUtils.getInstance().toJson(divideRuleHandle))
+                .handle(handle)
                 .logged(false)
                 .enabled(true)
                 .build();
@@ -718,5 +772,7 @@ public class HttpRouteParser {
         private String reason;
 
         private boolean unsupportedFilters;
+
+        private String timeoutError;
     }
 }

@@ -24,6 +24,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
@@ -82,11 +83,12 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                             || t instanceof io.netty.handler.timeout.ReadTimeoutException || t instanceof IllegalStateException)
                             && !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException))
                     .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
+                        if (exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST) && retrySignal.failure() instanceof TimeoutException) {
+                            return retrySignal.failure();
+                        }
                         throw new ShenyuTimeoutException("Request timeout, the maximum number of retry times has been exceeded");
                     });
-            Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(20));
-            return clientResponse.retryWhen(retryBackoffSpec)
-                    .timeout(totalTimeout, Mono.error(() -> new TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
+            return RetryTimeoutUtils.limitSequence(clientResponse.retryWhen(retryBackoffSpec), exchange, duration, retryTimes, Duration.ofSeconds(20))
                     .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         }
@@ -220,9 +222,8 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
             final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-            Mono<R> retryResponse = httpClientPlugin
-                    .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
-                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
+            Mono<R> retryResponse = AbstractHttpClientPlugin.withAttemptTimeout(exchange, duration,
+                    () -> httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
             if (ownerPresent) {
                 retryResponse = retryResponse.doFinally(signal -> {

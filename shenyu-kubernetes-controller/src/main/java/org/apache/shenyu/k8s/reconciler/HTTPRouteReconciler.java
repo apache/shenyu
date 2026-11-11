@@ -122,7 +122,7 @@ public class HTTPRouteReconciler implements Reconciler {
             deleteConfig(namespace, routeName);
         } else {
             config = httpRouteParser.parse(httpRoute, effectiveHostnames(accepted));
-            if (config.isHasUnsupportedFilters()) {
+            if (config.isHasUnsupportedFilters() || Objects.nonNull(config.getTimeoutError())) {
                 deleteConfig(namespace, routeName);
             } else {
                 GatewayRouteCache cache = GatewayRouteCache.getInstance();
@@ -398,6 +398,9 @@ public class HTTPRouteReconciler implements Reconciler {
         if (!decision.accepted) {
             conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False", decision.reason,
                     decision.message, generation));
+        } else if (Objects.nonNull(config) && Objects.nonNull(config.getTimeoutError())) {
+            conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False",
+                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE, config.getTimeoutError(), generation));
         } else if (unsupportedFilters) {
             conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False",
                     GatewayApiConstants.REASON_UNSUPPORTED_VALUE,

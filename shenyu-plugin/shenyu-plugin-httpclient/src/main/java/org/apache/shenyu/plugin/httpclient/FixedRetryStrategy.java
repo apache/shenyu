@@ -69,9 +69,7 @@ public class FixedRetryStrategy<R> implements RetryStrategy<R> {
         } else {
             retriedResponse = response.retryWhen(initFixedBackoff(exchange, retryTimes));
         }
-        Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, BACKOFF);
-        return retriedResponse
-                .timeout(totalTimeout, Mono.error(() -> new TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
+        return RetryTimeoutUtils.limitSequence(retriedResponse, exchange, duration, retryTimes, BACKOFF)
                 .doOnError(e -> LOG.error(e.getMessage(), e));
     }
 

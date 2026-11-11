@@ -42,6 +42,8 @@ public class ShenyuMemoryConfig {
     /** Unsupported filters must surface as Accepted=False/UnsupportedValue with the rule unprogrammed. */
     private boolean hasUnsupportedFilters;
 
+    private String timeoutError;
+
     /**
      * ShenyuMemoryConfig Constructor.
      */
@@ -116,6 +118,14 @@ public class ShenyuMemoryConfig {
 
     public void setUnresolvedReason(final String unresolvedReason) {
         this.unresolvedReason = unresolvedReason;
+    }
+
+    public String getTimeoutError() {
+        return timeoutError;
+    }
+
+    public void setTimeoutError(final String timeoutError) {
+        this.timeoutError = timeoutError;
     }
 
     public boolean isHasUnsupportedFilters() {

@@ -93,10 +93,12 @@ public final class GatewayClassReconcilerTest {
         JsonObject supportedVersion = condition(status, "SupportedVersion");
         Assertions.assertEquals("True", supportedVersion.get("status").getAsString());
         Assertions.assertEquals("SupportedVersion", supportedVersion.get("reason").getAsString());
-        Assertions.assertEquals(3, status.getAsJsonArray("supportedFeatures").size());
+        Assertions.assertEquals(5, status.getAsJsonArray("supportedFeatures").size());
         Assertions.assertEquals("Gateway", featureName(status, 0));
         Assertions.assertEquals("HTTPRoute", featureName(status, 1));
-        Assertions.assertEquals("ReferenceGrant", featureName(status, 2));
+        Assertions.assertEquals("HTTPRouteBackendTimeout", featureName(status, 2));
+        Assertions.assertEquals("HTTPRouteRequestTimeout", featureName(status, 3));
+        Assertions.assertEquals("ReferenceGrant", featureName(status, 4));
     }
 
     /** Unsupported CRD bundle versions still accept the class (best effort) but flip the SupportedVersion condition to False with the standard reason. */
@@ -308,7 +310,7 @@ public final class GatewayClassReconcilerTest {
         conditions.add(supportedVersion);
 
         JsonArray supportedFeatures = new JsonArray();
-        for (String name : List.of("Gateway", "HTTPRoute", "ReferenceGrant")) {
+        for (String name : List.of("Gateway", "HTTPRoute", "HTTPRouteBackendTimeout", "HTTPRouteRequestTimeout", "ReferenceGrant")) {
             JsonObject feature = new JsonObject();
             feature.addProperty("name", name);
             supportedFeatures.add(feature);

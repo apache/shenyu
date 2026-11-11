@@ -39,6 +39,8 @@ import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.List;
@@ -371,8 +373,9 @@ public final class HTTPRouteReconcilerTest {
      * config from a previous valid spec of this route is dropped, and the status patch
      * reports Accepted=False with the spec-defined reason UnsupportedValue.
      */
-    @Test
-    public void testReconcileUnsupportedFiltersProgramsNothing() throws Exception {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testReconcileUnsupportedRuleProgramsNothing(final boolean invalidTimeout) throws Exception {
         Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
         V1Endpoints mockedEndpoints = new V1EndpointsBuilder().withKind("Endpoints")
                 .withNewMetadata().withNamespace("mockedNamespace").withName("testService").endMetadata()
@@ -392,12 +395,18 @@ public final class HTTPRouteReconcilerTest {
         final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
         final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
                 "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
-        JsonObject filter = new JsonObject();
-        filter.addProperty("type", "RequestHeaderModifier");
-        JsonArray filters = new JsonArray();
-        filters.add(filter);
-        httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules")
-                .get(0).getAsJsonObject().add("filters", filters);
+        JsonObject rule = httpRoute.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject();
+        if (invalidTimeout) {
+            JsonObject timeouts = new JsonObject();
+            timeouts.addProperty("request", "5seconds");
+            rule.add("timeouts", timeouts);
+        } else {
+            JsonObject filter = new JsonObject();
+            filter.addProperty("type", "RequestHeaderModifier");
+            JsonArray filters = new JsonArray();
+            filters.add(filter);
+            rule.add("filters", filters);
+        }
         when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
         when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
 
@@ -433,6 +442,13 @@ public final class HTTPRouteReconcilerTest {
             }
         }
         Assertions.assertTrue(rejectedWithUnsupportedValue, "Accepted=False/UnsupportedValue not reported");
+
+        rule.remove(invalidTimeout ? "timeouts" : "filters");
+        httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
+        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
+        cache.removeRouteSelectors("mockedNamespace", "test-route", "divide");
+        cache.removeRouteGatewayBinding("mockedNamespace", "test-route");
     }
 
     /** Status entries owned by other controllers must survive ShenYu's status patch: the patch body carries them over, because the merge patch replaces the parents array wholesale. */

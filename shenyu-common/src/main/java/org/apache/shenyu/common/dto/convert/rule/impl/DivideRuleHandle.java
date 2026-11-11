@@ -56,6 +56,9 @@ public class DivideRuleHandle implements RuleHandle {
      */
     private long timeout = Constants.TIME_OUT;
 
+    /** Overall HTTPRoute timeout in milliseconds; null selects legacy timeout handling. */
+    private Long requestTimeout;
+
     /**
      * headerMaxSize.
      */
@@ -83,6 +86,14 @@ public class DivideRuleHandle implements RuleHandle {
      * reference visibly fails the request instead of falling back silently.
      */
     private String poolGroup;
+
+    public Long getRequestTimeout() {
+        return requestTimeout;
+    }
+
+    public void setRequestTimeout(final Long requestTimeout) {
+        this.requestTimeout = requestTimeout;
+    }
 
     /**
      * Gets the optional pool group name.
@@ -275,14 +286,14 @@ public class DivideRuleHandle implements RuleHandle {
         DivideRuleHandle that = (DivideRuleHandle) o;
         return retry == that.retry && timeout == that.timeout && headerMaxSize == that.headerMaxSize
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
-                && Objects.equals(retryStrategy, that.retryStrategy)
+                && Objects.equals(requestTimeout, that.requestTimeout) && Objects.equals(retryStrategy, that.retryStrategy)
                 && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary)
                 && Objects.equals(sticky, that.sticky) && Objects.equals(poolGroup, that.poolGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, headerMaxSize, requestMaxSize, canary, sticky, poolGroup);
+        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, requestTimeout, headerMaxSize, requestMaxSize, canary, sticky, poolGroup);
     }
 
     @Override
@@ -301,6 +312,8 @@ public class DivideRuleHandle implements RuleHandle {
                 + retry
                 + ", timeout="
                 + timeout
+                + ", requestTimeout="
+                + requestTimeout
                 + ", headerMaxSize="
                 + headerMaxSize
                 + ", requestMaxSize="

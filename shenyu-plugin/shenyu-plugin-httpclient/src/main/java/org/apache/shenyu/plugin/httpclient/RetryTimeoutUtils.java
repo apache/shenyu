@@ -19,6 +19,10 @@
 package org.apache.shenyu.plugin.httpclient;
 
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
  * Bounds a retry sequence while allowing each attempt and its maximum backoff.
@@ -26,6 +30,16 @@ import java.time.Duration;
 final class RetryTimeoutUtils {
 
     private RetryTimeoutUtils() {
+    }
+
+    static <T> Mono<T> limitSequence(final Mono<T> response, final ServerWebExchange exchange, final Duration attemptTimeout,
+                                     final int retryTimes, final Duration maxBackoff) {
+        if (exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST)) {
+            // Divide already owns the configured deadline across backoff, attempts and response writing.
+            return response;
+        }
+        Duration total = totalTimeout(attemptTimeout, retryTimes, maxBackoff);
+        return response.timeout(total, Mono.error(() -> new TimeoutException("Retry sequence took longer than timeout: " + total)));
     }
 
     static Duration totalTimeout(final Duration attemptTimeout, final int retryTimes, final Duration maxBackoff) {

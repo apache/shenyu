@@ -40,6 +40,7 @@ import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -114,10 +115,21 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        return Mono.defer(() -> executeRequest(exchange, chain, selector, rule));
+        return Mono.defer(() -> {
+            DivideRuleHandle handle = buildRuleHandle(rule);
+            if (Objects.isNull(handle.getRequestTimeout())) {
+                exchange.getAttributes().remove(HttpRouteDeadline.REQUEST);
+                return executeRequest(exchange, chain, selector, rule, handle);
+            }
+            HttpRouteDeadline deadline = new HttpRouteDeadline(handle.getRequestTimeout());
+            exchange.getAttributes().put(HttpRouteDeadline.REQUEST, deadline);
+            return deadline.limit(Mono.defer(() -> executeRequest(exchange, chain, selector, rule, handle)))
+                    .onErrorMap(java.util.concurrent.TimeoutException.class, HttpRouteDeadline::gatewayTimeout);
+        });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
+                                      final RuleData rule, final DivideRuleHandle ruleHandle) {
         // A re-entered exchange must not inherit a previous selector's partition or pool group.
         exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
         exchange.getAttributes().remove(UpstreamAttemptOwner.ATTRIBUTE);
@@ -125,7 +137,6 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().remove(Constants.HTTP_POOL_GROUP);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
-        DivideRuleHandle ruleHandle = buildRuleHandle(rule);
         final ServerWebExchange effectiveExchange = limitChunkedRequestBody(exchange, ruleHandle);
         if (ruleHandle.getHeaderMaxSize() > 0) {
             long headerSize = calculateHeaderSize(effectiveExchange.getRequest().getHeaders());
