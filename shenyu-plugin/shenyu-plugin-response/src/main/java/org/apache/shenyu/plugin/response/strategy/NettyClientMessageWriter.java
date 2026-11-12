@@ -94,9 +94,7 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
     
     private void cleanup(final ServerWebExchange exchange) {
-        if (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.ATTEMPT))) {
-            // The HTTP client owns this handoff. Let cancellation reach the body subscriber before
-            // releasing its transport; closing it here can look like an empty successful response.
+        if (HttpRouteDeadline.ownsResponseCleanup(exchange)) {
             return;
         }
         Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);

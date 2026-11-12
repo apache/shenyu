@@ -41,6 +41,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
@@ -119,12 +120,20 @@ public class DividePlugin extends AbstractShenyuPlugin {
             DivideRuleHandle handle = buildRuleHandle(rule);
             if (Objects.isNull(handle.getRequestTimeout())) {
                 exchange.getAttributes().remove(HttpRouteDeadline.REQUEST);
+                exchange.getAttributes().remove(HttpRouteResponseHeaders.ATTRIBUTE);
                 return executeRequest(exchange, chain, selector, rule, handle);
             }
             HttpRouteDeadline deadline = new HttpRouteDeadline(handle.getRequestTimeout());
             exchange.getAttributes().put(HttpRouteDeadline.REQUEST, deadline);
+            HttpRouteResponseHeaders headers = new HttpRouteResponseHeaders();
+            exchange.getAttributes().put(HttpRouteResponseHeaders.ATTRIBUTE, headers);
             return deadline.limit(Mono.defer(() -> executeRequest(exchange, chain, selector, rule, handle)))
-                    .onErrorMap(java.util.concurrent.TimeoutException.class, HttpRouteDeadline::gatewayTimeout);
+                    .onErrorMap(java.util.concurrent.TimeoutException.class, HttpRouteDeadline::gatewayTimeout)
+                    .doOnError(ResponseStatusException.class, error -> {
+                        if (HttpStatus.GATEWAY_TIMEOUT.equals(error.getStatusCode())) {
+                            headers.restore(exchange);
+                        }
+                    });
         });
     }
 

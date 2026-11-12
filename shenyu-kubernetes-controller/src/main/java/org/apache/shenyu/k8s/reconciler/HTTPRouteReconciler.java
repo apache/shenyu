@@ -122,7 +122,7 @@ public class HTTPRouteReconciler implements Reconciler {
             deleteConfig(namespace, routeName);
         } else {
             config = httpRouteParser.parse(httpRoute, effectiveHostnames(accepted));
-            if (config.isHasUnsupportedFilters() || Objects.nonNull(config.getTimeoutError())) {
+            if (Objects.nonNull(config.getRuleRejectionMessage())) {
                 deleteConfig(namespace, routeName);
             } else {
                 GatewayRouteCache cache = GatewayRouteCache.getInstance();
@@ -394,17 +394,13 @@ public class HTTPRouteReconciler implements Reconciler {
                                             final Long generation) {
         JsonArray conditions = new JsonArray();
 
-        boolean unsupportedFilters = Objects.nonNull(config) && config.isHasUnsupportedFilters();
+        String rejectionMessage = Objects.isNull(config) ? null : config.getRuleRejectionMessage();
         if (!decision.accepted) {
             conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False", decision.reason,
                     decision.message, generation));
-        } else if (Objects.nonNull(config) && Objects.nonNull(config.getTimeoutError())) {
+        } else if (Objects.nonNull(rejectionMessage)) {
             conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False",
-                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE, config.getTimeoutError(), generation));
-        } else if (unsupportedFilters) {
-            conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "False",
-                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
-                    "route rules declare filters which are not supported by ShenYu", generation));
+                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE, rejectionMessage, generation));
         } else {
             conditions.add(buildCondition(GatewayApiConstants.CONDITION_ACCEPTED, "True", "Accepted",
                     "HTTPRoute is accepted by the ShenYu Gateway", generation));

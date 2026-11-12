@@ -133,7 +133,7 @@ public class HttpRouteParser {
             }
             res.setAllBackendsResolved(!resolveState.anyUnresolved);
             res.setUnresolvedReason(resolveState.reason);
-            res.setTimeoutError(resolveState.timeoutError);
+            res.setRuleRejectionMessage(resolveState.rejectionMessage);
             res.setHasUnsupportedFilters(resolveState.unsupportedFilters);
         }
         return res;
@@ -147,16 +147,17 @@ public class HttpRouteParser {
         JsonArray filters = JsonFields.getJsonArray(rule, "filters");
         if (Objects.nonNull(filters) && !filters.isEmpty()) {
             resolveState.unsupportedFilters = true;
+            resolveState.reject(ruleIndex, "filters are not supported by ShenYu");
             LOG.warn("HTTPRoute {}/{} rule {} declares filters which are not supported; the rule is not programmed",
                     namespace, routeName, ruleIndex);
             return;
         }
 
-        String handle;
+        DivideRuleHandle handle;
         try {
-            handle = buildRuleHandle(rule);
+            handle = parseDivideRuleHandle(rule);
         } catch (IllegalArgumentException ex) {
-            resolveState.timeoutError = "rule " + ruleIndex + ": " + ex.getMessage();
+            resolveState.reject(ruleIndex, ex.getMessage());
             return;
         }
 
@@ -190,7 +191,7 @@ public class HttpRouteParser {
     private void emitRuleSelectors(final JsonObject rule, final List<String> hostnames, final String namespace,
                                    final String routeName, final int ruleIndex,
                                    final List<IngressConfiguration> routeConfigList,
-                                   final List<DivideUpstream> upstreamList, final String handle) {
+                                   final List<DivideUpstream> upstreamList, final DivideRuleHandle handle) {
         // One selector per hostname: AND semantics cannot express "any of these hostnames".
         JsonArray matches = JsonFields.getJsonArray(rule, "matches");
         if (Objects.nonNull(matches) && !matches.isEmpty()) {
@@ -231,7 +232,7 @@ public class HttpRouteParser {
     private void addSelectorRule(final List<IngressConfiguration> routeConfigList,
                                  final String namespace, final String routeName, final int ruleIndex,
                                  final String hostname, final int matchIndex, final int sort,
-                                 final List<ConditionData> conditions, final List<DivideUpstream> upstreamList, final String handle) {
+                                 final List<ConditionData> conditions, final List<DivideUpstream> upstreamList, final DivideRuleHandle handle) {
         // A CUSTOM_FLOW selector with no conditions never matches; match-all fills the gap.
         if (conditions.isEmpty()) {
             conditions.add(matchAllCondition());
@@ -322,7 +323,7 @@ public class HttpRouteParser {
                 .build();
     }
 
-    private static String buildRuleHandle(final JsonObject rule) {
+    private static DivideRuleHandle parseDivideRuleHandle(final JsonObject rule) {
         DivideRuleHandle handle = new DivideRuleHandle();
         handle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
         handle.setRetry(3);
@@ -342,7 +343,7 @@ public class HttpRouteParser {
                 handle.setTimeout(Objects.requireNonNullElse(backend, 3000L));
             }
         }
-        return GsonUtils.getInstance().toJson(handle);
+        return handle;
     }
 
     private static Long durationMillis(final JsonObject timeouts, final String key) {
@@ -368,7 +369,7 @@ public class HttpRouteParser {
     }
 
     private RuleData buildRuleData(final String ruleId, final String selectorId,
-                                   final String selectorName, final List<ConditionData> conditions, final String handle) {
+                                   final String selectorName, final List<ConditionData> conditions, final DivideRuleHandle handle) {
         return RuleData.builder()
                 .id(ruleId)
                 .selectorId(selectorId)
@@ -377,7 +378,7 @@ public class HttpRouteParser {
                 .sort(1)
                 .matchMode(MatchModeEnum.AND.getCode())
                 .conditionDataList(conditions)
-                .handle(handle)
+                .handle(GsonUtils.getInstance().toJson(handle))
                 .logged(false)
                 .enabled(true)
                 .build();
@@ -773,6 +774,12 @@ public class HttpRouteParser {
 
         private boolean unsupportedFilters;
 
-        private String timeoutError;
+        private String rejectionMessage;
+
+        private void reject(final int ruleIndex, final String message) {
+            if (Objects.isNull(rejectionMessage)) {
+                rejectionMessage = "rule " + ruleIndex + ": " + message;
+            }
+        }
     }
 }

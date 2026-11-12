@@ -122,6 +122,7 @@ public final class HttpRouteTimeoutRoutingTest {
                 return Mono.delay(Duration.ofSeconds(1)).then(res.sendString(Mono.just("ok")).then());
             }
             if (req.uri().equals("/body")) {
+                res.header("Set-Cookie", "backend=session").header("X-Origin", "upstream").header("ETag", "backend-tag");
                 req.withConnection(conn -> conn.onDispose(disconnected::countDown));
                 return res.sendHeaders().then().then(Mono.never());
             }
@@ -144,6 +145,7 @@ public final class HttpRouteTimeoutRoutingTest {
         gateway = HttpServer.create().host("127.0.0.1").port(0).handle(new ReactorHttpHandlerAdapter(
                 WebHttpHandlerBuilder.webHandler(exchange -> {
                     exchange.getAttributes().put(Constants.CONTEXT, new ShenyuContext());
+                    exchange.getResponse().getHeaders().set("X-Origin", "gateway");
                     return divide.forward(exchange, selected -> {
                         selected.getAttributes().put(Constants.HTTP_URI, URI.create(selected.getAttribute(Constants.HTTP_DOMAIN)
                                 + selected.getRequest().getPath().value()));
@@ -207,7 +209,13 @@ public final class HttpRouteTimeoutRoutingTest {
         startGateway(netty);
         calls.set(0);
         configure(0, 250);
-        Assertions.assertEquals(504, status("/body"));
+        caller.get().uri("/body").responseSingle((response, body) -> {
+            Assertions.assertEquals(504, response.status().code());
+            Assertions.assertFalse(response.responseHeaders().contains("Set-Cookie"));
+            Assertions.assertFalse(response.responseHeaders().contains("ETag"));
+            Assertions.assertEquals("gateway", response.responseHeaders().get("X-Origin"));
+            return body.then();
+        }).block(Duration.ofSeconds(8));
         Assertions.assertTrue(disconnected.await(2, TimeUnit.SECONDS), "backend connection still open after body timeout");
         Assertions.assertEquals(1, calls.get());
 

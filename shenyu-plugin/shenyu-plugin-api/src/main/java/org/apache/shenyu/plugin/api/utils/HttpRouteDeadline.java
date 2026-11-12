@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
@@ -85,6 +86,16 @@ public final class HttpRouteDeadline {
         }
         Mono<Void> deadline = limit(bodyComplete.asMono()).then(Mono.never());
         return Mono.firstWithSignal(deadline, write);
+    }
+
+    /**
+     * The HTTP client releases a timed attempt after cancellation reaches its body subscriber.
+     * Closing its transport inside a writer cancellation hook can complete an empty response.
+     * @param exchange current exchange
+     * @return whether the HTTP client owns response cleanup
+     */
+    public static boolean ownsResponseCleanup(final ServerWebExchange exchange) {
+        return Objects.nonNull(exchange.getAttribute(ATTEMPT));
     }
 
     /** Record complete receipt independently of downstream flush completion. */

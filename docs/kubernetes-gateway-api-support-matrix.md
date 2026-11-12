@@ -391,7 +391,9 @@ gateway that does not publish its address is incomplete for every consumer that 
 Without either timeout the generated Divide rule uses its legacy 3000 ms timeout and three retries.
 Specifying either field enables separate deadlines. An omitted backend budget defaults to 3000 ms;
 an omitted request budget adds no route-wide deadline. Zero disables that particular route timer.
-Independent connect and transport limits still apply. Values use the v1.5.1 Gateway API duration
+When both values are zero, the retry count still applies, but the route imposes no time limit on
+an attempt or on the retry sequence. A stalled backend then relies solely on independently
+configured connection and transport timeouts. Values use the v1.5.1 Gateway API duration
 grammar, including compound values such as `1s250ms`. A malformed value or a backend duration
 greater than a finite explicit request duration withdraws the route and reports
 `Accepted=False/UnsupportedValue`.

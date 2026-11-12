@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
 import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
@@ -162,10 +163,12 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    HttpHeaders headers = exchange.getResponse().getHeaders();
-                    headers.putAll(fluxResponseEntity.getHeaders());
-                    this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
-                    exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
+                    HttpRouteResponseHeaders.apply(exchange, () -> {
+                        HttpHeaders headers = exchange.getResponse().getHeaders();
+                        headers.putAll(fluxResponseEntity.getHeaders());
+                        this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
+                        exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
+                    });
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
                     return Mono.just(fluxResponseEntity);
                 });

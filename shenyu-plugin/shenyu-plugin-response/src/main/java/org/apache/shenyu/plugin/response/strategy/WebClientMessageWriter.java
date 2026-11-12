@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +91,10 @@ public class WebClientMessageWriter implements MessageWriter {
                 return WebFluxResultUtils.result(exchange, error);
             }
 
-            this.redrawResponseHeaders(response, fluxResponseEntity);
-            deduplicateResponseHeaders(exchange);
+            HttpRouteResponseHeaders.apply(exchange, () -> {
+                this.redrawResponseHeaders(response, fluxResponseEntity);
+                deduplicateResponseHeaders(exchange);
+            });
 
             Mono<Void> responseMono;
             if (Objects.nonNull(fluxResponseEntity.getBody())) {
@@ -165,9 +168,7 @@ public class WebClientMessageWriter implements MessageWriter {
     }
 
     private void clean(final ServerWebExchange exchange) {
-        if (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.ATTEMPT))) {
-            // The HTTP client owns this handoff. Let cancellation reach the body subscriber before
-            // releasing its transport; closing it here can look like an empty successful response.
+        if (HttpRouteDeadline.ownsResponseCleanup(exchange)) {
             return;
         }
         ResponseEntity<Flux<DataBuffer>> fluxResponseEntity = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);

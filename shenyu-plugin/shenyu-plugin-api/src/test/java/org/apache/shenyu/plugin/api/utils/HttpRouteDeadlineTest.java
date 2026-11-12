@@ -18,10 +18,14 @@
 package org.apache.shenyu.plugin.api.utils;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -43,6 +47,22 @@ public final class HttpRouteDeadlineTest {
             Mono<Void> flush = Mono.delay(Duration.ofMillis(50)).doOnNext(tick -> attempt.received()).then(Mono.never());
             return request.limit(attempt.finish(flush));
         }).thenAwait(Duration.ofSeconds(1)).expectError(TimeoutException.class).verify();
+    }
+
+    @Test
+    public void testLateHeadersCannotReplaceRestoredGatewayValues() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        HttpRouteResponseHeaders state = new HttpRouteResponseHeaders();
+        exchange.getAttributes().put(HttpRouteResponseHeaders.ATTRIBUTE, state);
+        HttpHeaders headers = exchange.getResponse().getHeaders();
+        headers.add(HttpHeaders.VARY, "Origin");
+        HttpRouteResponseHeaders.apply(exchange, () -> headers.add(HttpHeaders.VARY, "Accept"));
+        HttpRouteResponseHeaders.apply(exchange, () -> headers.add(HttpHeaders.SET_COOKIE, "origin=1"));
+        state.restore(exchange);
+        HttpRouteResponseHeaders.apply(exchange, () -> headers.add(HttpHeaders.SET_COOKIE, "late=1"));
+
+        Assertions.assertEquals(List.of("Origin"), headers.get(HttpHeaders.VARY));
+        Assertions.assertFalse(headers.containsKey(HttpHeaders.SET_COOKIE));
     }
 
     @Test

@@ -87,10 +87,18 @@ public class DivideRuleHandle implements RuleHandle {
      */
     private String poolGroup;
 
+    /**
+     * Get the overall HTTPRoute request budget.
+     * @return milliseconds, zero for a disabled deadline, or null for legacy retry handling
+     */
     public Long getRequestTimeout() {
         return requestTimeout;
     }
 
+    /**
+     * Set the overall HTTPRoute request budget.
+     * @param requestTimeout milliseconds, zero for a disabled deadline, or null for legacy retry handling
+     */
     public void setRequestTimeout(final Long requestTimeout) {
         this.requestTimeout = requestTimeout;
     }

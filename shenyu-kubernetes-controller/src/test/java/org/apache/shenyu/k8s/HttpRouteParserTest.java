@@ -98,7 +98,7 @@ public final class HttpRouteParserTest {
         HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
         ShenyuMemoryConfig config = parser.parse(route, List.of());
         Assertions.assertTrue(config.getRouteConfigList().isEmpty());
-        Assertions.assertTrue(config.getTimeoutError().contains("rule 0: timeouts.request"));
+        Assertions.assertTrue(config.getRuleRejectionMessage().contains("rule 0: timeouts.request"));
     }
 
     @ParameterizedTest
@@ -110,7 +110,23 @@ public final class HttpRouteParserTest {
         HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
         ShenyuMemoryConfig config = parser.parse(route, List.of());
         Assertions.assertTrue(config.getRouteConfigList().isEmpty());
-        Assertions.assertNotNull(config.getTimeoutError());
+        Assertions.assertNotNull(config.getRuleRejectionMessage());
+    }
+
+    @Test
+    public void testFirstRejectedRuleProvidesStatusMessage() {
+        DynamicKubernetesObject route = buildHTTPRoute(NAMESPACE, "invalid", NAMESPACE, "gateway", SERVICE_NAME, SERVICE_PORT,
+                "/test", "Exact", null, null);
+        JsonArray rules = route.getRaw().getAsJsonObject("spec").getAsJsonArray("rules");
+        JsonObject first = rules.get(0).getAsJsonObject();
+        first.add("filters", JsonParser.parseString("[{}]"));
+        JsonObject second = new JsonObject();
+        second.addProperty("timeouts", false);
+        rules.add(second);
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        Assertions.assertEquals("rule 0: filters are not supported by ShenYu", parser.parse(route, List.of()).getRuleRejectionMessage());
+        rules.remove(0);
+        Assertions.assertEquals("rule 0: timeouts must be an object", parser.parse(route, List.of()).getRuleRejectionMessage());
     }
 
     /** Changing either budget must reach the generated Divide rule. */
