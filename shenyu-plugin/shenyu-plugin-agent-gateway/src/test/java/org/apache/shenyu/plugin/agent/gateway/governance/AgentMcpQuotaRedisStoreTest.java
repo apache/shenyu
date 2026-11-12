@@ -17,6 +17,10 @@
 
 package org.apache.shenyu.plugin.agent.gateway.governance;
 
+import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
+import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.governance.AgentGovernanceDecision;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,15 +31,20 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -162,6 +171,71 @@ final class AgentMcpQuotaRedisStoreTest {
         assertTrue(denied.concurrencyLimited());
         await().atMost(Duration.ofSeconds(5)).until(() -> store.admit(policy, tenant, subject,
                 UUID.randomUUID().toString(), Instant.now().minusSeconds(3600)).block(Duration.ofSeconds(2)).allowed());
+    }
+
+    @Test
+    void realRedisPolicyFailureRejectsBeforeToolExecutionAndRecordsAudit() {
+        Assumptions.assumeTrue(isRedisAvailable(), "Start Redis to run distributed quota tests");
+        ReactiveRedisTemplate<String, String> template = template();
+        String tenant = tenant();
+        String subject = subject();
+        String tag = "{enforce:" + Base64.getUrlEncoder().withoutPadding().encodeToString(tenant.getBytes(StandardCharsets.UTF_8)) + "}";
+        String tenantKey = "shenyu:agent:mcp-quota:invocation:" + tag;
+        String concurrencyKey = "shenyu:agent:mcp-quota:concurrency:" + tag + ":"
+                + Base64.getUrlEncoder().withoutPadding().encodeToString(subject.getBytes(StandardCharsets.UTF_8));
+        List<AgentGovernanceDecision> decisions = new ArrayList<>();
+        List<AgentInvocationAuditEvent> audits = new ArrayList<>();
+        AgentRuntimeMetrics metrics = new AgentRuntimeMetrics() {
+            @Override
+            public void governanceDecision(final AgentGovernanceDecision decision) {
+                decisions.add(decision);
+            }
+        };
+        AgentMcpQuotaGovernor governor = new AgentMcpQuotaGovernor(policy(AgentMcpQuotaConfig.Mode.ENFORCE, 100, 1),
+                new RedisAgentMcpQuotaStore(template), metrics, "test", audits::add);
+        AtomicBoolean executed = new AtomicBoolean();
+        try {
+            assertTrue(template.opsForValue().set(tenantKey, "wrong-redis-type", Duration.ofSeconds(10)).block(Duration.ofSeconds(5)));
+            StepVerifier.create(governor.withQuota(tenant, subject, "policy-error", 1, Mono.fromSupplier(() -> {
+                executed.set(true);
+                return "unexpected";
+            })).contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
+                    new AgentRequestContext("policy-error", "mcp", "selector", "rule").withIdentity(tenant, subject))))
+                    .expectErrorSatisfies(error -> {
+                        assertTrue(error instanceof AgentMcpQuotaException);
+                        AgentGovernanceDecision decision = ((AgentMcpQuotaException) error).getDecision();
+                        assertEquals(AgentGovernanceDecision.Result.DENY, decision.getResult());
+                        assertEquals(AgentGovernanceDecision.Reason.POLICY_ERROR, decision.getReason());
+                    }).verify(Duration.ofSeconds(5));
+            assertFalse(executed.get());
+            assertEquals(1, decisions.size());
+            assertEquals(1, audits.size());
+            assertEquals(AgentInvocationAuditEvent.Decision.REJECTED, audits.get(0).getDecision());
+            assertEquals("POLICY_ERROR", audits.get(0).getReason());
+            assertFalse(template.hasKey(concurrencyKey).block(Duration.ofSeconds(5)));
+        } finally {
+            template.delete(tenantKey).block(Duration.ofSeconds(5));
+        }
+    }
+
+    @Test
+    void governorRecoversAfterAnAbandonedRedisLeaseExpires() {
+        Assumptions.assumeTrue(isRedisAvailable(), "Start Redis to run distributed quota tests");
+        ReactiveRedisTemplate<String, String> template = template();
+        RedisAgentMcpQuotaStore store = new RedisAgentMcpQuotaStore(template);
+        AgentMcpQuotaConfig policy = AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE,
+                100, Duration.ofSeconds(60), 1, Duration.ofSeconds(1), false);
+        AgentMcpQuotaGovernor governor = new AgentMcpQuotaGovernor(policy, store, AgentRuntimeMetrics.NOOP, "test");
+        String tenant = tenant();
+        String subject = subject();
+        assertTrue(store.admit(policy, tenant, subject, "abandoned", Instant.now()).block(Duration.ofSeconds(5)).allowed());
+        StepVerifier.create(governor.withQuota(tenant, subject, "before-expiry", 1, Mono.just("unexpected")))
+                .expectErrorSatisfies(error -> assertEquals(AgentGovernanceDecision.Reason.MCP_CONCURRENCY_LIMIT,
+                        ((AgentMcpQuotaException) error).getDecision().getReason()))
+                .verify(Duration.ofSeconds(5));
+        await().atMost(Duration.ofSeconds(5)).until(() -> governor.withQuota(tenant, subject, "after-expiry", 1, Mono.just(true))
+                .onErrorResume(AgentMcpQuotaException.class, error -> Mono.just(false)).block(Duration.ofSeconds(2)));
+        assertTrue(store.admit(policy, tenant, subject, "after-release", Instant.now()).block(Duration.ofSeconds(5)).allowed());
     }
 
     @Test
