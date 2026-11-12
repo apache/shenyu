@@ -549,6 +549,28 @@ that owns replicated session state). Sticky multi-replica routing, remote-server
 and maximum-session behavior are deployment properties and must be documented by the
 operator; the gateway does not assume affinity or a session store.
 
+### Legacy inbound session acceptance boundary
+
+Outbound recovery does not complete the legacy inbound session-level portion of
+#7954. The ShenYu-owned `ShenyuStreamableHttpServerTransportProvider` retains
+initialized sessions in a local map; `ShenyuSseServerTransportProvider` retains
+each connected SSE session separately. Neither currently exposes an enforced
+maximum session count or a healthy-session idle TTL. The SDK's own servlet
+transport is a third ownership boundary, not the implementation of these two
+WebFlux providers. Request cancellation and output-stall detection must not be
+presented as session capacity or idle reclamation.
+
+The independent #8195 / PR #8350 work owns pending SSE output bounds and
+slow-consumer termination. It explicitly keeps a healthy session with no pending
+output alive. Reuse that terminal owner after its interface is accepted rather
+than adding a competing close timer in the SSE provider. The remaining #7954
+work must enforce concurrent session creation atomically, release capacity once
+on all close paths, expire only eligible idle sessions without disrupting active
+operations, and test both entry points, failed creation and shutdown races.
+Deployment remains single-instance or externally managed affinity/session state;
+no distributed session routing is supplied by this recovery PR. These are
+outstanding acceptance items, not implemented guarantees.
+
 ## Resource aggregation
 
 Register local `AgentResourceProvider` Spring beans with immutable
