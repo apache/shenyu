@@ -39,6 +39,7 @@ import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
@@ -55,6 +56,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
 import java.util.ArrayList;
@@ -131,6 +134,50 @@ class RemotePromptNetworkTest {
             } finally {
                 gateway.disposeNow(WAIT);
             }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,json", "true,json", "false,sse", "true,sse"})
+    @EnabledIfSystemProperty(named = "shenyu.test.mcp.client.root", matches = ".+")
+    void officialSdkListsAndGetsLocalAndRemotePrompts(final boolean upstreamSse, final String mode) throws Exception {
+        try (Fixture first = new Fixture("first", upstreamSse); Fixture second = new Fixture("second", upstreamSse);
+                ManagedRemoteMcpCatalog catalog = catalog(first, second, true)) {
+            catalog.reload(config(first, second)).block(WAIT);
+            AtomicReference<Set<String>> grants = new AtomicReference<>(Set.of("local", "first.summary", "first.next", "second.summary"));
+            DisposableServer gateway = gateway(catalog, mode, grants);
+            try {
+                runOfficialClient(gateway, "full");
+                long forwarded = java.util.stream.Stream.of(first, second)
+                        .flatMap(fixture -> fixture.wires.stream()).filter(wire -> "prompts/get".equals(wire.method())).count();
+                assertEquals(3, forwarded);
+                grants.set(Set.of("local"));
+                runOfficialClient(gateway, "restricted");
+                assertEquals(forwarded, java.util.stream.Stream.of(first, second)
+                        .flatMap(fixture -> fixture.wires.stream()).filter(wire -> "prompts/get".equals(wire.method())).count());
+                for (Fixture fixture : List.of(first, second)) {
+                    assertTrue(fixture.wires.stream().allMatch(wire -> wire.authorization().equals("Bearer prompts-service")
+                            && wire.subject().isEmpty() && wire.cookie().isEmpty()));
+                }
+            } finally {
+                gateway.disposeNow(WAIT);
+            }
+        }
+    }
+
+    private void runOfficialClient(final DisposableServer gateway, final String stage) throws Exception {
+        Path script = Path.of(Objects.requireNonNull(getClass().getResource("/mcp-client/prompts-acceptance.cjs")).toURI());
+        Process process = new ProcessBuilder(System.getProperty("shenyu.test.node", "node"), script.toString(),
+                System.getProperty("shenyu.test.mcp.client.root"), "http://127.0.0.1:" + gateway.port() + "/agent", stage)
+                .redirectErrorStream(true).start();
+        try {
+            assertTrue(process.waitFor(45, TimeUnit.SECONDS), "Official SDK client did not complete within its test deadline");
+            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            assertEquals(0, process.exitValue(), output);
+            assertTrue(output.contains("\"protocolEra\":\"modern\""), output);
+            Files.writeString(Path.of("target", "official-prompts-" + gateway.port() + "-" + stage + ".json"), output);
+        } finally {
+            process.destroyForcibly();
         }
     }
 

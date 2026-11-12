@@ -604,6 +604,36 @@ access. A custom credential resolver must itself bound blocking work: polling
 does not forcibly terminate arbitrary resolver code. Failure/recovery logs contain
 only categories and fixed messages, with no exception messages or credentials.
 
+### Official TypeScript client acceptance
+
+The opt-in `RemotePromptNetworkTest#officialSdkListsAndGetsLocalAndRemotePrompts`
+runs the unmodified `@modelcontextprotocol/client` **2.4.0** against real gateway
+and upstream HTTP sockets. It pins the inbound `2026-07-28` protocol through the
+SDK's public `versionNegotiation` option; it does not replace initialization with
+a handwritten request transport. Both gateway response modes and upstream
+JSON/SSE results are exercised. The client verifies local and namespaced remote
+list/get, pagination, required arguments, denied authentication and permission
+revocation. The fixture also checks fixed outbound credentials, no forwarded
+client cookie/identity and no remote get after revocation.
+
+Install this test-only client in a directory **outside the repository**, using
+Node.js 20 or newer:
+
+```shell
+npm install --prefix /absolute/path/mcp-client --save-exact --ignore-scripts @modelcontextprotocol/client@2.4.0
+./mvnw -pl shenyu-plugin/shenyu-plugin-agent-gateway -am test \
+  -Dtest=RemotePromptNetworkTest \
+  -Dsurefire.failIfNoSpecifiedTests=false \
+  -Dshenyu.test.mcp.client.root=/absolute/path/mcp-client
+```
+
+Set `shenyu.test.node` when the Node executable is not on PATH. The SDK cases
+are opt-in when `shenyu.test.mcp.client.root` is absent; Java HTTP regressions
+continue to run normally. Per-client method/status summaries are written under
+the module's `target/official-prompts-*.json`; they contain fixture data only.
+This demonstrates the pinned SDK client path, not arbitrary-client compatibility
+or acceptance against the final interfaces of unmerged prerequisite PRs.
+
 ## Resource aggregation
 
 Register local `AgentResourceProvider` Spring beans with immutable
