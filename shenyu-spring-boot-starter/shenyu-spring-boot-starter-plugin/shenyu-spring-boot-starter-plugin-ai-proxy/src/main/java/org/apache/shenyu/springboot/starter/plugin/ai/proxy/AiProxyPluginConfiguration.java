@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.plugin.ai.common.evaluation.AiEvaluationSink;
+import org.apache.shenyu.plugin.ai.common.evaluation.LoggingAiEvaluationSink;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheProperties;
@@ -25,6 +27,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScopeReso
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.evaluation.AiEvaluationExporter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.evaluation.AiEvaluationProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.evaluation.AiEvaluationSampleManager;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiStreamCompletionProperties;
@@ -57,6 +62,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type ai proxy plugin configuration.
@@ -87,6 +93,7 @@ public class AiProxyPluginConfiguration {
      * @param observers optional application terminal sink
      * @param cacheProperties exact response cache properties
      * @param scopeResolvers optional application-owned cache authorization adapter
+     * @param evaluationManagers optional gateway evaluation manager
      * @return the shenyu plugin
      */
     @Bean
@@ -94,11 +101,13 @@ public class AiProxyPluginConfiguration {
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
             final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers,
-            final AiResponseCacheProperties cacheProperties, final ObjectProvider<AiResponseCacheScopeResolver> scopeResolvers) {
+            final AiResponseCacheProperties cacheProperties, final ObjectProvider<AiResponseCacheScopeResolver> scopeResolvers,
+            final ObjectProvider<AiEvaluationSampleManager> evaluationManagers) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler, observer(observers), cacheProperties.isEnabled() ? scopeResolvers.getIfAvailable() : null);
+                aiProxyPluginHandler, observer(observers, evaluationManagers),
+                cacheProperties.isEnabled() ? scopeResolvers.getIfAvailable() : null);
     }
 
     /**
@@ -137,6 +146,7 @@ public class AiProxyPluginConfiguration {
      * @param retryProperties        retry properties
      * @param attemptListener        optional attempt listener
      * @param responseCache          optional exact response cache
+     * @param evaluationManagers optional gateway evaluation manager
      * @return the AI proxy engine
      */
     @Bean
@@ -147,19 +157,34 @@ public class AiProxyPluginConfiguration {
                                        final ObjectProvider<AiCallObserver> observers,
                                        final AiProxyRetryProperties retryProperties,
                                        final ObjectProvider<AiProxyAttemptListener> attemptListener,
-                                       final ObjectProvider<AiExactResponseCache> responseCache) {
+                                       final ObjectProvider<AiExactResponseCache> responseCache,
+                                       final ObjectProvider<AiEvaluationSampleManager> evaluationManagers) {
         return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
                 aiProtocolRouteResolver, aiProxyTransport, retryProperties,
-                observer(observers), attemptListener.getIfAvailable(() -> event -> {
+                observer(observers, evaluationManagers), attemptListener.getIfAvailable(() -> event -> {
                 }), responseCache.getIfAvailable());
     }
 
-    private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
+    private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider,
+                                    final ObjectProvider<AiEvaluationSampleManager> evaluationManagers) {
         List<AiCallObserver> candidates = provider.stream().toList();
         if (candidates.size() > 1) {
             throw new IllegalStateException("AI terminal observation requires one unambiguous application sink");
         }
-        return candidates.isEmpty() ? null : candidates.get(0);
+        AiCallObserver application = candidates.isEmpty() ? null : candidates.get(0);
+        AiEvaluationSampleManager evaluation = evaluationManagers.getIfAvailable();
+        if (Objects.isNull(application)) {
+            return evaluation;
+        }
+        if (Objects.isNull(evaluation)) {
+            return application;
+        }
+        // the application sink stays unambiguous; the gateway's own evaluation
+        // manager is an additional internal observer, not a second application sink
+        return event -> {
+            application.record(event);
+            evaluation.record(event);
+        };
     }
 
     /**
@@ -373,5 +398,56 @@ public class AiProxyPluginConfiguration {
     @ConfigurationProperties(prefix = "shenyu.plugins.ai.proxy.retry")
     public AiProxyRetryProperties aiProxyRetryProperties() {
         return new AiProxyRetryProperties();
+    }
+
+    /**
+     * Default evaluation export sink; an application-owned sink replaces it.
+     *
+     * @return evaluation export sink
+     */
+    @Bean
+    @ConditionalOnMissingBean(AiEvaluationSink.class)
+    public AiEvaluationSink aiEvaluationSink() {
+        return new LoggingAiEvaluationSink();
+    }
+
+    /**
+     * AI evaluation properties.
+     *
+     * @return AI evaluation properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.plugins.ai.evaluation")
+    public AiEvaluationProperties aiEvaluationProperties() {
+        return new AiEvaluationProperties();
+    }
+
+    /**
+     * Bounded asynchronous evaluation exporter; only started with the feature.
+     *
+     * @param properties evaluation properties
+     * @param sink       export sink
+     * @return evaluation exporter
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnProperty(prefix = "shenyu.plugins.ai.evaluation", name = "enabled", havingValue = "true")
+    public AiEvaluationExporter aiEvaluationExporter(final AiEvaluationProperties properties, final AiEvaluationSink sink) {
+        return new AiEvaluationExporter(properties.getQueueCapacity(), properties.getBatchSize(), sink);
+    }
+
+    /**
+     * Opt-in evaluation sample manager; only started with the feature.
+     *
+     * @param aiProxyPluginHandler selector handle cache
+     * @param properties           evaluation properties
+     * @param exporter             evaluation exporter
+     * @return evaluation sample manager
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "shenyu.plugins.ai.evaluation", name = "enabled", havingValue = "true")
+    public AiEvaluationSampleManager aiEvaluationSampleManager(final AiProxyPluginHandler aiProxyPluginHandler,
+                                                               final AiEvaluationProperties properties,
+                                                               final AiEvaluationExporter exporter) {
+        return new AiEvaluationSampleManager(aiProxyPluginHandler, properties, exporter);
     }
 }
