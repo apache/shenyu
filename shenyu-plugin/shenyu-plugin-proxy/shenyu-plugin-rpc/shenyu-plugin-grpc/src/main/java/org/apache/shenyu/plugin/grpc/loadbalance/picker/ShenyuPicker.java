@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.loadbalance.picker;
 
+import io.grpc.CallOptions;
 import io.grpc.LoadBalancer;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +31,7 @@ import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -46,10 +48,25 @@ public class ShenyuPicker extends AbstractReadyPicker {
 
     @Override
     protected SubChannelCopy pick(final List<SubChannelCopy> list) {
-        String grpcRuleId = GrpcConstants.GRPC_RULE_ID.get();
-        String selectorId = GrpcConstants.GRPC_SELECTOR_ID.get();
-        String remoteAddressIp = GrpcConstants.GRPC_REMOTE_ADDRESS.get();
+        return randomPicker.pick(list);
+    }
+
+    @Override
+    protected SubChannelCopy pick(final List<SubChannelCopy> list, final LoadBalancer.PickSubchannelArgs args) {
+        if (Objects.isNull(args)) {
+            return randomPicker.pick(list);
+        }
+        CallOptions callOptions = args.getCallOptions();
+        String grpcRuleId = callOptions.getOption(GrpcConstants.GRPC_RULE_ID_OPTION);
+        String selectorId = callOptions.getOption(GrpcConstants.GRPC_SELECTOR_ID_OPTION);
+        String remoteAddressIp = callOptions.getOption(GrpcConstants.GRPC_REMOTE_ADDRESS_OPTION);
+        if (StringUtils.isBlank(grpcRuleId) || StringUtils.isBlank(selectorId)) {
+            return randomPicker.pick(list);
+        }
         final GrpcRuleHandle cacheRuleHandle = ApplicationConfigCache.getInstance().getCacheRuleHandle(grpcRuleId);
+        if (Objects.isNull(cacheRuleHandle)) {
+            return randomPicker.pick(list);
+        }
         List<GrpcUpstream> grpcUpstreams = ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(selectorId);
         if (CollectionUtils.isNotEmpty(grpcUpstreams)) {
             LoadBalanceData data = new LoadBalanceData();

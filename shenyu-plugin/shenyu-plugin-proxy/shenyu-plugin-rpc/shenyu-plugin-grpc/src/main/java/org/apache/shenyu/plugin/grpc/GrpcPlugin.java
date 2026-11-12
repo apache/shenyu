@@ -105,7 +105,14 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
                         .orElse(StringUtils.EMPTY)).attach();
 
         GrpcExtInfo extInfo = ApplicationConfigCache.getInstance().obtainGrpcExtInfo(metaData);
-        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.getTimeout(), TimeUnit.MILLISECONDS);
+        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.getTimeout(), TimeUnit.MILLISECONDS)
+                .withOption(GrpcConstants.GRPC_SELECTOR_ID_OPTION, selector.getId())
+                .withOption(GrpcConstants.GRPC_RULE_ID_OPTION, rule.getId())
+                .withOption(GrpcConstants.GRPC_REMOTE_ADDRESS_OPTION,
+                        Optional.ofNullable(exchange.getRequest().getRemoteAddress())
+                                .map(InetSocketAddress::getAddress)
+                                .map(InetAddress::getHostAddress)
+                                .orElse(StringUtils.EMPTY));
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
         Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.GRPC.getName())).ifPresent(
             context -> Context.current().withValue(RPC_CONTEXT_KEY, context).attach());
