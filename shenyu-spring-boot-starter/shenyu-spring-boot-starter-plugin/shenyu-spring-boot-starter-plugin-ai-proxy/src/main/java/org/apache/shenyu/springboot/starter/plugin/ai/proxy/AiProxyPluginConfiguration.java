@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
+
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
@@ -85,6 +88,7 @@ public class AiProxyPluginConfiguration {
      * @param aiProxyEngine        the aiProxyEngine
      * @param aiProxyPluginHandler the aiProxyPluginHandler
      * @param observers optional application terminal sink
+     * @param auditors optional unified audit sink
      * @param cacheProperties exact response cache properties
      * @param scopeResolvers optional application-owned cache authorization adapter
      * @return the shenyu plugin
@@ -94,11 +98,13 @@ public class AiProxyPluginConfiguration {
             final AiProxyConfigService aiProxyConfigService,
             final AiProxyEngine aiProxyEngine,
             final AiProxyPluginHandler aiProxyPluginHandler, final ObjectProvider<AiCallObserver> observers,
+            final ObjectProvider<AgentInvocationAuditObserver> auditors,
             final AiResponseCacheProperties cacheProperties, final ObjectProvider<AiResponseCacheScopeResolver> scopeResolvers) {
         return new AiProxyPlugin(
                 aiProxyConfigService,
                 aiProxyEngine,
-                aiProxyPluginHandler, observer(observers), cacheProperties.isEnabled() ? scopeResolvers.getIfAvailable() : null);
+                aiProxyPluginHandler, AgentInvocationAuditBridge.ai(observer(observers), auditors.getIfAvailable()),
+                cacheProperties.isEnabled() ? scopeResolvers.getIfAvailable() : null);
     }
 
     /**
