@@ -47,6 +47,11 @@ import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +62,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -71,11 +77,15 @@ class AiProxyDownstreamDisconnectHttpTest {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(10);
 
-    private static final long SETTLE_MILLIS = 300L;
+    private static final long POLL_MILLIS = 20L;
+
+    private static final int STABLE_POLLS = 4;
 
     private static final String FIRST_CHUNK = "data: {\"choices\":[{\"delta\":{\"content\":\"hello\"}}]}\n\n";
 
     private static final String TERMINAL_CHUNK = "data: [DONE]\n\n";
+
+    private static final String REQUEST_BODY = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":true}";
 
     @Test
     void clientDisconnectBeforeFirstChunkIsReportedAsCancelled() {
@@ -120,11 +130,48 @@ class AiProxyDownstreamDisconnectHttpTest {
         }
     }
 
+    @Test
+    void clientAbortInTheMiddleOfTheStreamIsNeverReportedAsSuccess() {
+        try (Probe probe = new Probe(Flux.just(FIRST_CHUNK)
+                .concatWith(Flux.interval(Duration.ofMillis(20L)).map(index -> FIRST_CHUNK)))) {
+            probe.abortMidStream();
+            assertNotSuccess(probe);
+        }
+    }
+
+    @Test
+    void writeFailureAfterCommitKeepsTheStrongEvidenceAndIsAnError() {
+        try (Probe probe = new Probe(Flux.just(FIRST_CHUNK)
+                .concatWith(Flux.error(new IllegalStateException("private upstream text"))))) {
+            probe.consumeToleratingFailure();
+            assertEquals(AiCallOutcome.ERROR, probe.terminal().outcome(), "a failed write is not a success");
+            assertEquals(AiCallOutcome.ERROR, probe.attempts().get(0).outcome(), "attempt outcome");
+            assertEquals("TRANSPORT_FAILURE", probe.attempts().get(0).completion().evidence().name(),
+                    "truncation and transport failure evidence must survive the cancellation path");
+            assertEquals(1, probe.upstreamCalls(), "a failed write must not start another attempt");
+            assertFalse(probe.metricOutcomes().stream().map(Enum::name).anyMatch("SUCCESS"::equals),
+                    "a failed write must not increment the success outcome");
+        }
+    }
+
+    private static void assertNotSuccess(final Probe probe) {
+        assertSingleObservation(probe);
+        assertNotEquals(AiCallOutcome.SUCCESS, probe.terminal().outcome(), "a broken write is never a success");
+        assertNotEquals(AiCallOutcome.SUCCESS, probe.attempts().get(0).outcome(), "attempt outcome");
+        assertEquals(1, probe.upstreamCalls(), "a broken write must not start another attempt or fallback");
+        assertFalse(probe.metricOutcomes().stream().map(Enum::name).anyMatch("SUCCESS"::equals),
+                "a broken write must not increment the success outcome");
+    }
+
     private static void assertInterrupted(final Probe probe) {
         assertSingleObservation(probe);
         AiTerminalEvent terminal = probe.terminal();
         assertNotNull(terminal, "no terminal event recorded");
         assertEquals(AiCallOutcome.CANCELLED, terminal.outcome(), "logical outcome");
+        assertEquals("SOURCE_CANCELLED", terminal.completion().evidence().name(),
+                "the interrupted stream must keep the cancelled evidence");
+        assertEquals("SOURCE_CANCELLED", probe.attempts().get(0).completion().evidence().name(),
+                "attempt evidence");
         assertEquals(Integer.valueOf(200), terminal.httpStatus(), "the assigned HTTP status stays a separate fact");
         assertEquals("UNKNOWN", terminal.usage().status().name(), "usage must stay unknown");
         assertEquals(1, probe.attempts().size(), "one event per real attempt");
@@ -139,7 +186,7 @@ class AiProxyDownstreamDisconnectHttpTest {
 
     private static void assertSingleObservation(final Probe probe) {
         probe.awaitTerminal();
-        probe.awaitQuiescence();
+        probe.awaitStableEvents();
         assertEquals(1, probe.terminals().size(), "exactly one terminal event");
         assertEquals(1, probe.attempts().size(), "one event per real attempt");
     }
@@ -220,7 +267,14 @@ class AiProxyDownstreamDisconnectHttpTest {
                 exchange.getAttributes().put(AgentRuntimeMetrics.KEY, metrics);
                 return plugin.doExecute(exchange, ignored -> Mono.empty(), selector, new RuleData());
             }).build());
-            this.gateway = HttpServer.create().host("127.0.0.1").port(0).handle(adapter).bindNow();
+            final DisposableServer bound;
+            try {
+                bound = HttpServer.create().host("127.0.0.1").port(0).handle(adapter).bindNow();
+            } catch (RuntimeException error) {
+                this.upstream.disposeNow();
+                throw error;
+            }
+            this.gateway = bound;
         }
 
         void disconnectBeforeFirstChunk() {
@@ -237,10 +291,32 @@ class AiProxyDownstreamDisconnectHttpTest {
             incoming().doOnNext(DataBufferUtils::release).then().block(TIMEOUT);
         }
 
+        void consumeToleratingFailure() {
+            incoming().doOnNext(DataBufferUtils::release).onErrorResume(ignored -> Flux.empty()).then().block(TIMEOUT);
+        }
+
+        void abortMidStream() {
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress("127.0.0.1", this.gateway.port()), (int) TIMEOUT.toMillis());
+                byte[] request = ("POST /chat HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: application/json\r\n"
+                        + "Content-Length: " + REQUEST_BODY.length() + "\r\n\r\n" + REQUEST_BODY)
+                        .getBytes(StandardCharsets.US_ASCII);
+                socket.getOutputStream().write(request);
+                socket.getOutputStream().flush();
+                byte[] head = new byte[64];
+                InputStream input = socket.getInputStream();
+                assertTrue(input.read(head) > 0, "the response was never started");
+                assertTrue(await(this.upstreamStarted), "the upstream stream was never subscribed");
+                socket.setSoLinger(true, 0);
+            } catch (IOException error) {
+                throw new IllegalStateException("could not abort the downstream connection", error);
+            }
+        }
+
         private Flux<DataBuffer> incoming() {
             return WebClient.create().post().uri("http://127.0.0.1:" + gateway.port() + "/chat")
                     .header("Content-Type", "application/json")
-                    .bodyValue("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":true}")
+                    .bodyValue(REQUEST_BODY)
                     .retrieve().bodyToFlux(DataBuffer.class);
         }
 
@@ -252,12 +328,25 @@ class AiProxyDownstreamDisconnectHttpTest {
             return await(upstreamCancelled);
         }
 
-        void awaitQuiescence() {
-            try {
-                Thread.sleep(SETTLE_MILLIS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        void awaitStableEvents() {
+            final long deadline = System.nanoTime() + TIMEOUT.toNanos();
+            int previous = -1;
+            int stable = 0;
+            while (System.nanoTime() < deadline) {
+                final int current = this.terminals.size() + this.attempts.size();
+                stable = current == previous ? stable + 1 : 0;
+                previous = current;
+                if (stable >= STABLE_POLLS) {
+                    return;
+                }
+                try {
+                    Thread.sleep(POLL_MILLIS);
+                } catch (InterruptedException error) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("interrupted while waiting for quiescence", error);
+                }
             }
+            throw new IllegalStateException("the observation did not settle within " + TIMEOUT);
         }
 
         private static boolean await(final CountDownLatch latch) {

@@ -206,7 +206,12 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         Flux<DataBuffer> body = upstream.getBody().map(bytes -> response.bufferFactory().wrap(bytes))
                 .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnCancel(observation::downstreamDisconnected);
-        return response.writeAndFlushWith(body.map(buffer -> Mono.just(buffer).doOnDiscard(DataBuffer.class, DataBufferUtils::release)));
+        // the body subscription and the outer writing publisher terminate independently: the first
+        // one observes a peer that stopped consuming, the second one reports how the write ended,
+        // so an aborted or failed write is never inferred from a normal outer completion alone
+        return response.writeAndFlushWith(body.map(buffer -> Mono.just(buffer).doOnDiscard(DataBuffer.class, DataBufferUtils::release)))
+                .doOnCancel(observation::downstreamDisconnected)
+                .doOnError(ignored -> observation.downstreamWriteFailed());
     }
 
     private Mono<Void> handleFailure(final ServerHttpResponse response, final Throwable error) {

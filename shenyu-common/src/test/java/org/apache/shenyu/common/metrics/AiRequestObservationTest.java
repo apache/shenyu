@@ -147,6 +147,75 @@ class AiRequestObservationTest {
         assertEquals(AiCallOutcome.ERROR, sink.events.get(2).outcome());
     }
 
+    @Test
+    void downstreamDisconnectOnlyExplainsACommittedSuccessfulResponse() {
+        final AgentRequestContext base = new AgentRequestContext("request", "llm", null, null);
+        final Sink sink = new Sink();
+        final AiRequestObservation delivered = new AiRequestObservation(sink, base);
+        delivered.startAttempt(base, AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", true).status(200);
+        delivered.downstreamDisconnected();
+        delivered.finish(SignalType.ON_COMPLETE, 200);
+        assertEquals(AiCallOutcome.CANCELLED, sink.events.get(0).outcome());
+        assertEquals(Integer.valueOf(200), sink.events.get(0).httpStatus());
+        assertEquals(AiCallOutcome.CANCELLED, sink.attempts.get(0).outcome());
+
+        final AiRequestObservation failed = new AiRequestObservation(sink, base);
+        failed.startAttempt(base, AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", true).status(500);
+        failed.failure(AiCallOutcome.ERROR);
+        failed.downstreamDisconnected();
+        failed.finish(SignalType.ON_COMPLETE, 500);
+        assertEquals(AiCallOutcome.ERROR, sink.events.get(1).outcome());
+        assertEquals(AiCallOutcome.ERROR, sink.attempts.get(1).outcome());
+
+        final AiRequestObservation rejected = new AiRequestObservation(sink, base);
+        rejected.startAttempt(base, AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", true).status(400);
+        rejected.downstreamDisconnected();
+        rejected.finish(SignalType.ON_COMPLETE, 400);
+        assertEquals(AiCallOutcome.REJECTED, sink.events.get(2).outcome());
+        assertEquals(AiCallOutcome.REJECTED, sink.attempts.get(2).outcome());
+
+        final AiRequestObservation timedOut = new AiRequestObservation(sink, base);
+        timedOut.startAttempt(base, AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", true).status(504);
+        timedOut.downstreamDisconnected();
+        timedOut.finish(SignalType.ON_COMPLETE, 504);
+        assertEquals(AiCallOutcome.TIMEOUT, sink.events.get(3).outcome());
+        assertEquals(AiStreamCompletion.Evidence.NOT_INSPECTED, sink.attempts.get(0).completion().evidence(),
+                "evidence that was never inspected must not be invented");
+    }
+
+    @Test
+    void writeFailureIsRecordedAndOutranksNormalCompletion() {
+        final AgentRequestContext base = new AgentRequestContext("request", "llm", null, null);
+        final Sink sink = new Sink();
+        final AiRequestObservation observation = new AiRequestObservation(sink, base);
+        observation.startAttempt(base, AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", true);
+        observation.downstreamWriteFailed();
+        observation.finish(SignalType.ON_COMPLETE, 200);
+        assertEquals(AiCallOutcome.ERROR, sink.events.get(0).outcome());
+        assertEquals(Integer.valueOf(200), sink.events.get(0).httpStatus());
+    }
+
+    @Test
+    void disconnectEvidenceDoesNotOutliveItsAttemptOrASettledObservation() {
+        final AgentRequestContext base = new AgentRequestContext("request", "llm", null, null);
+        final Sink sink = new Sink();
+        final AiRequestObservation observation = new AiRequestObservation(sink, base);
+        final AiRequestObservation.Attempt first = observation.startAttempt(base, AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", true);
+        first.status(200);
+        observation.downstreamDisconnected();
+        first.finish(SignalType.ON_COMPLETE, null);
+        final AiRequestObservation.Attempt second = observation.startAttempt(base, AiAttemptEvent.Kind.FALLBACK, "openai", "openai-chat", true);
+        second.status(200);
+        second.finish(SignalType.ON_COMPLETE, null);
+        observation.finish(SignalType.ON_COMPLETE, 200);
+        assertEquals(AiCallOutcome.CANCELLED, sink.attempts.get(0).outcome());
+        assertEquals(AiCallOutcome.SUCCESS, sink.attempts.get(1).outcome());
+        assertEquals(AiCallOutcome.SUCCESS, sink.events.get(0).outcome());
+        observation.downstreamDisconnected();
+        observation.downstreamWriteFailed();
+        assertEquals(1, sink.events.size());
+    }
+
     private static final class Sink implements AiCallObserver {
 
         private final List<AiTerminalEvent> events = new ArrayList<>();
