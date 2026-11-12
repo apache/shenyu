@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.metrics.reporter;
 
-import org.apache.shenyu.plugin.metrics.config.Metric;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.plugin.metrics.config.Metric;
 import org.apache.shenyu.plugin.metrics.constant.CanaryMetric;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;

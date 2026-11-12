@@ -48,6 +48,24 @@ class JwtAgentMcpSecurityResolverTest {
     private final JwtAgentMcpSecurityResolver resolver = new JwtAgentMcpSecurityResolver("https://issuer.example", "mcp", null);
 
     @Test
+    void promptClaimsAreIndependentAndDenialsWin() {
+        Map<String, Object> claims = claims();
+        claims.put("tool_grants", List.of("summary"));
+        assertTrue(resolve(resolver, authenticated(claims)).getPromptGrants().isEmpty());
+        List<String> prompts = new ArrayList<>(List.of("summary", "first.summary"));
+        claims.put("prompt_grants", prompts);
+        claims.put("prompt_denies", List.of("summary"));
+        AgentMcpIdentity identity = resolve(resolver, authenticated(claims));
+        prompts.add("other");
+        assertEquals(Set.of("first.summary"), identity.getPromptGrants());
+        assertEquals(Set.of("summary"), identity.getPromptDenials());
+        assertEquals(Set.of("summary"), identity.getToolGrants());
+        assertThrows(UnsupportedOperationException.class, () -> identity.getPromptGrants().clear());
+        claims.put("prompt_grants", List.of("*"));
+        assertNull(resolve(resolver, authenticated(claims)));
+    }
+
+    @Test
     void mapsVerifiedClaimsWithDenyPrecedenceAndImmutableSnapshots() {
         List<String> grants = new ArrayList<>(List.of("read", "orders.lookup"));
         Map<String, Object> claims = claims();

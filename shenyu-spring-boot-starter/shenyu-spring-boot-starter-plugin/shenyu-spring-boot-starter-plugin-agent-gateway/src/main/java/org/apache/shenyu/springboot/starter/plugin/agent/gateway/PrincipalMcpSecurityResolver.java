@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
+import org.apache.shenyu.common.utils.AgentPromptNames;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.springframework.security.core.Authentication;
@@ -54,6 +55,10 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
 
     private final Map<String, Set<String>> denials;
 
+    private final Map<String, Set<String>> promptGrants;
+
+    private final Map<String, Set<String>> promptDenials;
+
     public PrincipalMcpSecurityResolver(final PrincipalMcpSecurityProperties properties, final Class<T> type,
                                         final Function<T, Map<String, Object>> attributes, final Predicate<T> authority,
                                         final Function<ServerWebExchange, Mono<Boolean>> conflict) {
@@ -64,6 +69,8 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
         defaultTenant = Objects.isNull(properties.getDefaultTenant()) ? null : text(properties.getDefaultTenant());
         Map<String, Set<String>> allowed = new HashMap<>();
         Map<String, Set<String>> denied = new HashMap<>();
+        Map<String, Set<String>> promptsAllowed = new HashMap<>();
+        Map<String, Set<String>> promptsDenied = new HashMap<>();
         if (properties.getScopeMappings().size() > 1024) {
             throw new IllegalArgumentException("Too many scope mappings");
         }
@@ -73,9 +80,13 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
                 throw new IllegalArgumentException("Duplicate scope mapping");
             }
             denied.put(scope, names(mapping.getToolDenials(), true));
+            promptsAllowed.put(scope, promptNames(mapping.getPromptGrants()));
+            promptsDenied.put(scope, promptNames(mapping.getPromptDenials()));
         }
         grants = Map.copyOf(allowed);
         denials = Map.copyOf(denied);
+        promptGrants = Map.copyOf(promptsAllowed);
+        promptDenials = Map.copyOf(promptsDenied);
     }
 
     @Override
@@ -94,11 +105,15 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
                         String tenant = text(claims.containsKey("tenant_id") ? claims.get("tenant_id") : defaultTenant);
                         Set<String> allowed = new HashSet<>(names(claims.getOrDefault("tool_grants", Set.of()), true));
                         Set<String> denied = new HashSet<>(names(claims.getOrDefault("tool_denies", Set.of()), true));
+                        Set<String> promptsAllowed = new HashSet<>(promptNames(claims.getOrDefault("prompt_grants", Set.of())));
+                        Set<String> promptsDenied = new HashSet<>(promptNames(claims.getOrDefault("prompt_denies", Set.of())));
                         for (String scope : scopes(claims)) {
                             allowed.addAll(grants.getOrDefault(scope, Set.of()));
                             denied.addAll(denials.getOrDefault(scope, Set.of()));
+                            promptsAllowed.addAll(promptGrants.getOrDefault(scope, Set.of()));
+                            promptsDenied.addAll(promptDenials.getOrDefault(scope, Set.of()));
                         }
-                        return Mono.just(new AgentMcpIdentity(tenant, subject, allowed, denied));
+                        return Mono.just(new AgentMcpIdentity(tenant, subject, allowed, denied).withPromptPermissions(promptsAllowed, promptsDenied));
                     } catch (IllegalArgumentException error) {
                         // Invalid trusted attributes fail closed; do not log claims or credentials.
                         return Mono.empty();
@@ -127,6 +142,14 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
             result.add(name);
         }
         return Set.copyOf(result);
+    }
+
+    private static Set<String> promptNames(final Object value) {
+        Set<String> names = names(value, false);
+        if (names.size() > 32 || names.stream().anyMatch(name -> !AgentPromptNames.exposed(name))) {
+            throw new IllegalArgumentException("Prompt permissions must be bounded exact names");
+        }
+        return names;
     }
 
     private static Set<String> scopes(final Map<String, Object> claims) {
