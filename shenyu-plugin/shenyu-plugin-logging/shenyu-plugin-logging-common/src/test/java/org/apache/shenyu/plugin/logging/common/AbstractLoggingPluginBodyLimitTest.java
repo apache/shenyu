@@ -338,6 +338,31 @@ public final class AbstractLoggingPluginBodyLimitTest {
         assertTrue(next.getRequestHeader().contains("request-secret"));
     }
 
+    @Test
+    public void testHeaderPoliciesAreIsolatedByPluginId() {
+        updatePluginConfig(PLUGIN_ID, "{\"maskedHeaders\":[\"X-Api-Key\"]}");
+        updatePluginConfig(OTHER_PLUGIN_ID, "{\"maskCredentialHeaders\":false}");
+        for (String pluginId : new String[] {PLUGIN_ID, OTHER_PLUGIN_ID, PLUGIN_ID}) {
+            MockServerWebExchange exchange = createCredentialExchange();
+            exchange.getResponse().getHeaders().add("Set-Cookie", "response-secret");
+            exchange.getResponse().getHeaders().add("X-Api-Key", "custom-response-secret");
+            ShenyuRequestLog log = execute(pluginId, exchange, "hello", "hello");
+            if (PLUGIN_ID.equals(pluginId)) {
+                assertFalse(log.getRequestHeader().contains("secret"));
+                assertFalse(log.getResponseHeader().contains("secret"));
+                assertTrue(log.getRequestHeader().contains("***"));
+                assertTrue(log.getResponseHeader().contains("***"));
+            } else {
+                assertTrue(log.getRequestHeader().contains("request-secret"));
+                assertTrue(log.getRequestHeader().contains("custom-secret"));
+                assertTrue(log.getResponseHeader().contains("response-secret"));
+                assertTrue(log.getResponseHeader().contains("custom-response-secret"));
+            }
+            assertEquals("request-secret", exchange.getRequest().getHeaders().getFirst("Authorization"));
+            assertEquals("response-secret", exchange.getResponse().getHeaders().getFirst("Set-Cookie"));
+        }
+    }
+
     private MockServerWebExchange createCredentialExchange() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("http://localhost/headers")
                 .remoteAddress(new InetSocketAddress("127.0.0.1", 8000))
