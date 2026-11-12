@@ -47,7 +47,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
         int leastCount = 0;
         int[] leastIndexes = new int[length];
         int[] weights = new int[length];
-        int totalWeight = 0;
+        long totalWeight = 0;
         int firstWeight = 0;
         boolean sameWeight = true;
 
@@ -76,7 +76,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
             return upstreamList.get(leastIndexes[0]);
         }
         if (!sameWeight && totalWeight > 0) {
-            int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+            long offsetWeight = ThreadLocalRandom.current().nextLong(totalWeight);
             for (int i = 0; i < leastCount; i++) {
                 int leastIndex = leastIndexes[i];
                 offsetWeight -= weights[leastIndex];

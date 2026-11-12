@@ -52,6 +52,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -62,6 +63,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -213,6 +215,36 @@ public class WebSocketPluginTest {
 
         session.dispose();
         assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
+     * The query may carry credentials, so the logged url drops it while the proxied url keeps it.
+     */
+    @Test
+    public void logUrlShouldDropQueryButProxiedUrlShouldKeepIt() throws NoSuchFieldException, IllegalAccessException {
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/ws/echo?token=secret&access_token=secret").build());
+        initMockInfo();
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            return Mono.empty();
+        });
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+
+        Field urlField = handler.get().getClass().getDeclaredField("url");
+        urlField.setAccessible(true);
+        URI proxied = (URI) urlField.get(handler.get());
+        assertEquals("token=secret&access_token=secret", proxied.getQuery());
+        assertFalse(WebSocketPlugin.toLogUrl(proxied).contains("secret"));
+    }
+
+    @Test
+    public void toLogUrlShouldKeepOnlySchemeHostPortAndPath() {
+        assertEquals("ws://127.0.0.1:8001/echo",
+                WebSocketPlugin.toLogUrl(URI.create("ws://user:pass@127.0.0.1:8001/echo?token=abc#frag")));
+        assertEquals("wss://example.com/a%20b",
+                WebSocketPlugin.toLogUrl(URI.create("wss://example.com/a%20b?access_token=abc")));
+        assertEquals("ws://[::1]:8001", WebSocketPlugin.toLogUrl(URI.create("ws://[::1]:8001?token=abc")));
     }
 
     /**

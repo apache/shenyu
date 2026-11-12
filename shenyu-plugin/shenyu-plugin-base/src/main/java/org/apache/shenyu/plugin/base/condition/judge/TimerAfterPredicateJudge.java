@@ -23,6 +23,7 @@ import org.apache.shenyu.spi.Join;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
 /**
  * Timer after predicate judge.
@@ -36,6 +37,11 @@ public class TimerAfterPredicateJudge implements PredicateJudge {
         if (!StringUtils.hasLength(paramName)) {
             return LocalDateTime.now().isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue().trim()));
         }
-        return DateUtils.parseLocalDateTime(realData).isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue().trim()));
+        LocalDateTime configuredTime = DateUtils.parseLocalDateTime(conditionData.getParamValue().trim());
+        try {
+            return DateUtils.parseLocalDateTime(realData).isAfter(configuredTime);
+        } catch (DateTimeParseException e) {
+            return false;
+        }
     }
 }
