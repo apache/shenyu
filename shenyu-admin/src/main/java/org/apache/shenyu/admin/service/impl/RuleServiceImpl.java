@@ -215,6 +215,12 @@ public class RuleServiceImpl implements RuleService {
         validateCanaryAndStickyConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
+        if (ruleCount <= 0) {
+            // the id matches but the stored namespace differs: the update intentionally
+            // matched no rows, so the conditions and change event of this (foreign)
+            // rule must be left untouched
+            return 0;
+        }
 
         // need old data for cleaning
         List<RuleConditionDO> beforeRuleCondition = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));

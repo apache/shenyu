@@ -263,6 +263,12 @@ public class SelectorServiceImpl implements SelectorService {
         final SelectorDO before = selectorMapper.selectById(selectorDTO.getId());
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         final int selectorCount = selectorMapper.updateSelective(selectorDO);
+        if (selectorCount <= 0) {
+            // the id matches but the stored namespace differs: the update intentionally
+            // matched no rows, so the conditions and change event of this (foreign)
+            // selector must be left untouched
+            return 0;
+        }
 
         // need old data for cleaning
         List<SelectorConditionDO> beforeSelectorConditionList = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId()));
