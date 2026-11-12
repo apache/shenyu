@@ -25,6 +25,7 @@ import com.google.re2j.PatternSyntaxException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.apache.shenyu.common.dto.convert.rule.sticky.StickySessionConfigValidator;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -47,7 +48,7 @@ public final class CanaryConfigValidator {
      * An absent or null Canary configuration preserves legacy routing.
      *
      * @param handle the serialized rule handle
-     * @return the validated handle
+     * @return the validated handle, never null
      * @throws IllegalArgumentException when the configuration is invalid
      */
     public static DivideRuleHandle parseHandle(final String handle) {
@@ -57,7 +58,13 @@ public final class CanaryConfigValidator {
             if (Objects.nonNull(canary) && !canary.isJsonNull()) {
                 validate(object(canary, "canary"));
             }
+            StickySessionConfigValidator.validateJson(root.get("sticky"));
             DivideRuleHandle result = GsonUtils.getInstance().fromJson(root, DivideRuleHandle.class);
+            if (Objects.isNull(result)) {
+                // the adapter always instantiates the handle for a JSON object; keep the
+                // non-null contract explicit for callers that dereference it directly
+                throw new IllegalArgumentException("Invalid Divide handle JSON");
+            }
             if (Objects.nonNull(result.getCanary()) && result.getRetry() > 0
                     && !RetryEnum.CURRENT.getName().equals(StringUtils.defaultIfEmpty(result.getRetryStrategy(), RetryEnum.CURRENT.getName()))) {
                 throw new IllegalArgumentException("Canary routing currently supports only current-node retries; failover requires partition-aware retry support");
