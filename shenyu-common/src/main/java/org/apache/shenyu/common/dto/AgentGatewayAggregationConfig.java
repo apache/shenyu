@@ -31,10 +31,12 @@ import java.util.Objects;
 import java.util.Set;
 
 /** Strict, secret-free configuration shared by Admin and gateway. */
-public record AgentGatewayAggregationConfig(String revision, List<Server> servers) {
+public record AgentGatewayAggregationConfig(String revision, List<Server> servers, AgentGatewayAdmissionConfig admission) {
 
     private static final ObjectMapper JSON = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+
+    private static final AgentGatewayAdmissionConfig DEFAULT_ADMISSION = AgentGatewayAdmissionConfig.parse(null);
 
     public AgentGatewayAggregationConfig {
         if (Objects.isNull(revision) || !revision.matches("[A-Za-z0-9_-]{1,48}")) {
@@ -53,7 +55,7 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
      */
     public static AgentGatewayAggregationConfig parsePluginConfig(final String source) {
         if (Objects.isNull(source) || source.isBlank()) {
-            return new AgentGatewayAggregationConfig("empty", List.of());
+            return new AgentGatewayAggregationConfig("empty", List.of(), DEFAULT_ADMISSION);
         }
         if (source.getBytes(StandardCharsets.UTF_8).length > 16384) {
             throw new IllegalArgumentException("Aggregation configuration byte limit");
@@ -64,9 +66,18 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                 throw new IllegalArgumentException("Expected plugin configuration object");
             }
             if (root.isEmpty()) {
-                return new AgentGatewayAggregationConfig("empty", List.of());
+                return new AgentGatewayAggregationConfig("empty", List.of(), DEFAULT_ADMISSION);
             }
-            fields(root, Set.of("aggregation"));
+            boolean hasAggregation = root.has("aggregation");
+            Set<String> pluginFields = new HashSet<>(hasAggregation ? Set.of("aggregation") : Set.of());
+            if (root.has("admission")) {
+                pluginFields.add("admission");
+            }
+            fields(root, pluginFields);
+            if (!hasAggregation) {
+                return new AgentGatewayAggregationConfig("empty", List.of(),
+                        AgentGatewayAdmissionConfig.parse(root.get("admission")));
+            }
             JsonNode aggregation = root.get("aggregation");
             fields(aggregation, Set.of("revision", "servers"));
             if (!aggregation.path("servers").isArray()) {
@@ -78,7 +89,8 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                 servers.add(new Server(text(server, "name"), URI.create(text(server, "endpoint")),
                         text(server, "credentialRef"), text(server, "credentialVersion")));
             }
-            return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers);
+            return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers,
+                    AgentGatewayAdmissionConfig.parse(root.get("admission")));
         } catch (Exception error) {
             // Do not include raw config or a parse exception which could contain a supplied secret.
             throw new IllegalArgumentException("Invalid Agent Gateway aggregation configuration");
@@ -97,16 +109,57 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
     }
 
     /**
-     * Validate the agreed fixed-IP transport boundary at both Admin and gateway.
+     * Validate a fixed IP or an explicitly controlled HTTPS hostname at Admin and gateway.
      * @param endpoint exact configured endpoint, never an Agent-supplied URL
      */
     public static void validateEndpoint(final URI endpoint) {
+        if (Objects.isNull(endpoint) || Objects.isNull(endpoint.getHost())) {
+            throw new IllegalArgumentException("Invalid MCP Server endpoint");
+        }
+        if (endpoint.getHost().matches("(?:0|[1-9][0-9]{0,2})(?:\\.(?:0|[1-9][0-9]{0,2})){3}")) {
+            validateFixedEndpoint(endpoint);
+            return;
+        }
+        validateHttpsHostnameEndpoint(endpoint);
+    }
+
+    /**
+     * Validate the historical fixed-IP transport boundary.
+     * @param endpoint exact configured endpoint, never an Agent-supplied URL
+     */
+    public static void validateFixedEndpoint(final URI endpoint) {
         if (Objects.isNull(endpoint) || Objects.isNull(endpoint.getHost()) || !literalIpv4(endpoint.getHost())
                 || !("https".equals(endpoint.getScheme()) || "http".equals(endpoint.getScheme()) && "127.0.0.1".equals(endpoint.getHost()))
                 || endpoint.getPort() < 1 || endpoint.getPort() > 65535 || Objects.nonNull(endpoint.getRawUserInfo())
                 || Objects.nonNull(endpoint.getRawQuery()) || Objects.nonNull(endpoint.getRawFragment())
                 || !endpoint.normalize().equals(endpoint) || !endpoint.getRawPath().matches("/(?:[A-Za-z0-9._~-]+/)*[A-Za-z0-9._~-]+")) {
             throw new IllegalArgumentException("Invalid fixed-IP MCP Server endpoint");
+        }
+        validatePath(endpoint);
+    }
+
+    /**
+     * Validate an HTTPS hostname target without resolving or approving its address.
+     * @param endpoint exact configured endpoint, never an Agent-supplied URL
+     */
+    public static void validateHttpsHostnameEndpoint(final URI endpoint) {
+        validateHttpsHostnameShape(endpoint);
+    }
+
+    private static void validateHttpsHostnameShape(final URI endpoint) {
+        if (Objects.isNull(endpoint) || Objects.isNull(endpoint.getHost()) || !endpoint.getHost().matches("(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.){0,5}[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?")
+                || endpoint.getHost().length() > 253 || !"https".equals(endpoint.getScheme())
+                || endpoint.getPort() < 1 || endpoint.getPort() > 65535 || Objects.nonNull(endpoint.getRawUserInfo())
+                || Objects.nonNull(endpoint.getRawQuery()) || Objects.nonNull(endpoint.getRawFragment())
+                || !endpoint.normalize().equals(endpoint)) {
+            throw new IllegalArgumentException("Invalid controlled HTTPS hostname endpoint");
+        }
+        validatePath(endpoint);
+    }
+
+    private static void validatePath(final URI endpoint) {
+        if (Objects.isNull(endpoint.getRawPath()) || !endpoint.getRawPath().matches("/(?:[A-Za-z0-9._~-]+/)*[A-Za-z0-9._~-]+")) {
+            throw new IllegalArgumentException("Invalid MCP Server endpoint path");
         }
         for (String part : endpoint.getRawPath().split("/")) {
             if (Set.of(".", "..").contains(part)) {

@@ -342,7 +342,7 @@ public final class RemoteCatalogLifecycle {
         });
     }
 
-    private Mono<Void> closeIdle() {
+    Mono<Void> closeIdle() {
         List<Mono<Void>> tasks = new ArrayList<>();
         synchronized (lock) {
             for (Generation generation : generations) {

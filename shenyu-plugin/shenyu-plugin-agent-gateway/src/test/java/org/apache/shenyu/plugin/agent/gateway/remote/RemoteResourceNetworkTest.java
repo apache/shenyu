@@ -25,6 +25,7 @@ import org.apache.shenyu.common.dto.AgentGatewayResultFilterConfig;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRequestParser;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceNamespace;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.junit.jupiter.api.Test;
@@ -106,7 +107,7 @@ class RemoteResourceNetworkTest {
     void cancellingAnActualHttpReadDoesNotCancelItsPeer() throws Exception {
         try (Fixture fixture = new Fixture("orders", false)) {
             RemoteServerBinding.Config target = new RemoteServerBinding.Config("orders", fixture.endpoint(), "service", "v1");
-            RequestScopedMcpClient client = RemoteServerBinding.resolve(target, Set.of(fixture.endpoint()),
+            RequestScopedMcpClient client = RemoteServerBinding.resolve(target, RemoteTransportRouteSet.parse(Set.of(fixture.endpoint() + "=")),
                     reference -> new RemoteServerBinding.Credential(reference, "resources-test-service")).newClient();
             try {
                 client.initialize().block(WAIT);
@@ -127,7 +128,9 @@ class RemoteResourceNetworkTest {
 
     private ManagedRemoteMcpCatalog catalog(final Fixture first, final Fixture second, final boolean resources) {
         return new ManagedRemoteMcpCatalog(Set.of(first.endpoint(), second.endpoint()), Set.of(),
-                target -> new RemoteServerBinding.Credential(target, "resources-test-service"), resources);
+                target -> new RemoteServerBinding.Credential(target, "resources-test-service"),
+                AgentMcpResourceAdmission.create(new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(
+                        128, 64, 32, 16, 8, 16)), resources);
     }
 
     private String config(final Fixture first, final Fixture second) {
