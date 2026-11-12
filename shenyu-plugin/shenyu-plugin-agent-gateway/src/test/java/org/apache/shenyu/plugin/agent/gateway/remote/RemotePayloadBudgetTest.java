@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -243,6 +244,43 @@ class RemotePayloadBudgetTest {
         assertThrows(IllegalArgumentException.class, () -> new RemoteServerBinding.Config("orders", uri, "service/orders", "v1", 8192, 1048577));
         assertThrows(IllegalArgumentException.class, () -> new RemoteServerBinding.Config("orders", uri, "service/orders", "v1", 65537, 8192));
         assertEquals(8192, new RemoteServerBinding.Config("orders", uri, "service/orders", "v1").responseBytes());
+    }
+
+    @Test
+    void legacyResolverWithoutBudgetMirroringKeepsNonDefaultBudgetsResolvable() {
+        URI uri = URI.create("http://127.0.0.1:8080/mcp");
+        RemoteServerBinding.Config trusted = new RemoteServerBinding.Config("orders", uri, "service/orders", "v1", 16384, 32768);
+        // A third-party resolver written before payload budgets existed rebuilds the credential target
+        // from the reference fields only, so its Config keeps the legacy 8 KiB defaults. Budgets must
+        // never take part in credential binding identity, or every non-default budget would be rejected
+        // as a mismatched binding and silently drop the data-sync update.
+        RemoteServiceCredentialResolver installed = target -> new RemoteServerBinding.Credential(
+                new RemoteServerBinding.Config(target.name(), target.endpoint(), target.credentialRef(), target.credentialVersion()),
+                "legacy-service-token");
+        RemoteServerBinding binding = RemoteServerBinding.resolve(trusted, Set.of(uri), installed::resolve);
+        assertEquals(16384, binding.config().requestBytes());
+        assertEquals(32768, binding.config().responseBytes());
+        assertEquals(trusted, binding.config());
+    }
+
+    @Test
+    void credentialBindingIdentityIgnoresBudgetsButRejectsOtherTargets() {
+        URI uri = URI.create("http://127.0.0.1:8080/mcp");
+        RemoteServerBinding.Config trusted = new RemoteServerBinding.Config("orders", uri, "service/orders", "v1", 16384, 32768);
+        RemoteServerBinding.Config legacyBudgets = new RemoteServerBinding.Config("orders", uri, "service/orders", "v1", 8192, 8192);
+        assertTrue(trusted.bindsTo(legacyBudgets));
+        assertNotEquals(trusted, legacyBudgets);
+        assertEquals(trusted, new RemoteServerBinding.Config("orders", uri, "service/orders", "v1", 16384, 32768));
+        assertEquals(trusted.hashCode(), new RemoteServerBinding.Config("orders", uri, "service/orders", "v1", 16384, 32768).hashCode());
+        // The budget-free comparison must not weaken the credential check it replaces.
+        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(trusted, Set.of(uri),
+                target -> new RemoteServerBinding.Credential(new RemoteServerBinding.Config("orders", uri, "service/other", "v1"), "service-token")));
+        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(trusted, Set.of(uri),
+                target -> new RemoteServerBinding.Credential(new RemoteServerBinding.Config("orders", uri, "service/orders", "v2"), "service-token")));
+        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(trusted, Set.of(uri),
+                target -> new RemoteServerBinding.Credential(new RemoteServerBinding.Config("orders", URI.create("http://127.0.0.1:8080/other"),
+                        "service/orders", "v1"), "service-token")));
+        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(trusted, Set.of(uri), target -> null));
     }
 
     private static McpSchema.CallToolRequest call(final int bytes) {

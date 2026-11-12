@@ -490,11 +490,24 @@ gateway request and not the rendered MCP response:
   `notifications/initialized`, `tools/list` and `resources/list` / templates
   pagination, `tools/call` and `resources/read`.
 
-The entry budgets configured on the rule handle (`maxRequestBytes`,
-`maxResponseBytes`, with their own hard maxima) remain independent and unchanged.
-Raising an entry budget never raises the remote transport budget: the effective
-remote limit is the configured per-Server value, and it also applies after entry
-transformation when the final rendered response is checked.
+Two independent limits apply and both must pass. The per-Server fields above bound
+what the gateway exchanges with the remote Server; the entry budgets on the rule
+handle bound what a rule exchanges with its own HTTP target. The entry budgets keep
+their own defaults and hard maxima (`maxRequestBytes` default `262144`, hard maximum
+`1048576`; `maxResponseBytes` default `1048576`, hard maximum `4194304`) and are
+enforced separately by `AgentHttpToolExecutor` on the request it builds and the
+response body it captures. No `remote*` field raises, lowers or replaces them, and no
+entry budget relaxes the remote transport limit: the effective remote limit is always
+the configured per-Server value.
+
+The two budgets do not count the same bytes. `remoteResponseBytes` counts the
+upstream JSON-RPC wire bytes, envelope included; the entry `maxResponseBytes` counts
+the response body the rule captures after transformation. A result that fits the
+remote budget can therefore still be refused at the entry layer, and the remote
+budget never makes a larger response renderable by itself. The remote ceiling equals
+the default entry response budget, so a configuration at the `1048576` hard maximum is
+only usable when the rule handle's `maxResponseBytes` is raised as well: the rendered
+result is always smaller than the wire bytes the remote budget had to admit.
 
 Rejection happens at the earliest layer that can decide:
 
@@ -515,6 +528,26 @@ body; compressed responses are never inflated and never retried with a different
 encoding. Unsupported `Content-Type` handling is unchanged (JSON or a single final
 `text/event-stream`). Cancellation, deadline, credential isolation and the
 no-replay rule are unchanged, and no fallback to a larger budget exists.
+
+#### Memory bound
+
+Budgets are per-message ceilings, not a memory reservation. One accepted response is
+buffered as a single `byte[]` bounded by `remoteResponseBytes`, and one client admits
+at most 64 concurrent requests (`MAX_IN_FLIGHT`). A configuration holds at most 8
+Servers, so the worst case of simultaneously buffered remote response bodies on one
+node is `8 x 64 x remoteResponseBytes`: 4 MiB in total with the 8 KiB defaults and
+about 512 MiB only if every Server were set to the 1 MiB hard maximum. Requests add a
+smaller term of the same shape (`8 x 64 x remoteRequestBytes`, at most 32 MiB at the
+64 KiB maximum), and a retiring generation can briefly add its own in-flight calls
+while old leases drain.
+
+This PR introduces no aggregate, node-wide admission limit - that work belongs to
+#8095 - and no global buffer cap is implied by these numbers: the configured
+per-Server budgets are the only knob. Operators must keep the worst-case product
+inside the gateway heap, which is why the defaults stay at 8 KiB and the hard maxima
+are described as ceilings rather than as recommended values. These figures are the
+worst-case sum of what one node could hold at one instant, not a measured steady
+state, and they exclude the entry layer's own bounded buffers.
 
 The resolver reads a bounded versioned file and verifies its independent name,
 full endpoint, reference and version binding. Paths must remain inside the real

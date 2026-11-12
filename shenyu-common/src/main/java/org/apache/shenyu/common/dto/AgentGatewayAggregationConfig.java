@@ -45,8 +45,17 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
     /** Hard maximum for one remote request body, regardless of configuration. */
     public static final int MAX_REMOTE_REQUEST_BYTES = 65536;
 
-    /** Hard maximum for one remote response body, regardless of configuration. */
+    /**
+     * Hard maximum for one remote response body, regardless of configuration.
+     * This is a per-message ceiling, not a memory guarantee: the body is buffered once per
+     * in-flight request, so the node-wide worst case is the configured budget multiplied by the
+     * in-flight limit and the number of Servers. It is also independent of the rule-handle entry
+     * budget, which must be raised separately before a result this large can be rendered.
+     */
     public static final int MAX_REMOTE_RESPONSE_BYTES = 1048576;
+
+    /** Single rejection message for a remote payload budget, whatever the parsing layer. */
+    private static final String INVALID_REMOTE_PAYLOAD_BUDGET = "Remote MCP payload budget outside the supported range";
 
     private static final ObjectMapper JSON = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
@@ -93,8 +102,8 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                         Set.of("remoteRequestBytes", "remoteResponseBytes"));
                 servers.add(new Server(text(server, "name"), URI.create(text(server, "endpoint")),
                         text(server, "credentialRef"), text(server, "credentialVersion"),
-                        budget(server, "remoteRequestBytes", DEFAULT_REMOTE_REQUEST_BYTES),
-                        budget(server, "remoteResponseBytes", DEFAULT_REMOTE_RESPONSE_BYTES)));
+                        budget(server, "remoteRequestBytes", DEFAULT_REMOTE_REQUEST_BYTES, MAX_REMOTE_REQUEST_BYTES),
+                        budget(server, "remoteResponseBytes", DEFAULT_REMOTE_RESPONSE_BYTES, MAX_REMOTE_RESPONSE_BYTES)));
             }
             return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers);
         } catch (Exception error) {
@@ -120,16 +129,21 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
         }
     }
 
-    private static int budget(final JsonNode server, final String field, final int fallback) {
+    private static int budget(final JsonNode server, final String field, final int fallback, final int maximum) {
         JsonNode value = server.get(field);
         if (Objects.isNull(value)) {
             // Absent optional budget keeps the documented legacy default, never a shared maximum.
             return fallback;
         }
         if (!value.isIntegralNumber() || !value.canConvertToInt()) {
-            throw new IllegalArgumentException("Invalid remote payload budget");
+            throw new IllegalArgumentException(INVALID_REMOTE_PAYLOAD_BUDGET);
         }
-        return value.intValue();
+        int resolved = value.intValue();
+        if (resolved < MIN_REMOTE_BYTES || resolved > maximum) {
+            // Same range rule and same message as validateRemotePayloadBudget, at both layers.
+            throw new IllegalArgumentException(INVALID_REMOTE_PAYLOAD_BUDGET);
+        }
+        return resolved;
     }
 
     /**
@@ -140,7 +154,7 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
     public static void validateRemotePayloadBudget(final int requestBytes, final int responseBytes) {
         if (requestBytes < MIN_REMOTE_BYTES || requestBytes > MAX_REMOTE_REQUEST_BYTES
                 || responseBytes < MIN_REMOTE_BYTES || responseBytes > MAX_REMOTE_RESPONSE_BYTES) {
-            throw new IllegalArgumentException("Remote MCP payload budget outside the supported range");
+            throw new IllegalArgumentException(INVALID_REMOTE_PAYLOAD_BUDGET);
         }
     }
 

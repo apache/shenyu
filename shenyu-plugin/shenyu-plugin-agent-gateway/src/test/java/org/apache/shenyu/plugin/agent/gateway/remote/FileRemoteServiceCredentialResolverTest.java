@@ -62,6 +62,15 @@ class FileRemoteServiceCredentialResolverTest {
     }
 
     @Test
+    void resolvesTargetWithNonDefaultPayloadBudgets() throws Exception {
+        Files.createDirectories(root.resolve("service/orders"));
+        Files.writeString(root.resolve("service/orders/v1.json"), document());
+        // Budgets are plugin configuration, never credential data: the secret file stays budget-free.
+        RemoteServerBinding.Config configured = new RemoteServerBinding.Config("orders", target.endpoint(), "service/orders", "v1", 32768, 262144);
+        assertEquals("ServiceCredential[REDACTED]", new FileRemoteServiceCredentialResolver(root).resolve(configured).toString());
+    }
+
+    @Test
     void rejectsWrongEndpointEvenWhenReferenceMatches() throws Exception {
         Files.createDirectories(root.resolve("service/orders"));
         Files.writeString(root.resolve("service/orders/v1.json"), document().replace("192.0.2.10", "192.0.2.11"));
