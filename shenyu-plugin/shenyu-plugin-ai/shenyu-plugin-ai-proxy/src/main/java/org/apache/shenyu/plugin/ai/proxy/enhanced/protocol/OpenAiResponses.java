@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiUpstreamUsageTap;
 
 import java.util.Objects;
 
@@ -41,6 +42,12 @@ public final class OpenAiResponses implements AiProxyProtocol {
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public AiProtocolResponseInspector responseInspector() {
+        return (response, observation, stream) -> new AiUpstreamUsageTap(
+                observation, response.getHeaders(), stream, false).attach(response);
     }
 
     @Override

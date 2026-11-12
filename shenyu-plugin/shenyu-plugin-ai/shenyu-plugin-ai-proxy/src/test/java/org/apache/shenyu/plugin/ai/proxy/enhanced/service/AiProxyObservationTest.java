@@ -22,6 +22,7 @@ import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
 import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
@@ -206,6 +207,41 @@ class AiProxyObservationTest {
         assertNull(sink.events.get(0).context().getTenant());
         assertNull(sink.events.get(0).context().getSubject());
         assertEquals(AiUsage.Status.UNKNOWN, sink.events.get(0).usage().status());
+    }
+
+    @Test
+    void nativeResponsesRetainsRawUpstreamUsage() {
+        final Sink sink = new Sink();
+        final AiProxyEngine engine = engine(request -> Mono.just(response(200, Flux.just(bytes(
+                "{\"id\":\"resp_fixture\",\"usage\":{\"input_tokens\":3,\"output_tokens\":2,\"total_tokens\":5}}")))), sink);
+        final AiCommonConfig config = config(false, "main");
+        config.setProtocol(OpenAiResponses.NAME);
+
+        engine.execute("{\"input\":\"hello\"}", config, Optional.empty(), result -> result.getBody().then()).block();
+
+        assertEquals(1, sink.attempts.size());
+        assertEquals(AiUsage.Status.REPORTED, sink.attempts.get(0).usage().status());
+        assertEquals(5L, sink.attempts.get(0).usage().totalTokens());
+        assertEquals(5L, sink.events.get(0).usage().totalTokens());
+    }
+
+    @Test
+    void failedChatEventStreamDoesNotReportCompletionEvidence() {
+        final Sink sink = new Sink();
+        final AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
+                        request -> Mono.just(new AiUpstreamResponse(503,
+                                Map.of("Content-Type", List.of("text/event-stream")),
+                                Flux.just(bytes("data: [DONE]\n\n")))))
+                .retryProperties(new AiProxyRetryProperties(0, 0, Duration.ZERO))
+                .observer(sink)
+                .build();
+
+        engine.execute(BODY, config(true, "main"), Optional.empty(), result -> result.getBody().then()).block();
+
+        assertEquals(1, sink.attempts.size());
+        assertEquals(AiCallOutcome.ERROR, sink.attempts.get(0).outcome());
+        assertEquals(AiStreamCompletion.NOT_INSPECTED, sink.attempts.get(0).completion());
     }
 
     @Test

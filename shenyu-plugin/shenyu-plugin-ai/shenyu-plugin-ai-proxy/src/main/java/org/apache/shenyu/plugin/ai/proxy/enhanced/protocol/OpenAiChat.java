@@ -73,7 +73,8 @@ public final class OpenAiChat implements AiProxyProtocol {
     @Override
     public AiProtocolResponseInspector responseInspector() {
         return (response, observation, stream) -> new AiUpstreamUsageTap(
-                observation, response.getHeaders(), stream, true).attach(response);
+                observation, response.getHeaders(), stream,
+                response.getStatusCode() >= 200 && response.getStatusCode() < 300).attach(response);
     }
 
     @Override
