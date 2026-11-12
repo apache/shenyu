@@ -118,7 +118,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
                     : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()),
                             callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
-            return executeRequest(exchange, selector, rule)
+            return executeRequest(exchange, selector, rule, observation)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
                     .doFinally(signal -> {
@@ -131,7 +131,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule, final AiRequestObservation observation) {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
@@ -166,7 +166,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, handle, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
                         return cacheScope(exchange, selector, rule).flatMap(scope ->
-                                aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response))
+                                aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response, observation))
                                         .contextWrite(context -> scope.map(value -> context.put(AiResponseCacheScope.REACTOR_KEY, value))
                                                 .orElseGet(() -> context.delete(AiResponseCacheScope.REACTOR_KEY))));
                     });
@@ -186,7 +186,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                 .defaultIfEmpty(Optional.empty());
     }
 
-    private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream) {
+    private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream, final AiRequestObservation observation) {
         response.setStatusCode(HttpStatusCode.valueOf(upstream.getStatusCode()));
         Set<String> excluded = new HashSet<>(HOP_HEADERS);
         upstream.getHeaders().forEach((name, values) -> {
@@ -204,7 +204,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             }
         });
         Flux<DataBuffer> body = upstream.getBody().map(bytes -> response.bufferFactory().wrap(bytes))
-                .doOnDiscard(DataBuffer.class, DataBufferUtils::release);
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                .doOnCancel(observation::downstreamDisconnected);
         return response.writeAndFlushWith(body.map(buffer -> Mono.just(buffer).doOnDiscard(DataBuffer.class, DataBufferUtils::release)));
     }
 

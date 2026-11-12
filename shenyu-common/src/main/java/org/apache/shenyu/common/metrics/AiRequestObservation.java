@@ -53,6 +53,8 @@ public final class AiRequestObservation {
 
     private boolean completed;
 
+    private volatile boolean downstreamDisconnected;
+
     public AiRequestObservation(final AiCallObserver observer, final AgentRequestContext context) {
         this(observer, context, AgentRuntimeMetrics.NOOP);
     }
@@ -100,6 +102,25 @@ public final class AiRequestObservation {
      * Supply a layer-specific bounded classification without implementation coupling.
      * @param outcome classification of the logical terminal failure
      */
+    /**
+     * Record a real downstream peer disconnect observed while the response body was written.
+     *
+     * <p>Kept as separate evidence from the assigned HTTP status: an interrupted request keeps
+     * its committed status while its logical and attempt outcome become cancelled.</p>
+     */
+    public void downstreamDisconnected() {
+        this.downstreamDisconnected = true;
+    }
+
+    /**
+     * Whether the downstream peer disconnected before the response body finished.
+     *
+     * @return true when a downstream disconnect was observed
+     */
+    public boolean isDownstreamDisconnected() {
+        return downstreamDisconnected;
+    }
+
     public synchronized void failure(final AiCallOutcome outcome) {
         if (!completed) {
             failure = outcome;
@@ -144,7 +165,7 @@ public final class AiRequestObservation {
             completed = true;
             attemptEvent = Objects.isNull(active) ? null : active.freeze(signal, terminalOutcome(active.status, failure));
             AiCallOutcome error = Objects.isNull(failure) && signal == SignalType.ON_ERROR ? AiCallOutcome.ERROR : failure;
-            AiCallOutcome outcome = signal == SignalType.CANCEL ? AiCallOutcome.CANCELLED : terminalOutcome(httpStatus, error);
+            AiCallOutcome outcome = interrupted(signal) ? AiCallOutcome.CANCELLED : terminalOutcome(httpStatus, error);
             terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage, completion);
         }
         recordAttempt(attemptEvent);
@@ -205,6 +226,10 @@ public final class AiRequestObservation {
             return AiCallOutcome.REJECTED;
         }
         return Objects.nonNull(status) && status >= 500 ? AiCallOutcome.ERROR : AiCallOutcome.SUCCESS;
+    }
+
+    private boolean interrupted(final SignalType signal) {
+        return signal == SignalType.CANCEL || downstreamDisconnected;
     }
 
     private static long elapsed(final long start) {
@@ -318,7 +343,7 @@ public final class AiRequestObservation {
             }
             completed = true;
             owner.usage = usage;
-            if (signal == SignalType.CANCEL && completion.evidence() != AiStreamCompletion.Evidence.NOT_INSPECTED
+            if (owner.interrupted(signal) && completion.evidence() != AiStreamCompletion.Evidence.NOT_INSPECTED
                     && completion.evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER) {
                 completion = new AiStreamCompletion(AiStreamCompletion.Evidence.SOURCE_CANCELLED, completion.framing());
             }
@@ -326,7 +351,7 @@ public final class AiRequestObservation {
             if (owner.active == this) {
                 owner.active = null;
             }
-            AiCallOutcome outcome = signal == SignalType.CANCEL ? AiCallOutcome.CANCELLED : terminalOutcome(status, error);
+            AiCallOutcome outcome = owner.interrupted(signal) ? AiCallOutcome.CANCELLED : terminalOutcome(status, error);
             return new AiAttemptEvent(context, number, kind, provider, protocol, streaming, outcome, status, elapsed(started), usage, completion);
         }
     }
