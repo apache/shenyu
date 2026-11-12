@@ -132,7 +132,7 @@ public final class PluginServiceTest {
         PluginDTO request = buildPluginDTO("catalog", "aiProxy");
         request.setConfig("{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshConcurrency\":0}}");
         ShenyuAdminException error = assertThrows(ShenyuAdminException.class, () -> pluginService.createOrUpdate(request));
-        assertEquals("Invalid Agent Gateway aggregation configuration", error.getMessage());
+        assertEquals("Invalid plugin configuration: agentGateway SEMANTIC_INVALID", error.getMessage());
         verify(pluginMapper).selectById("catalog");
         verify(pluginMapper, never()).updateSelective(any());
         verifyNoInteractions(modelDataEventPublisher);

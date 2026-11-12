@@ -439,7 +439,7 @@ class ManagedRemoteMcpCatalogRefreshTest {
     }
 
     @Test
-    void replacementCancelsOldTimerAndMalformedConfigStopsRecovery() throws Exception {
+    void replacementCancelsOldTimerAndMalformedConfigPreservesRecovery() throws Exception {
         VirtualTimeScheduler timer = VirtualTimeScheduler.create();
         List<String> versions = new CopyOnWriteArrayList<>();
         try (ManagedRemoteMcpCatalog catalog = catalog(UNREACHABLE, timer, target -> {
@@ -455,9 +455,10 @@ class ManagedRemoteMcpCatalogRefreshTest {
             assertEquals(List.of("v1", "v2", "v2"), versions);
             catalog.accept(event(true, "[]"));
             await(() -> "IllegalArgumentException".equals(catalog.diagnosticsState().lastFailure()));
-            timer.advanceTimeBy(Duration.ofHours(1));
-            assertEquals(3, versions.size());
-            assertEquals(0L, catalog.refreshTiming().nextRefreshAt());
+            assertEquals(120000L, catalog.refreshTiming().nextRefreshAt());
+            timer.advanceTimeBy(Duration.ofSeconds(60));
+            await(() -> versions.size() == 4 && catalog.refreshTiming().nextRefreshAt() == 180000L);
+            assertEquals(List.of("v1", "v2", "v2", "v2"), versions);
         }
     }
 
@@ -505,6 +506,36 @@ class ManagedRemoteMcpCatalogRefreshTest {
             catalog.closeAsync().block(WAIT);
         }
         assertThrows(CatalogUnavailableException.class, () -> catalog.reload("{}").block(WAIT));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void invalidReplacementRetainsPublishedCatalogAndPolling(final boolean manual) throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            VirtualTimeScheduler timer = VirtualTimeScheduler.create();
+            AtomicInteger resolutions = new AtomicInteger();
+            try (ManagedRemoteMcpCatalog catalog = catalog(fixture.endpoint, timer, target -> {
+                resolutions.incrementAndGet();
+                return new RemoteServerBinding.Credential(target, "fixed-test-token");
+            })) {
+                catalog.reload(config(fixture.endpoint, "v1")).block(WAIT);
+                final long version = catalog.diagnosticsState().lifecycle().currentVersion();
+                final long nextRefresh = catalog.refreshTiming().nextRefreshAt();
+                final Set<String> tools = definitions(catalog);
+                if (manual) {
+                    assertThrows(IllegalArgumentException.class, () -> catalog.reload("[]").block(WAIT));
+                } else {
+                    catalog.accept(event(true, "[]"));
+                }
+                assertEquals(version, catalog.diagnosticsState().lifecycle().currentVersion());
+                assertEquals(nextRefresh, catalog.refreshTiming().nextRefreshAt());
+                assertEquals(tools, definitions(catalog));
+                assertEquals(1, resolutions.get());
+                assertTrue(nextRefresh > 0L);
+                timer.advanceTimeBy(Duration.ofMillis(nextRefresh));
+                await(() -> resolutions.get() == 2);
+            }
+        }
     }
 
     @ParameterizedTest

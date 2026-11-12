@@ -271,11 +271,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             }
             AgentGatewayAggregationConfig config;
             try {
-                ConfigurationValidation validation = ConfigurationContractRegistry.shared()
-                        .validate("agentGateway", ConfigurationScope.PLUGIN, "1", update.source());
-                if (validation.status() == ConfigurationValidation.Status.INVALID) {
-                    throw new IllegalArgumentException("Invalid Agent Gateway aggregation configuration");
-                }
+                validateConfiguration(update.source());
                 config = AgentGatewayAggregationConfig.parsePluginConfig(update.source());
             } catch (IllegalArgumentException error) {
                 recordFailure(update.sequence(), error.getClass().getSimpleName());
@@ -391,13 +387,22 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         if (closed) {
             return;
         }
+        boolean enabled = Boolean.TRUE.equals(plugin.getEnabled());
+        String source = enabled && Objects.nonNull(plugin.getConfig()) ? plugin.getConfig() : "{}";
+        if (source.getBytes(StandardCharsets.UTF_8).length <= 16384) {
+            try {
+                validateConfiguration(source);
+            } catch (IllegalArgumentException error) {
+                lastFailure = error.getClass().getSimpleName();
+                LOG.warn("Agent MCP invalid configuration rejected before catalog preparation");
+                return;
+            }
+        }
         final long sequence = revision.incrementAndGet();
         cancelNextRefresh();
         consecutiveFailures = 0;
         // Diagnostics belong to the newest event, even if an older update is fenced before reserve().
         lastFailure = "";
-        boolean enabled = Boolean.TRUE.equals(plugin.getEnabled());
-        String source = enabled && Objects.nonNull(plugin.getConfig()) ? plugin.getConfig() : "{}";
         if (!enabled || !canRetain(source)) {
             remoteConfigured = false;
             published = false;
@@ -435,6 +440,9 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
                 if (closed) {
                     return Mono.error(new CatalogUnavailableException());
                 }
+                if (Objects.isNull(source) || source.getBytes(StandardCharsets.UTF_8).length <= 16384) {
+                    validateConfiguration(source);
+                }
                 final long sequence = revision.incrementAndGet();
                 cancelNextRefresh();
                 consecutiveFailures = 0;
@@ -461,6 +469,13 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             return published && publishedServers.equals(AgentGatewayAggregationConfig.parsePluginConfig(source).servers());
         } catch (IllegalArgumentException error) {
             return false;
+        }
+    }
+
+    private static void validateConfiguration(final String source) {
+        ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate("agentGateway", ConfigurationScope.PLUGIN, "1", source);
+        if (validation.status() == ConfigurationValidation.Status.INVALID) {
+            throw new IllegalArgumentException("Invalid Agent Gateway aggregation configuration");
         }
     }
 

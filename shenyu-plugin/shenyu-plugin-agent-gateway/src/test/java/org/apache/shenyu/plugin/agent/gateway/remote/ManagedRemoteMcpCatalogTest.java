@@ -65,6 +65,11 @@ class ManagedRemoteMcpCatalogTest {
             } else {
                 StepVerifier.create(catalog.reload(source)).expectError(IllegalArgumentException.class).verify();
                 assertEquals(current, catalog.diagnosticsState().lifecycle().currentVersion());
+                PluginData update = new PluginData();
+                update.setEnabled(true);
+                update.setConfig(source);
+                catalog.accept(update);
+                assertEquals(current, catalog.diagnosticsState().lifecycle().currentVersion());
             }
         } finally {
             catalog.closeAsync().block(Duration.ofSeconds(5));

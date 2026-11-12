@@ -88,7 +88,7 @@ class AgentGatewayPluginConfigValidatorTest {
     void adminAndRuntimeRejectTheSameInvalidRefreshPolicy(final String policy) {
         String source = "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[],\"refreshPolicy\":" + policy + "}}";
         ShenyuAdminException error = assertThrows(ShenyuAdminException.class, () -> AgentGatewayPluginConfigValidator.validate("agentGateway", source));
-        assertEquals("Invalid Agent Gateway aggregation configuration", error.getMessage());
+        assertEquals("Invalid plugin configuration: agentGateway SEMANTIC_INVALID", error.getMessage());
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(source));
     }
 }
