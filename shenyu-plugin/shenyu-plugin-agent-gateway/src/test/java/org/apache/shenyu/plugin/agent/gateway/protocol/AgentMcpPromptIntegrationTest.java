@@ -127,8 +127,9 @@ class AgentMcpPromptIntegrationTest {
         }
     }
 
-    @Test
-    void toolGrantsAndExplicitPromptDenialsDoNotExposeTemplates() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void toolGrantsAndExplicitPromptDenialsDoNotExposeTemplates(final boolean httpTools) {
         AtomicInteger calls = new AtomicInteger();
         for (AgentMcpIdentity identity : List.of(identity(Set.of(), Set.of()), identity(Set.of("summary"), Set.of("summary")))) {
             AgentMcpHttpHandler handler = handler(input -> {
@@ -136,10 +137,10 @@ class AgentMcpPromptIntegrationTest {
                 return Mono.just(result("secret"));
             }, identity);
             MockServerWebExchange list = exchange("prompts/list", "summary", "");
-            handler.handle(list, config("json", false), traffic("list"), 1).block();
+            handler.handle(list, config("json", httpTools), traffic("list"), 1).block();
             assertTrue(list.getResponse().getBodyAsString().block().contains("\"prompts\":[]"));
             MockServerWebExchange get = exchange("prompts/get", "summary", "\"topic\":\"x\"");
-            handler.handle(get, config("json", false), traffic("get"), 1).block();
+            handler.handle(get, config("json", httpTools), traffic("get"), 1).block();
             assertEquals(403, get.getResponse().getStatusCode().value());
             assertFalse(get.getResponse().getBodyAsString().block().contains("secret"));
         }

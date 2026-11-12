@@ -39,6 +39,16 @@ The rule handle uses the existing Admin JSON configuration and sync path:
 
 Admin validates `allowedPrompts` with the same shared parser as the gateway. Trusted JWT/opaque/login claims use `prompt_grants` and `prompt_denies`; explicit principal scope mappings use `prompt-grants` and `prompt-denials`. Key-auth bindings use those same deployment property names alongside their existing namespace/selector/rule references. A tool scope, client `_meta`, a forged tenant header or an unverified API key does not grant prompt access. Denials always win. Grant changes take effect through the existing authority/policy lifecycle, not by mutating an in-flight identity.
 
+The HTTP handler calls `AgentMcpExecutionContext.withPromptPermissions` with
+the matched rule's configured prompts and the resolved identity's prompt
+grants. That method computes their intersection. When HTTP tools require a
+nested dispatcher, it carries both the configured and already authorized
+prompt sets into the nested context. Constructors without explicit prompt
+permissions intentionally grant none; callers using the dispatcher directly
+must supply trusted prompt permissions explicitly. The JSON/SSE cases in
+`AgentMcpPromptIntegrationTest` exercise the HTTP-tool nesting path as well as
+denied access without invoking the provider.
+
 ## Supported contract and limits
 
 | Boundary | Contract |
@@ -69,8 +79,16 @@ Missing authentication is 401, an ungranted get is 403 / JSON-RPC `-32002`, inva
 
 The network fixture reuses its HTTP client, checks readiness, then verifies the
 upstream handshake and tool interface before each scenario. Production request
-and discovery budgets are unchanged. Unmodified third-party client acceptance
-remains pending; the protocol fixture is not a substitute for that acceptance.
+and discovery budgets are unchanged.
+
+Separate opt-in cases in `RemotePromptNetworkTest` use the unmodified official
+`@modelcontextprotocol/client` 2.4.0 with its public 2026-07-28 negotiation.
+They cover local and paged remote list/get, all four gateway/upstream JSON/SSE
+combinations, authentication, missing arguments and permission revocation.
+See the module README's official-client reproduction instructions, including
+the external test-only installation and `shenyu.test.mcp.client.root` property.
+These cases do not replace reconciliation with the accepted #8095/#8143
+prerequisite interfaces; that remains a condition for stabilizing this draft.
 
 ```shell
 ./mvnw -B -ntp -pl shenyu-spring-boot-starter/shenyu-spring-boot-starter-plugin/shenyu-spring-boot-starter-plugin-agent-gateway -am test -Dtest=AgentPromptRegistryTest,RemotePromptDirectoryTest,AgentMcpPromptIntegrationTest,RemotePromptNetworkTest,KeyAuthMcpPromptHttpTest -Dsurefire.failIfNoSpecifiedTests=false -DskipRemoteResources=true
