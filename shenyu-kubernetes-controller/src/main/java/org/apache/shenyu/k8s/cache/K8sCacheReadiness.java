@@ -19,6 +19,7 @@ package org.apache.shenyu.k8s.cache;
 
 import io.kubernetes.client.extended.workqueue.WorkQueue;
 import io.kubernetes.client.informer.SharedIndexInformer;
+import org.apache.shenyu.k8s.observability.K8sControllerMetrics;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,12 +58,15 @@ public final class K8sCacheReadiness {
         if (ready) {
             return true;
         }
-        if (informersSynced() && workQueues.stream().allMatch(queue -> queue.length() == 0)) {
+        boolean synced = informersSynced();
+        long pendingItems = pendingWorkItems();
+        if (synced && pendingItems == 0) {
             drainedStreak++;
             ready = drainedStreak >= REQUIRED_DRAINED_OBSERVATIONS;
         } else {
             drainedStreak = 0;
         }
+        K8sControllerMetrics.getInstance().updateCacheReadiness(ready, pendingInformers(), pendingWorkItems());
         return ready;
     }
 

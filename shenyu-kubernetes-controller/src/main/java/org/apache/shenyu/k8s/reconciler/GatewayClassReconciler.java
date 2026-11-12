@@ -35,6 +35,7 @@ import org.apache.shenyu.k8s.common.GatewayApiConstants;
 import org.apache.shenyu.k8s.common.GatewayApiCrdVersions;
 import org.apache.shenyu.k8s.common.JsonFields;
 import org.apache.shenyu.k8s.common.StatusMergePatch;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelationCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,7 +231,9 @@ public class GatewayClassReconciler implements Reconciler {
             String ns = Objects.requireNonNull(gateway.getMetadata()).getNamespace();
             String name = gateway.getMetadata().getName();
             boolean servedByShenyu = CollectionUtils.isNotEmpty(GatewayRouteCache.getInstance().getRoutesByGateway(ns, name))
-                    || GatewayApiConstants.isConditionAcceptedByShenyu(gateway, GatewayApiConstants.CONDITION_ACCEPTED);
+                    || GatewayApiConstants.isConditionAcceptedByShenyu(gateway, GatewayApiConstants.CONDITION_ACCEPTED)
+                    || !K8sResourceCorrelationCache.getInstance()
+                            .getCorrelationsByParentGateway(GatewayApiConstants.HTTP_ROUTE_KIND, ns + "/" + name).isEmpty();
             if (!servedByShenyu) {
                 continue;
             }

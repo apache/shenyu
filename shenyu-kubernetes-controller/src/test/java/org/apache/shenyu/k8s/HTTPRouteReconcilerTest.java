@@ -33,6 +33,9 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.shenyu.k8s.cache.GatewayRouteCache;
+import org.apache.shenyu.k8s.observability.K8sControllerMetrics;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelation;
+import org.apache.shenyu.k8s.observability.K8sResourceCorrelationCache;
 import org.apache.shenyu.k8s.parser.HttpRouteParser;
 import org.apache.shenyu.k8s.reconciler.HTTPRouteReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -42,8 +45,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -57,6 +61,8 @@ public final class HTTPRouteReconcilerTest {
     @BeforeEach
     public void setUp() {
         GatewayRouteCache.getInstance().clear();
+        K8sResourceCorrelationCache.getInstance().clear();
+        K8sControllerMetrics.getInstance().resetForTesting();
     }
 
     /** Test HTTPRoute bound to a ShenYu Gateway: should create selector and rule. */
@@ -589,7 +595,198 @@ public final class HTTPRouteReconcilerTest {
         return new DynamicKubernetesObject(raw);
     }
 
-    /** Loosen the gateway's listener to accept routes from all namespaces. */
+    /**
+     * Test that when status patch fails with ApiException, the error is recorded in controller metrics
+     * with both specific status code and exception class name, and reconcile duration includes status publication time.
+     */
+    @Test
+    public void testReconcileRecordsStatusPatchErrorMetrics() throws Exception {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        V1Endpoints mockedEndpoints = new V1EndpointsBuilder().withKind("Endpoints")
+                .withNewMetadata().withNamespace("mockedNamespace").withName("testService").endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build())
+                .build();
+        when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
+        Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsIndexer);
+        final HttpRouteParser httpRouteParser = new HttpRouteParser(endpointsLister, new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
+
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        DynamicKubernetesObject gateway = buildGateway("mockedNamespace", "shenyu-gateway", "shenyu");
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway")).thenReturn(gateway);
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        final Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        final DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ApiClient apiClient = mock(ApiClient.class);
+        when(apiClient.getAuthentications()).thenReturn(Map.of());
+        when(apiClient.buildCall(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(mock(okhttp3.Call.class));
+        when(apiClient.execute(any(okhttp3.Call.class))).thenThrow(new ApiException(403, "Forbidden"));
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer = mockGatewayClassInformer();
+        HTTPRouteReconciler httpRouteReconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                gatewayClassInformer, httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+
+        Result result = httpRouteReconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        Assertions.assertEquals(new Result(false), result);
+        verify(shenyuCacheRepository).saveOrUpdateSelectorData(any());
+        verify(shenyuCacheRepository).saveOrUpdateRuleData(any());
+
+        K8sControllerMetrics metrics = K8sControllerMetrics.getInstance();
+        Assertions.assertEquals(1L, metrics.getReconcileErrorCount("HTTPRoute", "StatusPatch403"));
+        Assertions.assertEquals(1L, metrics.getReconcileErrorCount("HTTPRoute", "ApiException"));
+        Assertions.assertEquals(1L, metrics.getReconcileCount("HTTPRoute", "success"));
+        Assertions.assertTrue(metrics.getReconcileDurationNanos("HTTPRoute") > 0);
+    }
+
+    /**
+     * Test that reconcile latency includes slow Kubernetes API status PATCH execution rather than
+     * finishing observation before status publication.
+     */
+    @Test
+    public void testReconcileIncludesDelayedStatusPatchDuration() throws Exception {
+        HttpRouteParser httpRouteParser = buildReadyParser();
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway"))
+                .thenReturn(buildGateway("mockedNamespace", "shenyu-gateway", "shenyu"));
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(
+                buildHTTPRoute("mockedNamespace", "test-route", "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**"));
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ApiClient apiClient = mockApiClientWithStatusPatch();
+        when(apiClient.execute(any(okhttp3.Call.class))).thenAnswer(invocation -> {
+            Thread.sleep(60L);
+            return null;
+        });
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        HTTPRouteReconciler reconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                mockGatewayClassInformer(), httpRouteParser, shenyuCacheRepository, apiClient, 9195);
+
+        Result result = reconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        Assertions.assertEquals(new Result(false), result);
+        K8sControllerMetrics metrics = K8sControllerMetrics.getInstance();
+        Assertions.assertEquals(1L, metrics.getReconcileCount("HTTPRoute", "success"));
+        Assertions.assertEquals(0L, metrics.getReconcileErrorCount("HTTPRoute", "ApiException"));
+        Assertions.assertTrue(metrics.getReconcileDurationNanos("HTTPRoute") >= TimeUnit.MILLISECONDS.toNanos(50));
+    }
+
+    /**
+     * Test that direct HTTPRoute deletion removes runtime selectors, clears correlation state,
+     * and removes selector and rule reverse-lookup indexes.
+     */
+    @Test
+    public void testReconcileDirectHTTPRouteDeletionWithdrawsCorrelationAndIndexes() throws Exception {
+        HttpRouteParser httpRouteParser = buildReadyParser();
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway"))
+                .thenReturn(buildGateway("mockedNamespace", "shenyu-gateway", "shenyu"));
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        HTTPRouteReconciler reconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                mockGatewayClassInformer(), httpRouteParser, shenyuCacheRepository, mockApiClientWithStatusPatch(), 9195);
+
+        reconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        K8sResourceCorrelationCache correlationCache = K8sResourceCorrelationCache.getInstance();
+        K8sResourceCorrelation accepted = correlationCache.getCorrelation("HTTPRoute", "mockedNamespace", "test-route");
+        Assertions.assertNotNull(accepted);
+        final String selectorId = accepted.getSelectorIds().get(0);
+        final String ruleId = accepted.getRuleIds().get(0);
+        Assertions.assertNotNull(correlationCache.findCorrelationBySelectorId(selectorId));
+        Assertions.assertNotNull(correlationCache.findCorrelationByRuleId(ruleId));
+
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(null);
+        Result deleteResult = reconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        Assertions.assertEquals(new Result(false), deleteResult);
+        verify(shenyuCacheRepository).deleteSelectorWithRules("divide", selectorId);
+        Assertions.assertNull(correlationCache.getCorrelation("HTTPRoute", "mockedNamespace", "test-route"));
+        Assertions.assertNull(correlationCache.findCorrelationBySelectorId(selectorId));
+        Assertions.assertNull(correlationCache.findCorrelationByRuleId(ruleId));
+        Assertions.assertEquals(1L, K8sControllerMetrics.getInstance().getReconcileCount("HTTPRoute", "deleted"));
+    }
+
+    /**
+     * Test that controller/class reassignment on the parent Gateway causes HTTPRouteReconciler
+     * to withdraw runtime selectors, drop correlation state and reverse indexes, and remove ShenYu parent status.
+     */
+    @Test
+    public void testReconcileGatewayClassReassignmentWithdrawsCorrelationAndIndexes() throws Exception {
+        HttpRouteParser httpRouteParser = buildReadyParser();
+        SharedIndexInformer<DynamicKubernetesObject> gatewayInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> gatewayIndexer = mock(Indexer.class);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway"))
+                .thenReturn(buildGateway("mockedNamespace", "shenyu-gateway", "shenyu"));
+        when(gatewayInformer.getIndexer()).thenReturn(gatewayIndexer);
+
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer = mock(SharedIndexInformer.class);
+        Indexer<DynamicKubernetesObject> httpRouteIndexer = mock(Indexer.class);
+        DynamicKubernetesObject httpRoute = buildHTTPRoute("mockedNamespace", "test-route",
+                "mockedNamespace", "shenyu-gateway", "testService", 8189, "/**");
+        when(httpRouteIndexer.getByKey("mockedNamespace/test-route")).thenReturn(httpRoute);
+        when(httpRouteInformer.getIndexer()).thenReturn(httpRouteIndexer);
+
+        ShenyuCacheRepository shenyuCacheRepository = mock(ShenyuCacheRepository.class);
+        HTTPRouteReconciler reconciler = new HTTPRouteReconciler(httpRouteInformer, gatewayInformer,
+                mockGatewayClassInformer(), httpRouteParser, shenyuCacheRepository, mockApiClientWithStatusPatch(), 9195);
+
+        reconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        K8sResourceCorrelationCache correlationCache = K8sResourceCorrelationCache.getInstance();
+        K8sResourceCorrelation accepted = correlationCache.getCorrelation("HTTPRoute", "mockedNamespace", "test-route");
+        Assertions.assertNotNull(accepted);
+        final String selectorId = accepted.getSelectorIds().get(0);
+        final String ruleId = accepted.getRuleIds().get(0);
+
+        JsonObject shenyuParent = new JsonObject();
+        shenyuParent.addProperty("controllerName", "gateway.shenyu.apache.org/shenyu-controller");
+        JsonArray parents = new JsonArray();
+        parents.add(shenyuParent);
+        JsonObject status = new JsonObject();
+        status.add("parents", parents);
+        httpRoute.getRaw().add("status", status);
+        when(gatewayIndexer.getByKey("mockedNamespace/shenyu-gateway"))
+                .thenReturn(buildGateway("mockedNamespace", "shenyu-gateway", "other-class"));
+
+        Result reassignResult = reconciler.reconcile(new Request("mockedNamespace", "test-route"));
+        Assertions.assertEquals(new Result(false), reassignResult);
+        verify(shenyuCacheRepository).deleteSelectorWithRules("divide", selectorId);
+        Assertions.assertNull(correlationCache.getCorrelation("HTTPRoute", "mockedNamespace", "test-route"));
+        Assertions.assertNull(correlationCache.findCorrelationBySelectorId(selectorId));
+        Assertions.assertNull(correlationCache.findCorrelationByRuleId(ruleId));
+        Assertions.assertEquals(1L, K8sControllerMetrics.getInstance().getReconcileCount("HTTPRoute", "ignored"));
+    }
+
+    private HttpRouteParser buildReadyParser() {
+        Indexer<V1Endpoints> endpointsIndexer = mock(Indexer.class);
+        V1Endpoints mockedEndpoints = new V1EndpointsBuilder().withKind("Endpoints")
+                .withNewMetadata().withNamespace("mockedNamespace").withName("testService").endMetadata()
+                .withSubsets(new V1EndpointSubsetBuilder().withAddresses(new V1EndpointAddress().ip("127.0.0.1")).build())
+                .build();
+        when(endpointsIndexer.getByKey("mockedNamespace/testService")).thenReturn(mockedEndpoints);
+        return new HttpRouteParser(new Lister<>(endpointsIndexer),
+                new Lister<>(mock(Indexer.class)), new Lister<>(mock(Indexer.class)));
+    }
+
     private DynamicKubernetesObject allowAllNamespaces(final DynamicKubernetesObject gateway) {
         JsonObject namespaces = new JsonObject();
         namespaces.addProperty("from", "All");
