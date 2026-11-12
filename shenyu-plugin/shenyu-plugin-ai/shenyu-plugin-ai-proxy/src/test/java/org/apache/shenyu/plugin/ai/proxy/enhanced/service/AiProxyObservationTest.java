@@ -65,12 +65,13 @@ class AiProxyObservationTest {
     void configuredRetryLimitRetainsAttemptAndTerminalObservation() throws InterruptedException {
         final Sink sink = new Sink();
         final AtomicInteger calls = new AtomicInteger();
-        final AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        final AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
                 protocolRouteResolver(),
-                request -> Mono.just(response(calls.incrementAndGet() <= 2 ? 503 : 200, Flux.just(bytes("{}")))),
-                new AiProxyEngineOptions(new AiProxyRetryProperties(1, 0, Duration.ZERO), sink, event -> {
-                }, null));
+                request -> Mono.just(response(calls.incrementAndGet() <= 2 ? 503 : 200, Flux.just(bytes("{}")))))
+                .retryProperties(new AiProxyRetryProperties(1, 0, Duration.ZERO))
+                .observer(sink)
+                .build();
         engine.execute(BODY, config(false, "primary"), Optional.of(config(false, "fallback")), result -> result.getBody().then()).block();
         assertTrue(sink.finished.await(5, TimeUnit.SECONDS));
         assertEquals(3, calls.get());
@@ -225,11 +226,13 @@ class AiProxyObservationTest {
     void cancellingRetryBackoffDoesNotInventAnotherAttempt() {
         final Sink sink = new Sink();
         StepVerifier.withVirtualTime(() -> {
-            AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())), new AiProxyProviderFactory(List.of(new OpenAi())),
+            AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                    new AiProxyProviderFactory(List.of(new OpenAi())),
                     protocolRouteResolver(),
-                    request -> Mono.just(response(503, Flux.just(bytes("{}")))),
-                    new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ofSeconds(30)), sink, event -> {
-                    }, null));
+                    request -> Mono.just(response(503, Flux.just(bytes("{}")))))
+                    .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ofSeconds(30)))
+                    .observer(sink)
+                    .build();
             return engine.execute(BODY, config(false, "main"), Optional.empty(), result -> result.getBody().then());
         }).then(() -> assertEquals(1, sink.attempts.size())).thenCancel().verify();
         assertEquals(1, sink.events.size());
@@ -257,10 +260,11 @@ class AiProxyObservationTest {
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiCallObserver observer) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport,
-                new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), observer, event -> {
-                }, null));
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport)
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .observer(observer)
+                .build();
     }
 
     private AiCommonConfig config(final boolean streaming, final String model) {

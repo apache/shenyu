@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToC
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
@@ -87,12 +88,11 @@ class AiProxyEngineTest {
             transportedRequest.set(request);
             return Mono.just(upstreamResponse);
         };
-        engine = new AiProxyEngine(
+        engine = AiProxyEngine.builder(
                 new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
                 protocolRouteResolver(),
-                transport,
-                AiProxyEngineOptions.defaults());
+                transport).build();
         config = new AiCommonConfig();
         config.setProvider("OpenAI");
         config.setProtocol(OpenAiChat.NAME);
@@ -345,12 +345,13 @@ class AiProxyEngineTest {
         final AtomicInteger transports = new AtomicInteger();
         final AiProxyProvider fallback = customProvider(
                 new AiProviderCapabilities(all.protocolBindings(), all.operations(), Set.of()), builds);
-        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), fallback)), protocolRouteResolver(), request -> {
                     transports.incrementAndGet();
                     return Mono.error(new AiTransportException(AiTransportException.Kind.IO_FAILURE, "unavailable", null));
-                }, new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), null, event -> {
-                }, null));
+                })
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .build();
         config.setStream(true);
         final AiCommonConfig fallbackConfig = new AiCommonConfig(config);
         fallbackConfig.setProvider("custom");
@@ -394,15 +395,15 @@ class AiProxyEngineTest {
                 Set.of(ShenyuAiRequest.Operation.RESPONSE), Set.of());
         final AiProxyProvider fallback = recordingProvider("fallback", responses, preparedProtocols);
         final AtomicInteger transports = new AtomicInteger();
-        engine = new AiProxyEngine(
+        engine = AiProxyEngine.builder(
                 new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(primary, fallback)),
                 routeResolver,
                 request -> transports.incrementAndGet() == 1
                         ? Mono.error(new AiTransportException(AiTransportException.Kind.IO_FAILURE, "unavailable", null))
-                        : Mono.just(upstreamResponse),
-                new AiProxyEngineOptions(new AiProxyRetryProperties(0, 0, Duration.ZERO), null, event -> {
-                }, null));
+                        : Mono.just(upstreamResponse))
+                .retryProperties(new AiProxyRetryProperties(0, 0, Duration.ZERO))
+                .build();
         config.setProvider("primary");
         config.setProtocol(OpenAiResponses.NAME);
         final AiCommonConfig fallbackConfig = new AiCommonConfig(config);
@@ -429,20 +430,20 @@ class AiProxyEngineTest {
     }
 
     private void useCustomProvider(final AiProviderCapabilities capabilities, final AtomicInteger builds) {
-        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+        engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(customProvider(capabilities, builds))), protocolRouteResolver(), request -> {
                     transportedRequest.set(request);
                     return Mono.just(upstreamResponse);
-                }, AiProxyEngineOptions.defaults());
+                }).build();
         config.setProvider("custom");
     }
 
     private void useDeepSeekProvider() {
-        engine = new AiProxyEngine(
+        engine = AiProxyEngine.builder(
                 new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(
                         new OpenAiCompatible("DeepSeek", OpenAiProviderOptions.deepSeek()))),
-                protocolRouteResolver(), request -> Mono.just(upstreamResponse), AiProxyEngineOptions.defaults());
+                protocolRouteResolver(), request -> Mono.just(upstreamResponse)).build();
         config.setProvider("DeepSeek");
         config.setBaseUrl("https://api.deepseek.com");
     }
@@ -460,9 +461,9 @@ class AiProxyEngineTest {
             }
 
             @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig providerConfig) {
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig providerConfig) {
                 builds.incrementAndGet();
-                return new OpenAi().buildRequest(request, providerConfig);
+                return new OpenAi().prepareRequest(request, providerConfig);
             }
         };
     }
@@ -481,9 +482,9 @@ class AiProxyEngineTest {
             }
 
             @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig providerConfig) {
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig providerConfig) {
                 preparedProtocols.add(request.getProtocol());
-                return new AiUpstreamRequest();
+                return PreparedAiRequest.identity(new AiUpstreamRequest());
             }
         };
     }

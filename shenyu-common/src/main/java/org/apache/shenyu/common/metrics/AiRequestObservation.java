@@ -320,7 +320,10 @@ public final class AiRequestObservation {
             owner.usage = usage;
             if (signal == SignalType.CANCEL && completion.evidence() != AiStreamCompletion.Evidence.NOT_INSPECTED
                     && completion.evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER) {
-                completion = new AiStreamCompletion(AiStreamCompletion.Evidence.SOURCE_CANCELLED, completion.framing());
+                AiStreamCompletion.Framing framing = streaming
+                        && completion.framing() == AiStreamCompletion.Framing.NOT_INSPECTED
+                        ? AiStreamCompletion.Framing.NONE : completion.framing();
+                completion = new AiStreamCompletion(AiStreamCompletion.Evidence.SOURCE_CANCELLED, framing);
             }
             owner.completion = completion;
             if (owner.active == this) {

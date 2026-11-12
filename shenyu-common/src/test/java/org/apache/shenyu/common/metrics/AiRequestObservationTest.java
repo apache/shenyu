@@ -68,12 +68,15 @@ class AiRequestObservationTest {
         final AiRequestObservation observation = new AiRequestObservation(sink, base);
         final AiRequestObservation.Attempt attempt = observation.startAttempt(base, AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", true);
         attempt.status(200);
+        attempt.streamEvidence(AiStreamCompletion.Evidence.PENDING);
         observation.finish(SignalType.CANCEL, 200);
         attempt.usage(new AiUsage(1L, 1L, 2L, AiUsage.Status.REPORTED));
         attempt.finish(SignalType.ON_COMPLETE, null);
         observation.updateContext(base.withIdentity("late", "late"));
         assertEquals(List.of("attempt", "terminal"), sink.order);
         assertEquals(AiCallOutcome.CANCELLED, sink.attempts.get(0).outcome());
+        assertEquals(AiStreamCompletion.Evidence.SOURCE_CANCELLED, sink.attempts.get(0).completion().evidence());
+        assertEquals(AiStreamCompletion.Framing.NONE, sink.attempts.get(0).completion().framing());
         assertEquals(AiCallOutcome.CANCELLED, sink.events.get(0).outcome());
         assertSame(AiUsage.UNKNOWN, sink.events.get(0).usage());
         assertNull(observation.getContext().getTenant());

@@ -43,7 +43,6 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
@@ -459,12 +458,14 @@ class AiProxyPluginTest {
 
     private AiProxyPlugin plugin(final AiProxyTransport transport, final AiCallObserver observer) {
         handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))), protocolRouteResolver(), request -> {
                     requests.add(request);
                     return transport.execute(request);
-                }, new AiProxyEngineOptions(new AiProxyRetryProperties(3, 1, Duration.ZERO), observer, event -> {
-                }, null));
+                })
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .observer(observer)
+                .build();
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, observer);
     }
 

@@ -29,7 +29,7 @@ The built-in implementations are the extension references:
 | Task | Start here | What to learn |
 | --- | --- | --- |
 | Understand the public execution entry point | [AiProxyEngine](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/service/AiProxyEngine.java) | Request and response stages, execution ownership |
-| Follow request planning | [AiExchangePlanner](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/service/execution/AiExchangePlanner.java) | Decode, route, prepare, and bind response adaptation |
+| Follow request planning | [AiExchangePlanner](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/service/AiExchangePlanner.java) | Decode, route, prepare, and bind response adaptation |
 | Add a native protocol | [OpenAiResponses](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/OpenAiResponses.java) | Envelope validation, decoded request fields, outgoing options, native response passthrough |
 | Add protocol stream framing or inspection | [OpenAiChat](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/OpenAiChat.java) | SSE encoding, usage and completion inspection |
 | Implement provider request construction | [OpenAi](src/main/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/OpenAi.java) | Defaults, model mapping, provider transformation, endpoint and authentication |
@@ -67,8 +67,8 @@ Programmatic integrations should construct the public execution facade through
 `AiProxyEngine.builder(protocols, providers, routeResolver, transport)` and add
 only the optional policies they need. Planning, coordination and attempt classes
 are package-private implementation details; protocol, provider, converter and
-transport contracts remain the supported extension surface. The existing
-`AiProxyEngineOptions` constructor remains available for source compatibility.
+transport contracts remain the supported extension surface. The builder is the
+single Engine construction contract and owns defaults for optional policies.
 
 ## Extending a native protocol
 
@@ -109,12 +109,12 @@ to choose the appropriate implementation path:
   defaults and provider transformations. The built-in profile shows where vendor
   token and dialect differences belong.
 - For independent request construction, implement `name()`, `capabilities()` and
-  `buildRequest()`. The default `prepareRequest()` wraps that request with an
-  identity response adapter. Return HTTP request data for the shared transport.
-- When response adaptation needs request state, override `prepareRequest()` and
-  return both the upstream request and its matching adapter. Keep `buildRequest()`
-  consistent by delegating to the override, as `OpenAi` does. That override must
-  perform preparation rather than delegating back to `buildRequest()`.
+  `prepareRequest()`. Return the upstream HTTP request together with its
+  request-scoped response adapter; do not open the connection in this method.
+- When no Provider response adaptation is needed, use
+  `PreparedAiRequest.identity(upstreamRequest)`. When response adaptation needs
+  request state, allocate that state during preparation and return the matching
+  adapter in the same `PreparedAiRequest`.
 
 `OpenAi.prepareRequest()` is the complete built-in reference: validate the
 configuration and capabilities, prepare the provider payload, validate the final

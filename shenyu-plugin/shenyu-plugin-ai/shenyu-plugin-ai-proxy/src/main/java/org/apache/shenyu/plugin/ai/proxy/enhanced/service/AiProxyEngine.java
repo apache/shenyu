@@ -54,26 +54,15 @@ public final class AiProxyEngine {
 
     private final AiCallObservationScope observationScope;
 
-    /**
-     * Create an AI proxy engine from its external extension points and policies.
-     *
-     * @param protocols protocol registry
-     * @param providers provider registry
-     * @param routeResolver protocol routing resolver
-     * @param transport upstream transport
-     * @param options optional policies and integrations
-     */
-    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
-                         final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
-                         final AiProxyEngineOptions options) {
-        Objects.requireNonNull(options, "options must not be null");
-        this.exchangePlanner = new AiExchangePlanner(protocols, providers, routeResolver);
-        AiAttemptExecutor attemptExecutor = new AiAttemptExecutor(transport);
+    private AiProxyEngine(final Builder builder) {
+        this.exchangePlanner = new AiExchangePlanner(
+                builder.protocols, builder.providers, builder.routeResolver);
+        AiAttemptExecutor attemptExecutor = new AiAttemptExecutor(builder.transport);
         AiAttemptOrchestrator attemptOrchestrator = new AiAttemptOrchestrator(
-                exchangePlanner, attemptExecutor, options.retryProperties(), options.attemptListener());
+                exchangePlanner, attemptExecutor, builder.retryProperties, builder.attemptListener);
         this.executionCoordinator = new AiExecutionCoordinator(
-                attemptOrchestrator, options.retryProperties(), options.responseCache());
-        this.observationScope = new AiCallObservationScope(options.observer());
+                attemptOrchestrator, builder.retryProperties, builder.responseCache);
+        this.observationScope = new AiCallObservationScope(builder.observer);
     }
 
     /**
@@ -202,8 +191,7 @@ public final class AiProxyEngine {
          * @return configured engine
          */
         public AiProxyEngine build() {
-            return new AiProxyEngine(protocols, providers, routeResolver, transport,
-                    new AiProxyEngineOptions(retryProperties, observer, attemptListener, responseCache));
+            return new AiProxyEngine(this);
         }
     }
 

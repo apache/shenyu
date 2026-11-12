@@ -48,9 +48,9 @@ final class AiAttemptExecutor {
         this.transport = Objects.requireNonNull(transport, "transport must not be null");
     }
 
-    Mono<Void> execute(final AiExecutionState execution, final AiPreparedExchange prepared,
-                       final int attemptIndex, final AiProxyAttemptEvent.Phase phase,
-                       final AiAttemptResponseHandler responseHandler) {
+    Mono<AiAttemptOutcome> execute(final AiExecutionState execution, final AiPreparedExchange prepared,
+                                   final int attemptIndex, final AiProxyAttemptEvent.Phase phase,
+                                   final AiAttemptResponseHandler responseHandler) {
         Objects.requireNonNull(responseHandler, "responseHandler must not be null");
         return Mono.defer(() -> {
             AgentRequestContext target = execution.observation().getContext()
@@ -65,17 +65,21 @@ final class AiAttemptExecutor {
                                     AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
                                     "AI proxy request deadline exceeded", null)))
                     .doOnSuccess(ignored -> observation.finish(SignalType.ON_COMPLETE, null))
-                    .doOnError(error -> observation.finish(SignalType.ON_ERROR,
-                            error instanceof AiUpstreamStatusException ? null : AiObservationSupport.outcome(error)))
-                    .doOnCancel(() -> observation.finish(SignalType.CANCEL, null))
+                    .doOnError(error -> observation.finish(SignalType.ON_ERROR, AiObservationSupport.outcome(error)))
+                    .doFinally(signal -> {
+                        if (signal == SignalType.CANCEL) {
+                            observation.finish(SignalType.CANCEL, null);
+                        }
+                    })
                     .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, target)
                             .put(AiRequestObservation.Attempt.REACTOR_KEY, observation));
         });
     }
 
-    private Mono<Void> handleResponse(final AiUpstreamResponse response, final AiPreparedExchange prepared,
-                                      final AiRequestObservation.Attempt observation,
-                                      final AiAttemptResponseHandler responseHandler) {
+    private Mono<AiAttemptOutcome> handleResponse(final AiUpstreamResponse response,
+                                                  final AiPreparedExchange prepared,
+                                                  final AiRequestObservation.Attempt observation,
+                                                  final AiAttemptResponseHandler responseHandler) {
         observation.status(response.getStatusCode());
         AiUpstreamResponse inspected = prepared.upstreamResponseInspector()
                 .inspect(response, observation, prepared.stream());

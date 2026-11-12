@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolResponseInspector;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
@@ -136,13 +137,13 @@ class AiProxyExtensionContractTest {
             }
 
             @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
                 final AiUpstreamRequest upstream = new AiUpstreamRequest();
                 upstream.setUri(URI.create("https://fixture.invalid/native"));
                 upstream.setMethod("POST");
                 upstream.setHeaders(Map.of("Content-Type", List.of("application/json")));
                 upstream.setBody(request.getRawBody().getBytes(StandardCharsets.UTF_8));
-                return upstream;
+                return PreparedAiRequest.identity(upstream);
             }
         };
     }

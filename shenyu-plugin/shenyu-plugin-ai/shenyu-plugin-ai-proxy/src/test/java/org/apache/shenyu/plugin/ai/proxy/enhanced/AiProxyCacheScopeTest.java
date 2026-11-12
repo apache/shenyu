@@ -33,7 +33,6 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngineOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,13 +84,15 @@ class AiProxyCacheScopeTest {
         handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE), handle);
         AiResponseCacheProperties properties = new AiResponseCacheProperties();
         properties.setEnabled(true);
-        engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.just(new AiUpstreamResponse(200, Map.of("Content-Type", List.of("application/json")),
                             Flux.just(RESPONSE.getBytes(StandardCharsets.UTF_8))));
-                }, new AiProxyEngineOptions(new AiProxyRetryProperties(), null, event -> { },
-                        new AiExactResponseCache(properties)));
+                })
+                .retryProperties(new AiProxyRetryProperties())
+                .responseCache(new AiExactResponseCache(properties))
+                .build();
     }
 
     @Test

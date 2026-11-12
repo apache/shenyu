@@ -214,12 +214,15 @@ class AiStreamCompletionTest {
 
         private Probe(final AiStreamCompletionProperties.Mode mode, final Flux<byte[]> body, final int expectedTerminals) {
             terminalLatch = new CountDownLatch(expectedTerminals);
-            engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(mode), new OpenAiResponses())),
+            engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat(mode), new OpenAiResponses())),
                     new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("fixture-chat"))), protocolRouteResolver(), request -> {
                         calls.incrementAndGet();
                         return Mono.just(new AiUpstreamResponse(200, Map.of(), body));
-                    }, new AiProxyEngineOptions(new AiProxyRetryProperties(1, 1, Duration.ZERO), this,
-                            event -> reasons.add(event.reason()), null));
+                    })
+                    .retryProperties(new AiProxyRetryProperties(1, 1, Duration.ZERO))
+                    .observer(this)
+                    .attemptListener(event -> reasons.add(event.reason()))
+                    .build();
         }
 
         private Mono<Void> execute(final List<String> output) {

@@ -55,15 +55,16 @@ class AiAttemptExecutorTest {
         List<AiAttemptEvent> attempts = new ArrayList<>();
         AiExecutionState execution = execution(attempts);
         AiAttemptExecutor executor = executor();
-        AtomicReference<MonoSink<Void>> completion = new AtomicReference<>();
+        AtomicReference<MonoSink<AiAttemptOutcome>> completion = new AtomicReference<>();
 
         StepVerifier.create(executor.execute(execution, prepared(), 0, AiProxyAttemptEvent.Phase.PRIMARY,
                         (response, observation) -> Mono.create(completion::set)))
                 .then(() -> {
                     assertNotNull(completion.get());
                     assertTrue(attempts.isEmpty());
-                    completion.get().success();
+                    completion.get().success(new AiAttemptOutcome.Completed());
                 })
+                .expectNext(new AiAttemptOutcome.Completed())
                 .verifyComplete();
 
         assertEquals(1, attempts.size());
@@ -91,7 +92,8 @@ class AiAttemptExecutorTest {
 
         StepVerifier.create(executor().execute(execution(attempts), prepared(), 0,
                         AiProxyAttemptEvent.Phase.PRIMARY,
-                        (response, observation) -> Mono.<Void>never().doOnCancel(() -> cancelled.set(true))))
+                        (response, observation) -> Mono.<AiAttemptOutcome>never()
+                                .doOnCancel(() -> cancelled.set(true))))
                 .thenCancel()
                 .verify();
 

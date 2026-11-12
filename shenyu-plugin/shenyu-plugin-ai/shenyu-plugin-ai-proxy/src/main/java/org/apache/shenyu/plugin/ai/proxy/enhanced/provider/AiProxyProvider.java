@@ -18,8 +18,6 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
@@ -47,20 +45,6 @@ public interface AiProxyProvider {
     String name();
 
     /**
-     * Build the provider-specific upstream request.
-     *
-     * <p>Implement this method when no request-bound response adaptation is needed;
-     * the default prepare method delegates here. When overriding prepare instead,
-     * keep this entry point consistent by delegating to that implementation,
-     * as {@link OpenAi} does. Do not open an HTTP connection here.</p>
-     *
-     * @param request decoded AI request
-     * @param config provider configuration
-     * @return upstream request
-     */
-    AiUpstreamRequest buildRequest(ShenyuAiRequest request, AiCommonConfig config);
-
-    /**
      * Get provider feature and operation declarations.
      * Native protocol bindings declare the supported protocols and their provider behavior.
      *
@@ -80,7 +64,6 @@ public interface AiProxyProvider {
 
     /**
      * Prepare an upstream request and the response conversion bound to it.
-     * Existing providers receive an identity response adapter by default.
      *
      * <p>This is the engine entry point. Override it when response adaptation
      * needs state from request preparation. Allocate that state per preparation
@@ -89,11 +72,9 @@ public interface AiProxyProvider {
      *
      * @param request decoded AI request
      * @param config provider configuration
-     * @return prepared upstream request
+     * @return prepared upstream request and request-scoped response adapter
      */
-    default PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-        return new PreparedAiRequest(buildRequest(request, config), AiResponseAdapter.identity());
-    }
+    PreparedAiRequest prepareRequest(ShenyuAiRequest request, AiCommonConfig config);
 
     /**
      * Check whether one native protocol is compatible with exact response caching.

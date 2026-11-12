@@ -17,48 +17,20 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
 /**
- * Signals an upstream HTTP status that must be handled by retry or fallback orchestration.
+ * Describes an upstream HTTP status that may be propagated after retry or fallback orchestration.
  */
 final class AiUpstreamStatusException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    private final int status;
-
-    private final Map<String, List<String>> headers;
-
     /**
      * Create an upstream status exception.
      *
      * @param status upstream HTTP status
-     * @param headers upstream response headers
      */
-    AiUpstreamStatusException(final int status, final Map<String, List<String>> headers) {
+    AiUpstreamStatusException(final int status) {
         super("AI upstream returned HTTP " + status);
-        this.status = status;
-        this.headers = Objects.requireNonNull(headers, "headers must not be null");
     }
 
-    /**
-     * Get the upstream HTTP status.
-     *
-     * @return upstream status
-     */
-    int status() {
-        return status;
-    }
-
-    /**
-     * Get the upstream response headers.
-     *
-     * @return upstream response headers
-     */
-    Map<String, List<String>> headers() {
-        return headers;
-    }
 }

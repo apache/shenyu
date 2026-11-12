@@ -56,7 +56,7 @@ class AiProxyProviderFactoryTest {
     }
 
     @Test
-    void testProviderRetainsPreparationAndCacheDefaults() {
+    void testProviderPreparationAndCacheDefault() {
         final AiUpstreamRequest upstreamRequest = new AiUpstreamRequest();
         final AiProxyProvider provider = new AiProxyProvider() {
             @Override
@@ -70,8 +70,8 @@ class AiProxyProviderFactoryTest {
             }
 
             @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                return upstreamRequest;
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                return PreparedAiRequest.identity(upstreamRequest);
             }
         };
         final PreparedAiRequest prepared = provider.prepareRequest(new ShenyuAiRequest(), new AiCommonConfig());

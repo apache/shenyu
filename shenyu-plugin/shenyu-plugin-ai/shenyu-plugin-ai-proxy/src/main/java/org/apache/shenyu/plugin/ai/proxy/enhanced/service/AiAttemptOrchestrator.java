@@ -81,11 +81,13 @@ final class AiAttemptOrchestrator {
         }
         return attemptExecutor.execute(execution, plan.prepared(), currentAttempt, plan.phase(),
                         (response, observation) -> handleResponse(response, plan, currentAttempt, observation))
-                .onErrorResume(error -> resumeAttempt(error, plan, currentAttempt));
+                .onErrorResume(error -> classifyFailure(error, plan, currentAttempt))
+                .flatMap(outcome -> applyOutcome(outcome, plan, currentAttempt));
     }
 
-    private Mono<Void> handleResponse(final AiUpstreamResponse response, final AiAttemptPlan plan,
-                                      final int currentAttempt, final AiRequestObservation.Attempt observation) {
+    private Mono<AiAttemptOutcome> handleResponse(final AiUpstreamResponse response, final AiAttemptPlan plan,
+                                                  final int currentAttempt,
+                                                  final AiRequestObservation.Attempt observation) {
         return Mono.defer(() -> {
             int status = response.getStatusCode();
             if (status >= 400) {
@@ -95,49 +97,51 @@ final class AiAttemptOrchestrator {
             return responseConsumer.consume(adapted, plan.execution().responseConsumer(), plan.execution().emitted())
                     .doOnSuccess(ignored -> emit(plan.execution().invocationId(), currentAttempt, plan.phase(),
                             plan.prepared().stream() && observation.streamCompletion().evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER
-                                    ? AiProxyAttemptEvent.Reason.STREAM_COMPLETION_UNCONFIRMED : AiProxyAttemptEvent.Reason.COMPLETED, null));
+                                    ? AiProxyAttemptEvent.Reason.STREAM_COMPLETION_UNCONFIRMED : AiProxyAttemptEvent.Reason.COMPLETED, null))
+                    .thenReturn(new AiAttemptOutcome.Completed());
         });
     }
 
-    private Mono<Void> resumeAttempt(final Throwable error, final AiAttemptPlan plan, final int currentAttempt) {
+    private Mono<AiAttemptOutcome> classifyFailure(final Throwable error, final AiAttemptPlan plan,
+                                                   final int currentAttempt) {
         return Mono.defer(() -> {
-            final AiProxyRetryPolicy.Decision decision;
-            final Map<String, List<String>> responseHeaders;
             if (plan.execution().emitted().get()) {
                 emit(plan.execution().invocationId(), currentAttempt, plan.phase(),
                         AiProxyAttemptEvent.Reason.OUTPUT_COMMITTED, null);
-                return Mono.error(error);
+                return Mono.just(new AiAttemptOutcome.Transition(
+                        AiProxyRetryPolicy.Decision.PROPAGATE_ERROR, error, Map.of()));
             }
             if (error instanceof AiTransportException transportException) {
-                responseHeaders = Map.of();
-                decision = RETRY_POLICY.decideTransport(new AiProxyRetryPolicy.FailureContext(
-                        transportException.getKind(), null, Map.of(), plan.retryBudget().remaining(),
-                        plan.fallback().isPresent(), plan.prepared().conservativeReplaySafe(), plan.prepared().operation(),
-                        retrySettings, plan.prepared().providerDeclaredReplaySafe(),
-                        fallbackProviderDeclaredReplaySafe(plan)));
-            } else if (error instanceof AiUpstreamStatusException statusFailure) {
-                responseHeaders = statusFailure.headers();
-                decision = RETRY_POLICY.decideStatus(new AiProxyRetryPolicy.FailureContext(
-                        null, statusFailure.status(), statusFailure.headers(), plan.retryBudget().remaining(),
-                        plan.fallback().isPresent(), plan.prepared().conservativeReplaySafe(), plan.prepared().operation(),
-                        retrySettings, plan.prepared().providerDeclaredReplaySafe(),
-                        fallbackProviderDeclaredReplaySafe(plan)));
-            } else {
-                return Mono.error(error);
-            }
-            if (decision == AiProxyRetryPolicy.Decision.RETRY) {
-                return retry(error, plan, currentAttempt, responseHeaders);
-            }
-            if (decision == AiProxyRetryPolicy.Decision.FALLBACK) {
-                return fallback(error, plan, currentAttempt, responseHeaders);
-            }
-            if (decision == AiProxyRetryPolicy.Decision.PROPAGATE_ERROR
-                    && error instanceof AiTransportException) {
-                emit(plan.execution().invocationId(), currentAttempt, plan.phase(),
-                        AiProxyAttemptEvent.Reason.NON_RETRYABLE_TRANSPORT, null);
+                AiProxyRetryPolicy.Decision decision = RETRY_POLICY.decideTransport(
+                        new AiProxyRetryPolicy.FailureContext(
+                                transportException.getKind(), null, Map.of(), plan.retryBudget().remaining(),
+                                plan.fallback().isPresent(), plan.prepared().conservativeReplaySafe(),
+                                plan.prepared().operation(), retrySettings,
+                                plan.prepared().providerDeclaredReplaySafe(),
+                                fallbackProviderDeclaredReplaySafe(plan)));
+                if (decision == AiProxyRetryPolicy.Decision.PROPAGATE_ERROR) {
+                    emit(plan.execution().invocationId(), currentAttempt, plan.phase(),
+                            AiProxyAttemptEvent.Reason.NON_RETRYABLE_TRANSPORT, null);
+                }
+                return Mono.just(new AiAttemptOutcome.Transition(decision, error, Map.of()));
             }
             return Mono.error(error);
         });
+    }
+
+    private Mono<Void> applyOutcome(final AiAttemptOutcome outcome, final AiAttemptPlan plan,
+                                    final int currentAttempt) {
+        if (outcome instanceof AiAttemptOutcome.Completed) {
+            return Mono.empty();
+        }
+        AiAttemptOutcome.Transition transition = (AiAttemptOutcome.Transition) outcome;
+        return switch (transition.decision()) {
+            case RETRY -> retry(transition.failure(), plan, currentAttempt, transition.responseHeaders());
+            case FALLBACK -> fallback(transition.failure(), plan, currentAttempt, transition.responseHeaders());
+            case PROPAGATE_ERROR -> Mono.error(transition.failure());
+            case FORWARD_RESPONSE -> Mono.error(new IllegalStateException(
+                    "forward response cannot escape the current attempt"));
+        };
     }
 
     private Mono<Void> retry(final Throwable error, final AiAttemptPlan plan, final int currentAttempt,
@@ -192,8 +196,9 @@ final class AiAttemptOrchestrator {
         });
     }
 
-    private Mono<Void> handleStatusFailure(final AiUpstreamResponse response, final AiAttemptPlan plan,
-                                           final int currentAttempt) {
+    private Mono<AiAttemptOutcome> handleStatusFailure(final AiUpstreamResponse response,
+                                                       final AiAttemptPlan plan,
+                                                       final int currentAttempt) {
         final AiProxyRetryPolicy.Decision decision =
                 RETRY_POLICY.decideStatus(new AiProxyRetryPolicy.FailureContext(
                         null, response.getStatusCode(), response.getHeaders(), plan.retryBudget().remaining(),
@@ -204,10 +209,12 @@ final class AiAttemptOrchestrator {
             emit(plan.execution().invocationId(), currentAttempt, plan.phase(),
                     AiProxyAttemptEvent.Reason.NON_RETRYABLE_RESPONSE, null);
             return responseConsumer.consume(
-                    response, plan.execution().responseConsumer(), plan.execution().emitted());
+                            response, plan.execution().responseConsumer(), plan.execution().emitted())
+                    .thenReturn(new AiAttemptOutcome.Completed());
         }
-        return response.getBody().then(Mono.error(new AiUpstreamStatusException(
-                response.getStatusCode(), response.getHeaders())));
+        AiUpstreamStatusException failure = new AiUpstreamStatusException(response.getStatusCode());
+        return response.getBody().then(Mono.just(new AiAttemptOutcome.Transition(
+                decision, failure, response.getHeaders())));
     }
 
     private static boolean fallbackProviderDeclaredReplaySafe(final AiAttemptPlan plan) {

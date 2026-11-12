@@ -35,7 +35,7 @@ interface AiAttemptResponseHandler {
      *
      * @param response observed upstream response
      * @param observation current attempt observation
-     * @return response processing completion
+     * @return response processing outcome
      */
-    Mono<Void> handle(AiUpstreamResponse response, AiRequestObservation.Attempt observation);
+    Mono<AiAttemptOutcome> handle(AiUpstreamResponse response, AiRequestObservation.Attempt observation);
 }

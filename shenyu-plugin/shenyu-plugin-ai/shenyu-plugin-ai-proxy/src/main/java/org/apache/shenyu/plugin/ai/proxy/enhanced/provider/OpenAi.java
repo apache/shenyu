@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.agenticai.connect.ProviderProfile;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
@@ -102,11 +101,6 @@ public final class OpenAi implements AiProxyProvider {
     }
 
     @Override
-    public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-        return prepareRequest(request, config).request();
-    }
-
-    @Override
     public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
         validateConfig(config);
         if (!supports(request.getProtocol())) {
@@ -121,7 +115,7 @@ public final class OpenAi implements AiProxyProvider {
         capabilities().validatePayload(payload);
 
         AiUpstreamRequest upstream = buildUpstreamRequest(request, config, protocolBinding, payload, stream);
-        return new PreparedAiRequest(upstream, AiResponseAdapter.identity());
+        return PreparedAiRequest.identity(upstream);
     }
 
     private ObjectNode preparePayload(final ShenyuAiRequest request, final AiCommonConfig config,

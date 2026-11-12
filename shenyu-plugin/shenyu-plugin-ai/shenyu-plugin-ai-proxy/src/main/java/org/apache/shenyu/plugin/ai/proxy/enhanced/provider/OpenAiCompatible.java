@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
@@ -64,11 +63,6 @@ public final class OpenAiCompatible implements AiProxyProvider {
     @Override
     public boolean supports(final String protocol) {
         return delegate.supports(protocol);
-    }
-
-    @Override
-    public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-        return delegate.buildRequest(request, config);
     }
 
     @Override
