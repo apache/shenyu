@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
+import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.DataPermissionDO;
@@ -439,6 +440,30 @@ public final class SelectorServiceTest {
                 assertEquals(namespaces.get(index), ((SelectorData) data).getNamespaceId());
             }
         }
+    }
+
+
+    @Test
+    public void updateWithForeignNamespaceLeavesConditionsUntouched() {
+        when(selectorMapper.selectById("sel-1")).thenReturn(new SelectorDO());
+        when(selectorMapper.updateSelective(any())).thenReturn(0);
+
+        final SelectorDTO dto = new SelectorDTO();
+        dto.setId("sel-1");
+        dto.setType(1);
+        dto.setName("orders");
+        final SelectorConditionDTO condition = new SelectorConditionDTO();
+        condition.setSelectorId("sel-1");
+        condition.setOperator("=");
+        condition.setParamName("path");
+        condition.setParamType("uri");
+        condition.setParamValue("/x");
+        dto.setSelectorConditions(Collections.singletonList(condition));
+        final int count = selectorService.update(dto);
+
+        assertEquals(0, count);
+        verify(selectorConditionMapper, never()).deleteByQuery(org.mockito.ArgumentMatchers.any(SelectorConditionQuery.class));
+        org.mockito.Mockito.verifyNoInteractions(selectorEventPublisher);
     }
 
     private void testUpdate() {

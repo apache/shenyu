@@ -25,8 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -117,6 +119,54 @@ class CanaryConfigValidatorTest {
         root.remove("canary");
         root.addProperty("retryStrategy", "failover");
         assertDoesNotThrow(() -> CanaryConfigValidator.parseHandle(root.toString()));
+    }
+
+    @Test
+    void testNullStickyIsTreatedAsAbsent() {
+        assertNull(CanaryConfigValidator.parseHandle("{\"sticky\":null}").getSticky());
+    }
+
+    @Test
+    void testParseHandleNeverReturnsNull() {
+        assertNotNull(CanaryConfigValidator.parseHandle("{}"));
+        assertNotNull(CanaryConfigValidator.parseHandle("{\"sticky\":null}"));
+        assertThrows(IllegalArgumentException.class, () -> CanaryConfigValidator.parseHandle("null"));
+    }
+
+    @Test
+    void testStickyStructuralTypesAreNamedBeforeCoercion() {
+        assertAll(
+            () -> assertStickyRejected("[]", "sticky must be an object"),
+            () -> assertStickyRejected("{\"enabled\":1}", "sticky.enabled must be a boolean"),
+            () -> assertStickyRejected("{\"enabled\":true,\"maxAgeSeconds\":1.5}", "sticky.maxAgeSeconds must be an integer"),
+            () -> assertStickyRejected("{\"enabled\":true,\"secrets\":\"s\"}", "sticky.secrets must be an array"),
+            () -> assertStickyRejected("{\"enabled\":true,\"secrets\":[\"s\",1]}", "sticky.secrets[1] must be a string"),
+            () -> assertStickyRejected("{\"enabled\":true,\"key\":[]}", "sticky.key must be an object"),
+            () -> assertStickyRejected("{\"enabled\":true,\"key\":{\"name\":\"X\",\"type\":\"cookie\"}}",
+                    "sticky.key.type must be HEADER or COOKIE, got: cookie"),
+            () -> assertStickyRejected("{\"enabled\":true,\"cookieName\":5}", "sticky.cookieName must be a string"),
+            () -> assertStickyRejected("{\"enabled\":true,\"onUnavailable\":5}", "sticky.onUnavailable must be a string"),
+            // structural types are checked even for a disabled section; only value validation
+            // is exempt, because Gson cannot bind these shapes at all
+            () -> assertStickyRejected("{\"enabled\":false,\"secrets\":\"s\"}", "sticky.secrets must be an array"));
+    }
+
+    @Test
+    void testValidStickyPassesTypeValidation() {
+        assertDoesNotThrow(() -> CanaryConfigValidator.parseHandle(stickyHandle(
+                "{\"enabled\":true,\"secrets\":[\"s\"],\"key\":{\"name\":\"X\",\"type\":\"COOKIE\"}}")));
+    }
+
+    private void assertStickyRejected(final String stickyJson, final String message) {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> CanaryConfigValidator.parseHandle(stickyHandle(stickyJson)));
+        assertEquals(message, exception.getMessage());
+    }
+
+    private String stickyHandle(final String stickyJson) {
+        JsonObject handle = new JsonObject();
+        handle.add("sticky", JsonParser.parseString(stickyJson));
+        return handle.toString();
     }
 
     private String regexHandle(final String regex) {

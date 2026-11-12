@@ -30,9 +30,10 @@ import org.apache.shenyu.common.dto.AgentRequestContext;
  * @param attemptCount actual upstream attempts, zero for early rejections
  * @param usage last attempt's explicit snapshot, or unknown
  * @param usageTotals explicit cross-attempt totals and coverage counts
+ * @param completion last attempt's independent completion evidence; SUCCESS alone is not model success
  */
 public record AiTerminalEvent(AgentRequestContext context, AiCallOutcome outcome, Integer httpStatus,
-                              long elapsedMillis, int attemptCount, AiUsage usage, AiUsageSummary usageTotals) {
+                              long elapsedMillis, int attemptCount, AiUsage usage, AiUsageSummary usageTotals, AiStreamCompletion completion) {
 
     /**
      * Preserve the original terminal constructor, keeping unavailable per-attempt totals unknown.
@@ -46,6 +47,37 @@ public record AiTerminalEvent(AgentRequestContext context, AiCallOutcome outcome
     public AiTerminalEvent(final AgentRequestContext context, final AiCallOutcome outcome, final Integer httpStatus,
                            final long elapsedMillis, final int attemptCount, final AiUsage usage) {
         this(context, outcome, httpStatus, elapsedMillis, attemptCount, usage,
-                new AiUsageSummary(attemptCount, 0, attemptCount, null, null, null, null, 0, 0, 0, 0, 0, false));
+                new AiUsageSummary(attemptCount, 0, attemptCount, null, null, null, null, 0, 0, 0, 0, 0, false), AiStreamCompletion.NOT_INSPECTED);
+    }
+
+    /**
+     * Preserve the completion-aware constructor without inventing cross-attempt totals.
+     * @param context request identity
+     * @param outcome transport/HTTP outcome
+     * @param httpStatus downstream status
+     * @param elapsedMillis duration
+     * @param attemptCount actual attempts
+     * @param usage last explicit usage
+     * @param completion observed stream evidence
+     */
+    public AiTerminalEvent(final AgentRequestContext context, final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis,
+                           final int attemptCount, final AiUsage usage, final AiStreamCompletion completion) {
+        this(context, outcome, httpStatus, elapsedMillis, attemptCount, usage,
+                new AiUsageSummary(attemptCount, 0, attemptCount, null, null, null, null, 0, 0, 0, 0, 0, false), completion);
+    }
+
+    /**
+     * Preserve usage-aware callers without assuming stream completion evidence.
+     * @param context request identity
+     * @param outcome transport/HTTP outcome
+     * @param httpStatus downstream status
+     * @param elapsedMillis duration
+     * @param attemptCount actual attempts
+     * @param usage last explicit usage
+     * @param usageTotals cross-attempt coverage and totals
+     */
+    public AiTerminalEvent(final AgentRequestContext context, final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis,
+                           final int attemptCount, final AiUsage usage, final AiUsageSummary usageTotals) {
+        this(context, outcome, httpStatus, elapsedMillis, attemptCount, usage, usageTotals, AiStreamCompletion.NOT_INSPECTED);
     }
 }
