@@ -88,6 +88,8 @@ public final class HttpRouteTimeoutRoutingTest {
 
     private final CountDownLatch streamClosed = new CountDownLatch(1);
 
+    private final CountDownLatch retryBodyClosed = new CountDownLatch(1);
+
     private final String id = UUID.randomUUID().toString();
 
     private final SelectorData selector = SelectorData.builder().id(id).build();
@@ -105,6 +107,15 @@ public final class HttpRouteTimeoutRoutingTest {
     private void startBackend() {
         backend = HttpServer.create().host("127.0.0.1").port(0).handle((req, res) -> {
             int call = calls.incrementAndGet();
+            if (req.uri().equals("/retry-body")) {
+                if (call == 1) {
+                    return Mono.never();
+                }
+                req.withConnection(conn -> conn.onDispose(retryBodyClosed::countDown));
+                res.header("Content-Type", "text/event-stream");
+                return res.sendGroups(Flux.just(Mono.fromSupplier(() -> Unpooled.copiedBuffer("data: start\n\n", StandardCharsets.UTF_8)),
+                        Mono.delay(Duration.ofSeconds(1)).map(tick -> Unpooled.copiedBuffer("data: done\n\n", StandardCharsets.UTF_8))));
+            }
             if (req.uri().equals("/hold")) {
                 req.withConnection(conn -> conn.onDispose(abandoned::countDown));
                 return res.sendHeaders().then().then(Mono.never());
@@ -200,6 +211,34 @@ public final class HttpRouteTimeoutRoutingTest {
         calls.set(0);
         configure(550, 350);
         Assertions.assertEquals(504, status("/slow"));
+        Assertions.assertEquals(2, calls.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testRequestDeadlineSpansRetryAndResponseBody(final boolean netty) throws Exception {
+        startGateway(netty);
+        calls.set(0);
+        // The first attempt consumes 1500 ms. The retry flushes one event, then waits 1000 ms
+        // for its final event: within its fresh attempt budget, beyond the shared 2000 ms.
+        configure(2000, 1500);
+        StringBuilder received = new StringBuilder();
+        RuntimeException truncated = Assertions.assertThrows(RuntimeException.class, () -> caller.get().uri("/retry-body")
+                .response((response, body) -> {
+                    Assertions.assertEquals(200, response.status().code());
+                    return body.asString().doOnNext(received::append).then();
+                }).then().block(Duration.ofSeconds(8)));
+        Assertions.assertTrue(Exceptions.unwrap(truncated) instanceof PrematureCloseException, truncated.toString());
+        Assertions.assertEquals("data: start\n\n", received.toString());
+        Assertions.assertEquals(2, calls.get());
+        Assertions.assertTrue(retryBodyClosed.await(2, TimeUnit.SECONDS), "timed-out retry still owns its backend connection");
+
+        calls.set(0);
+        configure(5000, 1500);
+        Assertions.assertEquals("data: start\n\ndata: done\n\n", caller.get().uri("/retry-body").responseSingle((response, body) -> {
+            Assertions.assertEquals(200, response.status().code());
+            return body.asString();
+        }).block(Duration.ofSeconds(8)));
         Assertions.assertEquals(2, calls.get());
     }
 
