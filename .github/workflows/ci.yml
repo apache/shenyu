@@ -67,6 +67,8 @@ jobs:
           python3 -B .github/scripts/test-restore-shenyu-local-repo.py
       - name: Test CI case resolver
         run: bash .github/scripts/resolve-test-case-matrix-test.sh
+      - name: Test external Eureka runtime assembly
+        run: python3 -B .github/scripts/test-external-eureka-runtime.py
       - name: Test Maven transfer retries
         run: bash .github/scripts/maven-with-retry-test.sh
       - name: Test storage Compose healthchecks
