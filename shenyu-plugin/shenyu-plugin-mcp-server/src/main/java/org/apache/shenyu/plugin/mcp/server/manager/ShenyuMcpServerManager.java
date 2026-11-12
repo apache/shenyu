@@ -28,6 +28,7 @@ import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuStreamableHttpServerTransportProvider;
+import org.apache.shenyu.plugin.mcp.server.transport.McpSessionPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.McpToolUtils;
@@ -55,7 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2.7.0.2
  */
 @Component
-public class ShenyuMcpServerManager {
+public class ShenyuMcpServerManager implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuMcpServerManager.class);
 
@@ -80,6 +81,10 @@ public class ShenyuMcpServerManager {
      * CORS allow headers configured by {@code shenyu.cross.allowedHeaders}.
      */
     private final String corsAllowedHeaders;
+
+    private final McpSessionPolicy sessionPolicy;
+
+    private boolean closed;
 
     /**
      * Map to store normalized path to shared McpAsyncServer mapping.
@@ -110,7 +115,18 @@ public class ShenyuMcpServerManager {
      * @param corsAllowedHeaders CORS allow headers configured by {@code shenyu.cross.allowedHeaders}
      */
     public ShenyuMcpServerManager(final String corsAllowedHeaders) {
+        this(corsAllowedHeaders, McpSessionPolicy.unlimited());
+    }
+
+    /**
+     * Create a manager with startup-owned session limits.
+     *
+     * @param corsAllowedHeaders configured CORS headers
+     * @param sessionPolicy per-transport capacity and idle policy
+     */
+    public ShenyuMcpServerManager(final String corsAllowedHeaders, final McpSessionPolicy sessionPolicy) {
         this.corsAllowedHeaders = corsAllowedHeaders;
+        this.sessionPolicy = Objects.requireNonNull(sessionPolicy);
     }
 
     /**
@@ -148,8 +164,11 @@ public class ShenyuMcpServerManager {
      * @return the transport provider
      */
     @SuppressWarnings("unchecked")
-    private <T> T getOrCreateTransport(final String normalizedPath, final String protocol, 
+    private synchronized <T> T getOrCreateTransport(final String normalizedPath, final String protocol,
                                       final java.util.function.Supplier<T> transportFactory) {
+        if (closed) {
+            throw new IllegalStateException("MCP server manager is closed");
+        }
         CompositeTransportProvider compositeTransport = getOrCreateCompositeTransport(normalizedPath);
         
         T transport = switch (protocol) {
@@ -250,6 +269,7 @@ public class ShenyuMcpServerManager {
                 .objectMapper(objectMapper)
                 .sseEndpoint(normalizedPath)
                 .messageEndpoint(messageEndpoint)
+                .sessionPolicy(sessionPolicy)
                 .build();
 
         // Register routes
@@ -267,6 +287,7 @@ public class ShenyuMcpServerManager {
                 .objectMapper(objectMapper)
                 .endpoint(originalUri)
                 .allowedHeaders(corsAllowedHeaders)
+                .sessionPolicy(sessionPolicy)
                 .build();
 
         // Register routes for original URI
@@ -336,7 +357,7 @@ public class ShenyuMcpServerManager {
      *
      * @param uri The URI to remove the server for
      */
-    public void removeMcpServer(final String uri) {
+    public synchronized void removeMcpServer(final String uri) {
         String normalizedPath = processPath(uri);
         LOG.info("Removing MCP server for URI: {} (normalized: {})", uri, normalizedPath);
 
@@ -356,6 +377,22 @@ public class ShenyuMcpServerManager {
         routeMap.entrySet().removeIf(entry -> entry.getKey().startsWith(Objects.requireNonNull(normalizedPath)) || entry.getKey().startsWith(uri));
 
         LOG.info("Removed MCP server for path: {}", normalizedPath);
+    }
+
+    @Override
+    public synchronized void close() {
+        closed = true;
+        compositeTransportMap.values().forEach(composite -> {
+            if (Objects.nonNull(composite.getSseTransport())) {
+                composite.getSseTransport().close();
+            }
+            if (Objects.nonNull(composite.getStreamableHttpTransport())) {
+                composite.getStreamableHttpTransport().close();
+            }
+        });
+        compositeTransportMap.clear();
+        sharedServerMap.clear();
+        routeMap.clear();
     }
 
     /**

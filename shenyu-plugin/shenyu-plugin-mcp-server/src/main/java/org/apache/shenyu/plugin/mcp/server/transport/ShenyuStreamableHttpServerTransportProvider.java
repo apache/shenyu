@@ -38,6 +38,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -61,7 +62,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder
  * @since 2.7.0.2
  */
-public class ShenyuStreamableHttpServerTransportProvider implements McpServerTransportProvider {
+public class ShenyuStreamableHttpServerTransportProvider implements McpServerTransportProvider, AutoCloseable {
+
+    private static final int INTERNAL_ERROR_CODE = -32603;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuStreamableHttpServerTransportProvider.class);
 
@@ -132,6 +135,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      */
     private volatile boolean isClosing;
 
+    private final McpSessionLifecycle lifecycle;
+
     /**
      * Constructs a new Streamable HTTP server transport provider instance.
      *
@@ -154,11 +159,25 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
     public ShenyuStreamableHttpServerTransportProvider(final ObjectMapper objectMapper,
                                                        final String endpoint,
                                                        final String configuredCorsAllowHeaders) {
+        this(objectMapper, endpoint, configuredCorsAllowHeaders, McpSessionPolicy.unlimited());
+    }
+
+    /**
+     * Create a transport with explicit session limits.
+     *
+     * @param objectMapper JSON mapper
+     * @param endpoint transport endpoint
+     * @param configuredCorsAllowHeaders configured CORS headers
+     * @param sessionPolicy per-transport lifecycle policy
+     */
+    public ShenyuStreamableHttpServerTransportProvider(final ObjectMapper objectMapper, final String endpoint,
+                                                       final String configuredCorsAllowHeaders, final McpSessionPolicy sessionPolicy) {
         Assert.notNull(objectMapper, "ObjectMapper must not be null");
         Assert.notNull(endpoint, "Endpoint must not be null");
         this.objectMapper = objectMapper;
         this.jsonMapper = new JacksonMcpJsonMapper(objectMapper);
         this.configuredCorsAllowHeaders = configuredCorsAllowHeaders;
+        this.lifecycle = new McpSessionLifecycle(sessionPolicy, this::cleanupSession);
         LOGGER.debug("Created Streamable HTTP transport provider for endpoint: {}", endpoint);
     }
 
@@ -199,20 +218,14 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     @Override
     public Mono<Void> closeGracefully() {
+        close();
+        return Mono.empty();
+    }
+
+    @Override
+    public void close() {
         isClosing = true;
-        if (sessions.isEmpty()) {
-            LOGGER.debug("No active sessions to close during graceful shutdown");
-            return Mono.empty();
-        }
-        LOGGER.debug("Initiating graceful shutdown of {} active sessions", sessions.size());
-        return Flux.fromIterable(sessions.values())
-                .flatMap(McpServerSession::closeGracefully)
-                .doOnComplete(() -> {
-                    sessions.clear();
-                    sessionTransports.clear();
-                    LOGGER.debug("Graceful shutdown completed - all sessions and transports cleared");
-                })
-                .then();
+        lifecycle.close();
     }
 
     /**
@@ -333,15 +346,12 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
         try {
             // Create new session and transport
             final StreamableHttpSessionTransport transport = new StreamableHttpSessionTransport();
-            final McpServerSession session = sessionFactory.create(transport);
+            final McpServerSession session = createSession(transport, exchange);
             final String newSessionId = session.getId();
             transport.setSessionId(newSessionId);
             LOGGER.debug("Created new MCP session: {}", newSessionId);
             // Store session and transport for reuse
-            sessions.put(newSessionId, session);
-            sessionTransports.put(newSessionId, transport);
             // Configure exchange attributes
-            configureExchangeForSession(exchange, newSessionId);
             // Extract and validate protocol version
             final Object messageId = extractMessageId(message);
             final String clientProtocolVersion = extractProtocolVersionFromInitialize(message);
@@ -360,7 +370,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             LOGGER.error("Error handling initialize request: {}", e.getMessage(), e);
             final Object errorResponse = createJsonRpcError(extractMessageId(message), -32603,
                     "Internal error during initialization: " + e.getMessage());
-            return Mono.just(createMessageHandlingResult(500, errorResponse, null));
+            return Mono.just(createMessageHandlingResult(sessionFailureStatus(e), errorResponse, null));
         }
     }
 
@@ -390,17 +400,6 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             return createSessionAndRestoreId(exchange, message, requestedSessionId, messageId);
         }
         LOGGER.debug("Processing request for existing session: {}", requestedSessionId);
-        final ServerWebExchange existingExchange = ShenyuMcpExchangeHolder.get(requestedSessionId);
-        LOGGER.debug("Checking exchange mapping for session {}: existing={}", requestedSessionId,
-                Objects.nonNull(existingExchange) ? "present (ID: " + System.identityHashCode(existingExchange) + ")" : "null");
-        if (Objects.isNull(ShenyuMcpExchangeHolder.get(requestedSessionId))) {
-            LOGGER.info("Exchange mapping lost for session {}, re-binding new exchange (ID: {})",
-                    requestedSessionId, System.identityHashCode(exchange));
-            configureExchangeForSession(exchange, requestedSessionId);
-            LOGGER.info("Re-bound ServerWebExchange to session {} after reconnect", requestedSessionId);
-        } else {
-            LOGGER.debug("Exchange mapping already exists for session {}, using existing exchange", requestedSessionId);
-        }
         return processWithExistingSession(exchange, existingSession, requestedSessionId, message, messageId)
                 .map(result -> {
                     if (!requestedSessionId.equals(result.getSessionId())) {
@@ -431,30 +430,8 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
     private Mono<MessageHandlingResult> createTemporarySessionAndProcess(final ServerWebExchange exchange,
                                                                          final McpSchema.JSONRPCMessage message,
                                                                          final Object messageId) {
-        try {
-            final StreamableHttpSessionTransport tempTransport = new StreamableHttpSessionTransport();
-            final McpServerSession tempSession = sessionFactory.create(tempTransport);
-            final String actualSessionId = tempSession.getId();
-            LOGGER.info("Created temporary session: {}", actualSessionId);
-            sessions.put(actualSessionId, tempSession);
-            sessionTransports.put(actualSessionId, tempTransport);
-            configureExchangeForSession(exchange, actualSessionId);
-            LOGGER.debug("Bound exchange to temporary session: {} before handshake", actualSessionId);
-            initializeSessionDirectly(tempSession, actualSessionId);
-            tempTransport.resetCapturedMessage();
-            return processWithExistingSession(exchange, tempSession, actualSessionId, message, messageId)
-                    .doFinally(signalType -> {
-                        LOGGER.debug("Cleaning up temporary session: {} (signal: {})", actualSessionId, signalType);
-                        removeSession(actualSessionId);
-                        ShenyuMcpExchangeHolder.remove(actualSessionId);
-                    })
-                    .map(result -> createMessageHandlingResult(result.getStatusCode(), result.getResponseBody(), null));
-        } catch (Exception e) {
-            LOGGER.error("Error creating temporary session: {}", e.getMessage(), e);
-            final Object errorResponse = createJsonRpcError(messageId, -32603,
-                    "Internal error creating temporary session: " + e.getMessage());
-            return Mono.just(createMessageHandlingResult(500, errorResponse, null));
-        }
+        return processTransientSession(exchange, message, null, messageId)
+                .map(result -> createMessageHandlingResult(result.getStatusCode(), result.getResponseBody(), null));
     }
 
     /**
@@ -478,36 +455,34 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                                                                   final McpSchema.JSONRPCMessage message,
                                                                   final String requestedSessionId,
                                                                   final Object messageId) {
-        try {
-            final StreamableHttpSessionTransport newTransport = new StreamableHttpSessionTransport(requestedSessionId);
-            final McpServerSession newSession = sessionFactory.create(newTransport);
-            final String actualSessionId = newSession.getId();
-            LOGGER.info("Created new session - requested ID: {}, actual ID: {}", requestedSessionId, actualSessionId);
-            sessions.put(actualSessionId, newSession);
-            sessionTransports.put(actualSessionId, newTransport);
-            configureExchangeForSession(exchange, actualSessionId);
-            LOGGER.debug("Bound exchange to restored session: {} before handshake", actualSessionId);
-            initializeSessionDirectly(newSession, actualSessionId);
-            newTransport.resetCapturedMessage();
-            return processWithExistingSession(exchange, newSession, actualSessionId, message, messageId)
-                    .doFinally(signalType -> {
-                        LOGGER.debug("Cleaning up restored session: {} (signal: {})", actualSessionId, signalType);
-                        removeSession(actualSessionId);
-                        ShenyuMcpExchangeHolder.remove(actualSessionId);
-                    })
-                    .map(result -> {
-                        if (!actualSessionId.equals(requestedSessionId)) {
-                            LOGGER.info("Returning actual session ID {} instead of requested ID {}", actualSessionId, requestedSessionId);
-                            return createMessageHandlingResult(result.getStatusCode(), result.getResponseBody(), actualSessionId);
-                        }
-                        return result;
-                    });
-        } catch (Exception e) {
-            LOGGER.error("Error creating session with restored ID {}: {}", requestedSessionId, e.getMessage(), e);
-            final Object errorResponse = createJsonRpcError(messageId, -32603,
-                    "Internal error restoring session: " + e.getMessage());
-            return Mono.just(createMessageHandlingResult(500, errorResponse, requestedSessionId));
-        }
+        return processTransientSession(exchange, message, requestedSessionId, messageId);
+    }
+
+    private Mono<MessageHandlingResult> processTransientSession(final ServerWebExchange exchange, final McpSchema.JSONRPCMessage message,
+                                                               final String requestedSessionId, final Object messageId) {
+        return Mono.defer(() -> {
+            final StreamableHttpSessionTransport transport = Objects.isNull(requestedSessionId)
+                    ? new StreamableHttpSessionTransport() : new StreamableHttpSessionTransport(requestedSessionId);
+            return Mono.using(() -> createSession(transport, exchange), session -> {
+                initializeSessionDirectly(session, session.getId());
+                transport.resetCapturedMessage();
+                return processWithExistingSession(exchange, session, session.getId(), message, messageId);
+            }, session -> removeSession(session.getId()));
+        }).onErrorResume(error -> Mono.just(createMessageHandlingResult(sessionFailureStatus(error),
+                createJsonRpcError(messageId, INTERNAL_ERROR_CODE, "Unable to process transient MCP session"), requestedSessionId)));
+    }
+
+    private McpServerSession createSession(final StreamableHttpSessionTransport transport, final ServerWebExchange exchange) {
+        return lifecycle.create(() -> sessionFactory.create(transport), session -> {
+            transport.setSessionId(session.getId());
+            sessions.put(session.getId(), session);
+            sessionTransports.put(session.getId(), transport);
+            configureExchangeForSession(exchange, session.getId());
+        });
+    }
+
+    private int sessionFailureStatus(final Throwable error) {
+        return error instanceof ResponseStatusException status ? status.getStatusCode().value() : HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
 
     /**
@@ -527,8 +502,14 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                                                                    final String sessionId,
                                                                    final McpSchema.JSONRPCMessage message,
                                                                    final Object messageId) {
-        // Verify exchange is available before processing
-        LOGGER.debug("Processing request exchange {} for session {}", System.identityHashCode(exchange), sessionId);
+        return lifecycle.withActivity(sessionId, () -> processSessionMessage(exchange, session, sessionId, message, messageId));
+    }
+
+    private Mono<MessageHandlingResult> processSessionMessage(final ServerWebExchange exchange, final McpServerSession session,
+                                                              final String sessionId, final McpSchema.JSONRPCMessage message, final Object messageId) {
+        if (Objects.isNull(ShenyuMcpExchangeHolder.get(sessionId))) {
+            configureExchangeForSession(exchange, sessionId);
+        }
         final StreamableHttpSessionTransport transport = getSessionTransport(sessionId);
         // JSON-RPC notifications (messages without an id, e.g. notifications/initialized,
         // notifications/cancelled) must be acknowledged with HTTP 202 and an empty body
@@ -612,8 +593,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * @param sessionId the session ID to clean up
      */
     private void cleanupInvalidSession(final String sessionId) {
-        sessions.remove(sessionId);
-        sessionTransports.remove(sessionId);
+        removeSession(sessionId);
         LOGGER.debug("Cleaned up invalid session: {}", sessionId);
     }
 
@@ -818,6 +798,22 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      * @param sessionId the session ID to remove
      */
     public void removeSession(final String sessionId) {
+        lifecycle.remove(sessionId);
+        cleanupSession(sessionId);
+    }
+
+    /**
+     * Bind a request without racing idle reclamation or resurrecting stale IDs.
+     *
+     * @param sessionId session identifier
+     * @param exchange request exchange
+     * @return whether the live session accepted the exchange
+     */
+    public boolean bindExchange(final String sessionId, final ServerWebExchange exchange) {
+        return lifecycle.bind(sessionId, () -> ShenyuMcpExchangeHolder.put(sessionId, exchange));
+    }
+
+    private void cleanupSession(final String sessionId) {
         final McpServerSession removedSession = sessions.remove(sessionId);
         final StreamableHttpSessionTransport removedTransport = sessionTransports.remove(sessionId);
         if (Objects.nonNull(removedTransport)) {
@@ -886,7 +882,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             final McpSchema.JSONRPCMessage initRequest = McpSchema.deserializeJsonRpcMessage(jsonMapper, initRequestJson);
             LOGGER.debug("Created initialize request for session: {}", sessionId);
             // Use subscribe instead of block to avoid blocking in Netty thread
-            session.handle(initRequest)
+            lifecycle.withActivity(sessionId, () -> session.handle(initRequest))
                     .doOnSuccess(v -> {
                         LOGGER.debug("Initialize request processed successfully for session: {}", sessionId);
                         // Complete the handshake by sending a notification to finalize session state
@@ -906,6 +902,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                     .doOnError(e -> {
                         LOGGER.error("Failed to process initialize request for session {}: {}", sessionId, e.getMessage(), e);
                     })
+                    .onErrorComplete()
                     // Use subscribe instead of block to avoid blocking
                     .subscribe();
             LOGGER.debug("Backend initialization completed for session: {}", sessionId);
@@ -1017,7 +1014,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
                 notification.put("params", new java.util.HashMap<>());
                 final String notificationJson = jsonMapper.writeValueAsString(notification);
                 final McpSchema.JSONRPCMessage notificationMessage = McpSchema.deserializeJsonRpcMessage(jsonMapper, notificationJson);
-                session.handle(notificationMessage)
+                lifecycle.withActivity(sessionId, () -> session.handle(notificationMessage))
                         .doOnSuccess(v -> {
                             LOGGER.debug("Initialized notification sent successfully for session: {}", sessionId);
                         })

@@ -44,6 +44,19 @@ public class StreamableHttpProviderBuilder {
 
     private String allowedHeaders;
 
+    private McpSessionPolicy sessionPolicy = McpSessionPolicy.unlimited();
+
+    /**
+     * Set per-transport session capacity and idle expiry.
+     *
+     * @param sessionPolicy validated startup policy
+     * @return this builder
+     */
+    public StreamableHttpProviderBuilder sessionPolicy(final McpSessionPolicy sessionPolicy) {
+        this.sessionPolicy = sessionPolicy;
+        return this;
+    }
+
     /**
      * Sets the ObjectMapper for JSON serialization/deserialization.
      *
@@ -89,6 +102,6 @@ public class StreamableHttpProviderBuilder {
      */
     public ShenyuStreamableHttpServerTransportProvider build() {
         Assert.notNull(objectMapper, "ObjectMapper must be configured");
-        return new ShenyuStreamableHttpServerTransportProvider(objectMapper, endpoint, allowedHeaders);
+        return new ShenyuStreamableHttpServerTransportProvider(objectMapper, endpoint, allowedHeaders, sessionPolicy);
     }
 }

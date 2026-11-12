@@ -35,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -51,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * It allows clients to connect via SSE and receive real-time updates for MCP
  * messages.
  */
-public class ShenyuSseServerTransportProvider implements McpServerTransportProvider {
+public class ShenyuSseServerTransportProvider implements McpServerTransportProvider, AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuSseServerTransportProvider.class);
 
@@ -99,6 +100,8 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
      * Flag indicating if the transport is shutting down.
      */
     private volatile boolean isClosing;
+
+    private final McpSessionLifecycle lifecycle;
 
     /**
      * Constructs a new WebFlux SSE server transport provider instance.
@@ -152,6 +155,20 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
      */
     public ShenyuSseServerTransportProvider(final ObjectMapper objectMapper, final String baseUrl,
             final String messageEndpoint, final String sseEndpoint) {
+        this(objectMapper, baseUrl, messageEndpoint, sseEndpoint, McpSessionPolicy.unlimited());
+    }
+
+    /**
+     * Create an SSE provider with per-transport session limits.
+     *
+     * @param objectMapper JSON mapper
+     * @param baseUrl base URL
+     * @param messageEndpoint message endpoint
+     * @param sseEndpoint SSE endpoint
+     * @param sessionPolicy lifecycle policy
+     */
+    public ShenyuSseServerTransportProvider(final ObjectMapper objectMapper, final String baseUrl,
+            final String messageEndpoint, final String sseEndpoint, final McpSessionPolicy sessionPolicy) {
         Assert.notNull(objectMapper, "ObjectMapper must not be null");
         Assert.notNull(baseUrl, "Message base path must not be null");
         Assert.notNull(messageEndpoint, "Message endpoint must not be null");
@@ -162,6 +179,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
         this.baseUrl = baseUrl;
         this.messageEndpoint = messageEndpoint;
         this.sseEndpoint = sseEndpoint;
+        this.lifecycle = new McpSessionLifecycle(sessionPolicy, this::removeSession);
         // this.routerFunction = RouterFunctions.route()
         // .GET(this.sseEndpoint, this::handleSseConnection)
         // .POST(this.messageEndpoint, this::handleMessage).build();
@@ -207,16 +225,19 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
      */
     @Override
     public Mono<Void> closeGracefully() {
+        close();
+        return Mono.empty();
+    }
+
+    @Override
+    public void close() {
         isClosing = true;
-        return Flux.fromIterable(sessions
-                .values())
-                .doFirst(() -> LOGGER.debug("Initiating graceful shutdown with {} active sessions", sessions.size()))
-                .flatMap(McpServerSession::closeGracefully)
-                .then()
-                .doFinally(signalType -> {
-                    sessions.keySet().forEach(ShenyuMcpExchangeHolder::remove);
-                    sessions.clear();
-                });
+        lifecycle.close();
+    }
+
+    private void removeSession(final String sessionId) {
+        sessions.remove(sessionId);
+        ShenyuMcpExchangeHolder.remove(sessionId);
     }
 
     /**
@@ -240,38 +261,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
         }
 
         return ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM)
-                .body(Flux.<ServerSentEvent<?>>create(sink -> {
-                    try {
-                        WebFluxMcpSessionTransport sessionTransport = new WebFluxMcpSessionTransport(sink);
-
-                        McpServerSession session = sessionFactory.create(sessionTransport);
-                        String sessionId = session.getId();
-
-                        LOGGER.debug("Created new SSE connection for session: {}", sessionId);
-                        sessions.put(sessionId, session);
-
-                        // Send initial endpoint event
-                        LOGGER.debug("Sending initial endpoint event to session: {}", sessionId);
-                        String endpointUrl = this.baseUrl + this.messageEndpoint + "?sessionId=" + sessionId;
-                        LOGGER.debug("Endpoint URL: {}", endpointUrl);
-
-                        ServerSentEvent<String> endpointEvent = ServerSentEvent.<String>builder()
-                                .event(ENDPOINT_EVENT_TYPE)
-                                .data(endpointUrl)
-                                .build();
-
-                        sink.next(endpointEvent);
-
-                        sink.onCancel(() -> {
-                            LOGGER.debug("Session {} cancelled", sessionId);
-                            sessions.remove(sessionId);
-                            ShenyuMcpExchangeHolder.remove(sessionId);
-                        });
-                    } catch (Exception e) {
-                        LOGGER.error("Error creating SSE session", e);
-                        sink.error(e);
-                    }
-                }), ServerSentEvent.class);
+                .body(createSseFlux(request), ServerSentEvent.class);
     }
 
     /**
@@ -296,11 +286,10 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
             try {
                 WebFluxMcpSessionTransport sessionTransport = new WebFluxMcpSessionTransport(sink);
 
-                McpServerSession session = sessionFactory.create(sessionTransport);
+                McpServerSession session = lifecycle.create(() -> sessionFactory.create(sessionTransport), created -> sessions.put(created.getId(), created));
                 String sessionId = session.getId();
 
                 LOGGER.info("Created new SSE connection for session: {}", sessionId);
-                sessions.put(sessionId, session);
 
                 // Send initial endpoint event
                 LOGGER.info("Sending initial endpoint event to session: {}", sessionId);
@@ -313,20 +302,9 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                         .build();
 
                 LOGGER.info("Built endpoint event - Type: {}, Data: {}", endpointEvent.event(), endpointEvent.data());
+                sink.onDispose(() -> lifecycle.remove(sessionId));
                 sink.next(endpointEvent);
                 LOGGER.info("Successfully sent initial endpoint event for session: {}", sessionId);
-
-                sink.onCancel(() -> {
-                    LOGGER.info("Session {} cancelled by client", sessionId);
-                    sessions.remove(sessionId);
-                    ShenyuMcpExchangeHolder.remove(sessionId);
-                });
-
-                sink.onDispose(() -> {
-                    LOGGER.info("Session {} disposed", sessionId);
-                    sessions.remove(sessionId);
-                    ShenyuMcpExchangeHolder.remove(sessionId);
-                });
 
             } catch (Exception e) {
                 LOGGER.error("Error creating SSE session", e);
@@ -364,7 +342,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
         return request.bodyToMono(String.class).flatMap(body -> {
             try {
                 McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
-                return session.handle(message).flatMap(response -> ServerResponse.ok().build()).onErrorResume(error -> {
+                return lifecycle.withActivity(session.getId(), () -> session.handle(message)).then(ServerResponse.ok().build()).onErrorResume(error -> {
                     LOGGER.error("Error processing  message: {}", error.getMessage());
                     // instead of signalling the error, just respond with 200 OK
                     // - the error is signalled on the SSE connection
@@ -387,6 +365,17 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
      */
     public boolean hasSession(final String sessionId) {
         return Objects.nonNull(sessionId) && sessions.containsKey(sessionId);
+    }
+
+    /**
+     * Bind an exchange only while its session is still owned by this provider.
+     *
+     * @param sessionId session identifier
+     * @param exchange request exchange
+     * @return whether binding succeeded before session removal
+     */
+    public boolean bindExchange(final String sessionId, final ServerWebExchange exchange) {
+        return lifecycle.bind(sessionId, () -> ShenyuMcpExchangeHolder.put(sessionId, exchange));
     }
 
     /**
@@ -424,10 +413,10 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
                         McpSchema.JSONRPCMessage message = McpSchema.deserializeJsonRpcMessage(jsonMapper, body);
                         LOGGER.info("Deserialized JSON-RPC message for session: {}", sessionId);
 
-                        return session.handle(message)
+                        return lifecycle.withActivity(sessionId, () -> session.handle(message))
                                 .doOnSuccess(result -> LOGGER.info("Successfully processed message for session: {}",
                                         sessionId))
-                                .map(response -> new MessageHandlingResult(200, "Message processed successfully"))
+                                .thenReturn(new MessageHandlingResult(HttpStatus.OK.value(), "Message processed successfully"))
                                 .onErrorResume(error -> {
                                     LOGGER.error("Error processing message for session {}: {}", sessionId,
                                             error.getMessage());
@@ -528,6 +517,19 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
 
         private String sseEndpoint = DEFAULT_SSE_ENDPOINT;
 
+        private McpSessionPolicy sessionPolicy = McpSessionPolicy.unlimited();
+
+        /**
+         * Set per-transport session bounds.
+         *
+         * @param sessionPolicy validated startup policy
+         * @return this builder
+         */
+        public Builder sessionPolicy(final McpSessionPolicy sessionPolicy) {
+            this.sessionPolicy = sessionPolicy;
+            return this;
+        }
+
         /**
          * Sets the ObjectMapper to use for JSON serialization/deserialization of MCP
          * messages.
@@ -593,7 +595,7 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
             Assert.notNull(objectMapper, "ObjectMapper must be set");
             Assert.notNull(messageEndpoint, "Message endpoint must be set");
 
-            return new ShenyuSseServerTransportProvider(objectMapper, baseUrl, messageEndpoint, sseEndpoint);
+            return new ShenyuSseServerTransportProvider(objectMapper, baseUrl, messageEndpoint, sseEndpoint, sessionPolicy);
         }
 
     }
