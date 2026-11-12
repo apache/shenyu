@@ -20,6 +20,8 @@ package org.apache.shenyu.loadbalancer.spi;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +40,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public final class RoundRobinLoadBalanceTest {
 
     private static final int SELECTION_ITERATIONS = 30;
+
+    @ParameterizedTest
+    @CsvSource({
+        "1000000000, 1000000000, 15, 15",
+        "1073741824, 1073741824, 15, 15",
+        "1500000000, 1000000000, 18, 12",
+        "1000000000, 2000000000, 10, 20",
+        "2147483647, 2147483647, 15, 15"
+    })
+    public void testLargeWeightsPreserveDistribution(final int firstWeight, final int secondWeight,
+                                                     final int expectedFirstCount, final int expectedSecondCount) {
+        Upstream first = Upstream.builder().url("first:8080").weight(firstWeight).status(true).build();
+        Upstream second = Upstream.builder().url("second:8080").weight(secondWeight).status(true).build();
+        List<Upstream> upstreamList = List.of(first, second);
+        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+        Map<String, Integer> counts = new HashMap<>();
+        for (int i = 0; i < SELECTION_ITERATIONS; i++) {
+            Upstream selected = loadBalancer.select(upstreamList, new LoadBalanceData());
+            counts.merge(selected.getUrl(), 1, Integer::sum);
+        }
+        assertEquals(expectedFirstCount, counts.getOrDefault(first.getUrl(), 0));
+        assertEquals(expectedSecondCount, counts.getOrDefault(second.getUrl(), 0));
+    }
 
     /**
      * Round robin load balance test.

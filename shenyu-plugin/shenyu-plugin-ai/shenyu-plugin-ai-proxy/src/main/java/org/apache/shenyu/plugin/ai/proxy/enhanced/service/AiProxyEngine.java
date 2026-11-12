@@ -26,9 +26,14 @@ import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiAttemptRoute;
+import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
@@ -83,6 +88,8 @@ public final class AiProxyEngine {
     private final AiCallObserver observer;
 
     private final AiProxyAttemptListener attemptListener;
+
+    private final AiExactResponseCache responseCache;
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers, final AiProxyTransport transport) {
         this(protocols, providers, defaultRouteResolver(), transport, new AiProxyRetryProperties(), null, event -> {
@@ -162,6 +169,25 @@ public final class AiProxyEngine {
                          final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
                          final AiProxyRetryProperties retryProperties, final AiCallObserver observer,
                          final AiProxyAttemptListener attemptListener) {
+        this(protocols, providers, routeResolver, transport, retryProperties, observer, attemptListener, null);
+    }
+
+    /**
+     * Create an engine with an optional, explicitly scoped exact response cache.
+     *
+     * @param protocols protocol registry
+     * @param providers provider registry
+     * @param routeResolver protocol routing resolver
+     * @param transport upstream transport
+     * @param retryProperties retry policy
+     * @param observer optional logical call observer
+     * @param attemptListener bounded attempt observer
+     * @param responseCache optional exact response cache
+     */
+    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                         final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
+                         final AiProxyRetryProperties retryProperties, final AiCallObserver observer,
+                         final AiProxyAttemptListener attemptListener, final AiExactResponseCache responseCache) {
         this.aiProxyProtocolFactory = Objects.requireNonNull(protocols, "protocols must not be null");
         this.aiProxyProviderFactory = Objects.requireNonNull(providers, "providers must not be null");
         this.aiProtocolRouteResolver = Objects.requireNonNull(routeResolver, "routeResolver must not be null");
@@ -169,6 +195,7 @@ public final class AiProxyEngine {
         this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
         this.attemptListener = Objects.requireNonNull(attemptListener, "attemptListener must not be null");
         this.observer = observer;
+        this.responseCache = responseCache;
     }
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
@@ -235,12 +262,24 @@ public final class AiProxyEngine {
                         .map(config -> aiProxyProviderFactory.getProvider(providerName(config))
                                 .capabilities().isReplaySafe(primary.operation()))
                         .orElse(false);
-                Execution execution = new Execution(requestBody, response -> {
+                Function<AiUpstreamResponse, Mono<Void>> observedConsumer = response -> {
                     status.set(response.getStatusCode());
                     return responseConsumer.apply(response);
-                }, new AtomicBoolean(), new AtomicInteger(), invocationId, deadlineNanos, observation);
-                return attempt(execution, primary, fallback, maxRetries, maxRetries,
-                        AiProxyAttemptEvent.Phase.PRIMARY, fallbackProviderDeclaredReplaySafe);
+                };
+                Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream = consumer -> {
+                    Execution execution = new Execution(requestBody, consumer, new AtomicBoolean(), new AtomicInteger(),
+                            invocationId, deadlineNanos, observation);
+                    return attempt(execution, primary, fallback, maxRetries, maxRetries,
+                            AiProxyAttemptEvent.Phase.PRIMARY, fallbackProviderDeclaredReplaySafe);
+                };
+                if (Objects.nonNull(responseCache) && primary.cacheCompatible()) {
+                    return responseCache.execute(requestBody, primary.request(), primary.provider(), primary.clientProtocol(),
+                            primary.targetProtocol(), primary.stream(), fallback.isPresent(), observedConsumer, upstream)
+                            .timeout(Duration.ofNanos(Math.max(1L, deadlineNanos - System.nanoTime())),
+                                    Mono.error(new AiTransportException(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                                            "AI proxy request deadline exceeded", null)));
+                }
+                return upstream.apply(observedConsumer);
             }).doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .doFinally(signal -> {
                         if (Objects.isNull(inherited)) {
@@ -289,9 +328,10 @@ public final class AiProxyEngine {
                     .flatMap(response -> {
                         observedAttempt.status(response.getStatusCode());
                         AiUpstreamResponse observed = new AiUpstreamUsageTap(
-                                observedAttempt, response.getHeaders(), prepared.stream(), prepared.targetProtocol()).attach(response);
+                                observedAttempt, response.getHeaders(), prepared.stream(), prepared.targetProtocol(), "openai-chat".equals(prepared.targetProtocol())
+                                && response.getStatusCode() >= 200 && response.getStatusCode() < 300).attach(response);
                         return handleResponse(observed, prepared, fallback, retriesRemaining,
-                                execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe);
+                                execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe, observedAttempt);
                     })
                     .timeout(Duration.ofNanos(Math.max(1L, remainingNanos - elapsedSince(deadlineStartNanos))),
                             Mono.error(new AiTransportException(
@@ -301,7 +341,7 @@ public final class AiProxyEngine {
                     .doOnError(error -> observedAttempt.finish(SignalType.ON_ERROR,
                             error instanceof UpstreamStatusFailure ? null : AiObservationSupport.outcome(error)))
                     .doOnCancel(() -> observedAttempt.finish(SignalType.CANCEL, null))
-                    .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, target))
+                    .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, target).put(AiRequestObservation.Attempt.REACTOR_KEY, observedAttempt))
                     .onErrorResume(error -> resumeAttempt(error, prepared, fallback, maxRetries,
                             retriesRemaining, execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe));
         });
@@ -311,7 +351,7 @@ public final class AiProxyEngine {
                                       final Optional<AiCommonConfig> fallback, final int retriesRemaining,
                                       final Execution execution, final int currentAttempt,
                                       final AiProxyAttemptEvent.Phase phase,
-                                      final boolean fallbackProviderDeclaredReplaySafe) {
+                                      final boolean fallbackProviderDeclaredReplaySafe, final AiRequestObservation.Attempt observation) {
         return Mono.defer(() -> {
             int status = response.getStatusCode();
             if (status >= 400) {
@@ -321,7 +361,8 @@ public final class AiProxyEngine {
             AiUpstreamResponse adapted = prepared.responseAdapter().adapt(response);
             return consumeResponse(adapted, execution.responseConsumer(), execution.emitted())
                     .doOnSuccess(ignored -> emit(execution.invocationId(), currentAttempt, phase,
-                            AiProxyAttemptEvent.Reason.COMPLETED, null));
+                            prepared.stream() && observation.streamCompletion().evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER
+                                    ? AiProxyAttemptEvent.Reason.STREAM_COMPLETION_UNCONFIRMED : AiProxyAttemptEvent.Reason.COMPLETED, null));
         });
     }
 
@@ -551,7 +592,9 @@ public final class AiProxyEngine {
             return new PreparedExchange(preparedRequest.request(), responseAdapter,
                     route.clientProtocol(), route.targetProtocol(), stream,
                     AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
-                    providerDeclaredReplaySafe, provider.name(), requestedModel);
+                    providerDeclaredReplaySafe, provider.name(), requestedModel,
+                    protocol instanceof OpenAiChat && targetProtocol instanceof OpenAiChat
+                            && (provider instanceof OpenAi || provider instanceof OpenAiCompatible));
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }
@@ -626,7 +669,8 @@ public final class AiProxyEngine {
             ShenyuAiRequest.Operation operation,
             boolean providerDeclaredReplaySafe,
             String provider,
-            String requestedModel) {
+            String requestedModel,
+            boolean cacheCompatible) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {

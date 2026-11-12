@@ -114,13 +114,16 @@ public class SpringWebSocketClientEventListener extends AbstractContextRefreshed
                 getPublisher().publishEvent(MetaDataRegisterDTO.builder()
                         .contextPath(getContextPath())
                         .appName(getAppName())
-                        .path(getContextPath())
+                        // The isFull rule pathPattern must be contextPath/**: an exact path only
+                        // matches the context path itself, so every real endpoint below it 404s at
+                        // the gateway ("can not match rule"). Same idiom as the divide client.
+                        .path(UriComponentsBuilder.fromUriString(PathUtils.decoratorPathWithSlash(getContextPath()) + EVERY_PATH).build().encode().toUriString())
                         .rpcType(RpcTypeEnum.WEB_SOCKET.getName())
                         .enabled(true)
                         .ruleName(getContextPath())
                         .namespaceId(namespaceId)
                         .build());
-                getPublisher().publishEvent(buildURIRegisterDTO(context, Collections.emptyMap(), namespaceId));
+                publishUriRegisterIfDiscoveryLocal(context, namespaceId);
             });
             return Collections.emptyMap();
         }

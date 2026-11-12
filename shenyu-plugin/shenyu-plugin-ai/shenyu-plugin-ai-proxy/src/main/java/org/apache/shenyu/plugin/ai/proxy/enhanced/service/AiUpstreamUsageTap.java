@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.metrics.AiUsage;
+import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 
 import java.io.ByteArrayOutputStream;
@@ -54,6 +55,8 @@ final class AiUpstreamUsageTap {
 
     private AiUsage snapshot = AiUsage.UNKNOWN;
 
+    private final boolean inspectCompletion;
+
     private final ByteArrayOutputStream line = new ByteArrayOutputStream();
 
     private final StringBuilder event = new StringBuilder();
@@ -65,14 +68,27 @@ final class AiUpstreamUsageTap {
     private int eventBytes;
 
     AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream) {
-        this(observation, headers, stream, "openai-chat");
+        this(observation, headers, stream, "openai-chat", true);
     }
 
     AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final String protocol) {
+        this(observation, headers, stream, protocol, "openai-chat".equals(protocol));
+    }
+
+    AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final boolean nativeChat) {
+        this(observation, headers, stream, "openai-chat", nativeChat);
+    }
+
+    AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers,
+                       final boolean stream, final String protocol, final boolean nativeChat) {
         this.observation = observation;
         this.protocol = protocol;
         String contentType = header(headers, "Content-Type").toLowerCase(Locale.ROOT).split(";", 2)[0].trim();
         streaming = contentType.isEmpty() ? stream : "text/event-stream".equals(contentType);
+        inspectCompletion = nativeChat && streaming;
+        if (inspectCompletion) {
+            observation.streamEvidence(AiStreamCompletion.Evidence.PENDING);
+        }
         String encoding = header(headers, "Content-Encoding");
         if (!encoding.isEmpty() && !"identity".equalsIgnoreCase(encoding)
                 || !contentType.isEmpty() && !"text/event-stream".equals(contentType) && !"application/json".equals(contentType) && !contentType.endsWith("+json")) {
@@ -85,7 +101,13 @@ final class AiUpstreamUsageTap {
 
     AiUpstreamResponse attach(final AiUpstreamResponse response) {
         return new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(), response.getBody()
-                .doOnNext(this::accept).doOnComplete(this::complete).doFinally(ignored -> clear()));
+                .doOnNext(this::accept).doOnComplete(this::complete)
+                .doOnError(ignored -> evidence(AiStreamCompletion.Evidence.TRANSPORT_FAILURE))
+                .doOnCancel(() -> {
+                    if (!stopped) {
+                        evidence(AiStreamCompletion.Evidence.SOURCE_CANCELLED);
+                    }
+                }).doFinally(ignored -> clear()));
     }
 
     synchronized void accept(final byte[] bytes) {
@@ -146,6 +168,7 @@ final class AiUpstreamUsageTap {
         String payload = event.substring(0, event.length() - 1);
         event.setLength(0);
         if ("[DONE]".equals(payload)) {
+            evidence(AiStreamCompletion.Evidence.UPSTREAM_MARKER);
             stopped = true;
         } else {
             capture(MAPPER.readTree(payload));
@@ -157,6 +180,13 @@ final class AiUpstreamUsageTap {
             return;
         }
         try {
+            if (inspectCompletion) {
+                if (line.size() > 0 || !event.isEmpty()) {
+                    evidence(AiStreamCompletion.Evidence.INCOMPLETE);
+                } else if (observation.streamCompletion().evidence() == AiStreamCompletion.Evidence.PENDING) {
+                    evidence(AiStreamCompletion.Evidence.UNKNOWN);
+                }
+            }
             if (!streaming && line.size() > 0) {
                 capture(MAPPER.readTree(line.toByteArray()));
             }
@@ -187,6 +217,15 @@ final class AiUpstreamUsageTap {
                 patch = true;
             } else {
                 return;
+            }
+        }
+        if (inspectCompletion && root.path("choices").isArray()) {
+            for (JsonNode choice : root.path("choices")) {
+                JsonNode finish = choice.get("finish_reason");
+                if (Objects.nonNull(finish) && finish.isTextual() && !finish.textValue().isBlank()) {
+                    evidence(AiStreamCompletion.Evidence.FINISH_REASON);
+                    break;
+                }
             }
         }
         JsonNode usage = envelope.get("usage");
@@ -333,8 +372,15 @@ final class AiUpstreamUsageTap {
     }
 
     private void unavailable(final AiUsage.Status status) {
+        evidence(AiStreamCompletion.Evidence.UNKNOWN);
         observation.usage(new AiUsage(null, null, null, status));
         clear();
+    }
+
+    private void evidence(final AiStreamCompletion.Evidence value) {
+        if (inspectCompletion) {
+            observation.streamEvidence(value);
+        }
     }
 
     private synchronized void clear() {

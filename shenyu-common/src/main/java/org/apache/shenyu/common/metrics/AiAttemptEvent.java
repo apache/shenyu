@@ -30,9 +30,29 @@ import org.apache.shenyu.common.dto.AgentRequestContext;
  * @param httpStatus received upstream status, null before headers
  * @param elapsedMillis monotonic attempt duration
  * @param usage last explicit usage snapshot for this attempt
+ * @param completion independent stream evidence and framing; SUCCESS is transport/HTTP outcome only
  */
 public record AiAttemptEvent(AgentRequestContext context, int attemptNumber, Kind kind, AiAttemptRoute route, boolean streaming,
-                             AiCallOutcome outcome, Integer httpStatus, long elapsedMillis, AiUsage usage) {
+                             AiCallOutcome outcome, Integer httpStatus, long elapsedMillis, AiUsage usage, AiStreamCompletion completion) {
+
+    /**
+     * Preserve the existing event constructor with explicitly uninspected stream evidence.
+     * @param context trusted context
+     * @param attemptNumber actual attempt sequence
+     * @param kind selection reason
+     * @param provider provider
+     * @param protocol client protocol
+     * @param streaming response mode
+     * @param outcome transport/HTTP outcome
+     * @param httpStatus upstream status
+     * @param elapsedMillis duration
+     * @param usage explicit usage
+     */
+    public AiAttemptEvent(final AgentRequestContext context, final int attemptNumber, final Kind kind, final String provider, final String protocol,
+                          final boolean streaming, final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis, final AiUsage usage) {
+        this(context, attemptNumber, kind, new AiAttemptRoute(provider, protocol, null, null, null),
+                streaming, outcome, httpStatus, elapsedMillis, usage, AiStreamCompletion.NOT_INSPECTED);
+    }
 
     /**
      * Preserve the original attempt contract without inventing its unknown native protocol.
@@ -46,12 +66,32 @@ public record AiAttemptEvent(AgentRequestContext context, int attemptNumber, Kin
      * @param httpStatus received status
      * @param elapsedMillis elapsed time
      * @param usage observed usage
+     * @param completion independent stream completion evidence
      */
     public AiAttemptEvent(final AgentRequestContext context, final int attemptNumber, final Kind kind,
                           final String provider, final String protocol, final boolean streaming,
-                          final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis, final AiUsage usage) {
+                          final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis, final AiUsage usage,
+                          final AiStreamCompletion completion) {
         this(context, attemptNumber, kind, new AiAttemptRoute(provider, protocol, null, null, null),
-                streaming, outcome, httpStatus, elapsedMillis, usage);
+                streaming, outcome, httpStatus, elapsedMillis, usage, completion);
+    }
+
+    /**
+     * Preserve route-aware callers without assuming stream completion evidence.
+     * @param context trusted request
+     * @param attemptNumber attempt sequence
+     * @param kind selection phase
+     * @param route resolved route
+     * @param streaming selected mode
+     * @param outcome outcome
+     * @param httpStatus received status
+     * @param elapsedMillis elapsed time
+     * @param usage observed usage
+     */
+    public AiAttemptEvent(final AgentRequestContext context, final int attemptNumber, final Kind kind,
+                          final AiAttemptRoute route, final boolean streaming,
+                          final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis, final AiUsage usage) {
+        this(context, attemptNumber, kind, route, streaming, outcome, httpStatus, elapsedMillis, usage, AiStreamCompletion.NOT_INSPECTED);
     }
 
     /**

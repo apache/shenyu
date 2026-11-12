@@ -28,6 +28,7 @@ import org.apache.shenyu.common.dto.convert.rule.AiPromptHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
+import org.apache.shenyu.plugin.ai.common.view.AiRequestViewOperations;
 import org.apache.shenyu.plugin.ai.prompt.handler.AiPromptPluginDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.exception.ResponsiveException;
@@ -79,7 +80,16 @@ public class AiPromptPlugin extends AbstractShenyuPlugin {
         final AiPromptConfig finalAiPromptConfig = aiPromptConfig;
         return ServerWebExchangeUtils.rewriteRequestBody(exchange,
                         messageReaders,
-                        originalBody -> Mono.just(decorateBody(originalBody, finalAiPromptConfig))
+                        originalBody -> {
+                            // the first holder of the wire body publishes its bounded view once
+                            AiRequestViewOperations.ensurePublished(exchange, originalBody, null);
+                            final String decoratedBody = decorateBody(originalBody, finalAiPromptConfig);
+                            if (!Objects.equals(decoratedBody, originalBody)) {
+                                // only a real mutation creates a new generation
+                                AiRequestViewOperations.ensurePublished(exchange, decoratedBody, PluginEnum.AI_PROMPT.getName());
+                            }
+                            return Mono.just(decoratedBody);
+                        }
                 ).flatMap(chain::execute)
                 .onErrorResume(error -> {
                     if (error instanceof ResponsiveException) {
