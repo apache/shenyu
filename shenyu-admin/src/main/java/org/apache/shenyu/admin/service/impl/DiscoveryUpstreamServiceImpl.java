@@ -47,6 +47,7 @@ import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.admin.utils.DiscoveryUpstreamPropsValidator;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -139,6 +140,8 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
                 ? Collections.singletonList(discoveryUpstreamDTO.getId()) : Collections.emptyList();
         Map<String, DiscoveryUpstreamDO> existingRows = lockAndAssertUpstreamWritesAllowed(ids,
                 Collections.singletonList(discoveryUpstreamDTO.getDiscoveryHandlerId()));
+        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
+        validateNamespaces(Collections.singletonList(discoveryUpstreamDTO), null);
         return StringUtils.hasLength(discoveryUpstreamDTO.getId())
                 ? update(discoveryUpstreamDTO, existingRows.get(discoveryUpstreamDTO.getId())) : create(discoveryUpstreamDTO);
     }
@@ -156,6 +159,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         List<String> destinationHandlerIds = upstreams.stream().map(DiscoveryUpstreamDTO::getDiscoveryHandlerId)
                 .collect(Collectors.toList());
         Map<String, DiscoveryUpstreamDO> existingRows = lockAndAssertUpstreamWritesAllowed(upstreamIds, destinationHandlerIds);
+        validateNamespaces(upstreams, null);
         boolean ownerChanged = false;
         for (DiscoveryUpstreamDTO upstream : upstreams) {
             DiscoveryUpstreamDO entity = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(upstream);
@@ -186,6 +190,7 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         // Validate the complete replacement before deleting anything or emitting a sync event.
         discoveryUpstreamDTOList.forEach(upstream -> DiscoveryUpstreamPropsValidator.validate(upstream.getProps()));
         lockAndAssertUpstreamWritesAllowed(Collections.emptyList(), Collections.singletonList(discoveryHandlerId));
+        validateNamespaces(discoveryUpstreamDTOList, discoveryHandlerId);
         discoveryUpstreamMapper.deleteByDiscoveryHandlerId(discoveryHandlerId);
         for (DiscoveryUpstreamDTO discoveryUpstreamDTO : discoveryUpstreamDTOList) {
             discoveryUpstreamDTO.setId(null);
@@ -256,6 +261,13 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String delete(final List<String> ids) {
+        return delete(ids, Constants.SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String delete(final List<String> ids, final String namespaceId) {
+        Assert.notBlack(namespaceId, "Discovery upstream namespace must not be blank");
         // resolve the owning handlers before the rows disappear, so the gateways can be
         // notified with the remaining upstream snapshot (including an empty one)
         if (CollectionUtils.isEmpty(ids)) {
@@ -266,9 +278,33 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         if (deleted.isEmpty()) {
             return ShenyuResultMessage.DELETE_SUCCESS;
         }
+        validateDeleteNamespace(deleted, namespaceId);
         discoveryUpstreamMapper.deleteByIds(deletedById.keySet().stream().sorted().collect(Collectors.toList()));
         deleted.stream().map(DiscoveryUpstreamDO::getDiscoveryHandlerId).distinct().forEach(this::fetchAll);
         return ShenyuResultMessage.DELETE_SUCCESS;
+    }
+
+    private void validateDeleteNamespace(final Collection<DiscoveryUpstreamDO> upstreams, final String namespaceId) {
+        Set<String> validatedHandlers = new HashSet<>();
+        for (DiscoveryUpstreamDO upstream : upstreams) {
+            Assert.isTrue(Objects.equals(namespaceId, upstream.getNamespaceId()),
+                    "Discovery upstream namespace does not match request: " + upstream.getId());
+            String handlerId = upstream.getDiscoveryHandlerId();
+            if (validatedHandlers.add(handlerId)) {
+                Assert.notNull(discoveryHandlerMapper.selectById(handlerId), "Discovery handler does not exist: " + handlerId);
+                ProxySelectorDO proxySelector = proxySelectorMapper.selectByHandlerId(handlerId);
+                String handlerNamespace;
+                if (Objects.nonNull(proxySelector)) {
+                    handlerNamespace = proxySelector.getNamespaceId();
+                } else {
+                    SelectorDO selector = selectorMapper.selectByDiscoveryHandlerId(handlerId);
+                    Assert.notNull(selector, "Selector binding does not exist for discovery handler: " + handlerId);
+                    handlerNamespace = selector.getNamespaceId();
+                }
+                Assert.isTrue(Objects.equals(namespaceId, handlerNamespace),
+                        "Discovery upstream namespace does not match handler: " + handlerId);
+            }
+        }
     }
 
     @Override
@@ -362,6 +398,28 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
         }
     }
 
+    private void validateNamespaces(final Collection<DiscoveryUpstreamDTO> upstreams, final String replacementHandlerId) {
+        Map<String, String> handlerNamespaces = new LinkedHashMap<>();
+        for (DiscoveryUpstreamDTO upstream : upstreams) {
+            String handlerId = Objects.isNull(replacementHandlerId) ? upstream.getDiscoveryHandlerId() : replacementHandlerId;
+            String namespace = upstream.getNamespaceId();
+            Assert.notBlack(namespace, "Discovery upstream namespace must not be blank");
+            String handlerNamespace = handlerNamespaces.computeIfAbsent(handlerId, this::resolveHandlerNamespace);
+            Assert.isTrue(Objects.equals(namespace, handlerNamespace), "Discovery upstream namespace does not match handler: " + handlerId);
+        }
+    }
+
+    private String resolveHandlerNamespace(final String handlerId) {
+        Assert.notNull(discoveryHandlerMapper.selectById(handlerId), "Discovery handler does not exist: " + handlerId);
+        ProxySelectorDO proxySelector = proxySelectorMapper.selectByHandlerId(handlerId);
+        if (Objects.nonNull(proxySelector)) {
+            return proxySelector.getNamespaceId();
+        }
+        SelectorDO selector = selectorMapper.selectByDiscoveryHandlerId(handlerId);
+        Assert.notNull(selector, "Selector binding does not exist for discovery handler: " + handlerId);
+        return selector.getNamespaceId();
+    }
+
     /**
      * create.
      *
@@ -369,7 +427,6 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String create(final DiscoveryUpstreamDTO discoveryUpstreamDTO) {
-        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         discoveryUpstreamMapper.insert(discoveryUpstreamDO);
         fetchAll(discoveryUpstreamDTO.getDiscoveryHandlerId());
@@ -383,7 +440,6 @@ public class DiscoveryUpstreamServiceImpl implements DiscoveryUpstreamService {
      * @return the string
      */
     private String update(final DiscoveryUpstreamDTO discoveryUpstreamDTO, final DiscoveryUpstreamDO existing) {
-        DiscoveryUpstreamPropsValidator.validate(discoveryUpstreamDTO.getProps());
         DiscoveryUpstreamDO discoveryUpstreamDO = DiscoveryUpstreamDO.buildDiscoveryUpstreamDO(discoveryUpstreamDTO);
         if (Objects.nonNull(existing) && discoveryUpstreamMapper.updateForHandler(discoveryUpstreamDO, existing.getDiscoveryHandlerId()) != 1) {
             throw new IllegalStateException("Discovery upstream owner changed during update");

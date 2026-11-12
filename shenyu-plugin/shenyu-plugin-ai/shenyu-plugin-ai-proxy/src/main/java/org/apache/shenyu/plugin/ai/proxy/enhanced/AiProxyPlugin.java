@@ -29,7 +29,10 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.common.view.AiRequestViewOperations;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiProxyApiKeyCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScope;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScopeResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiObservationSupport;
@@ -78,16 +81,34 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private final AiCallObserver observer;
 
+    private final AiResponseCacheScopeResolver cacheScopeResolver;
+
     public AiProxyPlugin(final AiProxyConfigService aiProxyConfigService, final AiProxyEngine aiProxyEngine, final AiProxyPluginHandler aiProxyPluginHandler) {
         this(aiProxyConfigService, aiProxyEngine, aiProxyPluginHandler, null);
     }
 
     public AiProxyPlugin(final AiProxyConfigService aiProxyConfigService, final AiProxyEngine aiProxyEngine,
                          final AiProxyPluginHandler aiProxyPluginHandler, final AiCallObserver observer) {
+        this(aiProxyConfigService, aiProxyEngine, aiProxyPluginHandler, observer, null);
+    }
+
+    /**
+     * Create a proxy with an explicit, application-owned cache authorization adapter.
+     *
+     * @param aiProxyConfigService configuration resolver
+     * @param aiProxyEngine exchange engine
+     * @param aiProxyPluginHandler synchronized configuration
+     * @param observer optional logical call observer
+     * @param cacheScopeResolver optional cache authorization adapter
+     */
+    public AiProxyPlugin(final AiProxyConfigService aiProxyConfigService, final AiProxyEngine aiProxyEngine,
+                         final AiProxyPluginHandler aiProxyPluginHandler, final AiCallObserver observer,
+                         final AiResponseCacheScopeResolver cacheScopeResolver) {
         this.aiProxyConfigService = aiProxyConfigService;
         this.aiProxyEngine = aiProxyEngine;
         this.aiProxyPluginHandler = aiProxyPluginHandler;
         this.observer = observer;
+        this.cacheScopeResolver = cacheScopeResolver;
     }
 
     @Override
@@ -98,7 +119,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
                     : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()),
                             callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
-            return executeRequest(exchange, selector, observation)
+            return executeRequest(exchange, selector, rule, observation)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
                     .doFinally(signal -> {
@@ -111,7 +132,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final AiRequestObservation observation) {
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule, final AiRequestObservation observation) {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
@@ -145,11 +166,30 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         } finally {
                             DataBufferUtils.release(buffer);
                         }
+                        // the body about to be decoded is authoritative; publishing it keeps the
+                        // view generation current and makes stale consumer inspections observable
+                        AiRequestViewOperations.ensurePublished(exchange, body, PluginEnum.AI_PROXY.getName());
                         Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, handle, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
-                        return aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response));
+                        return cacheScope(exchange, selector, rule).flatMap(scope ->
+                                aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response))
+                                        .contextWrite(context -> scope.map(value -> context.put(AiResponseCacheScope.REACTOR_KEY, value))
+                                                .orElseGet(() -> context.delete(AiResponseCacheScope.REACTOR_KEY))));
                     });
         });
+    }
+
+    private Mono<Optional<AiResponseCacheScope>> cacheScope(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
+        if (Objects.isNull(cacheScopeResolver) || !org.springframework.http.HttpMethod.POST.equals(exchange.getRequest().getMethod())
+                || !exchange.getRequest().getCookies().isEmpty()
+                || exchange.getRequest().getHeaders().containsKey("Cache-Control")
+                || exchange.getRequest().getHeaders().containsKey("Pragma")) {
+            return Mono.just(Optional.empty());
+        }
+        return Mono.defer(() -> cacheScopeResolver.resolve(exchange, selector.getId(), rule.getId()))
+                .map(scope -> Optional.of(new AiResponseCacheScope(scope.tenant(), scope.subject(), scope.accessScope(),
+                        scope.policyRevision(), scope.promptVersion(), selector.getId(), rule.getId())))
+                .defaultIfEmpty(Optional.empty());
     }
 
     private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream) {

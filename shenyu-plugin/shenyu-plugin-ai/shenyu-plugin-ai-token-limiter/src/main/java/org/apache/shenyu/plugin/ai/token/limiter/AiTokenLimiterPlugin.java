@@ -28,6 +28,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
 import org.apache.shenyu.common.enums.AiTokenLimiterEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.ai.common.view.AiRequestViewOperations;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -93,6 +94,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
+
+        // inspection-only view consumer: budget estimation later plugs into the same
+        // seam; when no publisher ran before this stage nothing is recorded
+        AiRequestViewOperations.snapshotAndRecordInspection(exchange, PluginEnum.AI_TOKEN_LIMITER.getName());
 
         AiTokenLimiterHandle aiTokenLimiterHandle = AiTokenLimiterPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
 

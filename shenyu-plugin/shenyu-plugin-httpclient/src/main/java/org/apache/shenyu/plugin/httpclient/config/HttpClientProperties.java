@@ -47,6 +47,13 @@ import java.util.Optional;
 public class HttpClientProperties {
 
     /**
+     * The provider name historically used by the shared default pool. Pool-group names
+     * must be explicit and must not reuse this name, so an omitted group name cannot
+     * silently alias the default pool.
+     */
+    public static final String DEFAULT_POOL_NAME = "shenyu-proxy";
+
+    /**
      * the http client strategy.
      */
     private String strategy;
@@ -93,6 +100,16 @@ public class HttpClientProperties {
      * Pool configuration for Netty HttpClient.
      */
     private Pool pool = new Pool();
+
+    /**
+     * Named upstream connection-pool groups for workload isolation. The list is bounded
+     * to {@code HttpClientFactory.MAX_POOL_GROUPS}, read only at gateway startup and never
+     * derived from request data; an empty list keeps the single shared default pool.
+     * Every group must have an explicit unique name (not {@link #DEFAULT_POOL_NAME}), use
+     * the {@code FIXED} pool type, and configure a positive connection bound and a
+     * positive-or-omitted pending-acquire bound. Group definitions are restart-only.
+     */
+    private List<Pool> poolGroups = new ArrayList<>();
 
     /**
      * ThreadPool configuration for Netty HttpClient.
@@ -277,6 +294,24 @@ public class HttpClientProperties {
     public Pool getPool() {
         return pool;
     }
+
+    /**
+     * Gets the named upstream pool groups.
+     *
+     * @return the pool groups
+     */
+    public List<Pool> getPoolGroups() {
+        return poolGroups;
+    }
+
+    /**
+     * Sets the named upstream pool groups.
+     *
+     * @param poolGroups the pool groups
+     */
+    public void setPoolGroups(final List<Pool> poolGroups) {
+        this.poolGroups = poolGroups;
+    }
     
     /**
      * Sets pool.
@@ -399,14 +434,16 @@ public class HttpClientProperties {
     public static class Pool {
 
         /**
-         * Type of pool for HttpClient to use, defaults to FIXED.
+         * Type of pool for HttpClient to use, defaults to FIXED. Named pool groups
+         * accept only FIXED so each group has a finite connection bound.
          */
         private PoolType type = PoolType.FIXED;
 
         /**
-         * The channel pool map name, defaults to shenyu-proxy.
+         * The channel pool map name, defaults to shenyu-proxy. A pool group must set an
+         * explicit unique name different from {@link HttpClientProperties#DEFAULT_POOL_NAME}.
          */
-        private String name = "shenyu-proxy";
+        private String name = DEFAULT_POOL_NAME;
 
         /**
          * Only for type FIXED, the maximum number of connections before starting pending
@@ -423,6 +460,7 @@ public class HttpClientProperties {
          * The maximum number of registered requests for acquire to keep in a pending queue.
          * When not specified (null), Reactor Netty defaults to 2 * maxConnections.
          * Set to a positive integer to explicitly bound the queue, or -1 for unbounded.
+         * Pool groups reject -1 and 0; only the shared default pool may be unbounded.
          */
         private Integer maxPendingAcquires;
 
@@ -444,6 +482,9 @@ public class HttpClientProperties {
         
         /**
          * Enables channel pools metrics to be collected and registered in Micrometer.
+         * Set to true on each pool group to publish its bounded provider meters; the
+         * gateway distribution carries micrometer-core through actuator, while a lean
+         * classpath without it leaves this a no-op.
          */
         private Boolean metrics = Boolean.FALSE;
 
