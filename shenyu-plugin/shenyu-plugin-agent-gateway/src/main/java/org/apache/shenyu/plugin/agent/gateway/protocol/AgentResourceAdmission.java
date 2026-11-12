@@ -58,7 +58,7 @@ public final class AgentResourceAdmission implements AutoCloseable {
      * Acquire global and LOCAL admission around the single local provider execution.
      * @param deadline absolute request deadline, including queue wait
      * @param action execution after all permits are acquired
- *    @param <T> response type
+     * @param <T> response type
      * @return one execution result with terminal permit release
      */
     public <T> Mono<T> withLocal(final Instant deadline, final Mono<T> action) {
@@ -70,7 +70,7 @@ public final class AgentResourceAdmission implements AutoCloseable {
      * @param server configured remote target name
      * @param deadline absolute request deadline, including queue wait
      * @param action execution after all permits are acquired
-*    @param <T> response type
+     * @param <T> response type
      * @return one execution result with terminal permit release
      */
     public <T> Mono<T> withRemote(final String server, final Instant deadline, final Mono<T> action) {
