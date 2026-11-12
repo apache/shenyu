@@ -43,6 +43,7 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -116,6 +117,15 @@ public class AbstractNodeDataSyncServiceTest {
         verify(pluginDataSubscriber).onSubscribe(captor.capture());
 
         assertEquals("testPlugin", captor.getValue().getName());
+    }
+
+
+    @Test
+    public void testUnCacheDiscoveryUpstreamDataIgnoresShortKeys() {
+        // a short/malformed removal key must not throw AIOOBE — sibling unCache methods
+        // all guard their key arrays before indexing
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheDiscoveryUpstreamData("namespace.discovery"));
+        verify(discoveryUpstreamDataSubscriber, never()).unSubscribe(any(DiscoveryUpstreamKey.class));
     }
 
     @Test

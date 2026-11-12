@@ -31,5 +31,10 @@
             <artifactId>shenyu-plugin-httpclient</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

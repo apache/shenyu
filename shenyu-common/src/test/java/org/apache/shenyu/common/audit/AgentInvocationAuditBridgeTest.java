@@ -33,6 +33,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -41,7 +42,8 @@ class AgentInvocationAuditBridgeTest {
     @Test
     void reusesTerminalIdempotenceAndKeepsAttemptIdentity() {
         List<AgentInvocationAuditEvent> records = new CopyOnWriteArrayList<>();
-        AiRequestObservation observation = new AiRequestObservation(AgentInvocationAuditBridge.ai(null, records::add), context("one"));
+        AgentRequestContext initial = context("one");
+        AiRequestObservation observation = new AiRequestObservation(AgentInvocationAuditBridge.ai(null, records::add), initial);
         AiRequestObservation.Attempt primary = observation.startAttempt(observation.getContext().withTarget("primary", "chat", null),
                 AiAttemptEvent.Kind.PRIMARY, "openai", "chat", false);
         primary.status(503);
@@ -57,6 +59,11 @@ class AgentInvocationAuditBridgeTest {
         assertEquals(List.of(1, 2), records.stream().filter(event -> event.getAttempt().isPresent()).map(event -> event.getAttempt().orElseThrow()).toList());
         assertEquals(1, records.stream().filter(event -> event.getRecordType() == AgentInvocationAuditEvent.RecordType.LOGICAL).count());
         assertTrue(records.stream().allMatch(event -> event.getApiKeyId().orElseThrow().equals("key-id-one")));
+        assertNull(initial.getTarget());
+        assertEquals("primary", records.get(0).getTarget().orElseThrow());
+        assertEquals("fallback", records.get(1).getTarget().orElseThrow());
+        // startAttempt updates the logical owner while each attempt keeps its selected target.
+        assertEquals("fallback", observation.getContext().getTarget());
         assertEquals("fallback", records.get(2).getTarget().orElseThrow());
     }
 

@@ -32,10 +32,16 @@ import org.apache.shenyu.plugin.jwt.handle.JwtPluginDataHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -90,6 +96,7 @@ public final class JwtPluginTest {
         StepVerifier.create(mono).expectSubscription().verifyComplete();
         verify(chain)
                 .execute(argThat(exchange -> hasHeader(exchange, "id", "1")));
+        Assertions.assertNull(exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
 
     }
 
@@ -193,6 +200,95 @@ public final class JwtPluginTest {
         Mono<Void> mono = jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(mono).expectSubscription().verifyComplete();
         verify(chain).execute(any());
+        Assertions.assertNull(exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/sse", "/streamhttp", "/mcp/streamablehttp", "/mcp/message"})
+    public void testMissingTokenReturnsUnauthorizedChallenge(final String path) {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(path).build());
+        StepVerifier.create(jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        Assertions.assertEquals("Bearer", exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+        verify(chain, never()).execute(any());
+        StepVerifier.create(exchange.getResponse().getBodyAsString())
+                .expectNextMatches(body -> body.contains("\"code\":401"))
+                .verifyComplete();
+    }
+
+    @Test
+    public void testInvalidTokenReturnsUnauthorizedChallenge() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/sse")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer invalid-token").build());
+        StepVerifier.create(jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        Assertions.assertEquals("Bearer", exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testProtectedResourceMetadataChallenge() {
+        PluginData pluginData = new PluginData("pluginId", "pluginName",
+                "{\"secretKey\":\"shenyu-test-shenyu-test-shenyu-test\","
+                        + "\"resourceMetadataUrl\":\"https://gateway.example/.well-known/oauth-protected-resource/mcp\"}", "0", false, null);
+        jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/mcp/streamablehttp").build());
+        StepVerifier.create(jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        Assertions.assertEquals("Bearer resource_metadata=\"https://gateway.example/.well-known/oauth-protected-resource/mcp\"",
+                exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testExistingAuthenticationChallengeIsPreserved() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/sse").build());
+        String challenge = "Bearer realm=\"external\", resource_metadata=\"https://gateway.example/metadata\"";
+        exchange.getResponse().getHeaders().set(HttpHeaders.WWW_AUTHENTICATE, challenge);
+        StepVerifier.create(jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        Assertions.assertEquals(challenge, exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testHttpClientReceivesAuthenticationChallenge() {
+        WebTestClient.bindToWebHandler(exchange -> jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData))
+                .build().get().uri("/sse").exchange()
+                .expectStatus().isUnauthorized()
+                .expectHeader().valueEquals(HttpHeaders.WWW_AUTHENTICATE, "Bearer")
+                .expectBody(String.class).value(body -> Assertions.assertTrue(body.contains("\"code\":401")));
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testUnauthorizedPostDoesNotReadBody() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/mcp/streamablehttp")
+                .body(Flux.error(new AssertionError("authentication must not subscribe to the request body"))));
+        StepVerifier.create(jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testExpiredTokenReturnsUnauthorizedChallenge() {
+        String expiredToken = Jwts.builder().expiration(new Date(1L))
+                .signWith(Keys.hmacShaKeyFor("shenyu-test-shenyu-test-shenyu-test".getBytes(StandardCharsets.UTF_8))).compact();
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/sse")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken).build());
+        StepVerifier.create(jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
+        Assertions.assertEquals("Bearer", exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+        verify(chain, never()).execute(any());
+    }
+
+    @Test
+    public void testMissingSecretDoesNotAdvertiseAuthenticationChallenge() {
+        jwtPluginDataHandlerUnderTest.handlerPlugin(new PluginData("pluginId", "pluginName", "{}", "0", false, null));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/sse").build());
+        StepVerifier.create(jwtPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        Assertions.assertNull(exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE));
+        verify(chain, never()).execute(any());
     }
 
     private void initContext() {
