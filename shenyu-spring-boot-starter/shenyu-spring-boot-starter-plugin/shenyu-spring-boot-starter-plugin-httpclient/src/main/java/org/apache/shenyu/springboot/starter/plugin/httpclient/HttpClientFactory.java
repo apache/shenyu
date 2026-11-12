@@ -24,8 +24,11 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.plugin.httpclient.config.DefaultUpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties.Pool;
+import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -39,18 +42,34 @@ import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
 
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 
+    /**
+     * Upper bound on the number of configured pool groups; startup fails fast beyond it.
+     */
+    public static final int MAX_POOL_GROUPS = 16;
+
     private final HttpClientProperties properties;
 
     private final LoopResources loopResources;
-    
+
     private final ServerProperties serverProperties;
 
     public HttpClientFactory(final HttpClientProperties httpClientProperties,
@@ -111,7 +130,11 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         // configure pool resources.
         HttpClientProperties.Pool pool = properties.getPool();
         ConnectionProvider connectionProvider = buildConnectionProvider(pool);
-        HttpClient httpClient = HttpClient.create(connectionProvider)
+        return configureClient(HttpClient.create(connectionProvider));
+    }
+
+    private HttpClient configureClient(final HttpClient source) {
+        HttpClient httpClient = source
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getConnectTimeout());
         Duration responseTimeout = properties.getResponseTimeout();
         if (!responseTimeout.isZero() && !responseTimeout.isNegative()) {
@@ -148,7 +171,108 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
         return httpClient.keepAlive(properties.isKeepAlive());
     }
 
-    private ConnectionProvider buildConnectionProvider(final HttpClientProperties.Pool pool) {
+    /**
+     * Build the immutable registry of named upstream pool groups. Groups come only from
+     * this startup configuration: names must be unique and non-blank, the group count is
+     * bounded, and every group is validated before any provider is built, so an invalid
+     * configuration fails the startup instead of serving requests. With no groups
+     * configured the empty registry keeps the default shared-pool behaviour unchanged.
+     *
+     * @return the registry, empty when no groups are configured
+     */
+    public UpstreamPoolGroupRegistry buildGroupRegistry() {
+        List<Pool> groups = properties.getPoolGroups();
+        if (groups.isEmpty()) {
+            return UpstreamPoolGroupRegistry.empty();
+        }
+        if (groups.size() > MAX_POOL_GROUPS) {
+            throw new IllegalArgumentException("Too many upstream pool groups: " + groups.size() + ", limit is " + MAX_POOL_GROUPS);
+        }
+        validateGroups(groups);
+        boolean webClientStrategy = "webClient".equalsIgnoreCase(properties.getStrategy());
+        Map<String, HttpClient> clients = new LinkedHashMap<>();
+        Map<String, WebClient> webClients = new LinkedHashMap<>();
+        List<ConnectionProvider> providers = new ArrayList<>(groups.size());
+        try {
+            for (Pool group : groups) {
+                String key = normalizeGroupName(group.getName());
+                ConnectionProvider provider = buildConnectionProvider(group);
+                providers.add(provider);
+                HttpClient client = configureClient(HttpClient.create(provider));
+                clients.put(key, client);
+                if (webClientStrategy) {
+                    webClients.put(key, buildGroupWebClient(client));
+                }
+            }
+        } catch (RuntimeException failure) {
+            disposeOnFailure(providers, failure);
+            throw failure;
+        }
+        return new DefaultUpstreamPoolGroupRegistry(clients, webClients, providers);
+    }
+
+    private void validateGroups(final List<Pool> groups) {
+        Set<String> names = new HashSet<>(groups.size());
+        for (int i = 0; i < groups.size(); i++) {
+            Pool group = groups.get(i);
+            if (Objects.isNull(group)) {
+                throw new IllegalArgumentException("Upstream pool group " + i + " must not be null");
+            }
+            if (StringUtils.isBlank(group.getName())) {
+                throw new IllegalArgumentException("Upstream pool group " + i + " name must not be blank");
+            }
+            String key = normalizeGroupName(group.getName());
+            if (HttpClientProperties.DEFAULT_POOL_NAME.equals(key)) {
+                throw new IllegalArgumentException("Upstream pool group " + i + " name must differ from the default pool name '"
+                        + HttpClientProperties.DEFAULT_POOL_NAME + "'");
+            }
+            if (!names.add(key)) {
+                throw new IllegalArgumentException("Duplicate upstream pool group name: " + group.getName());
+            }
+            if (group.getType() != HttpClientProperties.Pool.PoolType.FIXED) {
+                throw new IllegalArgumentException("Upstream pool group '" + group.getName()
+                        + "' must use the FIXED pool type so its connection bound is finite");
+            }
+            if (Objects.isNull(group.getMaxConnections()) || group.getMaxConnections() <= 0) {
+                throw new IllegalArgumentException("Upstream pool group '" + group.getName()
+                        + "' maxConnections must be strictly positive");
+            }
+            if (Objects.isNull(group.getAcquireTimeout()) || group.getAcquireTimeout() < 0) {
+                throw new IllegalArgumentException("Upstream pool group '" + group.getName()
+                        + "' acquireTimeout must not be negative");
+            }
+            if (Objects.nonNull(group.getMaxPendingAcquires()) && group.getMaxPendingAcquires() <= 0) {
+                throw new IllegalArgumentException("Upstream pool group '" + group.getName()
+                        + "' maxPendingAcquires must be strictly positive or omitted");
+            }
+        }
+    }
+
+    private static String normalizeGroupName(final String name) {
+        return name.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static void disposeOnFailure(final List<ConnectionProvider> providers, final Throwable failure) {
+        for (ConnectionProvider provider : providers) {
+            try {
+                provider.dispose();
+            } catch (RuntimeException disposeFailure) {
+                failure.addSuppressed(disposeFailure);
+            }
+        }
+    }
+
+    private WebClient buildGroupWebClient(final HttpClient client) {
+        int maxInMemorySize = properties.getMaxInMemorySize() * Constants.BYTES_PER_MB;
+        return WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(maxInMemorySize))
+                        .build())
+                .clientConnector(new ReactorClientHttpConnector(client))
+                .build();
+    }
+
+    ConnectionProvider buildConnectionProvider(final HttpClientProperties.Pool pool) {
         if (pool.getType() == HttpClientProperties.Pool.PoolType.DISABLED) {
             return ConnectionProvider.newConnection();
         } else {
