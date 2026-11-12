@@ -30,8 +30,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -140,11 +141,12 @@ class AiProxyPluginViewTest {
     }
 
     private AiProxyPlugin plugin() {
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
                 request -> Mono.just(new AiUpstreamResponse(HttpStatus.OK.value(), Map.of(),
-                        Flux.just("{}".getBytes(StandardCharsets.UTF_8)))),
-                Duration.ZERO, null);
+                        Flux.just("{}".getBytes(StandardCharsets.UTF_8)))))
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .build();
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, null);
     }
 

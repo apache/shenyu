@@ -21,11 +21,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.agenticai.connect.ProviderProfile;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -41,7 +41,11 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 /**
- * OpenAI provider adapter; request construction opens no HTTP connections.
+ * OpenAI provider adapter for native Chat Completions and Responses requests.
+ *
+ * <p>Prepares the provider payload, endpoint and authentication headers without
+ * opening an HTTP connection. Provider profiles customize the native protocol
+ * bindings; the engine owns transport execution, retries and fallback.</p>
  */
 public final class OpenAi implements AiProxyProvider {
 
@@ -52,7 +56,7 @@ public final class OpenAi implements AiProxyProvider {
     private final OpenAiProviderOptions options;
 
     /**
-     * Create an OpenAI Chat upstream.
+     * Create an OpenAI upstream with native Chat Completions and Responses bindings.
      */
     public OpenAi() {
         this(OpenAiProviderOptions.openAi());
@@ -97,11 +101,6 @@ public final class OpenAi implements AiProxyProvider {
     }
 
     @Override
-    public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-        return prepareRequest(request, config).request();
-    }
-
-    @Override
     public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
         validateConfig(config);
         if (!supports(request.getProtocol())) {
@@ -110,34 +109,65 @@ public final class OpenAi implements AiProxyProvider {
         final AiProviderProtocolBinding protocolBinding = options.protocolBinding(request.getProtocol());
         boolean stream = request.hasStream() && request.isStream();
         capabilities().validate(request, stream);
+
+        ObjectNode payload = preparePayload(request, config, protocolBinding);
+        validateStreamingMode(payload, stream);
+        capabilities().validatePayload(payload);
+
+        AiUpstreamRequest upstream = buildUpstreamRequest(request, config, protocolBinding, payload, stream);
+        return PreparedAiRequest.identity(upstream);
+    }
+
+    private ObjectNode preparePayload(final ShenyuAiRequest request, final AiCommonConfig config,
+                                      final AiProviderProtocolBinding protocolBinding) {
         ObjectNode payload = request.getRawPayload().deepCopy();
         payload.remove("fallbackConfig");
+
+        applyDefaults(payload);
+        String upstreamModel = applyModelMapping(payload);
+
+        AiProviderRequestContext context = new AiProviderRequestContext(
+                name(), request.getProtocol(), upstreamModel, request, config);
+        return protocolBinding.transform(payload, context);
+    }
+
+    private void applyDefaults(final ObjectNode payload) {
         options.defaults().fields().forEachRemaining(entry -> {
             if (!payload.has(entry.getKey())) {
                 payload.set(entry.getKey(), entry.getValue());
             }
         });
+    }
+
+    private String applyModelMapping(final ObjectNode payload) {
         String model = payload.path("model").asText(null);
-        String mappedModel = Objects.isNull(model) ? null : options.modelMappings().getOrDefault(model, model);
-        if (Objects.nonNull(mappedModel)) {
-            payload.put("model", mappedModel);
+        if (Objects.isNull(model)) {
+            return null;
         }
-        AiProviderRequestContext context = new AiProviderRequestContext(
-                name(), request.getProtocol(), mappedModel, request, config);
-        ObjectNode converted = protocolBinding.transform(payload, context);
-        JsonNode convertedStream = converted.get("stream");
-        if (Objects.nonNull(convertedStream) && !convertedStream.isNull() && !convertedStream.isBoolean()
-                || converted.path("stream").asBoolean() != stream) {
+
+        String upstreamModel = options.modelMappings().getOrDefault(model, model);
+        payload.put("model", upstreamModel);
+        return upstreamModel;
+    }
+
+    private void validateStreamingMode(final ObjectNode payload, final boolean stream) {
+        JsonNode configured = payload.get("stream");
+        boolean invalidType = Objects.nonNull(configured) && !configured.isNull() && !configured.isBoolean();
+        if (invalidType || payload.path("stream").asBoolean() != stream) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI provider dialect must preserve the selected streaming mode", null);
         }
-        capabilities().validatePayload(converted);
+    }
+
+    private AiUpstreamRequest buildUpstreamRequest(final ShenyuAiRequest request, final AiCommonConfig config,
+                                                  final AiProviderProtocolBinding protocolBinding, final ObjectNode payload,
+                                                  final boolean stream) {
         AiUpstreamRequest upstream = new AiUpstreamRequest();
         upstream.setMethod(HttpMethod.POST.name());
         upstream.setUri(resolveEndpoint(config, protocolBinding.path()));
         upstream.setHeaders(headers(config, stream));
-        String body = request.getRawPayload().equals(converted) ? request.getRawBody() : converted.toString();
+        String body = request.getRawPayload().equals(payload) ? request.getRawBody() : payload.toString();
         upstream.setBody(body.getBytes(StandardCharsets.UTF_8));
-        return new PreparedAiRequest(upstream, AiResponseAdapter.identity());
+        return upstream;
     }
 
     private Map<String, List<String>> headers(final AiCommonConfig config, final boolean stream) {
@@ -208,5 +238,10 @@ public final class OpenAi implements AiProxyProvider {
     @Override
     public boolean supports(final String protocol) {
         return Objects.nonNull(protocol) && capabilities().protocols().contains(protocol);
+    }
+
+    @Override
+    public boolean isExactResponseCacheCompatible(final String protocol) {
+        return OpenAiChat.NAME.equals(protocol);
     }
 }

@@ -35,6 +35,11 @@ class OpenAiChatTest {
     private final OpenAiChat protocol = new OpenAiChat();
 
     @Test
+    void supportsExactResponseCaching() {
+        assertTrue(protocol.isExactResponseCacheCompatible());
+    }
+
+    @Test
     void testDecodePreservesRawPayloadAndExtractsNormalizedFields() throws Exception {
         final String body = "{\"model\":\"gpt-4o\",\"messages\":[{\"role\":\"user\","
                 + "\"content\":\"hello\",\"custom\":true}],\"stream\":true,"

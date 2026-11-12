@@ -18,8 +18,6 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 
@@ -27,6 +25,15 @@ import java.util.Objects;
 
 /**
  * Contract for adapting a ShenYu AI request to a provider request.
+ *
+ * <p>The engine calls {@link #prepareRequest(ShenyuAiRequest, AiCommonConfig)}
+ * after protocol routing and outgoing protocol preparation. Providers own native
+ * endpoints, authentication and vendor adaptation. They construct request data;
+ * the engine owns HTTP execution, retries, fallback and downstream writing.</p>
+ *
+ * <p>Use {@link OpenAi} for complete request preparation, or
+ * {@link OpenAiCompatible} with {@link OpenAiProviderOptions} for a named profile
+ * that reuses the existing request construction.</p>
  */
 public interface AiProxyProvider {
 
@@ -38,23 +45,12 @@ public interface AiProxyProvider {
     String name();
 
     /**
-     * Build the provider-specific upstream request.
-     *
-     * @param request decoded AI request
-     * @param config provider configuration
-     * @return upstream request
-     */
-    AiUpstreamRequest buildRequest(ShenyuAiRequest request, AiCommonConfig config);
-
-    /**
      * Get provider feature and operation declarations.
-     * Existing custom providers retain the general Chat capability default.
+     * Native protocol bindings declare the supported protocols and their provider behavior.
      *
      * @return provider capabilities
      */
-    default AiProviderCapabilities capabilities() {
-        return AiProviderCapabilities.chat();
-    }
+    AiProviderCapabilities capabilities();
 
     /**
      * Check whether the provider natively accepts an upstream protocol.
@@ -68,13 +64,25 @@ public interface AiProxyProvider {
 
     /**
      * Prepare an upstream request and the response conversion bound to it.
-     * Existing providers receive an identity response adapter by default.
+     *
+     * <p>This is the engine entry point. Override it when response adaptation
+     * needs state from request preparation. Allocate that state per preparation
+     * and return it through the response adapter, keeping body transformations
+     * lazy and preserving upstream cancellation.</p>
      *
      * @param request decoded AI request
      * @param config provider configuration
-     * @return prepared upstream request
+     * @return prepared upstream request and request-scoped response adapter
      */
-    default PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-        return new PreparedAiRequest(buildRequest(request, config), AiResponseAdapter.identity());
+    PreparedAiRequest prepareRequest(ShenyuAiRequest request, AiCommonConfig config);
+
+    /**
+     * Check whether one native protocol is compatible with exact response caching.
+     *
+     * @param protocol native target protocol
+     * @return whether exact response caching is supported
+     */
+    default boolean isExactResponseCacheCompatible(final String protocol) {
+        return false;
     }
 }

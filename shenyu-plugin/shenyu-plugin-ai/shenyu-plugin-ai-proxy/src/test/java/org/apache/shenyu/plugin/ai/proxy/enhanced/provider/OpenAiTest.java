@@ -51,12 +51,19 @@ class OpenAiTest {
     }
 
     @Test
-    void testBuildRequestPreservesExplicitStreamUsageSetting() throws Exception {
+    void exactResponseCacheCompatibilityIsProtocolSpecific() {
+        assertTrue(provider.isExactResponseCacheCompatible(OpenAiChat.NAME));
+        assertFalse(provider.isExactResponseCacheCompatible(OpenAiResponses.NAME));
+        assertFalse(provider.isExactResponseCacheCompatible("unknown"));
+    }
+
+    @Test
+    void testPrepareRequestPreservesExplicitStreamUsageSetting() throws Exception {
         final String body = "{\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],"
                 + "\"stream\":true,\"stream_options\":{\"include_usage\":false}}";
         final ShenyuAiRequest request = decode(body);
 
-        final AiUpstreamRequest upstreamRequest = provider.buildRequest(request, config);
+        final AiUpstreamRequest upstreamRequest = provider.prepareRequest(request, config).request();
         final JsonNode payload = OBJECT_MAPPER.readTree(upstreamRequest.getBody());
 
         assertEquals("https://api.openai.com/v1/chat/completions", upstreamRequest.getUri().toString());
@@ -65,21 +72,21 @@ class OpenAiTest {
     }
 
     @Test
-    void testBuildRequestValidatesConfigurationAndProtocol() throws Exception {
+    void testPrepareRequestValidatesConfigurationAndProtocol() throws Exception {
         final ShenyuAiRequest request = decode("{\"messages\":[{\"role\":\"user\"}]}");
         config.setApiKey(null);
-        assertThrows(IllegalArgumentException.class, () -> provider.buildRequest(request, config));
+        assertThrows(IllegalArgumentException.class, () -> provider.prepareRequest(request, config));
 
         config.setApiKey("test-key");
         request.setProtocol("unknown");
-        assertThrows(IllegalArgumentException.class, () -> provider.buildRequest(request, config));
+        assertThrows(IllegalArgumentException.class, () -> provider.prepareRequest(request, config));
     }
 
     @Test
     void testBuildsNativeResponsesRequest() throws Exception {
         String body = "{\"model\":\"gpt-5\",\"input\":\"hello\",\"stream\":true,\"max_output_tokens\":16}";
         ShenyuAiRequest request = new OpenAiResponses().decodeRequest(body, (ObjectNode) OBJECT_MAPPER.readTree(body));
-        AiUpstreamRequest upstreamRequest = provider.buildRequest(request, config);
+        AiUpstreamRequest upstreamRequest = provider.prepareRequest(request, config).request();
         JsonNode payload = OBJECT_MAPPER.readTree(upstreamRequest.getBody());
 
         assertTrue(provider.supports(OpenAiResponses.NAME));

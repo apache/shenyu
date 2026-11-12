@@ -23,12 +23,14 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -54,7 +56,7 @@ class AiProxyProviderFactoryTest {
     }
 
     @Test
-    void testExistingProviderReceivesIdentityResponseAdapter() {
+    void testProviderPreparationAndCacheDefault() {
         final AiUpstreamRequest upstreamRequest = new AiUpstreamRequest();
         final AiProxyProvider provider = new AiProxyProvider() {
             @Override
@@ -63,8 +65,13 @@ class AiProxyProviderFactoryTest {
             }
 
             @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                return upstreamRequest;
+            public AiProviderCapabilities capabilities() {
+                return AiProviderCapabilities.chat();
+            }
+
+            @Override
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                return PreparedAiRequest.identity(upstreamRequest);
             }
         };
         final PreparedAiRequest prepared = provider.prepareRequest(new ShenyuAiRequest(), new AiCommonConfig());
@@ -72,5 +79,6 @@ class AiProxyProviderFactoryTest {
 
         assertSame(upstreamRequest, prepared.request());
         assertSame(response, prepared.responseAdapter().adapt(response));
+        assertFalse(provider.isExactResponseCacheCompatible(OpenAiChat.NAME));
     }
 }

@@ -64,8 +64,6 @@ public final class AiExactResponseCache {
     private static final Set<String> REQUEST_FIELDS = Set.of("messages", "model", "stream", "max_tokens", "max_completion_tokens", "temperature", "top_p",
             "presence_penalty", "frequency_penalty", "stop", "seed", "n", "logit_bias");
 
-    private static final Set<String> PROVIDERS = Set.of("openai", "openaicompatible", "deepseek", "aliyun", "moonshot");
-
     private static final Set<String> ROLES = Set.of("system", "user", "assistant");
 
     private static final Set<String> UNSUPPORTED_HEADERS = Set.of("set-cookie", "set-cookie2", "vary", "content-encoding", "content-range", "www-authenticate", "proxy-authenticate");
@@ -118,19 +116,21 @@ public final class AiExactResponseCache {
      * @param targetProtocol actual upstream protocol
      * @param stream whether streaming was requested
      * @param hasFallback whether the request may fall back
+     * @param compatible whether the protocol and provider explicitly support this cache contract
      * @param consumer downstream response writer
      * @param upstream original transport operation accepting a response writer
      * @return lazy response completion
      */
     public Mono<Void> execute(final String originalBody, final AiUpstreamRequest prepared, final String provider,
                               final String clientProtocol, final String targetProtocol, final boolean stream, final boolean hasFallback,
+                              final boolean compatible,
                               final Function<AiUpstreamResponse, Mono<Void>> consumer,
                               final Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream) {
         return Mono.deferContextual(context -> {
             final long epoch = generation.get();
             Object scope = context.getOrDefault(AiResponseCacheScope.REACTOR_KEY, null);
-            if (!properties.isEnabled() || stream || hasFallback || !(scope instanceof AiResponseCacheScope)
-                    || !"openai-chat".equals(clientProtocol) || !"openai-chat".equals(targetProtocol) || !knownProvider(provider)) {
+            if (!properties.isEnabled() || stream || hasFallback || !compatible
+                    || !(scope instanceof AiResponseCacheScope)) {
                 return bypass(consumer, upstream);
             }
             String key;
@@ -193,10 +193,6 @@ public final class AiExactResponseCache {
             current = fills.get();
         }
         return false;
-    }
-
-    private boolean knownProvider(final String provider) {
-        return Objects.nonNull(provider) && PROVIDERS.contains(provider.trim().toLowerCase(Locale.ROOT).replace("-", "").replace("_", ""));
     }
 
     private String key(final String original, final AiUpstreamRequest request, final AiResponseCacheScope scope,

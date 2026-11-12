@@ -110,8 +110,11 @@ class AiProxyStreamCancellationTest {
     private AiProxyEngine engine(final Flux<String> events) {
         WebClient client = WebClient.builder().exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.OK)
                 .body(events.map(event -> DefaultDataBufferFactory.sharedInstance.wrap(event.getBytes(StandardCharsets.UTF_8)))).build())).build();
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())), new AiProxyProviderFactory(List.of(new OpenAi())),
-                protocolRouteResolver(), new WebClientAiProxyTransport(client), Duration.ZERO);
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
+                        new WebClientAiProxyTransport(client))
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .build();
     }
 
     private Mono<Void> stream(final AiProxyEngine engine, final AtomicInteger received) {

@@ -15,19 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
-
 /**
- * Observer for bounded AI attempt facts. This integration point belongs to retry
- * policy; implementations must not implement another usage metering platform.
+ * AI proxy observation and protocol response telemetry support.
  */
-@FunctionalInterface
-public interface AiProxyAttemptListener {
-
-    /**
-     * Receive an attempt identity and retry reason.
-     *
-     * @param event bounded attempt facts without request or response content
-     */
-    void onAttempt(AiProxyAttemptEvent event);
-}
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation;

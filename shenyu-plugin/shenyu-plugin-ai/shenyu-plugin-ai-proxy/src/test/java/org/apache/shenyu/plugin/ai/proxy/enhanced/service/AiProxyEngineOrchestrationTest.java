@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -38,6 +37,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.Test;
@@ -276,14 +277,17 @@ class AiProxyEngineOrchestrationTest {
     void attemptListenerReceivesBoundedIdentityAndReasons() {
         AtomicInteger calls = new AtomicInteger();
         List<AiProxyAttemptEvent> events = new ArrayList<>();
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
                 protocolRouteResolver(), request -> {
                     int attempt = calls.incrementAndGet();
                     return attempt == 1
                             ? Mono.just(response(429, Map.of("Retry-After", List.of("1")), Flux.just(bytes("busy"))))
                             : Mono.just(response(200, Flux.just(bytes("ok"))));
-                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
+                })
+                .retryProperties(retryProperties(Duration.ZERO, Duration.ofMinutes(1)))
+                .attemptListener(events::add)
+                .build();
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(),
                 response -> response.getBody().then())).verifyComplete();
@@ -300,14 +304,17 @@ class AiProxyEngineOrchestrationTest {
         List<AiProxyAttemptEvent> events = new ArrayList<>();
         AiProxyRetryProperties properties = retryProperties(Duration.ZERO, Duration.ofMinutes(1));
         properties.setMaxRetries(0);
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
                 protocolRouteResolver(), request -> {
                     String body = new String(request.getBody(), StandardCharsets.UTF_8);
                     return body.contains("\"model\":\"fallback\"")
                             ? Mono.just(response(200, Flux.just(bytes("fallback response"))))
                             : Mono.just(response(429, Flux.just(bytes("busy"))));
-                }, properties, (AiProxyAttemptListener) events::add);
+                })
+                .retryProperties(properties)
+                .attemptListener(events::add)
+                .build();
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"),
                         Optional.of(config(false, "fallback")), response -> response.getBody().then()))
@@ -331,13 +338,8 @@ class AiProxyEngineOrchestrationTest {
             }
 
             @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                return new AiUpstreamRequest();
-            }
-
-            @Override
             public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                return new PreparedAiRequest(buildRequest(request, config), AiResponseAdapter.identity());
+                return PreparedAiRequest.identity(new AiUpstreamRequest());
             }
 
             @Override
@@ -350,21 +352,25 @@ class AiProxyEngineOrchestrationTest {
         };
         AiCommonConfig fallbackConfig = config(false, "fallback");
         fallbackConfig.setProvider("unsafe-fallback");
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), fallbackProvider)),
                 protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.just(response(429, Flux.just(bytes("busy"))));
-                }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)));
+                })
+                .retryProperties(retryProperties(Duration.ZERO, Duration.ofMinutes(1)))
+                .build();
 
         AiProxyRetryProperties properties = retryProperties(Duration.ZERO, Duration.ofMinutes(1));
         properties.getReplay().setResponseStatus(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED);
-        final AiProxyEngine providerDeclaredEngine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        final AiProxyEngine providerDeclaredEngine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), fallbackProvider)),
                 protocolRouteResolver(), request -> {
                     calls.incrementAndGet();
                     return Mono.just(response(429, Flux.just(bytes("busy"))));
-                }, properties);
+                })
+                .retryProperties(properties)
+                .build();
 
         StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(fallbackConfig),
                         response -> response.getBody().then()))
@@ -614,12 +620,16 @@ class AiProxyEngineOrchestrationTest {
         AtomicInteger calls = new AtomicInteger();
         List<String> received = new ArrayList<>();
         List<AiProxyAttemptEvent> events = new ArrayList<>();
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
                 protocolRouteResolver(), request -> {
-            calls.incrementAndGet();
-            return Mono.just(response(200, Flux.just(bytes("data: {\"first\":true}\n\n")).concatWith(Flux.error(networkFailure()))));
-        }, retryProperties(Duration.ZERO, Duration.ofMinutes(1)), (AiProxyAttemptListener) events::add);
+                    calls.incrementAndGet();
+                    return Mono.just(response(200,
+                            Flux.just(bytes("data: {\"first\":true}\n\n")).concatWith(Flux.error(networkFailure()))));
+                })
+                .retryProperties(retryProperties(Duration.ZERO, Duration.ofMinutes(1)))
+                .attemptListener(events::add)
+                .build();
         StepVerifier.create(engine.execute(BODY, config(true, "main"), Optional.of(config(true, "fallback")), response -> consume(response, received)))
                 .expectError(AiTransportException.class).verify();
         assertEquals(1, calls.get());
@@ -677,18 +687,18 @@ class AiProxyEngineOrchestrationTest {
             }
 
             @Override
+            public AiProviderCapabilities capabilities() {
+                return AiProviderCapabilities.chat();
+            }
+
+            @Override
             public boolean supports(final String protocol) {
                 return supported.get();
             }
 
             @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                return new AiUpstreamRequest();
-            }
-
-            @Override
             public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                return new PreparedAiRequest(buildRequest(request, config), response -> {
+                return new PreparedAiRequest(new AiUpstreamRequest(), response -> {
                     conversions.add("provider");
                     return response;
                 });
@@ -719,8 +729,11 @@ class AiProxyEngineOrchestrationTest {
         };
         AiCommonConfig config = config(false, "model");
         config.setProvider("custom");
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(protocol)), new AiProxyProviderFactory(List.of(provider)),
-                protocolRouteResolver(), request -> Mono.just(response(200, Flux.just(bytes("ok")))), Duration.ZERO);
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(protocol)),
+                        new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(),
+                        request -> Mono.just(response(200, Flux.just(bytes("ok")))))
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .build();
         StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then())).verifyComplete();
         assertEquals(List.of("provider", "protocol"), conversions);
         supported.set(false);
@@ -780,22 +793,11 @@ class AiProxyEngineOrchestrationTest {
                 return payload;
             }
         };
-        AiProxyProvider provider = new AiProxyProvider() {
-            @Override
-            public String name() {
-                return "custom";
-            }
-
-            @Override
-            public AiUpstreamRequest buildRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
-                AiUpstreamRequest upstream = new AiUpstreamRequest();
-                upstream.setBody(request.getRawBody().getBytes(StandardCharsets.UTF_8));
-                return upstream;
-            }
-        };
-        AiProxyEngine engine = new AiProxyEngine(
+        AiProxyProvider provider = rawBodyProvider();
+        AiProxyEngine engine = AiProxyEngine.builder(
                 new AiProxyProtocolFactory(List.of(clientProtocol, targetProtocol)),
-                new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(), request -> Mono.empty());
+                new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(), request -> Mono.empty())
+                .build();
         AiCommonConfig config = config(false, "model");
         config.setProvider("custom");
         config.setProtocol(OpenAiResponses.NAME);
@@ -825,9 +827,11 @@ class AiProxyEngineOrchestrationTest {
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolRouteResolver(), transport, Duration.ZERO);
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                        protocolRouteResolver(), transport)
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .build();
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties retryProperties) {
@@ -837,9 +841,33 @@ class AiProxyEngineOrchestrationTest {
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties retryProperties,
                                  final AiProxyAttemptListener listener) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolRouteResolver(), transport, retryProperties, listener);
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                        protocolRouteResolver(), transport)
+                .retryProperties(retryProperties)
+                .attemptListener(listener)
+                .build();
+    }
+
+    private AiProxyProvider rawBodyProvider() {
+        return new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "custom";
+            }
+
+            @Override
+            public AiProviderCapabilities capabilities() {
+                return AiProviderCapabilities.chat();
+            }
+
+            @Override
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                AiUpstreamRequest upstream = new AiUpstreamRequest();
+                upstream.setBody(request.getRawBody().getBytes(StandardCharsets.UTF_8));
+                return PreparedAiRequest.identity(upstream);
+            }
+        };
     }
 
     private AiProxyRetryProperties retryProperties(final Duration initialBackoff, final Duration requestDeadline) {

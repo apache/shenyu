@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -48,5 +51,38 @@ class AiProxyProtocolFactoryTest {
         assertThrows(ShenyuException.class, () -> factory.getProtocol("unknown"));
         assertThrows(ShenyuException.class,
                 () -> factory.detect(OBJECT_MAPPER.readTree("{\"prompt\":\"hello\"}")));
+    }
+
+    @Test
+    void testDetectionUsesProtocolOwnedOrder() throws Exception {
+        final AiProxyProtocol low = matchingProtocol("low", 1);
+        final AiProxyProtocol high = matchingProtocol("high", 10);
+        final AiProxyProtocolFactory factory = new AiProxyProtocolFactory(List.of(low, high));
+
+        assertSame(high, factory.detect(OBJECT_MAPPER.readTree("{}")));
+    }
+
+    private AiProxyProtocol matchingProtocol(final String name, final int order) {
+        return new AiProxyProtocol() {
+            @Override
+            public String name() {
+                return name;
+            }
+
+            @Override
+            public int detectionOrder() {
+                return order;
+            }
+
+            @Override
+            public boolean matches(final JsonNode payload) {
+                return true;
+            }
+
+            @Override
+            public ShenyuAiRequest decodeRequest(final String rawBody, final ObjectNode payload) {
+                return new ShenyuAiRequest();
+            }
+        };
     }
 }

@@ -55,8 +55,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.ai.token.limiter.AiTokenLimiterPlugin;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
@@ -290,9 +291,12 @@ class AgentGovernanceHttpTest {
             when(values.setIfAbsent(anyString(), anyString(), any(Duration.class))).thenReturn(Mono.just(true));
             when(values.increment(anyString(), anyLong())).thenReturn(Mono.just(2L));
             AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().cachedHandle(limiter.named(), redis);
-            AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                    new AiProxyProviderFactory(List.of(new OpenAi())), new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())),
-                    new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
+            AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                            new AiProxyProviderFactory(List.of(new OpenAi())),
+                            new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())),
+                            new WebClientAiProxyTransport(WebClient.builder().build()))
+                    .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                    .build();
             AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler);
             final RuleData proxyRule = register(proxy, "{}");
             AiProxyHandle handle = new AiProxyHandle();

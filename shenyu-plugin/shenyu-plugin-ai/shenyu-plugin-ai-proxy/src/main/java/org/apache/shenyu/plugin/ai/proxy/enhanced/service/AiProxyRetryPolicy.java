@@ -59,8 +59,8 @@ final class AiProxyRetryPolicy {
 
     private Decision decideReplayableFailure(final FailureContext context, final boolean retryEligible,
                                              final boolean fallbackEligible) {
-        AiProxyRetryProperties.ReplayMode mode = context.replayPolicy()
-                .mode(context.operation(), context.executionAmbiguous(), !context.hasStatus());
+        AiProxyRetryProperties.ReplayMode mode = context.retrySettings()
+                .replayMode(context.operation(), context.executionAmbiguous(), !context.hasStatus());
         if (retryEligible && context.retriesRemaining() > 0
                 && replayAllowed(mode, context.providerDeclaredReplaySafe(), context)) {
             return Decision.RETRY;
@@ -121,7 +121,7 @@ final class AiProxyRetryPolicy {
                 && !"auto".equalsIgnoreCase(request.getRawPayload().path("function_call").asText());
     }
 
-    static Duration retryAfter(final Map<String, ?> headers, final AiProxyRetryProperties properties) {
+    static Duration retryAfter(final Map<String, ?> headers, final AiRetrySettings retrySettings) {
         Object value = null;
         for (Map.Entry<String, ?> entry : headers.entrySet()) {
             if (HttpHeaders.RETRY_AFTER.equalsIgnoreCase(entry.getKey())) {
@@ -137,8 +137,8 @@ final class AiProxyRetryPolicy {
         } else {
             return null;
         }
-        long seconds = properties.parseRetryAfter(text, Clock.systemUTC());
-        return seconds < 0 ? null : properties.clampRetryAfter(Duration.ofSeconds(seconds));
+        long seconds = retrySettings.parseRetryAfter(text, Clock.systemUTC());
+        return seconds < 0 ? null : retrySettings.clampRetryAfter(Duration.ofSeconds(seconds));
     }
 
     static boolean hasRetryAfter(final Map<String, ?> headers) {
@@ -161,7 +161,7 @@ final class AiProxyRetryPolicy {
      * @param fallbackAvailable whether a fallback upstream is configured
      * @param conservativeReplaySafe whether the final payload has no tool-bearing fields
      * @param operation final AI operation
-     * @param replayPolicy configured replay policy
+     * @param retrySettings configured retry and replay settings
      * @param providerDeclaredReplaySafe whether the current provider explicitly declared replay safety
      * @param fallbackProviderDeclaredReplaySafe whether the fallback provider explicitly declared replay safety
      */
@@ -173,14 +173,14 @@ final class AiProxyRetryPolicy {
             boolean fallbackAvailable,
             boolean conservativeReplaySafe,
             ShenyuAiRequest.Operation operation,
-            AiProxyRetryProperties.ReplayProperties replayPolicy,
+            AiRetrySettings retrySettings,
             boolean providerDeclaredReplaySafe,
             boolean fallbackProviderDeclaredReplaySafe) {
 
         FailureContext {
             Objects.requireNonNull(headers, "headers must not be null");
             Objects.requireNonNull(operation, "operation must not be null");
-            Objects.requireNonNull(replayPolicy, "replayPolicy must not be null");
+            Objects.requireNonNull(retrySettings, "retrySettings must not be null");
             if ((Objects.isNull(kind)) == (Objects.isNull(status))) {
                 throw new IllegalArgumentException("exactly one transport kind or status is required");
             }

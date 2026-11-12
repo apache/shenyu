@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -39,12 +40,15 @@ public final class AiProxyProtocolFactory {
      */
     public AiProxyProtocolFactory(final Collection<AiProxyProtocol> protocols) {
         this.aiProxyProtocolMap = new LinkedHashMap<>();
-        for (AiProxyProtocol protocol : protocols) {
-            final AiProxyProtocol previous = aiProxyProtocolMap.put(protocol.name(), protocol);
-            if (Objects.nonNull(previous)) {
-                throw new IllegalArgumentException("Duplicate AI protocol: " + protocol.name());
-            }
-        }
+        protocols.stream()
+                .sorted(Comparator.comparingInt(AiProxyProtocol::detectionOrder).reversed()
+                        .thenComparing(AiProxyProtocol::name))
+                .forEach(protocol -> {
+                    final AiProxyProtocol previous = aiProxyProtocolMap.put(protocol.name(), protocol);
+                    if (Objects.nonNull(previous)) {
+                        throw new IllegalArgumentException("Duplicate AI protocol: " + protocol.name());
+                    }
+                });
     }
 
     /**
