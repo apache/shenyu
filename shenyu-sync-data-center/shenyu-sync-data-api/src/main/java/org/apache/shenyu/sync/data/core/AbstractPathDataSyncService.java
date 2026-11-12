@@ -252,6 +252,10 @@ public abstract class AbstractPathDataSyncService implements SyncDataService {
         }
         final String pluginName = str.substring(1, pluginNameIndex);
         final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(ruleDataId));
+        if (list.size() < 2) {
+            LOG.warn("AbstractPathDataSyncService invalid rule removal key: {}", dataPath);
+            return;
+        }
 
         RuleData ruleData = new RuleData();
         ruleData.setPluginName(pluginName);
