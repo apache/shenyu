@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -309,6 +310,42 @@ public final class AbstractLoggingPluginBodyLimitTest {
         assertEquals(500, large.getStatus());
         assertNotNull(large.getResponseBody());
         assertTrue(large.getResponseBody().contains("Internal Server Error"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testHeaderPolicyIsCapturedAcrossConfigReload(final boolean error) {
+        updatePluginConfig(PLUGIN_ID, "{\"maskedHeaders\":[\"X-Api-Key\"]}");
+        MockServerWebExchange credentialExchange = createCredentialExchange();
+        Mono<Void> execution = plugin.doExecute(credentialExchange, decorated -> {
+            assertEquals("request-secret", decorated.getRequest().getHeaders().getFirst("Authorization"));
+            decorated.getResponse().getHeaders().add("Set-Cookie", "response-secret");
+            decorated.getResponse().getHeaders().add("X-Api-Key", "custom-response-secret");
+            updatePluginConfig(PLUGIN_ID, "{\"maskCredentialHeaders\":false}");
+            return error ? Mono.error(new IllegalStateException("failure")) : decorated.getResponse().writeWith(buffers("hello"));
+        }, selector(PLUGIN_ID), rule(PLUGIN_ID));
+        if (error) {
+            assertThrows(IllegalStateException.class, execution::block);
+        } else {
+            execution.block();
+        }
+        ShenyuRequestLog log = collector.log.get();
+        assertTrue(log.getRequestHeader().contains("***"));
+        assertFalse(log.getRequestHeader().contains("secret"));
+        assertFalse(log.getResponseHeader().contains("secret"));
+        assertEquals("response-secret", credentialExchange.getResponse().getHeaders().getFirst("Set-Cookie"));
+        ShenyuRequestLog next = execute(PLUGIN_ID, createCredentialExchange(), "hello", "hello");
+        assertTrue(next.getRequestHeader().contains("request-secret"));
+    }
+
+    private MockServerWebExchange createCredentialExchange() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("http://localhost/headers")
+                .remoteAddress(new InetSocketAddress("127.0.0.1", 8000))
+                .header("Authorization", "request-secret").header("X-Api-Key", "custom-secret").body("hello"));
+        ShenyuContext context = new ShenyuContext();
+        context.setStartDateTime(LocalDateTime.now());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        return exchange;
     }
 
     private ShenyuRequestLog executeError(final boolean synchronous) {
