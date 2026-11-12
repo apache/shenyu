@@ -261,6 +261,40 @@ public final class PluginServiceTest {
 
     }
 
+    @Test
+    public void invalidRegisteredPluginCreateIsRejectedBeforePersistence() {
+        PluginDTO candidate = new PluginDTO();
+        candidate.setName("agentGateway");
+        candidate.setConfig("{\"SECRET\":\"value\"}");
+        assertThrows(ShenyuAdminException.class, () -> pluginService.createOrUpdate(candidate));
+        verifyNoInteractions(pluginMapper, modelDataEventPublisher);
+    }
+
+    @Test
+    public void registeredPluginUpdateUsesPersistedIdentityBeforePersistence() {
+        PluginDTO candidate = new PluginDTO();
+        candidate.setId("existing");
+        candidate.setName("legacy");
+        candidate.setConfig("{\"SECRET\":\"value\"}");
+        PluginDO stored = new PluginDO();
+        stored.setName("agentGateway");
+        when(pluginMapper.selectById("existing")).thenReturn(stored);
+        assertThrows(ShenyuAdminException.class, () -> pluginService.createOrUpdate(candidate));
+        verify(pluginMapper, never()).updateSelective(any());
+        verifyNoInteractions(modelDataEventPublisher);
+    }
+
+    @Test
+    public void invalidRegisteredPluginImportIsRejectedBeforePersistence() {
+        PluginDTO candidate = new PluginDTO();
+        candidate.setName("agentGateway");
+        candidate.setConfig("{\"SECRET\":\"value\"}");
+        when(pluginMapper.selectAll()).thenReturn(Collections.emptyList());
+        assertThrows(ShenyuAdminException.class, () -> pluginService.importData(Collections.singletonList(candidate), null));
+        verify(pluginMapper, never()).insertSelective(any());
+        verifyNoInteractions(modelDataEventPublisher);
+    }
+
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         given(this.pluginMapper.selectById("123")).willReturn(pluginDO);

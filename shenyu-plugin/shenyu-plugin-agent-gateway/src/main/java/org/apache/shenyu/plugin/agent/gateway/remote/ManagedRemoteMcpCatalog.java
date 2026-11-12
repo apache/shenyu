@@ -24,6 +24,9 @@ import com.google.gson.JsonObject;
 import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AgentCatalogMetrics;
@@ -268,6 +271,11 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             }
             AgentGatewayAggregationConfig config;
             try {
+                ConfigurationValidation validation = ConfigurationContractRegistry.shared()
+                        .validate("agentGateway", ConfigurationScope.PLUGIN, "1", update.source());
+                if (validation.status() == ConfigurationValidation.Status.INVALID) {
+                    throw new IllegalArgumentException("Invalid Agent Gateway aggregation configuration");
+                }
                 config = AgentGatewayAggregationConfig.parsePluginConfig(update.source());
             } catch (IllegalArgumentException error) {
                 recordFailure(update.sequence(), error.getClass().getSimpleName());

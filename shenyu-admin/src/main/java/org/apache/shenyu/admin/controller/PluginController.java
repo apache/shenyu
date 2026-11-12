@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -88,6 +89,16 @@ public class PluginController implements PagedController<PluginQueryCondition, P
     public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
+    }
+
+    /**
+     * Inspect installed lightweight configuration contracts without loading plugin implementations.
+     * @return registered contract metadata, excluding configuration values
+     */
+    @GetMapping("/config-contracts")
+    @RequiresPermissions("system:plugin:edit")
+    public ShenyuAdminResult configurationContracts() {
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, ConfigurationContractRegistry.shared().catalog());
     }
     
     /**
