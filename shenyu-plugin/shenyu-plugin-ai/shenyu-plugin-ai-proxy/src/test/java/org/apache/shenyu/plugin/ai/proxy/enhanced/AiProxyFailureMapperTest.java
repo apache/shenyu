@@ -50,8 +50,14 @@ class AiProxyFailureMapperTest {
     @EnumSource(AiProxyException.Kind.class)
     void mapsEveryProxyFailureKind(final AiProxyException.Kind kind) {
         AiProxyFailureResponse response = mapper.map(new AiProxyException(kind, "proxy failure", null));
-        HttpStatus expected = kind == AiProxyException.Kind.REQUEST
-                ? HttpStatus.BAD_REQUEST : HttpStatus.BAD_GATEWAY;
+        HttpStatus expected;
+        if (kind == AiProxyException.Kind.REQUEST) {
+            expected = HttpStatus.BAD_REQUEST;
+        } else if (kind == AiProxyException.Kind.ADMISSION) {
+            expected = HttpStatus.TOO_MANY_REQUESTS;
+        } else {
+            expected = HttpStatus.BAD_GATEWAY;
+        }
         assertEquals(expected, response.getStatus());
     }
 

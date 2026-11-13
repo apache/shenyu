@@ -46,6 +46,6 @@ public final class AiProxyException extends RuntimeException {
      * Layer failure classification.
      */
     public enum Kind {
-        REQUEST, PROVIDER, TRANSPORT, PROTOCOL
+        REQUEST, PROVIDER, TRANSPORT, PROTOCOL, ADMISSION
     }
 }

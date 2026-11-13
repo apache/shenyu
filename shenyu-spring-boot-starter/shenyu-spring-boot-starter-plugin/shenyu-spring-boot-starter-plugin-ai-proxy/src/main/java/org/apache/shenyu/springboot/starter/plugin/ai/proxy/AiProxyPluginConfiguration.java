@@ -19,6 +19,8 @@ package org.apache.shenyu.springboot.starter.plugin.ai.proxy;
 
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmissionProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScopeResolver;
@@ -137,6 +139,7 @@ public class AiProxyPluginConfiguration {
      * @param retryProperties        retry properties
      * @param attemptListener        optional attempt listener
      * @param responseCache          optional exact response cache
+     * @param admission              optional per-gateway concurrency admission
      * @return the AI proxy engine
      */
     @Bean
@@ -147,11 +150,12 @@ public class AiProxyPluginConfiguration {
                                        final ObjectProvider<AiCallObserver> observers,
                                        final AiProxyRetryProperties retryProperties,
                                        final ObjectProvider<AiProxyAttemptListener> attemptListener,
-                                       final ObjectProvider<AiExactResponseCache> responseCache) {
+                                       final ObjectProvider<AiExactResponseCache> responseCache,
+                                       final ObjectProvider<AiConcurrencyAdmission> admission) {
         return new AiProxyEngine(aiProxyProtocolFactory, aiProxyProviderFactory,
                 aiProtocolRouteResolver, aiProxyTransport, retryProperties,
                 observer(observers), attemptListener.getIfAvailable(() -> event -> {
-                }), responseCache.getIfAvailable());
+                }), responseCache.getIfAvailable(), admission.getIfAvailable());
     }
 
     private AiCallObserver observer(final ObjectProvider<AiCallObserver> provider) {
@@ -373,5 +377,28 @@ public class AiProxyPluginConfiguration {
     @ConfigurationProperties(prefix = "shenyu.plugins.ai.proxy.retry")
     public AiProxyRetryProperties aiProxyRetryProperties() {
         return new AiProxyRetryProperties();
+    }
+
+    /**
+     * AI proxy concurrency admission properties.
+     *
+     * @return AI concurrency admission properties
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "shenyu.plugins.ai.proxy.admission")
+    public AiConcurrencyAdmissionProperties aiConcurrencyAdmissionProperties() {
+        return new AiConcurrencyAdmissionProperties();
+    }
+
+    /**
+     * Opt-in per-gateway concurrency admission; only started with the feature.
+     *
+     * @param properties admission properties
+     * @return concurrency admission
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "shenyu.plugins.ai.proxy.admission", name = "enabled", havingValue = "true")
+    public AiConcurrencyAdmission aiConcurrencyAdmission(final AiConcurrencyAdmissionProperties properties) {
+        return new AiConcurrencyAdmission(properties);
     }
 }
