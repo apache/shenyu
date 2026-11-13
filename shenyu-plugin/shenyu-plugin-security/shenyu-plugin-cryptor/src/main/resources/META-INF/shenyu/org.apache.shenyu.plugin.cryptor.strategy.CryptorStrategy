@@ -15,3 +15,6 @@
 # limitations under the License.
 
 rsa=org.apache.shenyu.plugin.cryptor.strategy.RsaStrategy
+rsa-oaep=org.apache.shenyu.plugin.cryptor.strategy.RsaOaepStrategy
+aes=org.apache.shenyu.plugin.cryptor.strategy.AesStrategy
+sm4=org.apache.shenyu.plugin.cryptor.strategy.Sm4Strategy
