@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.springboot.plugin.websocket;
 
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
@@ -37,6 +42,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -81,7 +87,38 @@ public class WebSocketPluginConfiguration {
         Supplier<WebsocketClientSpec.Builder> builder = () -> WebsocketClientSpec.builder()
                 .maxFramePayloadLength(shenyuConfig.getWebsocket().getMaxFramePayloadSize() * Constants.BYTES_PER_MB)
                 .handlePing(shenyuConfig.getWebsocket().getEnableProxyPing());
-        return new ReactorNettyWebSocketClient(httpClient.getIfAvailable(HttpClient::create), builder);
+        return new ReactorNettyWebSocketClient(
+                webSocketHttpClient(httpClient.getIfAvailable(HttpClient::create)), builder);
+    }
+
+    /**
+     * Remove the HTTP request/response timeout handlers from a shared client used for WebSocket connections.
+     *
+     * <p>The shared {@code HttpClient} installs idle/read/write timeouts that are meant for short
+     * request/response exchanges. A proxied WebSocket is long-lived, so those handlers must not tear it
+     * down while keeping the shared client's SSL, proxy and connection-pool configuration.</p>
+     *
+     * @param httpClient the shared http client
+     * @return the http client to use for WebSocket connections
+     */
+    static HttpClient webSocketHttpClient(final HttpClient httpClient) {
+        return httpClient.doOnConnected(connection -> {
+            removeHandler(connection.channel().pipeline(), IdleStateHandler.class);
+            removeHandler(connection.channel().pipeline(), ReadTimeoutHandler.class);
+            removeHandler(connection.channel().pipeline(), WriteTimeoutHandler.class);
+        });
+    }
+
+    /**
+     * Remove a handler from the pipeline when it is present.
+     *
+     * @param pipeline    the channel pipeline
+     * @param handlerType the handler type
+     */
+    static void removeHandler(final ChannelPipeline pipeline, final Class<? extends ChannelHandler> handlerType) {
+        if (Objects.nonNull(pipeline.get(handlerType))) {
+            pipeline.remove(handlerType);
+        }
     }
 
     /**
