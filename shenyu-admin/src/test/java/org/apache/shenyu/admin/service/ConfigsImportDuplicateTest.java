@@ -64,6 +64,7 @@ import org.apache.shenyu.admin.service.impl.ProxySelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.ShenyuDictServiceImpl;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.DictEventPublisher;
 import org.apache.shenyu.admin.service.publish.MetaDataEventPublisher;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
@@ -134,7 +135,7 @@ public final class ConfigsImportDuplicateTest {
         final SelectorServiceImpl service = new SelectorServiceImpl(selectorMapper, mock(SelectorConditionMapper.class), pluginMapper,
                 mock(ApplicationEventPublisher.class), discoveryMapper, mock(DiscoveryHandlerMapper.class), mock(DiscoveryRelMapper.class),
                 upstreamMapper, mock(DiscoveryProcessorHolder.class), mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class),
-                mock(RegistrationFencingGuard.class));
+                mock(RegistrationFencingGuard.class), mock(PluginDataPermissionChecker.class));
         final ConfigsImportContext context = new ConfigsImportContext();
         context.getPluginTemplateIdMapping().put("source", "target");
         context.getPluginTemplateIdMapping().put("alias", "target");
@@ -164,7 +165,7 @@ public final class ConfigsImportDuplicateTest {
     @ValueSource(booleans = {false, true})
     public void testRulesDeduplicateAfterSelectorRemapping(final boolean existing) {
         final RuleServiceImpl service = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class), selectorMapper, pluginMapper,
-                mock(RuleEventPublisher.class), dictMapper, mock(DataPermissionChecker.class));
+                mock(RuleEventPublisher.class), dictMapper, mock(DataPermissionChecker.class), mock(PluginDataPermissionChecker.class));
         final ConfigsImportContext context = new ConfigsImportContext();
         context.getSelectorIdMapping().put("source", "target");
         context.getSelectorIdMapping().put("alias", "target");

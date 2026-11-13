@@ -51,6 +51,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.RuleData;
@@ -94,6 +95,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -132,10 +134,14 @@ public final class RuleServiceTest {
     @Mock
     private DataPermissionChecker dataPermissionChecker;
 
+    @Mock
+    private PluginDataPermissionChecker pluginDataPermissionChecker;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
-        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher, shenyuDictMapper, dataPermissionChecker);
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, ruleEventPublisher, shenyuDictMapper, dataPermissionChecker,
+                pluginDataPermissionChecker);
     }
 
     @Test
@@ -161,6 +167,53 @@ public final class RuleServiceTest {
         given(this.ruleMapper.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(ids.size());
         assertEquals(this.ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID), ids.size());
         verify(this.ruleConditionMapper).deleteByRuleIds(ids);
+    }
+
+    @Test
+    public void testWritesWithoutPluginDataPermissionAreRejectedBeforeWrite() {
+        final RuleDTO createDTO = buildRuleDTO(null);
+        final RuleDTO updateDTO = buildRuleDTO("123");
+        final List<String> ids = Collections.singletonList("123");
+        given(ruleMapper.selectByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(buildRuleDO("123")));
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateRule(createDTO);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateRule(updateDTO);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableRules(ids);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkDeleteRules(ids);
+
+        assertThrows(UnauthorizedException.class, () -> ruleService.createOrUpdate(createDTO));
+        assertThrows(UnauthorizedException.class, () -> ruleService.createOrUpdate(updateDTO));
+        assertThrows(UnauthorizedException.class, () -> ruleService.enabledByIdsAndNamespaceId(ids, false, SYS_DEFAULT_NAMESPACE_ID));
+        assertThrows(UnauthorizedException.class, () -> ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID));
+
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleMapper, never()).updateSelective(any());
+        verify(ruleMapper, never()).updateEnable(anyString(), any());
+        verify(ruleMapper, never()).deleteByIdsAndNamespaceId(any(), any());
+    }
+
+    @Test
+    public void testDeleteChecksOnlyTheRulesOfTheNamespace() {
+        final List<String> ids = Arrays.asList("123", "rule-of-other-namespace");
+        final List<String> namespaceRuleIds = Collections.singletonList("123");
+        given(ruleMapper.selectByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(buildRuleDO("123")));
+        given(ruleMapper.deleteByIdsAndNamespaceId(namespaceRuleIds, SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
+
+        assertEquals(1, ruleService.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID));
+
+        verify(pluginDataPermissionChecker).checkDeleteRules(namespaceRuleIds);
+    }
+
+    @Test
+    public void testDeleteForRegistrationSkipsPluginDataPermissionCheck() {
+        publishEvent();
+        final List<String> ids = Collections.singletonList("123");
+        given(ruleMapper.selectByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(Collections.singletonList(buildRuleDO("123")));
+        given(ruleMapper.deleteByIdsAndNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID)).willReturn(1);
+
+        assertEquals(1, ruleService.deleteForRegistration(ids, SYS_DEFAULT_NAMESPACE_ID));
+
+        verify(ruleConditionMapper).deleteByRuleIds(ids);
+        verifyNoInteractions(pluginDataPermissionChecker);
     }
 
     @Test
@@ -621,6 +674,56 @@ public final class RuleServiceTest {
     }
 
     @Test
+    public void testUpdateRejectsMovingRuleToSelectorOfAnotherPlugin() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setSelectorId("target-selector");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(selectorMapper.selectById("target-selector")).willReturn(SelectorDO.builder().id("target-selector").pluginId("other-plugin").build());
+        given(pluginMapper.selectById("other-plugin")).willReturn(PluginDO.builder().id("other-plugin").name("other").build());
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        assertEquals("a rule cannot be moved to a selector of another plugin", exception.getMessage());
+        verify(ruleMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testUpdateRejectsBlankSelectorIdAsMissingSelector() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setSelectorId("");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(dto));
+        assertEquals("rule selector is not found", exception.getMessage());
+        verify(ruleMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testUpdateAllowsMovingRuleToSelectorOfSamePlugin() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setSelectorId("target-selector");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(selectorMapper.selectById("target-selector")).willReturn(SelectorDO.builder().id("target-selector").pluginId("789").build());
+        given(ruleMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(dto));
+        ArgumentCaptor<RuleDO> captor = ArgumentCaptor.forClass(RuleDO.class);
+        verify(ruleMapper).updateSelective(captor.capture());
+        assertEquals("target-selector", captor.getValue().getSelectorId());
+    }
+
+    @Test
+    public void testUpdateWithUnchangedSelectorSkipsSelectorPluginComparison() {
+        publishEvent();
+        RuleDTO dto = buildRuleDTO("123");
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(ruleMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(dto));
+        // one lookup each from validateRuleHandle and validateCanaryConfig; the plugin comparison adds none
+        verify(selectorMapper, times(2)).selectById("456");
+        verify(ruleMapper).updateSelective(any());
+    }
+
+    @Test
     public void testSaveAllowsDisabledCanaryWithDisjointPools() {
         configureDivideSelector();
         RuleDTO dto = buildRuleDTO("");
@@ -867,7 +970,7 @@ public final class RuleServiceTest {
 
     private void testUpdate() {
         RuleDTO ruleDTO = buildRuleDTO("123");
-        given(this.ruleMapper.selectById("123")).willReturn(RuleDO.builder().id("123").build());
+        given(this.ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
         given(this.ruleMapper.updateSelective(any())).willReturn(1);
         assertThat(this.ruleService.createOrUpdate(ruleDTO), greaterThan(0));
     }
