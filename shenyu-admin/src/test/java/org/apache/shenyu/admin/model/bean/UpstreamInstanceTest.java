@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
@@ -61,6 +62,15 @@ public class UpstreamInstanceTest {
 
     @Test
     public void testHashCode() {
-        assertEquals(236671917, upstreamInstance.hashCode());
+        UpstreamInstance same = new UpstreamInstance();
+        same.setContextPath(upstreamInstance.getContextPath());
+        same.setIp(upstreamInstance.getIp());
+        same.setPort(upstreamInstance.getPort());
+        same.setStartupTime(upstreamInstance.getStartupTime());
+        assertEquals("http", same.getScheme());
+        assertEquals(upstreamInstance, same);
+        assertEquals(upstreamInstance.hashCode(), same.hashCode());
+        same.setScheme("https");
+        assertNotEquals(upstreamInstance, same);
     }
 }
