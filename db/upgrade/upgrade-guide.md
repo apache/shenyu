@@ -4,6 +4,28 @@
 
 ## To Shenyu Users
 
+### Agent Gateway OpenAPI import provenance in 2.7.3
+
+The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts add the Admin-only
+`agent_gateway_import` table and widen `rule.handle` to `CLOB` (H2) and
+`MEDIUMTEXT` (MySQL/OceanBase); PostgreSQL/openGauss already use unlimited
+`TEXT` and Oracle already uses `CLOB`. The same MySQL/OceanBase scripts widen
+`operation_record_log.context` to `MEDIUMTEXT`, because a rule update snapshots
+the complete handle into the operation log. Generated `mcp.httpTools` plans and
+the per-rule import manifest can exceed the previous H2 `VARCHAR(1024)` and
+MySQL `TEXT` (65,535-byte) limits, so existing deployments must run this
+migration before calling `POST /agent-gateway/openapi/preview` or `/apply`.
+
+Stop Admin writers and back up `rule` before applying the script. The table
+stores one row per target Agent Gateway rule with all source ownership maps.
+It is Admin-only bookkeeping: it is never synchronized to gateways and is not
+read on the request path. Deleting a target rule does not cascade to this table
+(there is no foreign key, matching the existing Admin storage style), so remove
+orphan rows manually if a rule is retired and its ID will not be reused.
+Fresh installations create the table and the wide column directly; an existing
+persistent H2 database requires `2.7.2-upgrade-2.7.3-h2.sql`. No gateway change
+is required.
+
 ### API-debug request headers in 2.7.3
 
 Stop Admin writers and back up `mock_request_record` before applying the
@@ -84,6 +106,61 @@ positive newer observation. This orders observations by their reported timestamp
 it does not establish a global clock or break ties between simultaneous states.
 Instance diagnostic writes run independently of caller transactions so a duplicate
 insert does not leave PostgreSQL conflict recovery in an aborted transaction.
+
+### Plugin-specific selector and rule grants in 2.7.3
+
+Admin now accepts a selector or rule write when the role holds either the global
+grant or the grant of the plugin being written. Before 2.7.3 the server checked
+only the global grant, and the plugin-specific grants only decided which buttons
+the dashboard showed.
+
+| Write | Global grant | Plugin-specific grant |
+|---|---|---|
+| create | `system:plugin:edit` | `plugin:<name><Selector\|Rule>:add` |
+| update | `system:plugin:edit` | `plugin:<name><Selector\|Rule>:edit` |
+| enable or disable | `system:plugin:disable` | `plugin:<name><Selector\|Rule>:edit` |
+| delete | `system:plugin:delete` | `plugin:<name><Selector\|Rule>:delete` |
+
+There is no SQL migration, and the global grants keep their meaning on the selector
+and rule endpoints. The change widens access in one case: a role that holds a
+plugin-specific grant without the matching global grant was rejected by the server
+before and can now write to that plugin. Review these roles before or right after
+upgrading, and remove any plugin-specific grant a role should not act on.
+
+Two requests are stricter than before:
+
+- Deleting an API (`DELETE /api/batch`, `system:api:delete`) removes the selectors
+  and rules registered for it. That cleanup now needs the delete grant from the
+  table above, and the whole deletion is rejected without it. The `system:api:*`
+  permissions are not part of the default resources, so this only concerns
+  deployments that created them.
+- An update can no longer change the plugin of an existing selector or move a rule
+  to a selector of another plugin. This applies to every user, including `admin`.
+
+This query lists the plugin-specific write grants of every role that does not hold
+all three global grants:
+
+```sql
+SELECT r.id, r.role_name, res.perms
+FROM role r
+JOIN permission p ON p.object_id = r.id
+JOIN resource res ON res.id = p.resource_id
+WHERE (res.perms LIKE 'plugin:%Selector:add' OR res.perms LIKE 'plugin:%Selector:edit'
+    OR res.perms LIKE 'plugin:%Selector:delete' OR res.perms LIKE 'plugin:%Rule:add'
+    OR res.perms LIKE 'plugin:%Rule:edit' OR res.perms LIKE 'plugin:%Rule:delete')
+  AND (SELECT COUNT(DISTINCT g.perms)
+       FROM permission gp JOIN resource g ON g.id = gp.resource_id
+       WHERE gp.object_id = r.id
+         AND g.perms IN ('system:plugin:edit', 'system:plugin:disable', 'system:plugin:delete')) < 3
+ORDER BY r.role_name, res.perms;
+```
+
+On Oracle the table is created as `"resource"`, so write both references to it
+with the quotes. A role holding all three global grants is left out because the
+change does not affect it. A role holding only some of them is listed with all its
+plugin-specific write grants, including any that one of its global grants already
+covers, so treat the result as a list to review. A fresh installation returns no
+rows.
 
 ### Data permission uniqueness in 2.7.2
 

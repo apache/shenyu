@@ -50,6 +50,22 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Stop Admin writers and back up mock_request_record before the one-time migration.
 ALTER TABLE mock_request_record MODIFY COLUMN header TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the request param in header';
 
+-- Agent Gateway OpenAPI import ownership: Admin-only provenance, never synchronized to gateways.
+-- Stop Admin writers and back up rule before this one-time migration: handle expands to MEDIUMTEXT.
+CREATE TABLE `agent_gateway_import`  (
+  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+  `rule_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'target agent gateway rule id',
+  `namespace_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace id',
+  `manifest` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'per-source import ownership manifest',
+  `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
+  `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic COMMENT 'agent gateway openapi import ownership';
+CREATE UNIQUE INDEX uk_agent_gateway_import_rule ON `agent_gateway_import` (`rule_id`);
+ALTER TABLE `rule` MODIFY COLUMN `handle` MEDIUMTEXT;
+-- Rule update events snapshot the full handle into operation_record_log.context.
+ALTER TABLE `operation_record_log` MODIFY COLUMN `context` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'log context';
+
 CREATE TABLE IF NOT EXISTS `registration_fencing_target` (
     `id` varchar(128) NOT NULL,
     `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

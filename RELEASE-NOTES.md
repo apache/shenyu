@@ -93,6 +93,14 @@
   Deployments that previously relied on the later `mcpServer` handling an overlapping
   path must review their selectors and explicit plugin orders; the migration changes
   only old Agent Gateway sort values and does not rewrite custom orders.
+- **Breaking change:** HTTP `ELASTIC` pools now honor the configured connection count, acquisition
+  queue and timeout instead of forcing unlimited capacity. `FIXED` remains the
+  default with the same effective default limits. Configure
+  `shenyu.httpclient.pool.maxPendingAcquires` for an explicit queue bound;
+  `-1` removes the queue bound only; it does not remove the connection-count limit.
+  Existing ELASTIC deployments must review saturation behavior before upgrading. See the
+  [capacity and migration guide](docs/performance/http-connection-pools.md). (#7644)
+
 - The `leastActive` load balancer now sees outstanding requests for the websocket
   plugin and for apache dubbo gray routing, not only for the divide plugin. A
   proxied websocket session is counted for as long as it runs, and a gray routed
@@ -159,6 +167,16 @@
   the previous behavior with `shenyu.httpclient.keepAlive=false`.
   For a fixed pool, set `shenyu.httpclient.pool.maxConnections` explicitly to
   size the connection limit for the deployment; the default follows Reactor Netty.
+- Opt-in named upstream connection-pool groups are available through
+  `shenyu.httpclient.pool-groups`. Groups must use the `FIXED` type, have an
+  explicit unique name other than `shenyu-proxy`, and configure a positive
+  `maxConnections` plus an omitted-or-positive `maxPendingAcquires` (at most 16
+  groups). A divide rule selects one with `poolGroup`; an unknown group returns
+  HTTP 503 instead of falling back. Definitions are read at startup only, and
+  deployments without `pool-groups` keep the existing shared pool unchanged.
+  Group metrics use Reactor Netty Micrometer meters when `metrics: true` and
+  `micrometer-core` is present; they are not exported by the ShenYu Prometheus
+  metrics endpoint in this release. See `docs/upstream-pool-groups.md`.
 - CORS origin patterns are compiled when the gateway starts. An invalid
   `shenyu.cross.allowed-origin.origin-regex` now fails startup with
   `PatternSyntaxException`, rather than failing the first matching request.
@@ -260,6 +278,32 @@
   users of the compatibility starter are unaffected; Apollo was never part of that
   aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
   provider table and migration steps. (#7578)
+- Admin now enforces the plugin-specific selector and rule grants
+  (`plugin:<name><Selector|Rule>:<add|edit|delete>`) on selector and rule writes.
+  The server previously checked only the global `system:plugin:*` grants and the
+  dashboard used the plugin-specific ones to show buttons. Global grants keep their
+  meaning on the selector and rule endpoints and no SQL migration is required. A
+  role that holds a plugin-specific grant without the matching global grant can now
+  write to that plugin, where its requests were rejected before. Review such roles
+  when upgrading; `db/upgrade/upgrade-guide.md` has a query that lists them. Two
+  requests are stricter than before: deleting an API (`DELETE /api/batch`) also
+  needs the delete grant for the selectors and rules it cleans up, and an update
+  can no longer change the plugin of a selector or move a rule to a selector of
+  another plugin. (#8174)
+
+- The admin now validates the `sticky` section of a divide rule handle when a rule is
+  saved: `onUnavailable` must be exactly `REBIND` or `STRICT`, `maxAgeSeconds` must be
+  positive, `cookieName` must be a non-blank string (an explicit `null` is not accepted
+  as a substitute for omitting it), an enabled configuration needs at least one non-blank
+  `secrets` entry, and a configured deterministic `key` needs a non-blank `name` and,
+  when `type` is present, `HEADER` or `COOKIE`. JSON structure is checked before Gson can
+  coerce values, so a non-object `sticky`, a non-integer lifetime, a non-array secret
+  list or a non-string field is rejected with a `sticky.…` field error. A disabled
+  (`enabled=false`) sticky section is exempt from value validation, because the gateway
+  activation checks ignore it and its values cannot affect a request, so an unrelated
+  field of an already stored rule stays editable; structural type checks still apply.
+  The gateway runtime stays tolerant for values: a configuration persisted before this
+  validation still degrades to plain load balancing instead of failing requests. (#8037)
 
 ## [v2.7.0]- 2024-12-23
 

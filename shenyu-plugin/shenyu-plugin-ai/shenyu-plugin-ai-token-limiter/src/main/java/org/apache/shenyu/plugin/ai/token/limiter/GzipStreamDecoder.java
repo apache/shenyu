@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.function.Predicate;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -40,14 +42,38 @@ class GzipStreamDecoder {
 
     private boolean abandoned;
 
+    private boolean closed;
+
     /**
-     * Decode a chunk of gzip data.
+     * Decode a chunk of gzip data, collecting the whole expanded chunk.
+     * Only for callers that can afford the full expansion, such as tests; the
+     * response observation path must use {@link #decode(byte[], Predicate)} so
+     * the inspection budget bounds the decompression work itself.
      * @param inBytes compressed input bytes
      * @return decompressed bytes, or empty array if header incomplete or abandoned
      */
     byte[] decode(final byte[] inBytes) {
-        if (abandoned) {
-            return new byte[0];
+        ByteArrayOutputStream collected = new ByteArrayOutputStream();
+        decode(inBytes, slice -> {
+            collected.writeBytes(slice);
+            return true;
+        });
+        return collected.toByteArray();
+    }
+
+    /**
+     * Decode a chunk of gzip data, pushing each decompressed slice straight into
+     * the sink without ever materializing the whole expanded chunk. When the sink
+     * reports exhaustion (returns {@code false}) inflation stops immediately and
+     * the decoder abandons further input, so a highly compressible chunk cannot
+     * allocate or inflate beyond the observer's budget. The compressed input is
+     * only observed here; the forwarded response bytes are untouched.
+     * @param inBytes compressed input bytes
+     * @param sink receives a copy of each decompressed slice; returns whether observation should continue
+     */
+    void decode(final byte[] inBytes, final Predicate<byte[]> sink) {
+        if (abandoned || closed) {
+            return;
         }
 
         int offset = 0;
@@ -55,29 +81,39 @@ class GzipStreamDecoder {
             offset = headerState.process(inBytes);
             if (headerState.isCapacityExceeded()) {
                 abandoned = true;
-                return new byte[0];
+                return;
             }
             if (!headerState.isComplete()) {
-                return new byte[0];
+                return;
             }
         }
 
         inflater.setInput(inBytes, offset, inBytes.length - offset);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             int cnt;
             while (!inflater.needsInput() && (cnt = inflater.inflate(decompressBuffer)) > 0) {
-                baos.write(decompressBuffer, 0, cnt);
+                if (!sink.test(Arrays.copyOf(decompressBuffer, cnt))) {
+                    // The observer budget is exhausted; leave the remaining input
+                    // un-inflated instead of expanding it into a discarded buffer.
+                    abandoned = true;
+                    return;
+                }
             }
         } catch (DataFormatException ex) {
             LOG.error("Inflater decompression failed", ex);
             abandoned = true;
-            return new byte[0];
         }
-        return baos.toByteArray();
     }
 
+    /**
+     * Release the inflater. Idempotent so success, error and cancellation paths
+     * can all close the decoder without a double end.
+     */
     void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
         inflater.end();
     }
 

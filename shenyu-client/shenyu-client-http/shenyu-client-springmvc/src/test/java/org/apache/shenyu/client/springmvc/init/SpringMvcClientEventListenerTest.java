@@ -30,6 +30,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.client.core.utils.PortUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 import org.javatuples.Sextet;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -41,6 +42,8 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -123,10 +126,37 @@ public class SpringMvcClientEventListenerTest {
     @Test
     public void testShenyuBeanProcess() {
         registerUtilsMockedStatic.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
-        // config with full
-        SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true, true);
-        springMvcClientEventListener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
-        verify(applicationContext, never()).getBeansWithAnnotation(any());
+        when(applicationContext.getEnvironment()).thenReturn(env);
+        // non-local discovery: full mode publishes metadata only, no URIRegisterDTO
+        when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("nacos");
+        try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMockedStatic = mockStatic(ShenyuClientRegisterEventPublisher.class)) {
+            ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
+            publisherMockedStatic.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
+            // config with full
+            SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true, true);
+            springMvcClientEventListener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
+            verify(applicationContext, never()).getBeansWithAnnotation(any());
+            verify(publisher, atLeastOnce()).publishEvent(any(MetaDataRegisterDTO.class));
+            verify(publisher, never()).publishEvent(any(URIRegisterDTO.class));
+        }
+        registerUtilsMockedStatic.close();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"local", "nacos"})
+    public void testIsFullUriRegistrationFollowsDiscoveryMode(final String discoveryType) {
+        when(applicationContext.getEnvironment()).thenReturn(env);
+        when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn(discoveryType);
+        try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMockedStatic = mockStatic(ShenyuClientRegisterEventPublisher.class)) {
+            ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
+            publisherMockedStatic.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
+            SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true, true);
+            springMvcClientEventListener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
+            // metadata is always published in full mode
+            verify(publisher, times(1)).publishEvent(any(MetaDataRegisterDTO.class));
+            // URI payload only in local discovery mode
+            verify(publisher, times("local".equals(discoveryType) ? 1 : 0)).publishEvent(any(URIRegisterDTO.class));
+        }
         registerUtilsMockedStatic.close();
     }
 
@@ -204,6 +234,8 @@ public class SpringMvcClientEventListenerTest {
         try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMockedStatic = mockStatic(ShenyuClientRegisterEventPublisher.class)) {
             ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
             publisherMockedStatic.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
+            when(applicationContext.getEnvironment()).thenReturn(env);
+            when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
             SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(true, true);
             ContextRefreshedEvent event = new ContextRefreshedEvent(applicationContext);
             springMvcClientEventListener.onApplicationEvent(event);

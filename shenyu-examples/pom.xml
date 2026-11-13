@@ -52,6 +52,7 @@
         <module>shenyu-examples-eureka</module>
         <module>shenyu-examples-grpc</module>
         <module>shenyu-examples-plugin</module>
+        <module>shenyu-examples-plugin-contract</module>
         <module>shenyu-examples-websocket</module>
         <module>shenyu-examples-springmvc</module>
         <module>shenyu-examples-springmvc-tomcat</module>

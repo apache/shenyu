@@ -42,8 +42,11 @@ public final class GatewayApiConstants {
     /** ResolvedRefs=False reason: a backendRef's Service has no ready endpoints. */
     public static final String REASON_BACKEND_NOT_FOUND = "BackendNotFound";
 
-    /** ResolvedRefs=False / Accepted=False reason: a cross-namespace reference (parentRef or backendRef) is not permitted by a ReferenceGrant or listener policy. */
+    /** ResolvedRefs=False reason: a cross-namespace backendRef is not permitted by a ReferenceGrant. */
     public static final String REASON_REF_NOT_PERMITTED = "RefNotPermitted";
+
+    /** Accepted=False reason: listener allowedRoutes policy denies attachment. */
+    public static final String REASON_NOT_ALLOWED_BY_LISTENERS = "NotAllowedByListeners";
 
     /** ResolvedRefs=False reason: a backendRef's kind is not Service, the only supported kind. */
     public static final String REASON_INVALID_KIND = "InvalidKind";

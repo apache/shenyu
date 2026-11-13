@@ -82,6 +82,7 @@ public class AiProxyConfigService {
             handleConfig.setProtocol(handle.getProtocol());
             handleConfig.setRequestBodyOverrides(handle.getRequestBodyOverrides());
             handleConfig.setRequestBodyForceOverride(handle.getRequestBodyForceOverride());
+            handleConfig.setStructuredOutput(handle.getStructuredOutput());
             primaryConfig.mergeWith(handleConfig);
         }
         return primaryConfig;

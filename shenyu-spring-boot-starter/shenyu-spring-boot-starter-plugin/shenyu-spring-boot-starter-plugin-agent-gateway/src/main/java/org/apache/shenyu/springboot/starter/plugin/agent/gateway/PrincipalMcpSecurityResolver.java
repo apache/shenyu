@@ -54,6 +54,8 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
 
     private final Map<String, Set<String>> denials;
 
+    private final Map<String, Set<String>> resourceGrants;
+
     public PrincipalMcpSecurityResolver(final PrincipalMcpSecurityProperties properties, final Class<T> type,
                                         final Function<T, Map<String, Object>> attributes, final Predicate<T> authority,
                                         final Function<ServerWebExchange, Mono<Boolean>> conflict) {
@@ -64,6 +66,7 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
         defaultTenant = Objects.isNull(properties.getDefaultTenant()) ? null : text(properties.getDefaultTenant());
         Map<String, Set<String>> allowed = new HashMap<>();
         Map<String, Set<String>> denied = new HashMap<>();
+        Map<String, Set<String>> resources = new HashMap<>();
         if (properties.getScopeMappings().size() > 1024) {
             throw new IllegalArgumentException("Too many scope mappings");
         }
@@ -73,9 +76,11 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
                 throw new IllegalArgumentException("Duplicate scope mapping");
             }
             denied.put(scope, names(mapping.getToolDenials(), true));
+            resources.put(scope, AgentMcpResourceGrants.parse(mapping.getResourceGrants()));
         }
         grants = Map.copyOf(allowed);
         denials = Map.copyOf(denied);
+        resourceGrants = Map.copyOf(resources);
     }
 
     @Override
@@ -94,11 +99,13 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
                         String tenant = text(claims.containsKey("tenant_id") ? claims.get("tenant_id") : defaultTenant);
                         Set<String> allowed = new HashSet<>(names(claims.getOrDefault("tool_grants", Set.of()), true));
                         Set<String> denied = new HashSet<>(names(claims.getOrDefault("tool_denies", Set.of()), true));
+                        Set<String> resources = new HashSet<>(AgentMcpResourceGrants.parse(claims.getOrDefault("resource_grants", Set.of())));
                         for (String scope : scopes(claims)) {
                             allowed.addAll(grants.getOrDefault(scope, Set.of()));
+                            resources.addAll(resourceGrants.getOrDefault(scope, Set.of()));
                             denied.addAll(denials.getOrDefault(scope, Set.of()));
                         }
-                        return Mono.just(new AgentMcpIdentity(tenant, subject, allowed, denied));
+                        return Mono.just(new AgentMcpIdentity(tenant, subject, allowed, denied, AgentMcpResourceGrants.parse(resources)));
                     } catch (IllegalArgumentException error) {
                         // Invalid trusted attributes fail closed; do not log claims or credentials.
                         return Mono.empty();

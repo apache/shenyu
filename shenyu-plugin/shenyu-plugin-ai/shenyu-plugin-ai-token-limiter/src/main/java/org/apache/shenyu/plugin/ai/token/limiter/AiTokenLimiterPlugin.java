@@ -28,6 +28,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
 import org.apache.shenyu.common.enums.AiTokenLimiterEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.ai.common.view.AiRequestViewOperations;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -93,6 +94,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
+
+        // inspection-only view consumer: budget estimation later plugs into the same
+        // seam; when no publisher ran before this stage nothing is recorded
+        AiRequestViewOperations.snapshotAndRecordInspection(exchange, PluginEnum.AI_TOKEN_LIMITER.getName());
 
         AiTokenLimiterHandle aiTokenLimiterHandle = AiTokenLimiterPluginHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
 
@@ -254,7 +259,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             return Objects.nonNull(contentType) && MediaType.TEXT_EVENT_STREAM.isCompatibleWith(contentType);
         }
 
-        private GzipStreamDecoder createDecoder() {
+        // Package-visible so tests can substitute a decoder and verify its lifecycle.
+        GzipStreamDecoder createDecoder() {
             HttpHeaders headers = serverHttpResponse.getHeaders();
             boolean isGzip = headers.containsKey(Constants.CONTENT_ENCODING)
                     && headers.getFirst(Constants.CONTENT_ENCODING)
@@ -273,9 +279,16 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] inBytes = new byte[ro.remaining()];
                                 ro.get(inBytes);
 
-                                byte[] processedBytes = Objects.nonNull(decoder) ? decoder.decode(inBytes) : inBytes;
-                                if (processedBytes.length > 0) {
-                                    extractor.accept(processedBytes);
+                                if (Objects.nonNull(decoder)) {
+                                    // Push bounded slices straight into the extractor; once its budget
+                                    // is exhausted the decoder stops inflating, and later chunks skip
+                                    // decompression entirely. Forwarded bytes are untouched either way.
+                                    decoder.decode(inBytes, slice -> {
+                                        extractor.accept(slice);
+                                        return extractor.isActive();
+                                    });
+                                } else {
+                                    extractor.accept(inBytes);
                                 }
                             });
                         } catch (Exception e) {
@@ -347,6 +360,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
             ResponseUsageExtractor(final boolean eventStream) {
                 this.eventStream = eventStream;
+            }
+
+            synchronized boolean isActive() {
+                return !stopped && !invalid && !finished;
             }
 
             synchronized void accept(final byte[] bytes) {

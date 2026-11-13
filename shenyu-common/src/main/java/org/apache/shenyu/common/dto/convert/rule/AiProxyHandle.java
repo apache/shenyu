@@ -88,6 +88,12 @@ public class AiProxyHandle {
 
     private Boolean requestBodyForceOverride;
 
+    /**
+     * Opt-in structured output policy (issue #8257); absent or schema-less means
+     * fully disabled and responses pass through byte for byte.
+     */
+    private AiStructuredOutputConfig structuredOutput;
+
     // flat fallback fields (to fit dashboard flat handle capability)
     private String fallbackEnabled;
 
@@ -321,6 +327,24 @@ public class AiProxyHandle {
      */
     public void setRequestBodyForceOverride(final Boolean requestBodyForceOverride) {
         this.requestBodyForceOverride = requestBodyForceOverride;
+    }
+
+    /**
+     * Get the opt-in structured output policy.
+     *
+     * @return structured output config, or {@code null} when disabled
+     */
+    public AiStructuredOutputConfig getStructuredOutput() {
+        return structuredOutput;
+    }
+
+    /**
+     * Set the opt-in structured output policy.
+     *
+     * @param structuredOutput structured output config
+     */
+    public void setStructuredOutput(final AiStructuredOutputConfig structuredOutput) {
+        this.structuredOutput = structuredOutput;
     }
 
     /**
