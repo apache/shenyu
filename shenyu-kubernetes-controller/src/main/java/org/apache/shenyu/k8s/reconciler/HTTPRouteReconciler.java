@@ -23,10 +23,12 @@ import com.google.gson.JsonObject;
 import io.kubernetes.client.extended.controller.reconciler.Reconciler;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
+import io.kubernetes.client.extended.workqueue.RateLimitingQueue;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -64,6 +67,10 @@ public class HTTPRouteReconciler implements Reconciler {
 
     private final Lister<DynamicKubernetesObject> gatewayClassLister;
 
+    private final Lister<V1Namespace> namespaceLister;
+
+    private final RateLimitingQueue<Request> gatewayWorkQueue;
+
     private final HttpRouteParser httpRouteParser;
 
     private final ShenyuCacheRepository shenyuCacheRepository;
@@ -76,13 +83,17 @@ public class HTTPRouteReconciler implements Reconciler {
     public HTTPRouteReconciler(final SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> gatewayInformer,
                                final SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer,
+                               final SharedIndexInformer<V1Namespace> namespaceInformer,
                                final HttpRouteParser httpRouteParser,
                                final ShenyuCacheRepository shenyuCacheRepository,
                                final ApiClient apiClient,
-                               final int servedPort) {
+                               final int servedPort,
+                               final RateLimitingQueue<Request> gatewayWorkQueue) {
         this.httpRouteLister = new Lister<>(httpRouteInformer.getIndexer());
         this.gatewayLister = new Lister<>(gatewayInformer.getIndexer());
         this.gatewayClassLister = new Lister<>(gatewayClassInformer.getIndexer());
+        this.namespaceLister = new Lister<>(namespaceInformer.getIndexer());
+        this.gatewayWorkQueue = gatewayWorkQueue;
         this.httpRouteParser = httpRouteParser;
         this.shenyuCacheRepository = shenyuCacheRepository;
         this.apiClient = apiClient;
@@ -164,10 +175,25 @@ public class HTTPRouteReconciler implements Reconciler {
     /** Rebuild route→gateway listener bindings from accepted parents; they drive attachedRoutes counts. */
     private void rebindGateways(final GatewayRouteCache cache, final String namespace, final String routeName,
                                 final List<ParentDecision> accepted) {
+        Set<String> affectedGateways = gatewaysForRoute(cache, namespace, routeName);
         cache.removeRouteGatewayBinding(namespace, routeName);
         for (ParentDecision decision : accepted) {
             cache.bindRouteToGateway(decision.parentNamespace, decision.parentName, decision.listenerNames,
                     namespace, routeName);
+        }
+        affectedGateways.addAll(gatewaysForRoute(cache, namespace, routeName));
+        queueGateways(affectedGateways);
+    }
+
+    private Set<String> gatewaysForRoute(final GatewayRouteCache cache, final String namespace, final String routeName) {
+        return new LinkedHashSet<>(Objects.requireNonNullElse(cache.getGatewaysForRoute(namespace, routeName), Set.of()));
+    }
+
+    /** Queue only after binding mutations so listener attachedRoutes reads the new snapshot. */
+    private void queueGateways(final Set<String> gateways) {
+        for (String gateway : gateways) {
+            int separator = gateway.indexOf('/');
+            gatewayWorkQueue.add(new Request(gateway.substring(0, separator), gateway.substring(separator + 1)));
         }
     }
 
@@ -243,7 +269,6 @@ public class HTTPRouteReconciler implements Reconciler {
         Set<String> effective = new LinkedHashSet<>();
         Set<String> matchedListeners = new LinkedHashSet<>();
         boolean anyMatched = false;
-        boolean unsupportedFrom = false;
         boolean notPermitted = false;
         boolean hostnameMismatch = false;
         for (JsonObject listener : selected) {
@@ -251,11 +276,7 @@ public class HTTPRouteReconciler implements Reconciler {
             if (!ListenerSupport.isSupportedProtocol(listener) || !ListenerSupport.servesPort(listener, servedPort)) {
                 continue;
             }
-            if (ListenerSupport.usesUnsupportedFrom(listener)) {
-                unsupportedFrom = true;
-                continue;
-            }
-            if (!ListenerSupport.allowsNamespace(listener, routeNamespace, parentNamespace)
+            if (!ListenerSupport.allowsNamespace(listener, routeNamespace, parentNamespace, namespaceLabels(routeNamespace))
                     || !ListenerSupport.allowsKind(listener)) {
                 notPermitted = true;
                 continue;
@@ -274,14 +295,9 @@ public class HTTPRouteReconciler implements Reconciler {
             return ParentDecision.accepted(parentRef, parentNamespace, parentName, new ArrayList<>(effective),
                     matchedListeners);
         }
-        if (unsupportedFrom) {
-            return ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                    GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
-                    "allowedRoutes with from=Selector is not supported by the ShenYu controller");
-        }
         if (notPermitted) {
             return ParentDecision.rejected(parentRef, parentNamespace, parentName,
-                    GatewayApiConstants.REASON_REF_NOT_PERMITTED,
+                    GatewayApiConstants.REASON_NOT_ALLOWED_BY_LISTENERS,
                     "listener allowedRoutes policy does not permit routes from namespace " + routeNamespace);
         }
         if (hostnameMismatch) {
@@ -292,6 +308,14 @@ public class HTTPRouteReconciler implements Reconciler {
         return ParentDecision.rejected(parentRef, parentNamespace, parentName,
                 GatewayApiConstants.REASON_UNSUPPORTED_VALUE,
                 "no listener with a supported protocol (HTTP) on a served port (serving " + servedPort + ")");
+    }
+
+    private Map<String, String> namespaceLabels(final String namespace) {
+        V1Namespace resource = namespaceLister.get(namespace);
+        if (Objects.isNull(resource) || Objects.isNull(resource.getMetadata())) {
+            return null;
+        }
+        return Objects.requireNonNullElse(resource.getMetadata().getLabels(), Map.of());
     }
 
     private List<String> readStringList(final JsonArray array) {
@@ -340,7 +364,9 @@ public class HTTPRouteReconciler implements Reconciler {
                 LOG.info("HTTPRoute {}/{}: deleted divide selector {}", namespace, routeName, selectorId);
             }
         }
+        Set<String> affectedGateways = gatewaysForRoute(cache, namespace, routeName);
         cache.removeRouteGatewayBinding(namespace, routeName);
+        queueGateways(affectedGateways);
     }
 
     private void updateHTTPRouteStatus(final DynamicKubernetesObject httpRoute, final List<ParentDecision> decisions,

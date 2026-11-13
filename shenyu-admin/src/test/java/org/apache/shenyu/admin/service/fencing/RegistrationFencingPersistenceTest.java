@@ -40,6 +40,7 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.service.register.FencedRegisterService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterDivideServiceImpl;
@@ -398,7 +399,8 @@ final class RegistrationFencingPersistenceTest {
             SelectorServiceImpl target = new SelectorServiceImpl(selectors, mock(SelectorConditionMapper.class), plugins,
                     mock(ApplicationEventPublisher.class), mock(DiscoveryMapper.class), mock(DiscoveryHandlerMapper.class),
                     mock(DiscoveryRelMapper.class), mock(DiscoveryUpstreamMapper.class), mock(DiscoveryProcessorHolder.class),
-                    mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class), guard);
+                    mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class), guard,
+                    mock(PluginDataPermissionChecker.class));
             ProxyFactory proxy = new ProxyFactory(target);
             proxy.addAdvice(new TransactionInterceptor(new DataSourceTransactionManager(dataSource),
                     new AnnotationTransactionAttributeSource()));

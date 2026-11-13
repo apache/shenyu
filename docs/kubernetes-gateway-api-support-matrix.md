@@ -88,8 +88,11 @@ Consequences that the rest of this document depends on:
   therefore only as strong as the hostname/path conditions themselves.
 - **Multiple replicas need no leader election**, but readiness must be gated on the
   `k8sCacheReadiness` health indicator, otherwise a cold pod serves traffic with empty config.
-- Informers resync every 60s; ReferenceGrant changes additionally re-queue the affected routes
-  immediately.
+- Informers resync every 60s; ReferenceGrant changes and Namespace create, label update or delete
+  events additionally re-queue affected routes. Namespace events include previously rejected routes.
+- Gateway API mode requires cluster-scoped `get`, `list` and `watch` access to core `namespaces`,
+  in addition to Services/Endpoints and Gateway API resources. Namespace informer sync participates
+  in `k8sCacheReadiness`; its lifecycle is owned by the HTTPRoute informer factory.
 
 ## 3. Resource support
 
@@ -111,7 +114,7 @@ Consequences that the rest of this document depends on:
 | `spec.listeners[].protocol` | `HTTP` only. Everything else → listener `Accepted=False`, `UnsupportedProtocol`. |
 | `spec.listeners[].port` | Must equal the data-plane port. Otherwise → listener `Accepted=False`, `PortUnavailable`. |
 | `spec.listeners[].hostname` | Honoured; intersected with `HTTPRoute.spec.hostnames`. Exact names and `*.` suffix wildcards, which match one or more leading labels (`*.example.com` matches `a.example.com` and `a.b.example.com`). |
-| `spec.listeners[].allowedRoutes.namespaces.from` | `Same` (default) and `All`. `Selector` → route `Accepted=False`, `UnsupportedValue`. |
+| `spec.listeners[].allowedRoutes.namespaces.from` | `Same` (default), `All` and `Selector`. Selector evaluates the **route Namespace's labels**, with conjunctive `matchLabels` and `matchExpressions` (`In`, `NotIn`, `Exists`, `DoesNotExist`). An empty selector matches any present Namespace; a missing Namespace or malformed/missing selector denies attachment with `Accepted=False`, `NotAllowedByListeners`. |
 | `spec.listeners[].allowedRoutes.kinds` | Honoured; absent means "all protocol-matching kinds", i.e. HTTPRoute. |
 | `spec.listeners[].tls` | Not supported (no TLS listener). Ignored for HTTP listeners. |
 | `spec.addresses` | **Ignored** — the controller does not bind the requested address (see §5.2). |
@@ -212,7 +215,8 @@ Unsupported input falls into three classes. The classification is deliberate and
 | --- | --- |
 | Route-level `filters` | Route config removed entirely, `Accepted=False` / `UnsupportedValue`. |
 | Non-Service `backendRef`, missing Service/Endpoints, denied cross-namespace reference | Only that backend is dropped; its declared weight becomes a fail-target (`127.0.0.1:1`, connection refused) so the invalid share fails instead of silently re-flowing onto healthy backends. `ResolvedRefs=False` with `InvalidKind` / `BackendNotFound` / `RefNotPermitted`. |
-| Listener with unsupported protocol or port, `allowedRoutes.from=Selector`, unmatched `sectionName`/port | Route not attached, `Accepted=False` with `UnsupportedProtocol` / `PortUnavailable` / `UnsupportedValue`. |
+| Namespace selector mismatch, missing Namespace or malformed selector; disallowed route kind | Route not attached to that listener, `Accepted=False` with `NotAllowedByListeners` if no other listener accepts. |
+| Listener with unsupported protocol or port, unmatched `sectionName`/port | Route not attached, `Accepted=False` with `UnsupportedProtocol` / `PortUnavailable` / `UnsupportedValue`. |
 
 In all three cases the request either fails or reaches nothing: routing is never broadened, and
 never silently redirected to a backend the author did not ask for.
@@ -341,10 +345,11 @@ The v1.5.1 API reference is explicit:
 - `NoMatchingParent` — "a Route ParentRef specifies a Port and/or SectionName that does not match
   any Listeners in the Gateway".
 
-ShenYu reports `RefNotPermitted` for the first case and `UnsupportedValue` for the second
-(`HTTPRouteReconciler#evaluateListeners`), and the suite asserts these reason strings exactly in
-four core tests. `RefNotPermitted` is reserved for `ResolvedRefs`, where ShenYu already uses it
-correctly. This is the cheapest conformance fix in the list.
+ShenYu reports `NotAllowedByListeners` for `allowedRoutes` policy denials, including Namespace
+selectors and route kinds. Unmatched parent sections/ports still report `UnsupportedValue`
+(`HTTPRouteReconciler#evaluateListeners`) instead of `NoMatchingParent`; the remaining listener
+status alignment is tracked separately in #8163 / PR #8239. `RefNotPermitted` remains reserved
+for denied backend references in `ResolvedRefs`. No official conformance result is claimed.
 
 ### 7.5 Backends are resolved only from `Endpoints` *(blocks conformance)*
 

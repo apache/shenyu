@@ -22,7 +22,6 @@ import com.google.gson.JsonParser;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
-import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
@@ -175,6 +174,19 @@ class JwtAgentMcpHttpTest {
         }
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"json", "sse"})
+    void verifiedResourceClaimsReachHandler(final String mode) {
+        try (Fixture fixture = new Fixture(mode, "tenant-a")) {
+            String jwt = token(Map.of("resource_grants", ResourceMcpTestFixture.GRANTS), KEY, ISSUER);
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.resourceRequest(jwt, method, uri).exchange(), true);
+            String missing = token(Map.of("tool_grants", List.of("local_status")), KEY, ISSUER);
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.resourceRequest(missing, method, uri).exchange(), false);
+            String malformed = token(Map.of("resource_grants", "local_status"), KEY, ISSUER);
+            fixture.resourceRequest(malformed, "resources/list", "").exchange().expectStatus().isUnauthorized();
+        }
+    }
+
     private String token(final Map<String, Object> claims, final byte[] key, final String issuer) {
         Instant now = Instant.now();
         JwtClaimsSet.Builder builder = JwtClaimsSet.builder().issuer(issuer).subject("agent").audience(List.of("mcp"))
@@ -219,10 +231,10 @@ class JwtAgentMcpHttpTest {
                 result.addProperty("subject", context.get(AgentMcpExecutionContext.class).getSubject());
                 return result;
             })));
-            AgentMcpHttpHandler handler = new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of(tool)), "fixture", "1"),
+            AgentMcpHttpHandler handler = new AgentMcpHttpHandler(ResourceMcpTestFixture.dispatcher(new AgentToolRegistry(List.of(tool))),
                     new JwtAgentMcpSecurityResolver(ISSUER, "mcp", defaultTenant));
             AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString(
-                    "{\"allowedTools\":" + allowedTools + ",\"responseMode\":\"" + mode + "\"}"), true);
+                    "{\"allowedResources\":" + ResourceMcpTestFixture.RULE + ",\"allowedTools\":" + allowedTools + ",\"responseMode\":\"" + mode + "\"}"), true);
             NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder.withSecretKey(new SecretKeySpec(KEY, "HmacSHA256"))
                     .macAlgorithm(MacAlgorithm.HS256).build();
             decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(ISSUER));
@@ -251,6 +263,25 @@ class JwtAgentMcpHttpTest {
                     headers.set("Mcp-Name", "read");
                 }
             }).bodyValue(body(method));
+        }
+
+        WebTestClient.RequestHeadersSpec<?> resourceRequest(final String token, final String method, final String uri) {
+            JsonObject request = JsonParser.parseString(body(method)).getAsJsonObject();
+            if ("resources/read".equals(method)) {
+                request.getAsJsonObject("params").addProperty("uri", uri);
+            }
+            request.getAsJsonObject("params").getAsJsonObject("_meta").addProperty("resource_grants", "hidden");
+            return client.post().uri("/").headers(headers -> {
+                headers.setBearerAuth(token);
+                headers.set("Content-Type", "application/json");
+                headers.set("Accept", "application/json, text/event-stream");
+                headers.set("MCP-Protocol-Version", "2026-07-28");
+                headers.set("Mcp-Method", method);
+                headers.set("resource_grants", "hidden");
+                if ("resources/read".equals(method)) {
+                    headers.set("Mcp-Name", uri);
+                }
+            }).bodyValue(request.toString());
         }
 
         @Override

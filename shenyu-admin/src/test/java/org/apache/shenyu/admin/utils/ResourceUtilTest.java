@@ -88,6 +88,12 @@ public class ResourceUtilTest {
     }
 
     @Test
+    public void testBuildPluginPermission() {
+        Assert.assertEquals("plugin:divideSelector:add",
+                ResourceUtil.buildPluginPermission("divide", AdminConstants.PLUGIN_TYPE_SELECTOR_ADD));
+    }
+
+    @Test
     public void testBuildMenuWithEmptyList() {
         List<ResourceVO> emptyList = Collections.emptyList();
         var result = ResourceUtil.buildMenu(emptyList);

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.logging.console.handler;
 
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -24,9 +25,12 @@ import org.apache.shenyu.plugin.base.cache.CommonHandleCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.BeanHolder;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.entity.CommonLoggingRuleHandle;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
 import org.apache.shenyu.plugin.logging.console.entity.LoggingConsoleRuleHandle;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -36,6 +40,22 @@ import java.util.function.Supplier;
 public class LoggingConsolePluginDataHandler implements PluginDataHandler {
 
     public static final Supplier<CommonHandleCache<String, LoggingConsoleRuleHandle>> CACHED_HANDLE = new BeanHolder<>(CommonHandleCache::new);
+
+    @Override
+    public void handlerPlugin(final PluginData pluginData) {
+        if (Boolean.TRUE.equals(pluginData.getEnabled())) {
+            GenericGlobalConfig config = GsonUtils.getInstance().fromJson(pluginData.getConfig(), GenericGlobalConfig.class);
+            AbstractLogPluginDataHandler.getPluginGlobalConfigMap().put(pluginData.getId(),
+                    Objects.isNull(config) ? new GenericGlobalConfig() : config);
+        } else {
+            AbstractLogPluginDataHandler.getPluginGlobalConfigMap().remove(pluginData.getId());
+        }
+    }
+
+    @Override
+    public void removePlugin(final PluginData pluginData) {
+        AbstractLogPluginDataHandler.getPluginGlobalConfigMap().remove(pluginData.getId());
+    }
 
     @Override
     public void handlerRule(final RuleData ruleData) {

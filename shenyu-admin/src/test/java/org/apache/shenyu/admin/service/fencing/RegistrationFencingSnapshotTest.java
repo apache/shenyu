@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.impl.DiscoveryUpstreamServiceImpl;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,7 +125,8 @@ final class RegistrationFencingSnapshotTest {
         guard = new RegistrationFencingGuard(targets, selectors, plugins);
         management = (SelectorService) transactional(new SelectorServiceImpl(selectors, mock(SelectorConditionMapper.class), plugins,
                 mock(ApplicationEventPublisher.class), mock(DiscoveryMapper.class), handlers, mock(DiscoveryRelMapper.class),
-                upstreamMapper, mock(DiscoveryProcessorHolder.class), mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class), guard));
+                upstreamMapper, mock(DiscoveryProcessorHolder.class), mock(SelectorEventPublisher.class), mock(DataPermissionChecker.class), guard,
+                mock(PluginDataPermissionChecker.class)));
         upstreams = (DiscoveryUpstreamService) transactional(new DiscoveryUpstreamServiceImpl(upstreamMapper, handlers,
                 mock(ProxySelectorMapper.class), mock(DiscoveryMapper.class), mock(DiscoveryRelMapper.class), selectors, plugins,
                 mock(DiscoveryProcessorHolder.class), guard));
