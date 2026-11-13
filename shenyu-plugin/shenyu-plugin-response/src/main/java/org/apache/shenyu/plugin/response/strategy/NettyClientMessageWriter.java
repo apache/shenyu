@@ -96,6 +96,14 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {
-        return Objects.nonNull(contentType) && this.streamingMediaTypes.stream().anyMatch(contentType::isCompatibleWith);
+        if (Objects.isNull(contentType)) {
+            return false;
+        }
+        for (int i = 0; i < this.streamingMediaTypes.size(); i++) {
+            if (contentType.isCompatibleWith(this.streamingMediaTypes.get(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

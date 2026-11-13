@@ -25,9 +25,16 @@ public class HttpRetryBackoffSpecEnumTest {
 
     @Test
     public void testAcquireByName() {
-        assertEquals(HttpRetryBackoffSpecEnum.DEFAULT_BACKOFF, HttpRetryBackoffSpecEnum.acquireByName(HttpRetryBackoffSpecEnum.DEFAULT_BACKOFF.getName()));
-        assertEquals(HttpRetryBackoffSpecEnum.FIXED_BACKOFF, HttpRetryBackoffSpecEnum.acquireByName(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName()));
-        assertEquals(HttpRetryBackoffSpecEnum.EXPONENTIAL_BACKOFF, HttpRetryBackoffSpecEnum.acquireByName(HttpRetryBackoffSpecEnum.EXPONENTIAL_BACKOFF.getName()));
+        for (final HttpRetryBackoffSpecEnum e : HttpRetryBackoffSpecEnum.values()) {
+            assertEquals(e, HttpRetryBackoffSpecEnum.acquireByName(e.getName()));
+        }
+    }
+
+    @Test
+    public void testAcquireByNameCaseSensitive() {
+        assertEquals(HttpRetryBackoffSpecEnum.DEFAULT_BACKOFF, HttpRetryBackoffSpecEnum.acquireByName("DEFAULT"));
+        assertEquals(HttpRetryBackoffSpecEnum.DEFAULT_BACKOFF, HttpRetryBackoffSpecEnum.acquireByName("FIXED"));
+        assertEquals(HttpRetryBackoffSpecEnum.DEFAULT_BACKOFF, HttpRetryBackoffSpecEnum.acquireByName("EXPONENTIAL"));
     }
 
     @Test

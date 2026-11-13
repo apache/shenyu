@@ -38,9 +38,8 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         // every upstream has the same weight?
         boolean sameWeight = true;
         // the weight of every upstream
-        int[] weights = new int[length];
+        int[] weights = null;
         int firstUpstreamWeight = getWeight(upstreamList.get(0));
-        weights[0] = firstUpstreamWeight;
         // init the totalWeight
         long totalWeight = firstUpstreamWeight;
         long halfLengthTotalWeight = 0;
@@ -49,11 +48,17 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
             if (i <= (length + 1) / 2) {
                 halfLengthTotalWeight = totalWeight;
             }
-            weights[i] = currentUpstreamWeight;
             totalWeight += currentUpstreamWeight;
             if (sameWeight && currentUpstreamWeight != firstUpstreamWeight) {
                 // Calculate whether the weight of ownership is the same.
+                weights = new int[length];
+                for (int j = 0; j < i; j++) {
+                    weights[j] = firstUpstreamWeight;
+                }
                 sameWeight = false;
+            }
+            if (!sameWeight) {
+                weights[i] = currentUpstreamWeight;
             }
         }
         if (totalWeight > 0 && !sameWeight) {

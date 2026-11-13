@@ -25,6 +25,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -47,11 +49,13 @@ import reactor.test.StepVerifier;
 
 import org.reactivestreams.Publisher;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -102,6 +106,44 @@ public class NettyClientMessageWriterTest {
         when(exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR)).thenReturn(connection);
 
         StepVerifier.create(nettyClientMessageWriter.writeWith(exchange, chain)).expectSubscription().verifyError();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "text/event-stream, true",
+        "application/x-ndjson, true",
+        "text/event-stream;charset=UTF-8, true",
+        "text/*, true",
+        "application/json, false",
+        ", false"
+    })
+    public void testWriteWithMediaType(final String contentType, final boolean streaming) {
+        final HttpHeaders headers = new HttpHeaders();
+        if (Objects.nonNull(contentType)) {
+            headers.set(HttpHeaders.CONTENT_TYPE, contentType);
+        }
+        final ServerHttpResponse response = mock(ServerHttpResponse.class);
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/media-type").build())
+                .mutate().response(response).build();
+        final NettyDataBufferFactory factory = new NettyDataBufferFactory(mock(ByteBufAllocator.class));
+        final Connection connection = mock(Connection.class);
+        final NettyInbound inbound = mock(NettyInbound.class);
+        final ByteBufFlux received = mock(ByteBufFlux.class);
+        final ByteBufFlux retained = mock(ByteBufFlux.class);
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
+        when(response.getHeaders()).thenReturn(headers);
+        when(response.bufferFactory()).thenReturn(factory);
+        when(connection.inbound()).thenReturn(inbound);
+        when(inbound.receive()).thenReturn(received);
+        when(received.retain()).thenReturn(retained);
+        when(retained.<NettyDataBuffer>map(any())).thenReturn(Flux.empty());
+        when(response.writeAndFlushWith(any())).thenReturn(Mono.empty());
+        when(response.writeWith(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(nettyClientMessageWriter.writeWith(exchange, chain)).verifyComplete();
+
+        verify(response, times(streaming ? 1 : 0)).writeAndFlushWith(any());
+        verify(response, times(streaming ? 0 : 1)).writeWith(any());
     }
 
     @Test
