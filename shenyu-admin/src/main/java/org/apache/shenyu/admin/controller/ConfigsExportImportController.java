@@ -22,9 +22,11 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.model.enums.PreviewTokenCheckResult;
 import org.apache.shenyu.admin.model.result.ConfigsImportWarning;
+import org.apache.shenyu.admin.model.dto.SelectorExportDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.ConfigsService;
 import org.apache.shenyu.admin.service.NamespaceService;
+import org.apache.shenyu.admin.service.SelectiveConfigsExportService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.configs.plan.ConfigsImportErrors;
 import org.apache.shenyu.admin.service.configs.plan.ConfigsImportPreviewBusyException;
@@ -43,9 +45,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -79,14 +83,36 @@ public class ConfigsExportImportController {
 
     private final ConfigsImportPreviewService previewService;
 
+    private final SelectiveConfigsExportService selectiveConfigsExportService;
+
     public ConfigsExportImportController(final ConfigsService configsService,
                                          final SyncDataService syncDataService,
+                                         final NamespaceService namespaceService,
+                                         final SelectiveConfigsExportService selectiveConfigsExportService) {
                                          final NamespaceService namespaceService,
                                          final ConfigsImportPreviewService previewService) {
         this.configsService = configsService;
         this.syncDataService = syncDataService;
         this.namespaceService = namespaceService;
         this.previewService = previewService;
+        this.selectiveConfigsExportService = selectiveConfigsExportService;
+    }
+
+    /**
+     * Export selected static HTTP divide routes in the existing namespace import format.
+     *
+     * @param request source namespace and selector IDs
+     * @param response response
+     * @return ZIP archive
+     */
+    @PostMapping("/exportBySelectors")
+    @RequiresPermissions("system:manager:exportConfig")
+    public ResponseEntity<byte[]> exportConfigsBySelectors(@Valid @RequestBody final SelectorExportDTO request, final HttpServletResponse response) {
+        byte[] archive = selectiveConfigsExportService.export(request);
+        HttpHeaders headers = new HttpHeaders();
+        response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+        headers.add("Content-Disposition", "attachment;filename=" + generateFileName());
+        return new ResponseEntity<>(archive, headers, HttpStatus.OK);
     }
 
     /**

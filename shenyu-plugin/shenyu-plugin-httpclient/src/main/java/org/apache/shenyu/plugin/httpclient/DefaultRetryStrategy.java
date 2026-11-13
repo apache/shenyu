@@ -206,8 +206,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                 // Least active compares outstanding requests but does not reserve on select.
                 upstream.getInflight().incrementAndGet();
                 reserved = true;
-            } else if (LoadBalanceEnum.P2C.getName().equals(loadBalance)) {
-                // P2C selection already incremented the retry target.
+            } else if (LoadBalanceEnum.P2C.getName().equals(loadBalance)
+                    || LoadBalanceEnum.SHORTEST_RESPONSE.getName().equals(loadBalance)) {
+                // P2C and shortestResponse selection already incremented the retry target.
+                // Do not increment again. An owner releases that reservation with the attempt;
+                // without one, the completion callback below releases it once.
                 reserved = true;
             }
             if (ownerPresent) {

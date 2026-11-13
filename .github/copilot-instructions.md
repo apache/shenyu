@@ -25,6 +25,7 @@
 - Prefer immutable data, explicit generics, and existing project utilities. Do not use raw types, unchecked casts, or swallowed exceptions to bypass type safety or error handling.
 - Catch only specific exceptions that can be handled. Include enough context in error logs to diagnose problems, but never log passwords, tokens, keys, or complete sensitive request data.
 - Keep methods focused, and avoid deep nesting and duplicated logic. Do not introduce abstractions that duplicate existing architecture for a local requirement.
+- Follow the code quality rules Q1-Q9 in `AGENTS.md` for new production code: no magic numbers or repeated string literals, small methods, shallow control flow, at most 5 parameters, TODOs with an issue reference, reuse of existing utilities and no dead code. The `new-code-quality` workflow reports Q1-Q6 on added lines.
 - Do not introduce blocking calls into reactive request chains. Avoid unnecessary `block()`, blocking I/O, or expensive work on event-loop threads. When blocking work is unavoidable, use the project's established scheduling and isolation patterns.
 - Comments should explain design rationale, boundary conditions, or protocol details rather than restating the code. Use English Javadoc for public APIs and complex extension points, consistent with adjacent code. Do not add `@author` tags.
 - Every new Java file must include the Apache License 2.0 header. Other checked files must follow the repository's existing license-header format.

@@ -32,6 +32,7 @@ import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.configs.plan.ConfigsImportErrors;
 import org.apache.shenyu.admin.service.impl.ConfigsServiceImpl;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.ZipUtil;
 import org.apache.shenyu.common.constant.ExportImportConstants;
@@ -181,7 +182,8 @@ public final class ConfigsServiceTest {
         SelectorMapper selectorMapper = mock(SelectorMapper.class);
         PluginMapper pluginMapper = mock(PluginMapper.class);
         RuleService ruleServiceImpl = new RuleServiceImpl(ruleMapper, mock(RuleConditionMapper.class),
-                selectorMapper, pluginMapper, mock(RuleEventPublisher.class), mock(ShenyuDictMapper.class), mock(DataPermissionChecker.class));
+                selectorMapper, pluginMapper, mock(RuleEventPublisher.class), mock(ShenyuDictMapper.class), mock(DataPermissionChecker.class),
+                mock(PluginDataPermissionChecker.class));
         ConfigsServiceImpl importService = new ConfigsServiceImpl(appAuthService, pluginService, namespacePluginService,
                 pluginHandleService, selectorService, ruleServiceImpl, metaDataService, shenyuDictService,
                 proxySelectorService, discoveryService, discoveryUpstreamService, Collections.emptyList());

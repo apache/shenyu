@@ -4,23 +4,24 @@ This module contains example applications that demonstrate how to integrate your
 
 ## Client Dependencies
 
-The example modules consume **independent [shenyu-client-java](https://github.com/apache/shenyu-client-java) artifacts** from Maven Central, rather than depending on in-tree source modules from the main `apache/shenyu` repository.
-
-This reflects the recommended approach for real users: add the ShenYu client library as an external Maven dependency.
+During the [Java client migration](../shenyu-register-center/CLIENT_MIGRATION.md),
+these examples use the client modules still staged in the main `apache/shenyu`
+repository. Build their dependencies from the same checkout. The examples do not
+select artifacts from the independent `shenyu-client-java` repository.
 
 ### How It Works
 
-The parent POM (`shenyu-examples/pom.xml`) defines a property:
+The [examples parent POM](pom.xml) manages the client and client-starter dependencies
+below with `${project.version}`. The examples form a separate Maven reactor from
+main, so install the required main modules before building an example. Both reactors
+must use the same checkout version.
 
-```xml
-<shenyu.client.java.version>2.7.0.3</shenyu.client.java.version>
-```
+The former `shenyu.client.java.version` property is no longer used by this POM.
+Passing it on the command line does not select a different client. To verify an
+external migration candidate, use its own examples or a separate test application
+as described in the [contribution guide](../docs/split-client-contribution.md).
 
-All `shenyu-client-*` and `shenyu-spring-boot-starter-client-*` dependencies in individual example POMs are managed by this property through the `<dependencyManagement>` section. The version is inherited automatically — individual examples do not specify a `<version>` for these artifacts.
-
-The released version remains the default so a clean standalone checkout can resolve the client artifacts from Maven Central. To test unreleased MCP fixes, explicitly override this property as described below.
-
-### Which Artifacts Are Consumed Externally
+### Client Artifacts Used by the Examples
 
 | Client Artifact | Used By |
 |----------------|---------|
@@ -34,138 +35,117 @@ The released version remains the default so a clean standalone checkout can reso
 
 ### Internal Example Dependencies
 
-The following dependencies remain internal to this repository (`${project.version}`):
+The following dependencies also remain main-owned (`${project.version}`):
 
 - `shenyu-examples-common` — shared example utilities
 - `shenyu-examples-dubbo-api` — Dubbo API definitions
-- `shenyu-sdk-*` — ShenYu SDK modules (not extracted to shenyu-client-java)
-- `shenyu-spring-boot-starter-sdk-*` — ShenYu SDK starters (not extracted to shenyu-client-java)
+- `shenyu-sdk-*` — ShenYu SDK modules, outside the client split
+- `shenyu-spring-boot-starter-sdk-*` — ShenYu SDK starters, outside the client split
 
-## Testing the MCP Example with 2.7.2-SNAPSHOT
+Client-dependent examples may move with the migration; that does not transfer
+ownership of SDK modules. See the [ownership inventory](../docs/java-client-repository-boundary.md#inventory-and-migration-baseline).
 
-Use JDK 17 and run the following commands from the root of this `apache/shenyu` checkout. Use a checkout containing the MCP fixes: installing an unrelated snapshot from `shenyu-client-java` does not provide the changes in this repository.
+## Testing the MCP Example from This Checkout
+
+Use JDK 17 / Spring Boot 3 and run all commands below from the root of this
+`apache/shenyu` checkout. Confirm the selected runtime with `./mvnw -version`.
+Use `mvnw.cmd` on Windows. A lower compiler target in an individual example POM
+does not establish Java 8 support for its Boot 3 application and dependencies.
 
 ### Build and Run the MCP Example
 
-The MCP example uses both the MCP and Spring MVC client starters. Build both starters and their required reactor modules into the local Maven repository:
+The MCP example needs both MCP and Spring MVC client starters. Build them and their
+required main modules into the local Maven repository:
 
 ```bash
-./mvnw install -pl shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-mcp,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-springmvc -am -DskipTests
+./mvnw install -pl shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-mcp,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-springmvc -am -DskipTests -Dmaven.javadoc.skip=true
 ```
 
-Build the MCP example and its shared example utilities using the separate examples reactor:
+Build the example and its shared utilities using the separate examples reactor:
 
 ```bash
-./mvnw -f shenyu-examples/pom.xml install -pl shenyu-examples-mcp -am \
-  -Dshenyu.client.java.version=2.7.2-SNAPSHOT -DskipTests
+./mvnw -f shenyu-examples/pom.xml install -pl shenyu-examples-mcp -am -DskipTests
 ```
 
-Before starting the example, configure `shenyu-examples/shenyu-examples-mcp/src/main/resources/application.yml` for your ShenYu Admin address, credentials, namespace, and reachable service address. Run ShenYu Admin and Bootstrap from a checkout containing the corresponding MCP gateway fixes.
+These commands prepare artifacts and skip test execution; they are not behavior
+verification. Check the resolved dependencies before running the example:
 
 ```bash
-./mvnw -f shenyu-examples/pom.xml spring-boot:run -pl shenyu-examples-mcp \
-  -Dshenyu.client.java.version=2.7.2-SNAPSHOT
+./mvnw -f shenyu-examples/pom.xml dependency:tree -pl shenyu-examples-mcp '-Dincludes=org.apache.shenyu:*'
 ```
 
-Keep the same version override for build and run commands. This selects `2.7.2-SNAPSHOT` for both starters through the parent dependency management. Check the resolved ShenYu dependencies with:
+Confirm that both starters and shared client dependencies use this checkout's
+version, as declared in the root and examples POMs, rather than a historical JDK8
+client or an external migration candidate.
+
+Configure [application.yml](shenyu-examples-mcp/src/main/resources/application.yml)
+for the test Admin address, credentials, namespace and reachable service address.
+Run Admin and bootstrap with compatible registration, sync and MCP gateway settings.
+Then start the example:
 
 ```bash
-./mvnw -f shenyu-examples/pom.xml dependency:tree -pl shenyu-examples-mcp \
-  -Dshenyu.client.java.version=2.7.2-SNAPSHOT '-Dincludes=org.apache.shenyu:*'
+./mvnw -f shenyu-examples/pom.xml spring-boot:run -pl shenyu-examples-mcp
 ```
 
-Confirm that the selected MCP and Spring MVC starters and their shared client dependencies use `2.7.2-SNAPSHOT`. Then verify that the example registers its upstream and MCP tools in ShenYu Admin and that a tool invocation through the gateway succeeds.
-
-Other examples continue to use the released `2.7.0.3` default and do not require this override.
+Verify that its upstream and MCP tools register in Admin and that an actual tool
+invocation through the gateway succeeds. A successful build alone does not prove
+registration or routing.
 
 ## Testing with Other Unreleased Client Artifacts
 
-When developing or testing changes to the `shenyu-client-java` library, you may need to build the client artifacts locally and use them in these examples.
-
-### Option 1: Override the Version via Command Line
-
-Build the `shenyu-client-java` project locally, install the artifacts to your local Maven repository:
-
-```bash
-git clone https://github.com/apache/shenyu-client-java.git
-cd shenyu-client-java
-mvn clean install -DskipTests
-```
-
-This installs the artifacts with the project's snapshot version (e.g., `2.7.0.1-jdk8-SNAPSHOT`). Then, build the examples using that version:
-
-```bash
-# Run from the apache/shenyu repository root; select the example to test.
-mvn -f shenyu-examples/pom.xml clean install -pl shenyu-examples-springmvc -am \
-  -Dshenyu.client.java.version=2.7.0.1-jdk8-SNAPSHOT
-```
-
-### Option 2: Modify the Property in Parent POM
-
-For a more permanent change during development, edit the `<shenyu.client.java.version>` property in `shenyu-examples/pom.xml`:
-
-```xml
-<shenyu.client.java.version>2.7.0.1-jdk8-SNAPSHOT</shenyu.client.java.version>
-```
-
-> **Note**: Locally installed snapshots do not require a remote snapshot repository. If the required snapshot has been published, you can configure the Apache Snapshot Repository in your POM or an active profile in `settings.xml` (inside `<repositories>`):
-> ```xml
-> <repository>
->     <id>apache-snapshots</id>
->     <url>https://repository.apache.org/content/repositories/snapshots/</url>
->     <snapshots>
->         <enabled>true</enabled>
->     </snapshots>
-> </repository>
-> ```
-
-### Option 3: Use Maven `-U` Flag for Latest Snapshots
-
-If the snapshot has been published to the Apache snapshot repository:
-
-```bash
-mvn -f shenyu-examples/pom.xml clean install -pl shenyu-examples-springmvc -am \
-  -Dshenyu.client.java.version=2.7.0.1-jdk8-SNAPSHOT -U
-```
-
-The `-U` flag forces Maven to check for updated snapshots. It does not publish missing artifacts or replace the local build required for unpublished fixes.
+For changes to in-tree clients, build the relevant main modules and examples from
+the same checkout as above. For `shenyu-client-java` migration work, select the
+candidate identified by its issue/PR and follow its preparation guide through the
+[split-client contribution workflow](../docs/split-client-contribution.md#build-and-test-the-split-client).
+Do not inject external clients into main's examples or add a version override to
+bypass the one-way dependency boundary. Historical Java 8 / Boot 2 instructions
+apply only to explicitly selected historical implementations, not these examples.
 
 ## Verification
 
-After updating the client version, verify that the examples can register with a local ShenYu Admin and Bootstrap.
-
 ### Prerequisites
 
-After preparing the client dependencies as described above, install the shared example utilities and their parent POM to your local Maven repository:
+For a general example, first install its required main modules. If they have not
+already been built, a complete main build installs them and runs the main tests:
 
 ```bash
-cd shenyu-examples
-mvn install -pl shenyu-examples-common -am -DskipTests
+./mvnw clean install -Dmaven.javadoc.skip=true
 ```
+
+Then build the selected example and its example dependencies. For Spring MVC:
+
+```bash
+./mvnw -f shenyu-examples/pom.xml install -pl shenyu-examples-springmvc -am -DskipTests
+```
+
+Installing only `shenyu-examples-common` does not prepare all main client, SDK or
+protocol dependencies. For another example, select its actual module path and
+build its dependencies before starting it.
 
 ### Run Examples
 
-Run the example from the `shenyu-examples` reactor root using `-pl`. The run command uses the internal dependencies installed in the previous step:
+From the main repository root, run the prepared Spring MVC example:
 
 ```bash
-cd shenyu-examples
-
-# Spring MVC HTTP example
-mvn spring-boot:run -pl shenyu-examples-springmvc
-
-# Or other protocol examples:
-# mvn spring-boot:run -pl shenyu-examples-grpc
-# mvn spring-boot:run -pl shenyu-examples-dubbo/shenyu-examples-apache-dubbo-service
-# mvn spring-boot:run -pl shenyu-examples-websocket/shenyu-example-spring-annotation-websocket
-# mvn spring-boot:run -pl shenyu-examples-mcp
+./mvnw -f shenyu-examples/pom.xml spring-boot:run -pl shenyu-examples-springmvc
 ```
 
-> **Note**: `-pl` selects an example but does not build its dependencies. Install the required internal modules before running it. If you used a client version override when building, pass the same override to `spring-boot:run`.
+`spring-boot:run -pl` selects an application; it does not build and install missing
+reactor dependencies. Configure that application's Admin address and credentials
+and start Admin/bootstrap with matching sync settings and the required plugin first.
 
 ### Confirm Registration
 
 After the application starts:
 
-1. Open the ShenYu Admin console (default: `http://localhost:9095`)
-2. Check that the service appears under **Divide** (for HTTP), **Dubbo**, **gRPC**, or the respective plugin list
-3. Verify API calls can be proxied through the ShenYu gateway (default: `http://localhost:9195`)
+1. Inspect its registered metadata, URI and resulting selector/rule/upstream in Admin
+   (default: `http://localhost:9095`).
+2. Verify a request through the gateway (default: `http://localhost:9195`) and compare
+   the response with a direct backend request. For MCP, also invoke the registered tools.
+3. Exercise heartbeat, offline or discovery behavior when the change affects it.
+
+Record commits, resolved dependency versions, JDKs, registration/sync channels and
+observed results. These source checks do not certify a released client/Admin pair;
+use the [compatibility matrix](../docs/java-client-compatibility.md) and
+[release gates](../shenyu-register-center/CLIENT_MIGRATION.md#release-order-and-gates)
+for published support claims.

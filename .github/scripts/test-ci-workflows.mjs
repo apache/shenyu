@@ -21,7 +21,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import test from 'node:test';
-import { execFile, execFileSync } from 'node:child_process';
+import { execFile, execFileSync, spawnSync } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -89,6 +89,26 @@ test('the stable build gate includes every independent correctness check', () =>
 });
 
 
+test('the plugin contract consumer resolves packaged artifacts in a separate Maven invocation', () => {
+  const jobs = workflows.get('ci.yml').jobs;
+  const job = jobs.plugin_contract;
+  assert.ok(job, 'The external consumer must run in CI');
+  assert.deepEqual(Array.from(job.needs), ['changes']);
+  assert.ok(job.if.includes("needs.changes.outputs.code == 'true'"));
+  const commands = job.steps.filter(step => step.run).map(step => step.run);
+  const producer = commands.findIndex(command => command.includes('-pl shenyu-web -am install'));
+  const consumer = commands.findIndex(command => command.includes('-f shenyu-examples/shenyu-examples-plugin-contract/pom.xml'));
+  assert.ok(producer >= 0 && consumer > producer, 'Install the producer before testing the separate consumer');
+  assert.ok(commands[producer].includes('-DskipTests'));
+  assert.ok(!commands[producer].includes('-Dmaven.test.skip'));
+  assert.ok(commands[consumer].includes('test org.apache.rat:apache-rat-plugin:0.15:check'));
+  assert.ok(commands[consumer].includes('-DfailIfNoTests=true'));
+  assert.ok(!commands[consumer].includes('-am'));
+  assert.ok(!/-D(?:skipTests|maven\.test\.skip|checkstyle\.skip|rat\.skip)(?:[=\s]|$)/.test(commands[consumer]));
+  assert.ok(jobs.requirement.needs.includes('plugin_contract'));
+  assert.ok(jobs.requirement.steps.some(step => step.run?.includes('needs.plugin_contract.result')));
+});
+
 test('a slow starter subtree runs once in its own shard', () => {
   const groups = workflows.get('ci.yml').jobs.test_group.strategy.matrix.include;
   const agent = groups.find(group => group.name === 'starters-agent');
@@ -147,6 +167,82 @@ test('manual E2E runs keep all sync channels and invalid selections fail', () =>
     cwd: root, env: { ...process.env, SHENYU_E2E_SYNC: 'unsupported' }, stdio: 'pipe',
   }));
 });
+
+function runWebSocketCompose(failure = '', channel = 'websocket', failLogs = false) {
+  const temporary = mkdtempSync(resolve(root, '.github/scripts/.websocket-test-'));
+  const trace = resolve(temporary, 'trace');
+  const environment = resolve(temporary, 'environment.sh');
+  try {
+    writeFileSync(trace, '');
+    writeFileSync(environment, `
+record() {
+  printf '%s\\n' "$1" >> "$RUN_TRACE"
+  if [[ "$1" == "$FAIL_STAGE" ]]; then return 23; fi
+}
+docker() {
+  if [[ "$1" == network ]]; then record network; return; fi
+  if [[ "$1" == ps ]]; then record ps; return; fi
+  local stage=sync
+  if [[ "$3" == *shenyu-examples-websocket-compose.yml ]]; then stage=example; fi
+  record "$stage:$4"
+  if [[ "$4" == logs && "$FAIL_LOGS" == true ]]; then return 24; fi
+}
+bash() {
+  case "$1" in
+    */storage_init_mysql.sh) record storage ;;
+    .github/scripts/maven-with-retry.sh) record maven ;;
+    *) return 99 ;;
+  esac
+}
+sh() {
+  case "$2" in
+    http://localhost:31095/actuator/health) record admin-health ;;
+    http://localhost:31195/actuator/health) record gateway-health ;;
+    http://localhost:31191/actuator/health) record example-health ;;
+    *) return 99 ;;
+  esac
+}
+sleep() { :; }
+`);
+    const result = spawnSync('bash', [
+      'shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-websocket/compose/script/e2e-websocket-sync-compose.sh',
+    ], { cwd: root, encoding: 'utf8', timeout: 5000, env: {
+      ...process.env, BASH_ENV: environment, RUN_TRACE: trace, FAIL_STAGE: failure, SHENYU_E2E_SYNC: channel, FAIL_LOGS: String(failLogs),
+    } });
+    assert.ifError(result.error);
+    return { ...result, calls: readFileSync(trace, 'utf8').trim().split('\n') };
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
+}
+
+const webSocketStartup = ['storage', 'network', 'sync:up', 'admin-health', 'gateway-health', 'example:up', 'example-health'];
+for (const [index, stage] of webSocketStartup.entries()) {
+  test(`WebSocket Compose stops before Maven when ${stage} fails`, () => {
+    const result = runWebSocketCompose(stage);
+    assert.equal(result.status, 23, result.stderr);
+    assert.deepEqual(result.calls, webSocketStartup.slice(0, index + 1));
+  });
+}
+
+for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
+  test(`WebSocket Compose retains successful setup, tests and cleanup for ${channel || 'all channels'}`, () => {
+    const result = runWebSocketCompose('', channel);
+    assert.equal(result.status, 0, result.stderr);
+    const iteration = [...webSocketStartup.slice(2), 'ps', 'maven', 'sync:down', 'example:down'];
+    const iterations = channel ? iteration : [iteration, iteration, iteration].flat();
+    assert.deepEqual(result.calls, [...webSocketStartup.slice(0, 2), ...iterations]);
+  });
+}
+
+for (const failLogs of [false, true]) {
+  test(`WebSocket Compose retains Maven failure and all diagnostics when logs ${failLogs ? 'fail' : 'succeed'}`, () => {
+    const result = runWebSocketCompose('maven', '', failLogs);
+    assert.equal(result.status, 1, result.stderr);
+    assert.deepEqual(result.calls, [...webSocketStartup, 'ps', 'maven', 'sync:logs', 'sync:logs', 'example:logs']);
+    assert.ok(result.stdout.includes('websocket-sync-e2e-test failed'));
+  });
+}
 
 
 test('cluster health polling retains its previous startup grace and returns as soon as ready', () => {
@@ -207,18 +303,28 @@ test('aggregate jobs still report failures but do not keep cancelled PR runs ali
   }
 });
 
-test('ingress validates the Maven wrapper before its first Maven invocation', () => {
-  const steps = workflows.get('integrated-test-k8s-ingress.yml').jobs.build.steps;
-  const preflight = steps.findIndex(step => step.name === 'Ensure Maven wrapper JAR');
-  const firstMaven = steps.findIndex(step => /\.\/mvnw\b/.test(step.run ?? ''));
-  assert.ok(preflight >= 0 && firstMaven > preflight);
-  assert.equal(steps[preflight].shell, 'bash');
+test('CI validates the Maven wrapper before every independent Maven job', () => {
+  for (const [name, job] of Object.entries(workflows.get('ci.yml').jobs)) {
+    const steps = job.steps ?? [];
+    const firstMaven = steps.findIndex(step => /\.\/mvnw\b/.test(step.run ?? ''));
+    if (firstMaven < 0) continue;
+    const preflight = steps.findIndex(step => step.run === 'bash .github/scripts/ensure-maven-wrapper.sh');
+    assert.ok(preflight >= 0 && preflight < firstMaven, name);
+  }
 });
 
-test('ingress Maven wrapper preflight handles cached, downloaded and failed artifacts', { timeout: 45000 }, async t => {
-  const preflight = workflows.get('integrated-test-k8s-ingress.yml').jobs.build.steps
-    .find(step => step.name === 'Ensure Maven wrapper JAR');
-  assert.ok(preflight, 'The ingress job must validate the wrapper before running Maven');
+test('integration builds validate the Maven wrapper before their first Maven invocation', () => {
+  for (const name of ['integrated-test-k8s-ingress.yml', 'integrated-test.yml']) {
+    const steps = workflows.get(name).jobs.build.steps;
+    const preflight = steps.findIndex(step => step.run === 'bash .github/scripts/ensure-maven-wrapper.sh');
+    const firstMaven = steps.findIndex(step => /\.\/mvnw\b/.test(step.run ?? ''));
+    assert.ok(preflight >= 0 && firstMaven > preflight, name);
+    assert.equal(steps[preflight].shell, 'bash');
+  }
+});
+
+test('Maven wrapper preflight handles cached, downloaded and failed artifacts', { timeout: 45000 }, async t => {
+  const preflight = readFileSync(resolve(root, '.github/scripts/ensure-maven-wrapper.sh'), 'utf8');
   const temporary = mkdtempSync(resolve(root, '.github/scripts/.wrapper-test-'));
   t.after(() => rmSync(temporary, { recursive: true, force: true }));
 
@@ -266,7 +372,7 @@ test('ingress Maven wrapper preflight handles cached, downloaded and failed arti
       writeFileSync(resolve(wrapper, 'maven-wrapper.properties'), fixture.missingUrl
         ? 'distributionUrl=unused\n'
         : `wrapperUrl=http://127.0.0.1:${server.address().port}/wrapper.jar\n`);
-      const execution = run('bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', preflight.run], {
+      const execution = run('bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', preflight], {
         cwd: working,
         env: { ...process.env, NO_PROXY: '127.0.0.1', no_proxy: '127.0.0.1' },
         timeout: 20000,

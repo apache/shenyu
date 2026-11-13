@@ -22,8 +22,10 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test cases for WebConfig.
@@ -36,6 +38,13 @@ public final class WebConfigurationTest extends AbstractConfigurationTest {
         WebConfiguration webConfiguration = new WebConfiguration();
         webConfiguration.addCorsMappings(registry);
         assertEquals(getCorsConfigurationsString(registry), getCorsConfigurationsString(corsRegistryJSONStringExtendBuild()));
+    }
+
+    @Test
+    public void testConfigurePathMatchKeepsTrailingSlashCompatibility() {
+        final PathMatchConfigurer configurer = new PathMatchConfigurer();
+        new WebConfiguration().configurePathMatch(configurer);
+        assertTrue(configurer.getPatternParser().isMatchOptionalTrailingSeparator());
     }
 
     private CorsRegistry corsRegistryJSONStringExtendBuild() {

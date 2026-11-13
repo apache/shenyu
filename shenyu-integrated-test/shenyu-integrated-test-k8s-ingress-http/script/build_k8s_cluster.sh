@@ -16,6 +16,16 @@
 # limitations under the License.
 #
 
+set -euo pipefail
+
+# A successful reactor command does not guarantee that its Docker goal ran.
+# Build only the required fixture if the examples build left no local image.
+if ! docker image inspect shenyu-examples-http:latest > /dev/null 2>&1; then
+  ./mvnw -B -ntp clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true \
+    -pl shenyu-examples-http -am -f ./shenyu-examples/pom.xml
+  docker image inspect shenyu-examples-http:latest > /dev/null
+fi
+
 kind load docker-image "shenyu-examples-http:latest"
 kind load docker-image "apache/shenyu-integrated-test-k8s-ingress-http:latest"
 kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml

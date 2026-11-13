@@ -19,6 +19,7 @@ package org.apache.shenyu.infra.redis;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import io.lettuce.core.api.StatefulConnection;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.slf4j.Logger;
@@ -109,8 +110,8 @@ public class RedisConnectionFactory implements DisposableBean {
         return LettucePoolingClientConfiguration.builder().poolConfig(getPoolConfig(redisConfigProperties)).build();
     }
 
-    private GenericObjectPoolConfig<?> getPoolConfig(final RedisConfigProperties redisConfigProperties) {
-        GenericObjectPoolConfig<?> config = new GenericObjectPoolConfig<>();
+    private GenericObjectPoolConfig<StatefulConnection<?, ?>> getPoolConfig(final RedisConfigProperties redisConfigProperties) {
+        GenericObjectPoolConfig<StatefulConnection<?, ?>> config = new GenericObjectPoolConfig<>();
         config.setMaxTotal(redisConfigProperties.getMaxActive());
         config.setMaxIdle(redisConfigProperties.getMaxIdle());
         config.setMinIdle(redisConfigProperties.getMinIdle());

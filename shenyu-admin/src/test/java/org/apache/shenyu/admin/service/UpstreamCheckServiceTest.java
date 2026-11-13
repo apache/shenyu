@@ -39,6 +39,7 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -55,6 +56,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -71,9 +73,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -149,6 +154,14 @@ public final class UpstreamCheckServiceTest {
                 shenyuRegisterCenterConfig, converterFactor, discoveryUpstreamService);
     }
 
+    @AfterEach
+    public void tearDown() {
+        upstreamCheckService.close();
+        upstreamMap.clear();
+        zombieSet.clear();
+        ((Collection<?>) ReflectionTestUtils.getField(UpstreamCheckService.class, "PENDING_SYNC")).clear();
+    }
+
     @Test
     @Disabled
     public void testScheduled() {
@@ -193,8 +206,14 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testSubmit() {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ScheduledThreadPoolExecutor executor = mock(ScheduledThreadPoolExecutor.class);
+        // Complete publication before asserting the cache; an empty published entry is removed.
+        doAnswer(invocation -> {
+            invocation.<Runnable>getArgument(0).run();
+            return null;
+        }).when(executor).execute(any(Runnable.class));
         ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
+        UpstreamCheckService.removeByKey(MOCK_SELECTOR_NAME_OTHER);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamUrl("divide-upstream-60")
                 .weight(60)
@@ -211,12 +230,12 @@ public final class UpstreamCheckServiceTest {
 
     private void testSubmitOnce(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
-        assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
+        assertEquals(Collections.singletonList(divideUpstream), upstreamMap.get(MOCK_SELECTOR_NAME_OTHER));
     }
 
     private void testSubmitDeleted(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
-        assertFalse(upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).contains(divideUpstream));
+        assertFalse(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
     }
 
     @Test

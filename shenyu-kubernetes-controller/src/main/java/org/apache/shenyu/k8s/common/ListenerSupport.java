@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -130,7 +131,7 @@ public final class ListenerSupport {
     }
 
     /**
-     * Spec default is Same, from=All allows all; from=Selector is unimplemented and denies (widening would break isolation).
+     * Evaluate Same/All without Namespace data; Selector fails closed without labels.
      *
      * @param listener the listener object
      * @param routeNamespace namespace of the attaching HTTPRoute
@@ -138,21 +139,30 @@ public final class ListenerSupport {
      * @return true if the namespace policy permits the attachment
      */
     public static boolean allowsNamespace(final JsonObject listener, final String routeNamespace, final String gatewayNamespace) {
+        return allowsNamespace(listener, routeNamespace, gatewayNamespace, null);
+    }
+
+    /**
+     * Evaluate namespace attachment using labels from the route Namespace, never route labels.
+     *
+     * @param listener the listener object
+     * @param routeNamespace namespace of the HTTPRoute
+     * @param gatewayNamespace namespace of the Gateway
+     * @param namespaceLabels current Namespace labels; null means Namespace unavailable
+     * @return whether the namespace policy permits attachment
+     */
+    public static boolean allowsNamespace(final JsonObject listener, final String routeNamespace,
+                                          final String gatewayNamespace, final Map<String, String> namespaceLabels) {
         String from = fromOf(listener);
         if (Objects.isNull(from) || "Same".equals(from)) {
             return Objects.equals(routeNamespace, gatewayNamespace);
         }
-        return "All".equals(from);
-    }
-
-    /**
-     * from=Selector is unsupported; distinguishable so status reports UnsupportedValue, not a permission denial.
-     *
-     * @param listener the listener json object
-     * @return true when allowedRoutes.from is the unsupported Selector value
-     */
-    public static boolean usesUnsupportedFrom(final JsonObject listener) {
-        return "Selector".equals(fromOf(listener));
+        if ("All".equals(from)) {
+            return true;
+        }
+        JsonObject namespaces = JsonFields.getJsonObject(JsonFields.getJsonObject(listener, "allowedRoutes"), "namespaces");
+        return "Selector".equals(from)
+                && NamespaceSelector.matches(JsonFields.getJsonObject(namespaces, "selector"), namespaceLabels);
     }
 
     private static String fromOf(final JsonObject listener) {

@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.mapper.SelectorConditionMapper;
 import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
+import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.model.dto.SelectorConditionDTO;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.entity.DataPermissionDO;
@@ -50,6 +51,7 @@ import org.apache.shenyu.admin.model.vo.SelectorConditionVO;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -94,6 +96,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -162,6 +165,9 @@ public final class SelectorServiceTest {
     @Mock
     private DataPermissionChecker dataPermissionChecker;
 
+    @Mock
+    private PluginDataPermissionChecker pluginDataPermissionChecker;
+
     @BeforeEach
     public void setUp() {
         when(dataPermissionMapper.listByUserId("1")).thenReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(new DataPermissionDTO())));
@@ -176,7 +182,8 @@ public final class SelectorServiceTest {
         doNothing().when(discoveryProcessor).removeDiscovery(any(DiscoveryDO.class));
         when(discoveryProcessorHolder.chooseProcessor(anyString())).thenReturn(discoveryProcessor);
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper, eventPublisher, discoveryMapper, discoveryHandlerMapper, discoveryRelMapper,
-                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher, dataPermissionChecker, registrationFencingGuard);
+                discoveryUpstreamMapper, discoveryProcessorHolder, selectorEventPublisher, dataPermissionChecker, registrationFencingGuard,
+                pluginDataPermissionChecker);
     }
 
     @Test
@@ -191,6 +198,27 @@ public final class SelectorServiceTest {
         publishEvent();
         testUpdate();
         testCreate();
+    }
+
+    @Test
+    public void testUpdateRejectsChangingSelectorPlugin() {
+        publishEvent();
+        SelectorDTO selectorDTO = buildSelectorDTO("456");
+        selectorDTO.setPluginId("other-plugin");
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> selectorService.createOrUpdate(selectorDTO));
+        assertEquals("the plugin of an existing selector cannot be changed", exception.getMessage());
+        verify(selectorMapper, never()).updateSelective(any());
+    }
+
+    @Test
+    public void testUpdateRejectsMissingSelector() {
+        publishEvent();
+        SelectorDTO selectorDTO = buildSelectorDTO("456");
+        given(selectorMapper.selectById("456")).willReturn(null);
+        ShenyuAdminException exception = assertThrows(ShenyuAdminException.class, () -> selectorService.createOrUpdate(selectorDTO));
+        assertEquals("the updated selector is not found", exception.getMessage());
+        verify(selectorMapper, never()).updateSelective(any());
     }
 
     @Test
@@ -231,6 +259,41 @@ public final class SelectorServiceTest {
         final List<String> ids = Collections.singletonList(correctId);
         given(selectorMapper.deleteByIds(ids)).willReturn(ids.size());
         assertEquals(selectorService.deleteByNamespaceId(ids, any()), ids.size());
+    }
+
+    @Test
+    public void testWritesWithoutPluginDataPermissionAreRejectedBeforeWrite() {
+        final SelectorDTO createDTO = buildSelectorDTO(null);
+        final SelectorDTO updateDTO = buildSelectorDTO("456");
+        final List<String> ids = Collections.singletonList("456");
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateSelector(createDTO);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkCreateSelector(updateDTO);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkEnableSelectors(ids);
+        doThrow(new UnauthorizedException()).when(pluginDataPermissionChecker).checkDeleteSelectors(ids);
+
+        assertThrows(UnauthorizedException.class, () -> selectorService.createOrUpdate(createDTO));
+        assertThrows(UnauthorizedException.class, () -> selectorService.createOrUpdate(updateDTO));
+        assertThrows(UnauthorizedException.class, () -> selectorService.enabledByIdsAndNamespaceId(ids, false, SYS_DEFAULT_NAMESPACE_ID));
+        assertThrows(UnauthorizedException.class, () -> selectorService.deleteByNamespaceId(ids, SYS_DEFAULT_NAMESPACE_ID));
+
+        verify(selectorMapper, never()).insertSelective(any());
+        verify(selectorMapper, never()).updateSelective(any());
+        verify(selectorMapper, never()).updateEnable(anyString(), any());
+        verify(selectorMapper, never()).deleteByIds(any());
+    }
+
+    @Test
+    public void testDeleteForRegistrationSkipsPluginDataPermissionCheck() {
+        final SelectorDO selector = buildSelectorDO();
+        final List<String> ids = Collections.singletonList(selector.getId());
+        given(selectorMapper.selectByIdSet(new TreeSet<>(ids))).willReturn(Collections.singletonList(selector));
+        given(pluginMapper.selectByIds(Collections.singletonList(selector.getPluginId()))).willReturn(Collections.singletonList(buildPluginDO()));
+        given(selectorMapper.deleteByIds(ids)).willReturn(1);
+
+        assertEquals(1, selectorService.deleteForRegistration(ids, SYS_DEFAULT_NAMESPACE_ID));
+
+        verify(registrationFencingGuard, atLeastOnce()).assertSelectorWriteAllowed(selector.getId());
+        verifyNoInteractions(pluginDataPermissionChecker);
     }
 
     @Test
@@ -451,9 +514,34 @@ public final class SelectorServiceTest {
         }
     }
 
+
+    @Test
+    public void updateWithForeignNamespaceLeavesConditionsUntouched() {
+        when(selectorMapper.selectById("sel-1")).thenReturn(new SelectorDO());
+        when(selectorMapper.updateSelective(any())).thenReturn(0);
+
+        final SelectorDTO dto = new SelectorDTO();
+        dto.setId("sel-1");
+        dto.setType(1);
+        dto.setName("orders");
+        final SelectorConditionDTO condition = new SelectorConditionDTO();
+        condition.setSelectorId("sel-1");
+        condition.setOperator("=");
+        condition.setParamName("path");
+        condition.setParamType("uri");
+        condition.setParamValue("/x");
+        dto.setSelectorConditions(Collections.singletonList(condition));
+        final int count = selectorService.update(dto);
+
+        assertEquals(0, count);
+        verify(selectorConditionMapper, never()).deleteByQuery(org.mockito.ArgumentMatchers.any(SelectorConditionQuery.class));
+        org.mockito.Mockito.verifyNoInteractions(selectorEventPublisher);
+    }
+
     private void testUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
         selectorDTO.setPluginId("789");
+        given(this.selectorMapper.selectById("456")).willReturn(buildSelectorDO());
         given(this.selectorMapper.updateSelective(any())).willReturn(1);
         assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
     }

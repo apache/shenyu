@@ -31,7 +31,7 @@ import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shiro.mgt.DefaultSecurityManager;
-import org.apache.shiro.subject.SimplePrincipalMap;
+import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.assertj.core.util.Lists;
@@ -218,10 +218,9 @@ public final class DashboardUserControllerTest {
     public void modifyPassword() throws Exception {
         final String url = "/dashboardUser/modify-password/2";
         UserInfo userInfo = UserInfo.builder().userId("2").userName("admin").build();
-        SimplePrincipalMap principalMap = new SimplePrincipalMap();
-        principalMap.put("real", userInfo);
+        SimplePrincipalCollection principals = new SimplePrincipalCollection(userInfo, "real");
         ThreadContext.bind(new DefaultSecurityManager());
-        ThreadContext.bind(new Subject.Builder().principals(principalMap).buildSubject());
+        ThreadContext.bind(new Subject.Builder().principals(principals).buildSubject());
 
         given(dashboardUserService.modifyPassword(any())).willReturn(1);
         mockMvc.perform(put(url, modifyPasswordDTO)
@@ -232,7 +231,7 @@ public final class DashboardUserControllerTest {
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)));
 
-        ThreadContext.bind(new Subject.Builder().principals(new SimplePrincipalMap()).buildSubject());
+        ThreadContext.bind(new Subject.Builder().principals(new SimplePrincipalCollection()).buildSubject());
         mockMvc.perform(put(url, modifyPasswordDTO)
                         .content(GsonUtils.getInstance().toJson(modifyPasswordDTO))
                         .contentType(MediaType.APPLICATION_JSON))
@@ -276,9 +275,9 @@ public final class DashboardUserControllerTest {
     }
 
     private void bindPrincipal(final String userId, final String userName) {
-        final SimplePrincipalMap principalMap = new SimplePrincipalMap();
-        principalMap.put("real", UserInfo.builder().userId(userId).userName(userName).build());
+        final SimplePrincipalCollection principals = new SimplePrincipalCollection(
+                UserInfo.builder().userId(userId).userName(userName).build(), "real");
         ThreadContext.bind(new DefaultSecurityManager());
-        ThreadContext.bind(new Subject.Builder().principals(principalMap).buildSubject());
+        ThreadContext.bind(new Subject.Builder().principals(principals).buildSubject());
     }
 }

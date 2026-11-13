@@ -331,7 +331,8 @@ public class TracingGatewayIntegrationTest extends AbstractTest {
         final HttpResponse<String> response = get(headers);
         assertEquals(200, response.statusCode());
         final String[] traceparent = upstreamTraceparent(response.body());
-        assertEquals(NOT_SAMPLED, traceparent[3]);
+        // W3C trace flags may include the random-trace-id bit; only bit zero denotes sampling.
+        assertEquals(0, Integer.parseInt(traceparent[3], 16) & 1);
         assertNotExported(traceparent[1]);
     }
 
