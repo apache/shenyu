@@ -40,10 +40,7 @@ public final class AgentResourceDefinition {
     private final UriTemplate template;
 
     public AgentResourceDefinition(final String name, final String uri, final String description, final String mimeType, final boolean template) {
-        this.name = Objects.requireNonNull(name, "name");
-        if (name.isBlank() || name.length() > 256 || name.codePoints().anyMatch(Character::isISOControl)) {
-            throw new IllegalArgumentException("Resource name must not be blank");
-        }
+        this.name = validateName(name);
         this.uri = Objects.requireNonNull(uri, "uri");
         this.description = Objects.requireNonNull(description, "description");
         if (uri.length() > 4096 || description.length() > 4096) {
@@ -61,6 +58,19 @@ public final class AgentResourceDefinition {
         } else {
             AgentResourceContent.text(uri, mimeType, "");
         }
+    }
+
+    /**
+     * Validate an exact local or namespaced remote resource permission name.
+     * @param name permission name
+     * @return validated name
+     */
+    public static String validateName(final String name) {
+        Objects.requireNonNull(name, "name");
+        if (name.isBlank() || name.length() > 256 || name.codePoints().anyMatch(Character::isISOControl)) {
+            throw new IllegalArgumentException("Resource name must not be blank");
+        }
+        return name;
     }
 
     public String getName() {

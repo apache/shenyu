@@ -90,6 +90,16 @@ class OAuthLoginMcpHttpTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void loginScopeExplicitlyMapsResources(final String mode) {
+        try (Fixture fixture = new Fixture(mode)) {
+            fixture.login();
+            String csrf = fixture.csrf();
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.call(method, uri, csrf), true);
+        }
+    }
+
     private static final class Fixture implements AutoCloseable {
 
         private final AtomicInteger tokenExchanges = new AtomicInteger();
@@ -133,6 +143,7 @@ class OAuthLoginMcpHttpTest {
             scope.setScope("inventory:read");
             scope.setToolGrants(Set.of("read-a"));
             scope.setToolDenials(Set.of("blocked"));
+            scope.setResourceGrants(Set.copyOf(ResourceMcpTestFixture.GRANTS));
             policy.setScopeMappings(List.of(scope));
             WebFilterChainProxy proxy = new WebFilterChainProxy(security);
             WebFilter filter = (exchange, chain) -> proxy.filter(exchange, authenticated -> {
