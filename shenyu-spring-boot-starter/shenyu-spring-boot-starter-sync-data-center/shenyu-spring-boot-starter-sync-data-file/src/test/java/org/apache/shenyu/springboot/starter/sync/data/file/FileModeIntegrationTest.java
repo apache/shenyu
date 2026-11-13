@@ -24,6 +24,9 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.sync.data.api.SyncDataService;
+import org.apache.shenyu.web.controller.LocalAppAuthController;
+import org.apache.shenyu.web.controller.LocalMetadataController;
+import org.apache.shenyu.web.controller.LocalPluginController;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.junit.jupiter.api.Test;
@@ -36,6 +39,7 @@ import org.springframework.boot.availability.ApplicationAvailability;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
@@ -63,19 +67,20 @@ class FileModeIntegrationTest {
     private boolean failApplication;
 
     private ConfigurableApplicationContext start(final Path path, final String... additional) {
-        String[] args = new String[additional.length + 7];
+        boolean explicitPort = Arrays.stream(additional).anyMatch(argument -> argument.startsWith("--server.port="));
+        String[] args = new String[additional.length + (explicitPort ? 6 : 7)];
         args[0] = "--spring.config.location=classpath:bootstrap-defaults/application.yml";
         args[1] = "--shenyu.sync.file.enabled=true";
         args[2] = "--shenyu.sync.file.path=" + path;
-        args[3] = "--server.port=0";
-        args[4] = "--spring.main.banner-mode=off";
-        args[5] = "--shenyu.sync.websocket.initial-sync-readiness=true";
-        args[6] = "--management.endpoint.health.probes.enabled=true";
-        System.arraycopy(additional, 0, args, 7, additional.length);
-        ArrayList<String> arguments = new ArrayList<>(Arrays.asList(args));
-        if (additional.length > 0) {
-            arguments.remove("--server.port=0");
+        int index = 3;
+        if (!explicitPort) {
+            args[index++] = "--server.port=0";
         }
+        args[index++] = "--spring.main.banner-mode=off";
+        args[index++] = "--shenyu.sync.websocket.initial-sync-readiness=true";
+        args[index++] = "--management.endpoint.health.probes.enabled=true";
+        System.arraycopy(additional, 0, args, index, additional.length);
+        ArrayList<String> arguments = new ArrayList<>(Arrays.asList(args));
         SpringApplication application = new SpringApplication(TestApplication.class);
         if (failApplication) {
             application.addInitializers(context -> context.getBeanFactory().addBeanPostProcessor(new BeanPostProcessor() {
@@ -137,6 +142,28 @@ class FileModeIntegrationTest {
         } finally {
             upstream.disposeNow();
             upstreamLoops.disposeLater().block(Duration.ofSeconds(10));
+        }
+    }
+
+    @Test
+    void broadHealthPrefixCannotReachDisabledLocalWriters() throws IOException {
+        Path path = directory.resolve("gateway.yaml");
+        Files.writeString(path, FileConfigurationParserTest.document().toString());
+        try (ConfigurableApplicationContext context = start(path, "--shenyu.health.paths=/")) {
+            int port = ((ReactiveWebServerApplicationContext) context).getWebServer().getPort();
+            WebClient client = WebClient.create("http://127.0.0.1:" + port);
+            String result = client.post().uri("/shenyu/plugin/rule/saveOrUpdate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue("{\"id\":\"injected-rule\",\"selectorId\":\"http-api\",\"pluginName\":\"divide\"}")
+                    .exchangeToMono(response -> response.bodyToMono(String.class).defaultIfEmpty("")
+                            .map(body -> response.statusCode().value() + "|" + body))
+                    .block(Duration.ofSeconds(10));
+            assertThat(result).startsWith("404|");
+            assertThat(BaseDataCache.getInstance().obtainRuleData("http-api")).hasSize(1);
+            assertThat(context.getBeansOfType(LocalDispatcherFilter.class)).isEmpty();
+            assertThat(context.getBeansOfType(LocalPluginController.class)).isEmpty();
+            assertThat(context.getBeansOfType(LocalMetadataController.class)).isEmpty();
+            assertThat(context.getBeansOfType(LocalAppAuthController.class)).isEmpty();
         }
     }
 
