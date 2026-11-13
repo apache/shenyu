@@ -33,8 +33,8 @@ mybatis:
 
 shenyu:
   register:
-    registerType: http #http #zookeeper #etcd #nacos #consul
-    serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: http #http #zookeeper #nacos #consul
+    serverLists: #localhost:2181 #localhost:8848
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
@@ -62,8 +62,6 @@ shenyu:
 #          namespace:
 #          accessKey:
 #          secretKey:
-#    etcd:
-#      url: http://localhost:2379
 #    consul:
 #      url: http://localhost:8500
   aes:
