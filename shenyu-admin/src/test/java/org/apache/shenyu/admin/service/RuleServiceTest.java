@@ -1091,7 +1091,10 @@ public final class RuleServiceTest {
 
     @Test
     public void updateWithForeignNamespaceLeavesRuleUntouched() {
-        when(ruleMapper.selectById("rule-1")).thenReturn(new RuleDO());
+        final RuleDO before = new RuleDO();
+        before.setSelectorId("sel-1");
+        before.setNamespaceId("foreign");
+        when(ruleMapper.selectById("rule-1")).thenReturn(before);
         when(ruleMapper.updateSelective(any())).thenReturn(0);
 
         final RuleDTO dto = new RuleDTO();

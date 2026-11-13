@@ -228,7 +228,7 @@ public class SelectiveConfigsExportIntegrationTest extends AbstractSpringIntegra
                 .matchMode(0).sort(2).enabled(true).logged(false).matchRestful(false).handle(handle).ruleConditions(List.of(condition)).build();
         try (MockedStatic<SessionUtil> session = administrator()) {
             // Exercise real source validation, including enabled global extension dictionaries.
-            assertEquals(1, ruleService.createOrUpdate(rule));
+            assertEquals(1, ruleService.create(rule));
             assertEquals(handle, jdbc.queryForObject("SELECT handle FROM rule WHERE namespace_id = ? AND rule_name = 'canary-rule'", String.class, SOURCE));
             assertEquals("Canary rule configurations are not supported by selective export",
                     assertThrows(ShenyuException.class, () -> exporter.export(request())).getMessage());

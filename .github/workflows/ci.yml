@@ -446,10 +446,10 @@ jobs:
         with:
           name: shenyu-local-maven-repository
           path: /tmp/shenyu-m2
-      - name: Ensure Maven wrapper JAR
-        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Restore ShenYu local Maven repository
         run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       # The producer already checks main and test source style for the complete reactor.
       - name: Run Maven tests
         shell: bash
@@ -510,10 +510,10 @@ jobs:
         with:
           name: shenyu-local-maven-repository
           path: /tmp/shenyu-m2
-      - name: Ensure Maven wrapper JAR
-        run: bash .github/scripts/ensure-maven-wrapper.sh
       - name: Restore ShenYu local Maven repository
         run: bash .github/scripts/restore-shenyu-local-repo.sh /tmp/shenyu-m2
+      - name: Ensure Maven wrapper JAR
+        run: bash .github/scripts/ensure-maven-wrapper.sh
       # Reuse the producer's Checkstyle result; preserve all Java 21 test execution.
       - name: Run Java 21 compatibility tests
         shell: bash
