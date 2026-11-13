@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.handler;
 
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.failure.GatewayFailure;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.alert.AlarmSender;
 import org.slf4j.Logger;
@@ -35,6 +35,8 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * GlobalErrorHandler.
@@ -53,13 +55,15 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @Override
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
+        final GatewayFailure facts = WebFluxResultUtils.failure(exchange, classify(throwable), GatewayFailure.Stage.GLOBAL_HANDLER, null);
+        if (facts.reason() == GatewayFailure.Reason.CANCELLATION || facts.output() == GatewayFailure.Output.STARTED_OR_COMMITTED) {
+            return WebFluxResultUtils.failureResult(exchange, facts, null, 500, "Internal Server Error", throwable);
+        }
         LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
         HttpStatusCode httpStatusCode;
-        Object errorResult;
         String errorMsg = "";
         if (throwable instanceof IllegalArgumentException) {
             httpStatusCode = HttpStatus.BAD_REQUEST;
-            errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), throwable.getMessage(), null);
             errorMsg = throwable.getMessage();
         } else if (throwable instanceof ResponseStatusException) {
             ResponseStatusException responseStatusException = (ResponseStatusException) throwable;
@@ -69,20 +73,41 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
                 HttpStatus httpStatus = HttpStatus.resolve(httpStatusCode.value());
                 errMsg = Objects.isNull(httpStatus) ? httpStatusCode.toString() : httpStatus.getReasonPhrase();
             }
-            errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), errMsg, null);
             errorMsg = errMsg;
         } else {
             httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR;
             HttpStatus httpStatus = (HttpStatus) httpStatusCode;
-            errorResult = ShenyuResultWrap.error(exchange, httpStatusCode.value(), httpStatus.getReasonPhrase(), null);
             errorMsg = httpStatus.getReasonPhrase();
         }
-        exchange.getResponse().setStatusCode(httpStatusCode);
         Map<String, String> labels = new HashMap<>(8);
         labels.put("global", "error");
         labels.put("component", "gateway");
         AlarmSender.alarmMediumCritical("ShenYu-Gateway-Global-Error", errorMsg, labels);
-        return WebFluxResultUtils.result(exchange, errorResult);
+        return WebFluxResultUtils.failureResult(exchange, facts, httpStatusCode, httpStatusCode.value(), errorMsg, throwable);
+    }
+
+    private GatewayFailure.Reason classify(final Throwable error) {
+        Throwable current = error;
+        for (int depth = 0; depth < 16 && Objects.nonNull(current); depth++) {
+            if (current instanceof CancellationException) {
+                return GatewayFailure.Reason.CANCELLATION;
+            }
+            if (current instanceof TimeoutException) {
+                return GatewayFailure.Reason.DEADLINE;
+            }
+            current = current.getCause();
+        }
+        if (error instanceof ResponseStatusException status) {
+            return switch (status.getStatusCode().value()) {
+                case 401 -> GatewayFailure.Reason.AUTHENTICATION;
+                case 403 -> GatewayFailure.Reason.AUTHORIZATION;
+                case 429 -> GatewayFailure.Reason.RESOURCE_LIMIT;
+                case 504 -> GatewayFailure.Reason.DEADLINE;
+                case 502, 503 -> GatewayFailure.Reason.UPSTREAM;
+                default -> GatewayFailure.Reason.UNKNOWN;
+            };
+        }
+        return error instanceof IllegalArgumentException ? GatewayFailure.Reason.INVALID_REQUEST : GatewayFailure.Reason.UNKNOWN;
     }
 
     /**
