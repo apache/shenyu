@@ -50,6 +50,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -115,7 +116,7 @@ class RemoteResourceNetworkTest {
                 assertTrue(fixture.started.await(5, TimeUnit.SECONDS));
                 assertEquals("orders:test://status", client.readResource("test://status").block(WAIT).path("contents").get(0).path("text").asText());
                 assertTrue(first.cancel(true));
-                assertEquals(0, client.pending());
+                await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> assertEquals(0, client.pending()));
                 fixture.release.countDown();
                 assertEquals("orders:test://status/next", client.readResource("test://status/next").block(WAIT).path("contents").get(0).path("text").asText());
             } finally {

@@ -2,6 +2,11 @@
 
 ### API Changes
 
+- The planned later Apollo cutover retains the `apollo` type, stored keys and
+  `ApolloPathConstants` compatibility shim (#7599). It must not merge in the
+  deprecation release; the preceding released cycle and external publication
+  remain required. See [the migration guide](docs/plugin-store-apollo.md).
+
 - WASM loaders support opt-in startup execution deadlines and per-instance linear-memory
   ceilings. Defaults remain disabled. Timed execution owns bounded workers, propagates
   interruption and replaces interrupted instances after physical exit. See
