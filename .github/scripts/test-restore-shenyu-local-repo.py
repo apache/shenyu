@@ -21,6 +21,7 @@ import subprocess
 import tarfile
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 SCRIPT = Path(__file__).with_name("restore-shenyu-local-repo.sh").resolve()
@@ -35,6 +36,9 @@ class RestoreRepositoryTest(unittest.TestCase):
                 current = artifact / "org/apache/shenyu/module/2.7.3-SNAPSHOT"
                 current.mkdir(parents=True)
                 (current / "module.jar").write_text("current")
+                with zipfile.ZipFile(artifact / "maven-wrapper.jar", "w") as launcher:
+                    launcher.writestr("org/apache/maven/wrapper/MavenWrapperMain.class", "launcher")
+                project = root / "project"
                 if archived:
                     with tarfile.open(artifact / "repository.tar.gz", "w:gz") as archive:
                         archive.add(artifact / "org", arcname="org")
@@ -44,13 +48,36 @@ class RestoreRepositoryTest(unittest.TestCase):
                 previous = repository / "org/apache/shenyu/stale"
                 previous.mkdir(parents=True)
                 (previous / "old.jar").write_text("stale")
-                result = subprocess.run(["bash", str(SCRIPT), str(artifact), str(repository)],
+                result = subprocess.run(["bash", str(SCRIPT), str(artifact), str(repository), str(project)],
                                         env={**os.environ, "RUNNER_TEMP": str(root)}, capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual((repository / "org/apache/shenyu/module/2.7.3-SNAPSHOT/module.jar").read_text(), "current")
                 self.assertFalse(previous.exists())
                 self.assertFalse(list(repository.rglob("shenyu.backup*")))
                 self.assertEqual(len(list(root.glob("shenyu-m2-previous.*/shenyu/stale/old.jar"))), 1)
+                self.assertEqual((project / ".mvn/wrapper/maven-wrapper.jar").read_bytes(),
+                                 (artifact / "maven-wrapper.jar").read_bytes())
+
+    def test_invalid_launcher_preserves_existing_repository_and_wrapper(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            artifact = root / "artifact"
+            (artifact / "org/apache/shenyu").mkdir(parents=True)
+            (artifact / "maven-wrapper.jar").write_text("incomplete download")
+            project = root / "project"
+            launcher = project / ".mvn/wrapper/maven-wrapper.jar"
+            launcher.parent.mkdir(parents=True)
+            launcher.write_text("existing launcher")
+            repository = root / "repository"
+            previous = repository / "org/apache/shenyu/old.jar"
+            previous.parent.mkdir(parents=True)
+            previous.write_text("existing artifact")
+            result = subprocess.run(["bash", str(SCRIPT), str(artifact), str(repository), str(project)],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("wrapper artifact", result.stderr)
+            self.assertEqual(launcher.read_text(), "existing launcher")
+            self.assertEqual(previous.read_text(), "existing artifact")
 
     def test_missing_artifact_fails_before_changing_the_repository(self):
         with tempfile.TemporaryDirectory() as temporary:

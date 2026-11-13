@@ -130,7 +130,7 @@ public final class ShenyuDictControllerTest {
         when(shenyuDictMapper.existed(shenyuDictDTO.getId())).thenReturn(true);
         
         given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(shenyuDictDTO)))
                 .andExpect(status().isOk())

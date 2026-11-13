@@ -23,6 +23,8 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SpanExporter;
 import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
 import org.apache.shenyu.plugin.api.tracing.TraceContextPropagator;
 import org.apache.shenyu.plugin.tracing.TracingConstants;
@@ -61,7 +63,9 @@ public class W3cTraceContextPropagatorTest {
 
     @BeforeEach
     public void setUp() {
-        this.tracerProvider = SdkTracerProvider.builder().build();
+        this.tracerProvider = SdkTracerProvider.builder()
+                .addSpanProcessor(SimpleSpanProcessor.create(SpanExporter.composite()))
+                .build();
         this.tracer = tracerProvider.get(TracingConstants.INSTRUMENTATION_NAME);
     }
 
