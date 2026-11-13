@@ -25,6 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
+import org.apache.shenyu.admin.exception.ShenyuAdminException;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
 import org.apache.shenyu.admin.mapper.RuleMapper;
@@ -258,27 +259,6 @@ public class RuleServiceImpl implements RuleService {
 
     private void validateCanaryAndStickyConfig(final String selectorId, final String handle) {
         RuleImportValidator.validateCanaryAndStickyConfig(selectorMapper, pluginMapper, shenyuDictMapper, selectorId, handle);
-        if (StringUtils.isBlank(handle)) {
-            return;
-        }
-        SelectorDO selector = selectorMapper.selectById(selectorId);
-        if (Objects.isNull(selector)) {
-            return;
-        }
-        PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
-        if (Objects.isNull(plugin) || !PluginEnum.DIVIDE.getName().equals(plugin.getName())) {
-            return;
-        }
-        try {
-            DivideRuleHandle divide = CanaryConfigValidator.parseHandle(handle);
-            if (Objects.nonNull(divide.getCanary())) {
-                CanaryConfigValidator.validateExtensions(divide.getCanary(),
-                        name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
-            }
-            StickySessionConfigValidator.validate(divide.getSticky());
-        } catch (IllegalArgumentException ex) {
-            throw new ShenyuAdminException(ex.getMessage(), ex);
-        }
     }
 
     private void validateRulePluginUnchanged(final RuleDO before, final String targetSelectorId) {
@@ -295,15 +275,6 @@ public class RuleServiceImpl implements RuleService {
         }
         if (!Objects.equals(currentSelector.getPluginId(), targetSelector.getPluginId())) {
             throw new ShenyuAdminException("a rule cannot be moved to a selector of another plugin");
-        }
-    }
-
-    private void validateCanaryDictionary(final String type, final String name) {
-        boolean supported = shenyuDictMapper.findByType(type).stream()
-                .filter(dict -> Boolean.TRUE.equals(dict.getEnabled()))
-                .map(ShenyuDictDO::getDictValue).anyMatch(name::equals);
-        if (!supported) {
-            throw new IllegalArgumentException("Unsupported Canary " + type + ": " + name);
         }
     }
 

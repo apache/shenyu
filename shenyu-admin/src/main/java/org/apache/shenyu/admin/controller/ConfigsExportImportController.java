@@ -20,9 +20,9 @@ package org.apache.shenyu.admin.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.model.dto.SelectorExportDTO;
 import org.apache.shenyu.admin.model.enums.PreviewTokenCheckResult;
 import org.apache.shenyu.admin.model.result.ConfigsImportWarning;
-import org.apache.shenyu.admin.model.dto.SelectorExportDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.ConfigsService;
 import org.apache.shenyu.admin.service.NamespaceService;
@@ -44,8 +44,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -88,8 +88,7 @@ public class ConfigsExportImportController {
     public ConfigsExportImportController(final ConfigsService configsService,
                                          final SyncDataService syncDataService,
                                          final NamespaceService namespaceService,
-                                         final SelectiveConfigsExportService selectiveConfigsExportService) {
-                                         final NamespaceService namespaceService,
+                                         final SelectiveConfigsExportService selectiveConfigsExportService,
                                          final ConfigsImportPreviewService previewService) {
         this.configsService = configsService;
         this.syncDataService = syncDataService;
