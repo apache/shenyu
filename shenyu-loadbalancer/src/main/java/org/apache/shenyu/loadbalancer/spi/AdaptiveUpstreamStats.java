@@ -19,6 +19,10 @@ package org.apache.shenyu.loadbalancer.spi;
 
 import org.apache.shenyu.loadbalancer.entity.UpstreamIdentity;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalLong;
@@ -44,11 +48,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * activity timestamp used for retention, but never the effective-sample timestamp
  * that drives the decay of the next latency-bearing observation.</p>
  *
- * <p>The map is bounded: once it holds more than {@link #PRUNE_THRESHOLD} entries a
- * selection prunes the identities whose last feedback is older than
- * {@link #IDLE_MILLIS}, so churned upstreams cannot accumulate indefinitely. All
- * timing is passed in by the caller, which keeps the scoring deterministic under
- * test.</p>
+ * <p>The map is bounded by amortized maintenance: once it holds more than
+ * {@link #PRUNE_THRESHOLD} entries, selections drive a prune that drops identities
+ * without feedback for {@link #IDLE_MILLIS}. Maintenance runs at most once per
+ * {@link #MAINTENANCE_INTERVAL_MILLIS} and inspects at most
+ * {@link #MAINTENANCE_SCAN_BUDGET} entries per run, so a hot set above the threshold
+ * never pays a whole-map sweep per selection. Once triggered, maintenance keeps
+ * running across windows until a full scan cycle completes without pruning anything,
+ * so expired entries are drained even after the map shrinks below the threshold.
+ * Above the hard capacity
+ * {@link #MAX_TRACKED_IDENTITIES} a full idle sweep runs instead, and any remaining
+ * excess is evicted oldest-activity-first: statistics are only a scoring cache, so
+ * eviction merely returns a node to the cold-start comparison, while in-flight
+ * reservations live on the upstream itself and are never touched. All timing is
+ * passed in by the caller, which keeps the scoring deterministic under test.</p>
  */
 public class AdaptiveUpstreamStats {
 
@@ -87,7 +100,36 @@ public class AdaptiveUpstreamStats {
      */
     public static final int PRUNE_THRESHOLD = 256;
 
+    /**
+     * Minimum gap between two maintenance runs; selections in between pay only the
+     * size check, so a hot set above the threshold is not swept on every selection.
+     */
+    public static final long MAINTENANCE_INTERVAL_MILLIS = 10_000L;
+
+    /**
+     * Maximum number of entries inspected by one incremental maintenance run; the
+     * scan cursor resumes where the previous run stopped.
+     */
+    public static final int MAINTENANCE_SCAN_BUDGET = 64;
+
+    /**
+     * Hard capacity of the registry. Beyond it a full idle sweep runs regardless of
+     * the maintenance interval, and any remaining excess is evicted
+     * oldest-activity-first so retained state stays bounded under discovery churn.
+     */
+    public static final int MAX_TRACKED_IDENTITIES = 4096;
+
     private final Map<UpstreamIdentity, Stats> stats = new ConcurrentHashMap<>();
+
+    private volatile boolean maintenancePending;
+
+    private long lastMaintenanceMillis = Long.MIN_VALUE;
+
+    private Iterator<Map.Entry<UpstreamIdentity, Stats>> scanCursor;
+
+    private int cyclePruned;
+
+    private int lastScanCount;
 
     /**
      * Record one classified attempt. The elapsed time is the caller's own
@@ -144,20 +186,96 @@ public class AdaptiveUpstreamStats {
     }
 
     /**
-     * Amortized prune, called from the selection path: only runs a scan once the map
-     * outgrew its threshold, and then drops identities without feedback for
-     * {@link #IDLE_MILLIS}.
+     * Amortized prune, called from the selection path (both the singleton fast path
+     * and the multi-candidate comparison): only runs once the map outgrew its
+     * threshold, then drops identities without feedback for {@link #IDLE_MILLIS}
+     * under the documented work and frequency bounds.
      *
      * @param nowMillis the selection time
      * @return the number of pruned identities
      */
     public int pruneIfNeeded(final long nowMillis) {
-        if (stats.size() <= PRUNE_THRESHOLD) {
+        if (stats.size() <= PRUNE_THRESHOLD && !maintenancePending) {
             return 0;
         }
+        return maintain(nowMillis);
+    }
+
+    private synchronized int maintain(final long nowMillis) {
         int before = stats.size();
-        stats.entrySet().removeIf(entry -> nowMillis - entry.getValue().lastFeedbackMillis() > IDLE_MILLIS);
+        if (before > PRUNE_THRESHOLD) {
+            maintenancePending = true;
+        }
+        if (!maintenancePending) {
+            return 0;
+        }
+        lastScanCount = 0;
+        if (before > MAX_TRACKED_IDENTITIES) {
+            sweepIdle(nowMillis);
+            evictOldestBeyondCapacity();
+            maintenancePending = stats.size() > PRUNE_THRESHOLD;
+            lastMaintenanceMillis = nowMillis;
+        } else if (maintenanceDue(nowMillis)) {
+            boolean cycleCompleted = scanBudgeted(nowMillis);
+            if (cycleCompleted) {
+                // one full inspection cycle is done; stay armed while the map still
+                // outgrows the threshold or this cycle pruned something (entries may
+                // have expired after their inspection), otherwise the drain is done
+                maintenancePending = stats.size() > PRUNE_THRESHOLD || cyclePruned > 0;
+            }
+            // only an actual run advances the gate; a skipped call must not push the
+            // next eligible maintenance further into the future
+            lastMaintenanceMillis = nowMillis;
+        }
         return before - stats.size();
+    }
+
+    private boolean maintenanceDue(final long nowMillis) {
+        // the sentinel forces the first run; a backward clock also re-arms the gate
+        // instead of overflowing the subtraction into a negative gap
+        return lastMaintenanceMillis == Long.MIN_VALUE || nowMillis < lastMaintenanceMillis
+                || nowMillis - lastMaintenanceMillis >= MAINTENANCE_INTERVAL_MILLIS;
+    }
+
+    private boolean scanBudgeted(final long nowMillis) {
+        if (Objects.isNull(scanCursor) || !scanCursor.hasNext()) {
+            scanCursor = stats.entrySet().iterator();
+            cyclePruned = 0;
+        }
+        int inspected = 0;
+        while (inspected < MAINTENANCE_SCAN_BUDGET && scanCursor.hasNext()) {
+            Map.Entry<UpstreamIdentity, Stats> entry = scanCursor.next();
+            inspected++;
+            Stats observed = entry.getValue();
+            if (nowMillis - observed.lastFeedbackMillis() > IDLE_MILLIS) {
+                // conditional remove: a feedback recorded since the inspection keeps
+                // its fresh record instead of being dropped by this maintenance
+                if (stats.remove(entry.getKey(), observed)) {
+                    cyclePruned++;
+                }
+            }
+        }
+        lastScanCount = inspected;
+        return !scanCursor.hasNext();
+    }
+
+    private void sweepIdle(final long nowMillis) {
+        stats.entrySet().removeIf(entry -> nowMillis - entry.getValue().lastFeedbackMillis() > IDLE_MILLIS);
+        lastScanCount = stats.size();
+        scanCursor = null;
+    }
+
+    private void evictOldestBeyondCapacity() {
+        int excess = stats.size() - MAX_TRACKED_IDENTITIES;
+        if (excess <= 0) {
+            return;
+        }
+        List<Map.Entry<UpstreamIdentity, Stats>> entries = new ArrayList<>(stats.entrySet());
+        entries.sort(Comparator.comparingLong(entry -> entry.getValue().lastFeedbackMillis()));
+        for (int i = 0; i < excess && i < entries.size(); i++) {
+            Map.Entry<UpstreamIdentity, Stats> entry = entries.get(i);
+            stats.remove(entry.getKey(), entry.getValue());
+        }
     }
 
     /**
@@ -177,6 +295,16 @@ public class AdaptiveUpstreamStats {
      */
     Stats statsOf(final UpstreamIdentity identity) {
         return stats.get(identity);
+    }
+
+    /**
+     * Entries inspected by the last maintenance run; visible for tests asserting the
+     * per-run work bound.
+     *
+     * @return the inspected entry count of the last run
+     */
+    int lastScanCount() {
+        return lastScanCount;
     }
 
     /**
