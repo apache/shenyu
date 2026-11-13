@@ -38,6 +38,11 @@ public final class RecordingPlugin implements ShenyuPlugin {
      */
     public static final String TRANSFORMED_ATTRIBUTE = "contract.transformed";
 
+    /**
+     * Exchange attribute written by the {@link Role#WRAPPER} role after downstream completion.
+     */
+    public static final String WRAPPED_ATTRIBUTE = "contract.wrapped";
+
     private final String name;
 
     private final int order;
@@ -100,6 +105,10 @@ public final class RecordingPlugin implements ShenyuPlugin {
                     exchange.getAttributes().put(TRANSFORMED_ATTRIBUTE, name);
                     chainInvocations.incrementAndGet();
                     return chain.execute(exchange);
+                case WRAPPER:
+                    chainInvocations.incrementAndGet();
+                    return chain.execute(exchange)
+                            .doOnSuccess(ignored -> exchange.getAttributes().put(WRAPPED_ATTRIBUTE, name));
                 case PASS_THROUGH:
                 default:
                     chainInvocations.incrementAndGet();
@@ -131,6 +140,15 @@ public final class RecordingPlugin implements ShenyuPlugin {
     @Override
     public void after(final ServerWebExchange exchange) {
         afterCount.incrementAndGet();
+    }
+
+    /**
+     * Returns the configured role.
+     *
+     * @return role
+     */
+    public Role getRole() {
+        return role;
     }
 
     /**
@@ -201,6 +219,11 @@ public final class RecordingPlugin implements ShenyuPlugin {
          * Mutates the exchange and delegates once to the downstream chain.
          */
         TRANSFORM,
+
+        /**
+         * Decorates the downstream publisher and records completion.
+         */
+        WRAPPER,
 
         /**
          * Completes without delegating to the downstream chain.
