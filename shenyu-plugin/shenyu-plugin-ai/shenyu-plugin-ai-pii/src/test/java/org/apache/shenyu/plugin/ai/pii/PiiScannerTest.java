@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.plugin.ai.pii;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.convert.rule.PiiDetectionHandle;
 import org.apache.shenyu.plugin.ai.pii.handler.PiiDetectionRule;
+import org.apache.shenyu.plugin.ai.pii.profile.OpenAiResponsesProfile;
 import org.apache.shenyu.plugin.ai.pii.profile.PiiTextSlot;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +45,12 @@ public final class PiiScannerTest {
         handle.setDetectors("EMAIL");
         handle.setCustomPatterns("DOMAIN=example\\.com");
         return PiiDetectionRule.compile("rule-1", handle);
+    }
+
+    private static PiiDetectionRule ruleWithEmail() {
+        PiiDetectionHandle handle = new PiiDetectionHandle();
+        handle.setDetectors("EMAIL");
+        return PiiDetectionRule.compile("rule-email", handle);
     }
 
     private static List<PiiTextSlot> slotOf(final StringBuilder value) {
@@ -127,5 +136,26 @@ public final class PiiScannerTest {
         assertEquals("call 13800138000", slot.toString());
         assertEquals(1, outcome.getAudits().size());
         assertEquals("PHONE_CN", outcome.getAudits().get(0).getPiiType());
+    }
+
+    @Test
+    public void testEscapedEmailInToolArgumentsIsRedacted() {
+        // a function_call arguments member is a serialized JSON document: its value encodes the
+        // at-sign as a JSON unicode escape, so the raw member text has no literal at-sign yet the
+        // tool decodes it to alice@example.com; the decoded value must be scanned and redacted
+        String escapedAt = "alice" + '\\' + "u0040example.com";
+        JsonObject functionCall = new JsonObject();
+        functionCall.addProperty("type", "function_call");
+        functionCall.addProperty("name", "send");
+        functionCall.addProperty("arguments", "{\"email\":\"" + escapedAt + "\"}");
+        JsonArray output = new JsonArray();
+        output.add(functionCall);
+        JsonObject root = new JsonObject();
+        root.add("output", output);
+
+        List<PiiTextSlot> slots = new OpenAiResponsesProfile().responseSlots(root);
+        PiiScanner.PiiOutcome outcome = new PiiScanner(ruleWithEmail(), "response").scan(slots);
+        assertTrue(outcome.isChanged());
+        assertEquals("{\"email\":\"<EMAIL>\"}", functionCall.get("arguments").getAsString());
     }
 }
