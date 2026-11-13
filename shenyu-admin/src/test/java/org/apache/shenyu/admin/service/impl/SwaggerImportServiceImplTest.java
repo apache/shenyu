@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import okhttp3.MediaType;
 import okhttp3.Dns;
 import okhttp3.Protocol;
@@ -51,6 +53,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -63,6 +66,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -78,6 +82,22 @@ public class SwaggerImportServiceImplTest {
     private static final String MCP_SWAGGER_JSON = "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"test\",\"version\":\"1.0\"},"
             + "\"servers\":[{\"url\":\"http://localhost:8080\"}],\"paths\":{\"/pets\":{\"get\":{"
             + "\"operationId\":\"listPets\",\"parameters\":[],\"responses\":{\"200\":{\"description\":\"ok\"}}}}}}";
+
+    private static final String MCP_MULTI_OPERATION_JSON = """
+            {"openapi":"3.0.3","info":{"title":"Catalog","version":"1"},
+             "servers":[{"url":"http://localhost:8080"}],"paths":{
+              "/catalog/items":{"get":{"operationId":"listItems","description":"List items",
+                "parameters":[{"name":"page","in":"query","schema":{"type":"integer"}}],
+                "responses":{"200":{"description":"OK"}}}},
+              "/catalog/items/{itemId}":{
+                "get":{"operationId":"getItem","description":"Read item",
+                  "parameters":[{"name":"itemId","in":"path","required":true,"schema":{"type":"string"}}],
+                  "responses":{"200":{"description":"OK"}}},
+                "delete":{"operationId":"deleteItem","description":"Delete item",
+                  "parameters":[{"name":"itemId","in":"path","required":true,"schema":{"type":"string"}}],
+                  "responses":{"204":{"description":"OK"}}}}
+             }}
+            """;
 
     private static final MediaType JSON_UTF_8 = MediaType.parse("application/json; charset=utf-8");
 
@@ -143,6 +163,49 @@ public class SwaggerImportServiceImplTest {
         assertEquals(SYS_DEFAULT_NAMESPACE_ID, captor.getValue().getNamespaceId());
         assertEquals(SYS_DEFAULT_NAMESPACE_ID,
                 captor.getValue().getMetaDataRegisterDTO().getNamespaceId());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    public void importMcpConfigShouldPreserveEachOperation(final boolean reverse) throws IOException {
+        JsonObject document = JsonParser.parseString(MCP_MULTI_OPERATION_JSON).getAsJsonObject();
+        if (reverse) {
+            JsonObject paths = document.getAsJsonObject("paths");
+            JsonObject itemMethods = new JsonObject();
+            itemMethods.add("delete", paths.getAsJsonObject("/catalog/items/{itemId}").get("delete"));
+            itemMethods.add("get", paths.getAsJsonObject("/catalog/items/{itemId}").get("get"));
+            JsonObject reordered = new JsonObject();
+            reordered.add("/catalog/items/{itemId}", itemMethods);
+            reordered.add("/catalog/items", paths.get("/catalog/items"));
+            document.add("paths", reordered);
+        }
+        String json = document.toString();
+        httpUtils.setResponse(response(responseBody(json, json.getBytes(StandardCharsets.UTF_8).length, JSON_UTF_8)));
+
+        service.importMcpConfig(request());
+
+        ArgumentCaptor<McpToolsRegisterDTO> captor = ArgumentCaptor.forClass(McpToolsRegisterDTO.class);
+        verify(mcpService, times(3)).registerMcpTools(captor.capture());
+        Set<String> names = new HashSet<>();
+        for (McpToolsRegisterDTO dto : captor.getAllValues()) {
+            JsonObject generated = JsonParser.parseString(dto.getMcpConfig()).getAsJsonObject();
+            String name = generated.get("name").getAsString();
+            names.add(name);
+            String path = "listItems".equals(name) ? "/catalog/items" : "/catalog/items/{itemId}";
+            final String method = "deleteItem".equals(name) ? "delete" : "get";
+            String parameterName = "listItems".equals(name) ? "page" : "itemId";
+            JsonObject expectedPositions = new JsonObject();
+            expectedPositions.addProperty(parameterName, "listItems".equals(name) ? "query" : "path");
+            JsonObject config = JsonParser.parseString(generated.get("requestConfig").getAsString()).getAsJsonObject();
+            JsonObject template = config.getAsJsonObject("requestTemplate");
+            assertEquals(path, dto.getMetaDataRegisterDTO().getPath(), name);
+            assertEquals(path, template.get("url").getAsString(), name);
+            assertEquals(method, template.get("method").getAsString(), name);
+            assertEquals(expectedPositions, config.get("argsPosition"), name);
+            assertEquals(expectedPositions, template.get("argsPosition"), name);
+            assertEquals(parameterName, generated.getAsJsonArray("parameters").get(0).getAsJsonObject().get("name").getAsString());
+        }
+        assertEquals(Set.of("listItems", "getItem", "deleteItem"), names);
     }
 
     @ParameterizedTest
