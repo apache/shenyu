@@ -19,6 +19,9 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
+import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
+import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +34,7 @@ import java.util.List;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
 
@@ -85,6 +89,27 @@ class DiscoveryUpstreamMapperTest extends AbstractSpringIntegrationTest {
         discoveryUpstreamMapper.update(discoveryUpstreamDO);
         List<DiscoveryUpstreamDO> dos = discoveryUpstreamMapper.selectByIds(Collections.singletonList(discoveryUpstreamDO.getId()));
         assertEquals("2", dos.get(0).getDiscoveryHandlerId());
+    }
+
+    @Test
+    void updateDiscoveryHandlerIdAndUrlWithoutDatabaseId() {
+        DiscoveryUpstreamData upstreamData = GsonUtils.getInstance().fromJson(
+                "{\"url\":\"test\",\"protocol\":\"https://\",\"status\":0,\"weight\":50,\"props\":\"{}\"}", DiscoveryUpstreamData.class);
+        DiscoveryUpstreamDO updated = DiscoveryTransfer.INSTANCE.mapToDo(upstreamData);
+        assertNull(updated.getId());
+        updated.setDiscoveryHandlerId(discoveryUpstreamDO.getDiscoveryHandlerId());
+        updated.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+
+        assertEquals(1, discoveryUpstreamMapper.updateDiscoveryHandlerIdAndUrl(updated));
+
+        DiscoveryUpstreamDO stored = discoveryUpstreamMapper.selectByDiscoveryHandlerIdAndUrl(updated.getDiscoveryHandlerId(), updated.getUpstreamUrl());
+        assertEquals(discoveryUpstreamDO.getId(), stored.getId());
+        assertEquals("https://", stored.getProtocol());
+        assertEquals(0, stored.getUpstreamStatus());
+        assertEquals(50, stored.getWeight());
+        assertEquals("{}", stored.getProps());
+        assertEquals(discoveryUpstreamDO.getDateCreated(), stored.getDateCreated());
+        assertEquals(updated.getDateUpdated(), stored.getDateUpdated());
     }
 
     @Test
