@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.agent.gateway.protocol;
+package org.apache.shenyu.plugin.base.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.OutputFormat;
@@ -32,10 +32,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Request-owned validation against an unchanged, bounded Draft 2020-12 schema.
- * Unsupported or expensive schemas fail closed; no file or network resources load.
+ * Validation against an unchanged, bounded Draft 2020-12 schema. Unsupported or
+ * expensive schemas fail closed; no file or network resources load, and the
+ * validated document is never mutated.
+ *
+ * <p>The dialect is pinned to Draft 2020-12 with an explicit keyword allow-list,
+ * hard budgets for schema and document size/depth, composition depth 2 and array
+ * length 128, so an operator-supplied schema or an untrusted document can never
+ * drive unbounded work or fetch remote references.</p>
  */
-final class AgentMcpOutputSchemaValidator {
+public final class BoundedJsonSchemaValidator {
 
     private static final String DIALECT = "https://json-schema.org/draft/2020-12/schema";
 
@@ -62,7 +68,7 @@ final class AgentMcpOutputSchemaValidator {
 
     private final Schema schema;
 
-    AgentMcpOutputSchemaValidator(final JsonNode outputSchema) {
+    public BoundedJsonSchemaValidator(final JsonNode outputSchema) {
         if (Objects.isNull(outputSchema) || !outputSchema.isObject()) {
             throw invalid();
         }
@@ -76,7 +82,12 @@ final class AgentMcpOutputSchemaValidator {
         schema = registry.getSchema(owned);
     }
 
-    static SchemaRegistry localRegistry() {
+    /**
+     * The bounded, network-isolated schema registry used by every instance.
+     *
+     * @return the registry restricted to the Draft 2020-12 meta-schemas
+     */
+    public static SchemaRegistry localRegistry() {
         return SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12, builder -> builder
                 .schemaCacheEnabled(false)
                 .schemaLoader(SchemaLoader.builder().fetchRemoteResources(false)
@@ -84,13 +95,31 @@ final class AgentMcpOutputSchemaValidator {
                 .schemaRegistryConfig(SchemaRegistryConfig.builder().failFast(true).formatAssertionsEnabled(false).build()));
     }
 
-    void validate(final JsonNode structuredContent) {
+    /**
+     * Validate a JSON object document (the structured-content contract of an MCP
+     * tool result). Non-object documents are invalid.
+     *
+     * @param structuredContent the object document to validate
+     */
+    public void validateObject(final JsonNode structuredContent) {
         if (Objects.isNull(structuredContent) || !structuredContent.isObject()) {
             throw invalid();
         }
-        budget(structuredContent, 0, new AtomicInteger(), new AtomicLong(), 2048, 65536);
-        JsonNode validationCopy = structuredContent.deepCopy();
-        if (!schema.validate(validationCopy, OutputFormat.BOOLEAN) || !validationCopy.equals(structuredContent)) {
+        validateValue(structuredContent);
+    }
+
+    /**
+     * Validate any JSON document against the schema.
+     *
+     * @param document the document to validate
+     */
+    public void validateValue(final JsonNode document) {
+        if (Objects.isNull(document) || !document.isValueNode() && !document.isContainerNode()) {
+            throw invalid();
+        }
+        budget(document, 0, new AtomicInteger(), new AtomicLong(), 2048, 65536);
+        JsonNode validationCopy = document.deepCopy();
+        if (!schema.validate(validationCopy, OutputFormat.BOOLEAN) || !validationCopy.equals(document)) {
             throw invalid();
         }
     }
@@ -130,19 +159,19 @@ final class AgentMcpOutputSchemaValidator {
     private void budget(final JsonNode node, final int depth, final AtomicInteger nodes, final AtomicLong characters,
                         final int maximumNodes, final long maximumCharacters) {
         if (depth > 16 || nodes.incrementAndGet() > maximumNodes || node.isPojo() || node.isBinary() || node.isMissingNode()) {
-            throw invalid();
+            throw budgetExceeded();
         }
         if (node.isArray() && node.size() > 128) {
-            throw invalid();
+            throw budgetExceeded();
         }
         if (node.isObject()) {
             node.fieldNames().forEachRemaining(name -> {
                 if (characters.addAndGet(name.length()) > maximumCharacters) {
-                    throw invalid();
+                    throw budgetExceeded();
                 }
             });
         } else if (node.isValueNode() && (node.asText().length() > 4096 || characters.addAndGet(node.asText().length()) > maximumCharacters)) {
-            throw invalid();
+            throw budgetExceeded();
         }
         for (JsonNode child : node) {
             budget(child, depth + 1, nodes, characters, maximumNodes, maximumCharacters);
@@ -150,6 +179,26 @@ final class AgentMcpOutputSchemaValidator {
     }
 
     private IllegalArgumentException invalid() {
-        return new IllegalArgumentException("Tool output schema or filtered result is unsupported or invalid");
+        return new IllegalArgumentException("Schema or document is unsupported by the bounded validator or invalid");
+    }
+
+    private SchemaBudgetExceededException budgetExceeded() {
+        return new SchemaBudgetExceededException("Schema or document exceeds the bounded validator budget");
+    }
+
+    /**
+     * A size or complexity bound of the validator was exceeded. This is not a
+     * schema mismatch: the document may be perfectly valid, just too large for
+     * the bounded validation, so callers treat it as a distinct outcome instead
+     * of a repairable mismatch. Extends {@link IllegalArgumentException} so
+     * existing callers catching that type keep working unchanged.
+     */
+    public static final class SchemaBudgetExceededException extends IllegalArgumentException {
+
+        private static final long serialVersionUID = 1L;
+
+        private SchemaBudgetExceededException(final String message) {
+            super(message);
+        }
     }
 }
