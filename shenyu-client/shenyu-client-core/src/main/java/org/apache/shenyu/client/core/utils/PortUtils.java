@@ -19,6 +19,8 @@ package org.apache.shenyu.client.core.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 
@@ -35,11 +37,19 @@ import java.util.Set;
  */
 public class PortUtils {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PortUtils.class);
+
     /**
      * Guard against malformed context parent chains when walking up to the
      * application context that owns the running web server.
      */
     private static final int MAX_CONTEXT_DEPTH = 8;
+
+    /**
+     * Short, actionable diagnostic for a failed port discovery.
+     */
+    private static final String PORT_NOT_FOUND_MESSAGE =
+            "can not find port automatically, please configure the advertised port (shenyu.client.http.props.port)";
 
     /**
      * Referenced reflectively so this module keeps no compile-time spring-boot dependency.
@@ -80,13 +90,10 @@ public class PortUtils {
         try {
             legacy = findPort(applicationContext.getAutowireCapableBeanFactory());
         } catch (ShenyuException e) {
-            throw new ShenyuException("can not find port automatically: no embedded web server reported a bound port "
-                    + "and no external container connector was detected; configure the advertised port explicitly, "
-                    + "e.g. shenyu.client.http.props.port", e);
+            throw new ShenyuException(PORT_NOT_FOUND_MESSAGE, e);
         }
         if (legacy <= 0) {
-            throw new ShenyuException("can not find port automatically: port discovery resolved the non-positive port "
-                    + legacy + "; configure the advertised port explicitly, e.g. shenyu.client.http.props.port");
+            throw new ShenyuException(PORT_NOT_FOUND_MESSAGE + ", resolved port: " + legacy);
         }
         return legacy;
     }
@@ -177,37 +184,28 @@ public class PortUtils {
      * @return the bound port, or {@code null} when it cannot be observed
      */
     private static Integer findBoundWebServerPort(final ApplicationContext applicationContext) {
-        final Class<?> webServerApplicationContextClass;
         try {
-            webServerApplicationContextClass = Class.forName(WEB_SERVER_APPLICATION_CONTEXT_CLASS_NAME);
-        } catch (ClassNotFoundException e) {
-            //spring-boot web classes are not on the classpath: nothing to probe
-            return null;
-        }
-        final Class<?> webServerClass;
-        try {
-            webServerClass = Class.forName(WEB_SERVER_CLASS_NAME);
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
-        ApplicationContext current = applicationContext;
-        int depth = 0;
-        while (Objects.nonNull(current) && depth++ < MAX_CONTEXT_DEPTH) {
-            if (webServerApplicationContextClass.isInstance(current)) {
-                try {
+            final Class<?> webServerApplicationContextClass = Class.forName(WEB_SERVER_APPLICATION_CONTEXT_CLASS_NAME);
+            final Class<?> webServerClass = Class.forName(WEB_SERVER_CLASS_NAME);
+            ApplicationContext current = applicationContext;
+            for (int depth = 0; Objects.nonNull(current) && depth < MAX_CONTEXT_DEPTH; depth++) {
+                if (webServerApplicationContextClass.isInstance(current)) {
                     final Object webServer = webServerApplicationContextClass
                             .getMethod("getWebServer").invoke(current);
                     if (Objects.nonNull(webServer)) {
                         return (Integer) webServerClass.getMethod("getPort").invoke(webServer);
                     }
-                } catch (ReflectiveOperationException ignored) {
-                    //fall through to legacy discovery in the caller
-                    return null;
                 }
+                current = current.getParent();
             }
-            current = current.getParent();
+            return null;
+        } catch (ClassNotFoundException e) {
+            LOG.debug("spring-boot web server classes are absent, falling back to legacy port discovery", e);
+            return null;
+        } catch (ReflectiveOperationException e) {
+            LOG.warn("can not read the port bound by the embedded web server, falling back to legacy port discovery", e);
+            return null;
         }
-        return null;
     }
 
 }
