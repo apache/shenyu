@@ -56,7 +56,7 @@ public final class RequestUrlUtils {
         }
         URI uri = exchange.getRequest().getURI();
         if (StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")
-                || StringUtils.isNotEmpty(uri.getRawPath()) && uri.getRawPath().contains("%")) {
+                || StringUtils.isNotEmpty(path) && path.contains("%")) {
             path = path + "?" + RequestQueryCodecUtil.getCodecQuery(exchange);
             return UriComponentsBuilder.fromUriString(path).build(true).toUri();
         } else {
