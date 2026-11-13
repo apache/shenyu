@@ -71,9 +71,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -193,8 +196,14 @@ public final class UpstreamCheckServiceTest {
 
     @Test
     public void testSubmit() {
-        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false));
+        ScheduledThreadPoolExecutor executor = mock(ScheduledThreadPoolExecutor.class);
+        // Complete publication before asserting the cache; an empty published entry is removed.
+        doAnswer(invocation -> {
+            invocation.<Runnable>getArgument(0).run();
+            return null;
+        }).when(executor).execute(any(Runnable.class));
         ReflectionTestUtils.setField(upstreamCheckService, "executor", executor);
+        UpstreamCheckService.removeByKey(MOCK_SELECTOR_NAME_OTHER);
         final DivideUpstream divideUpstream = DivideUpstream.builder()
                 .upstreamUrl("divide-upstream-60")
                 .weight(60)
@@ -211,12 +220,12 @@ public final class UpstreamCheckServiceTest {
 
     private void testSubmitOnce(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
-        assertTrue(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
+        assertEquals(Collections.singletonList(divideUpstream), upstreamMap.get(MOCK_SELECTOR_NAME_OTHER));
     }
 
     private void testSubmitDeleted(final DivideUpstream divideUpstream) {
         upstreamCheckService.submit(MOCK_SELECTOR_NAME_OTHER, divideUpstream);
-        assertFalse(upstreamMap.get(MOCK_SELECTOR_NAME_OTHER).contains(divideUpstream));
+        assertFalse(upstreamMap.containsKey(MOCK_SELECTOR_NAME_OTHER));
     }
 
     @Test

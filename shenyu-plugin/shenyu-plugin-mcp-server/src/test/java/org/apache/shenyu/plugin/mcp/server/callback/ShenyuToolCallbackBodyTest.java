@@ -212,7 +212,7 @@ class ShenyuToolCallbackBodyTest {
     }
 
     private ToolExample readExample(final String document, final String name) throws IOException {
-        final Matcher blocks = Pattern.compile("```json\\n(.*?)\\n```", Pattern.DOTALL)
+        final Matcher blocks = Pattern.compile("```json\\R(.*?)\\R```", Pattern.DOTALL)
                 .matcher(Files.readString(Path.of(document)));
         while (blocks.find()) {
             final JsonObject block = JsonParser.parseString(blocks.group(1)).getAsJsonObject();
