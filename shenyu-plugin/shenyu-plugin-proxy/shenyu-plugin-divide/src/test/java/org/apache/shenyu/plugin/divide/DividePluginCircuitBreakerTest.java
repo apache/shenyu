@@ -104,6 +104,10 @@ public final class DividePluginCircuitBreakerTest {
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(new DivideRuleHandle()));
         DividePluginDataHandler dividePluginDataHandler = new DividePluginDataHandler();
         dividePluginDataHandler.handlerRule(ruleData);
+        // the mock chain is the failure injection point: with zero retries the divide
+        // terminal recording stays active, so these tests keep exercising breaker
+        // attribution against the whole (single-attempt) downstream chain
+        DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).setRetry(0);
         dividePluginDataHandler.handlerSelector(selectorData);
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(applicationContext);
@@ -325,6 +329,10 @@ public final class DividePluginCircuitBreakerTest {
         assertEquals(2, (Integer) exchange.getAttribute(Constants.HTTP_RETRY));
         assertEquals("failover", exchange.getAttribute(Constants.RETRY_STRATEGY));
         assertEquals(SELECTOR_ID, exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID));
+        // with retries enabled the initial breaker key is published for the HTTP client,
+        // which records each attempt's outcome itself (#8156)
+        assertEquals(breakerKey, exchange.getAttribute(UpstreamCircuitBreaker.INITIAL_BREAKER_KEY));
+        handle.setRetry(0);
         UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
         assertFalse(UpstreamCircuitBreaker.getInstance().isBlocking(breakerKey));
         UpstreamCircuitBreaker.getInstance().recordFailure(breakerKey);
