@@ -128,6 +128,7 @@ public class GrpcPluginTest {
         clientCacheMap.put("grpcId", mockClient);
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
+        when(data.getId()).thenReturn("ruleId");
 
         reactor.core.Disposable subscription = grpcPlugin.doExecute(exchange, chain, selector, data).subscribe();
         subscription.dispose();
@@ -147,6 +148,7 @@ public class GrpcPluginTest {
         putClient(new ShenyuGrpcClient(channel));
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
+        when(data.getId()).thenReturn("ruleId");
 
         StepVerifier.create(grpcPlugin.doExecute(exchange, chain, selector, data)).thenCancel().verify();
 
@@ -208,12 +210,16 @@ public class GrpcPluginTest {
                     CallOptions callOptions = invocation.getArgument(1);
                     assertNotNull(callOptions);
                     assertNotNull(callOptions.getDeadline());
+                    assertEquals("grpcId", callOptions.getOption(GrpcConstants.GRPC_SELECTOR_ID_OPTION));
+                    assertEquals("ruleId", callOptions.getOption(GrpcConstants.GRPC_RULE_ID_OPTION));
+                    assertEquals(expectedRemoteAddress, callOptions.getOption(GrpcConstants.GRPC_REMOTE_ADDRESS_OPTION));
                     return CompletableFuture.completedFuture(response);
                 });
         clientCacheMap.put("grpcId", mockClient);
 
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
+        when(data.getId()).thenReturn("ruleId");
         StepVerifier.create(grpcPlugin.doExecute(exchange, chain, selector, data)).expectSubscription().verifyComplete();
     }
 

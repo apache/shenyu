@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.context;
 
+import io.grpc.CallOptions;
 import io.grpc.Context;
 
 /**
@@ -38,6 +39,21 @@ public interface GrpcConstants {
      * grpc remote address.
      */
     Context.Key<String> GRPC_REMOTE_ADDRESS = Context.key("grpcRemoteAddress");
+
+    /**
+     * grpc selector id carried with each call so delayed picks retain request context.
+     */
+    CallOptions.Key<String> GRPC_SELECTOR_ID_OPTION = CallOptions.Key.create("grpcSelectorId");
+
+    /**
+     * grpc rule id carried with each call so delayed picks retain request context.
+     */
+    CallOptions.Key<String> GRPC_RULE_ID_OPTION = CallOptions.Key.create("grpcRuleId");
+
+    /**
+     * grpc remote address carried with each call so delayed picks retain request context.
+     */
+    CallOptions.Key<String> GRPC_REMOTE_ADDRESS_OPTION = CallOptions.Key.create("grpcRemoteAddress");
 
     /**
      * selectorCachedHandle.
