@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import com.google.gson.JsonElement;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
+import org.apache.shenyu.common.dto.WebsocketSyncFrameV2;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
 
 import java.util.Objects;
@@ -92,15 +94,29 @@ public final class InitialSyncState {
      * @param frame frame
      * @param apply synchronous configuration application
      */
-    public synchronized void accept(final WebsocketSyncFrame frame, final Consumer<String> apply) {
-        if (failed || ended || Objects.isNull(requestId) || !Objects.equals(requestId, frame.getRequestId())) {
+    public void accept(final WebsocketSyncFrame frame, final Consumer<String> apply) {
+        accept(frame.getRequestId(), frame.getSequence(), frame.getPayload(), apply);
+    }
+
+    /**
+     * Apply a structured frame before acknowledging it.
+     * @param frame frame
+     * @param apply synchronous configuration application over the parsed payload
+     */
+    public void accept(final WebsocketSyncFrameV2 frame, final Consumer<JsonElement> apply) {
+        accept(frame.getRequestId(), frame.getSequence(), frame.getPayload(), apply);
+    }
+
+    private synchronized <T> void accept(final String frameRequestId, final int frameSequence,
+                                         final T payload, final Consumer<T> apply) {
+        if (failed || ended || Objects.isNull(requestId) || !Objects.equals(requestId, frameRequestId)) {
             return;
         }
-        if (System.nanoTime() - startedAt >= TimeUnit.SECONDS.toNanos(60) || frame.getSequence() != sequence) {
+        if (System.nanoTime() - startedAt >= TimeUnit.SECONDS.toNanos(60) || frameSequence != sequence) {
             failed = true;
             return;
         }
-        if (Objects.isNull(frame.getPayload())) {
+        if (Objects.isNull(payload)) {
             ended = true;
             completeIfApplied();
             return;
@@ -109,7 +125,7 @@ public final class InitialSyncState {
             pending++;
             sequence++;
             String attempt = requestId;
-            InitialSyncApplication.run(() -> apply.accept(frame.getPayload())).whenComplete((ignored, error) -> applied(attempt, error));
+            InitialSyncApplication.run(() -> apply.accept(payload)).whenComplete((ignored, error) -> applied(attempt, error));
         } catch (RuntimeException ex) {
             failed = true;
             throw ex;
