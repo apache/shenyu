@@ -38,6 +38,8 @@ public final class UpstreamIdentity {
 
     private final String leastActiveKey;
 
+    private final String markerKey;
+
     UpstreamIdentity(final String protocol, final String url, final String group, final String version, final String domain) {
         this.protocol = protocol;
         this.url = url;
@@ -46,6 +48,7 @@ public final class UpstreamIdentity {
         boolean hasVariant = Objects.nonNull(group) || Objects.nonNull(version);
         this.hashKey = hasVariant ? GsonUtils.getInstance().toJson(new String[]{protocol, url, group, version}) : url;
         this.leastActiveKey = hasVariant ? GsonUtils.getInstance().toJson(new String[]{domain, group, version}) : domain;
+        this.markerKey = GsonUtils.getInstance().toJson(new String[]{protocol, url, group, version});
     }
 
     /**
@@ -65,7 +68,7 @@ public final class UpstreamIdentity {
      * @return the full identity marker
      */
     public String markerKey() {
-        return GsonUtils.getInstance().toJson(new String[]{protocol, url, group, version});
+        return markerKey;
     }
 
     /**
