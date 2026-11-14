@@ -1,0 +1,123 @@
+{
+  "statement": "Canonical equality (RFC 8785) shows that two documents have the same canonical bytes; it is not a proof of schema-semantic equivalence, and canonical inequality is not a compatibility verdict.",
+  "pairs": [
+    {
+      "before": "rfc8785/numbers/trailing-zero.before.json",
+      "after": "rfc8785/numbers/trailing-zero.after.json",
+      "canonical": "rfc8785/numbers/trailing-zero.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2 sample (4.50 -> 4.5)"
+    },
+    {
+      "before": "rfc8785/numbers/exponent-letter-case.before.json",
+      "after": "rfc8785/numbers/exponent-letter-case.after.json",
+      "canonical": "rfc8785/numbers/exponent-letter-case.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2 sample (1E30 -> 1e+30)"
+    },
+    {
+      "before": "rfc8785/numbers/small-exponent.before.json",
+      "after": "rfc8785/numbers/small-exponent.after.json",
+      "canonical": "rfc8785/numbers/small-exponent.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2 sample (2e-3 -> 0.002)"
+    },
+    {
+      "before": "rfc8785/numbers/integral-fraction.before.json",
+      "after": "rfc8785/numbers/integral-fraction.after.json",
+      "canonical": "rfc8785/numbers/integral-fraction.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2.3 via ECMA-262 Number::toString (1.0 -> 1)"
+    },
+    {
+      "before": "rfc8785/numbers/negative-zero.before.json",
+      "after": "rfc8785/numbers/negative-zero.after.json",
+      "canonical": "rfc8785/numbers/negative-zero.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2.3 via ECMA-262 Number::toString (-0 -> 0)"
+    },
+    {
+      "before": "rfc8785/numbers/exponent-not-padded.before.json",
+      "after": "rfc8785/numbers/exponent-not-padded.after.json",
+      "canonical": "rfc8785/numbers/exponent-not-padded.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2.3 via ECMA-262 Number::toString (1e-7, exponent not zero-padded)"
+    },
+    {
+      "before": "rfc8785/numbers/two-pow-53-plus-one.before.json",
+      "after": "rfc8785/numbers/two-pow-53-plus-one.after.json",
+      "canonical": "rfc8785/numbers/two-pow-53-plus-one.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2.3: numbers are IEEE 754 doubles, 2^53+1 is held as 2^53"
+    },
+    {
+      "before": "rfc8785/numbers/appendix-b.before.json",
+      "after": "rfc8785/numbers/appendix-b.after.json",
+      "canonical": "rfc8785/numbers/appendix-b.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 Appendix B (the 24 rows with a canonical form; NaN and Infinity excluded)"
+    },
+    {
+      "before": "rfc8785/strings/escapes.before.json",
+      "after": "rfc8785/strings/escapes.after.json",
+      "canonical": "rfc8785/strings/escapes.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.2.2 (string escaping; solidus from the section 3.2.2 sample)"
+    },
+    {
+      "before": "rfc8785/key-order/unicode-seven-keys.before.json",
+      "after": "rfc8785/key-order/unicode-seven-keys.after.json",
+      "canonical": "rfc8785/key-order/unicode-seven-keys.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.3 (sorting test data; UTF-16 code unit order)"
+    },
+    {
+      "before": "rfc8785/key-order/empty-and-prefix.before.json",
+      "after": "rfc8785/key-order/empty-and-prefix.after.json",
+      "canonical": "rfc8785/key-order/empty-and-prefix.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.3 (\"\" < \"a\" < \"aa\" < \"ab\")"
+    },
+    {
+      "before": "rfc8785/key-order/ascii-descriptor.before.json",
+      "after": "rfc8785/key-order/ascii-descriptor.after.json",
+      "canonical": "rfc8785/key-order/ascii-descriptor.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": true,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "RFC 8785 section 3.2.3 (member order is not part of the canonical form); the ASCII tools/list descriptor case"
+    },
+    {
+      "before": "rfc8785/negative-control/required-added.before.json",
+      "after": "rfc8785/negative-control/required-added.after.json",
+      "canonical": "rfc8785/negative-control/required-added.canonical.json",
+      "after_canonical": "rfc8785/negative-control/required-added.after.canonical.json",
+      "raw_equal": false,
+      "canonical_equal": false,
+      "semantic_equivalence_proof": false,
+      "rfc8785": "Negative control: a real schema change (a new required field) must change the canonical bytes"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "tools": [
+    {
+      "name": "rfc8785_key_order_unicode",
+      "description": "Synthetic fixture: the RFC 8785 seven-key sorting data as property names.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "ö": {
+            "type": "string",
+            "description": "Latin Small Letter O With Diaeresis"
+          },
+          "😀": {
+            "type": "string",
+            "description": "Emoji: Grinning Face"
+          },
+          "דּ": {
+            "type": "string",
+            "description": "Hebrew Letter Dalet With Dagesh"
+          },
+          "€": {
+            "type": "string",
+            "description": "Euro Sign"
+          },
+          "": {
+            "type": "string",
+            "description": "Control"
+          },
+          "1": {
+            "type": "string",
+            "description": "One"
+          },
+          "\r": {
+            "type": "string",
+            "description": "Carriage Return"
+          }
+        }
+      }
+    }
+  ]
+}

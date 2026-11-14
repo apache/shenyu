@@ -1,0 +1,1 @@
+{"tools":[{"description":"Synthetic fixture: only the number spelling differs.","inputSchema":{"properties":{"amount":{"minimum":0.002,"type":"number"}},"required":["amount"],"type":"object"},"name":"rfc8785_numbers_small_exponent"}]}
