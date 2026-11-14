@@ -1114,11 +1114,6 @@ public interface Constants {
     String OUTPUT_TOKENS = "output_tokens";
 
     /**
-     * The input tokens reported by the Anthropic Messages protocol, the counterpart of COMPLETION_TOKENS.
-     */
-    String INPUT_TOKENS = "input_tokens";
-
-    /**
      * The usage object of the Gemini generateContent protocol.
      */
     String USAGE_METADATA = "usageMetadata";
