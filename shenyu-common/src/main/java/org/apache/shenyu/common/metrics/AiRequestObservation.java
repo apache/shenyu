@@ -53,6 +53,18 @@ public final class AiRequestObservation {
 
     private boolean completed;
 
+    /**
+     * Inferred peer-disconnect evidence written by the response write path. Guarded by the
+     * observation monitor like every other mutable field, and cleared when a new attempt starts so
+     * a disconnect observed during one attempt never classifies a later attempt.
+     */
+    private boolean downstreamDisconnected;
+
+    /**
+     * The response write path itself terminated with an error. Guarded by the observation monitor.
+     */
+    private boolean downstreamWriteFailed;
+
     public AiRequestObservation(final AiCallObserver observer, final AgentRequestContext context) {
         this(observer, context, AgentRuntimeMetrics.NOOP);
     }
@@ -107,6 +119,33 @@ public final class AiRequestObservation {
     }
 
     /**
+     * Record a real downstream peer disconnect observed while the response body was written.
+     *
+     * <p>Inferred evidence, deliberately kept apart from the assigned HTTP status and from any
+     * classified failure: it only upgrades a request to {@code CANCELLED} when the response had
+     * already been committed as successful and nothing failed, so an upstream error or a forwarded
+     * 4xx/5xx is never masked by a client that goes away. Ignored once the request is settled, and
+     * cleared for every new attempt.</p>
+     */
+    public synchronized void downstreamDisconnected() {
+        if (!completed) {
+            downstreamDisconnected = true;
+        }
+    }
+
+    /**
+     * Record that the response write path terminated with an error.
+     *
+     * <p>Only the classification is retained, never the throwable or its text. A write failure
+     * outranks a normal completion, so a partially delivered body is never reported as success.</p>
+     */
+    public synchronized void downstreamWriteFailed() {
+        if (!completed) {
+            downstreamWriteFailed = true;
+        }
+    }
+
+    /**
      * Allocate state exactly when an upstream attempt starts, not when preparing it.
      * @param target trusted context updated with the actual selected target
      * @param kind reason for the attempt
@@ -123,6 +162,9 @@ public final class AiRequestObservation {
             return ignored;
         }
         updateContext(target);
+        // a new attempt owns a new response write path, so write evidence never carries over
+        downstreamDisconnected = false;
+        downstreamWriteFailed = false;
         active = new Attempt(this, context, ++attempts, kind, provider, protocol, streaming);
         usage = AiUsage.UNKNOWN;
         completion = AiStreamCompletion.NOT_INSPECTED;
@@ -142,9 +184,10 @@ public final class AiRequestObservation {
                 return;
             }
             completed = true;
-            attemptEvent = Objects.isNull(active) ? null : active.freeze(signal, terminalOutcome(active.status, failure));
-            AiCallOutcome error = Objects.isNull(failure) && signal == SignalType.ON_ERROR ? AiCallOutcome.ERROR : failure;
-            AiCallOutcome outcome = signal == SignalType.CANCEL ? AiCallOutcome.CANCELLED : terminalOutcome(httpStatus, error);
+            final AiCallOutcome error = terminalFailure(signal);
+            attemptEvent = Objects.isNull(active) ? null : active.freeze(signal, terminalOutcome(active.status, error));
+            final AiCallOutcome outcome = interrupted(signal, Objects.nonNull(error), httpStatus)
+                    ? AiCallOutcome.CANCELLED : terminalOutcome(httpStatus, error);
             terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage, completion);
         }
         recordAttempt(attemptEvent);
@@ -205,6 +248,44 @@ public final class AiRequestObservation {
             return AiCallOutcome.REJECTED;
         }
         return Objects.nonNull(status) && status >= 500 ? AiCallOutcome.ERROR : AiCallOutcome.SUCCESS;
+    }
+
+    /**
+     * Resolve the recorded failure, including evidence only the response write path can see.
+     *
+     * @param signal logical terminal signal
+     * @return classified failure, or null when nothing failed
+     */
+    private AiCallOutcome terminalFailure(final SignalType signal) {
+        if (Objects.nonNull(failure)) {
+            return failure;
+        }
+        if (downstreamWriteFailed || signal == SignalType.ON_ERROR) {
+            return AiCallOutcome.ERROR;
+        }
+        return null;
+    }
+
+    /**
+     * An explicit cancellation signal always wins, as it does today. A peer disconnect is only
+     * inferred evidence, so it may explain nothing but a response that was already committed as
+     * successful and that has no classified failure: a real upstream error or a forwarded
+     * 4xx/5xx keeps its own outcome and its status.
+     *
+     * @param signal logical terminal signal
+     * @param failure whether any terminal failure was classified
+     * @param httpStatus assigned downstream status, nullable before commitment
+     * @return whether the request ended because the downstream peer went away
+     */
+    private boolean interrupted(final SignalType signal, final boolean failure, final Integer httpStatus) {
+        if (signal == SignalType.CANCEL) {
+            return true;
+        }
+        return downstreamDisconnected && !failure && committedAsSuccess(httpStatus);
+    }
+
+    private static boolean committedAsSuccess(final Integer httpStatus) {
+        return Objects.isNull(httpStatus) || (httpStatus >= 200 && httpStatus < 300);
     }
 
     private static long elapsed(final long start) {
@@ -318,15 +399,29 @@ public final class AiRequestObservation {
             }
             completed = true;
             owner.usage = usage;
-            if (signal == SignalType.CANCEL && completion.evidence() != AiStreamCompletion.Evidence.NOT_INSPECTED
-                    && completion.evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER) {
+            final AiStreamCompletion.Evidence evidence = completion.evidence();
+            // a truncated stream, a malformed partial event or a transport failure is a stronger
+            // fact than "the source was cancelled": keep it and keep the matching classification
+            final boolean failedStream = evidence == AiStreamCompletion.Evidence.INCOMPLETE
+                    || evidence == AiStreamCompletion.Evidence.TRANSPORT_FAILURE;
+            final boolean failed = Objects.nonNull(error) && error != AiCallOutcome.SUCCESS;
+            final boolean interrupted = !failedStream && owner.interrupted(signal, failed, status);
+            if (interrupted && (evidence == AiStreamCompletion.Evidence.PENDING
+                    || evidence == AiStreamCompletion.Evidence.UNKNOWN)) {
                 completion = new AiStreamCompletion(AiStreamCompletion.Evidence.SOURCE_CANCELLED, completion.framing());
             }
             owner.completion = completion;
             if (owner.active == this) {
                 owner.active = null;
             }
-            AiCallOutcome outcome = signal == SignalType.CANCEL ? AiCallOutcome.CANCELLED : terminalOutcome(status, error);
+            final AiCallOutcome outcome;
+            if (failedStream) {
+                outcome = failed ? error : AiCallOutcome.ERROR;
+            } else if (interrupted) {
+                outcome = AiCallOutcome.CANCELLED;
+            } else {
+                outcome = terminalOutcome(status, error);
+            }
             return new AiAttemptEvent(context, number, kind, provider, protocol, streaming, outcome, status, elapsed(started), usage, completion);
         }
     }
