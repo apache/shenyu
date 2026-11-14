@@ -1,0 +1,62 @@
+{
+  "format_version": 1,
+  "path_format": "RFC 6901 JSON Pointers into the supplied snapshots. Object key order is ignored; the fixture tools array is traversed by index; changed schema arrays are reported as whole-array replacements.",
+  "cases": {
+    "combined": [
+      {
+        "operation": "replace",
+        "json_pointer": "/tools/0/annotations/readOnlyHint",
+        "before": true,
+        "after": false
+      },
+      {
+        "operation": "replace",
+        "json_pointer": "/tools/0/inputSchema/required",
+        "before": [
+          "query"
+        ],
+        "after": [
+          "query",
+          "workspace_id"
+        ]
+      },
+      {
+        "operation": "replace",
+        "json_pointer": "/tools/0/outputSchema/properties/status/enum",
+        "before": [
+          "pending",
+          "ready"
+        ],
+        "after": [
+          "pending",
+          "ready",
+          "paused"
+        ]
+      }
+    ],
+    "annotation_only": [
+      {
+        "operation": "replace",
+        "json_pointer": "/tools/0/annotations/readOnlyHint",
+        "before": true,
+        "after": false
+      }
+    ],
+    "unsupported": [
+      {
+        "operation": "add",
+        "json_pointer": "/tools/0/inputSchema/allOf",
+        "after": [
+          {
+            "not": {
+              "required": [
+                "workspace_id"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "key_order_only": []
+  }
+}

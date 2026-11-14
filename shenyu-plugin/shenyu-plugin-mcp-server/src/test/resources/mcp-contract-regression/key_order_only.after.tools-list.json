@@ -1,0 +1,53 @@
+{
+  "tools": [
+    {
+      "annotations": {
+        "openWorldHint": false,
+        "idempotentHint": true,
+        "destructiveHint": false,
+        "readOnlyHint": true
+      },
+      "outputSchema": {
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "inputSchema": {
+        "additionalProperties": false,
+        "required": [
+          "query"
+        ],
+        "properties": {
+          "workspace_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "query": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "description": "Synthetic non-executable contract fixture. No tool invocation is part of this package.",
+      "title": "Regression lookup",
+      "name": "fixture_lookup"
+    }
+  ]
+}
