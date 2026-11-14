@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
@@ -235,11 +236,24 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
+            List<AuthPathDO> existingPaths = authPathMapper.findByAuthId(appAuthDO.getId());
+            Map<Pair<String, String>, Boolean> resourceEnabled = existingPaths.stream()
+                    .collect(Collectors.toMap(path -> Pair.of(path.getPath(), path.getAppName()),
+                            path -> Boolean.TRUE.equals(path.getEnabled()), Boolean::logicalOr));
+            // Renaming an application label must not enable a retained path.
+            Map<String, Boolean> pathEnabled = existingPaths.stream()
+                    .collect(Collectors.toMap(AuthPathDO::getPath,
+                            path -> Boolean.TRUE.equals(path.getEnabled()), Boolean::logicalOr));
             authPathMapper.deleteByAuthId(authPathWarpDTO.getId());
 
             List<AuthPathDO> collect = authPathDTOList.stream()
                     .filter(Objects::nonNull)
-                    .map(authPathDTO -> AuthPathDO.create(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName()))
+                    .map(authPathDTO -> {
+                        AuthPathDO path = AuthPathDO.create(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName());
+                        path.setEnabled(resourceEnabled.getOrDefault(Pair.of(authPathDTO.getPath(), authPathDTO.getAppName()),
+                                pathEnabled.getOrDefault(authPathDTO.getPath(), true)));
+                        return path;
+                    })
                     .collect(Collectors.toList());
             authPathMapper.batchSave(collect);
         }

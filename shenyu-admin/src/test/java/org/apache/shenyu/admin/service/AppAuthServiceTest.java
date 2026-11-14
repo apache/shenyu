@@ -78,10 +78,12 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -200,6 +202,58 @@ public final class AppAuthServiceTest {
         given(appAuthMapper.selectById(eq(authPathWarpDTO.getId()))).willReturn(appAuthDO);
         ShenyuAdminResult successResult = this.appAuthService.updateDetailPath(authPathWarpDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
+    }
+
+    @Test
+    public void testUpdateDetailPathPreservesStoredStatesAndPublishesReplacement() {
+        List<AuthPathDO> saved = replacePaths(List.of(
+                storedPath("/disabled", "orders", false),
+                storedPath("/active", "orders", true),
+                storedPath("/removed", "orders", false)), List.of(
+                requestedPath("/disabled", "orders", true),
+                requestedPath("/active", "orders", false),
+                requestedPath("/new", "orders", false)));
+
+        assertEquals(List.of("/disabled", "/active", "/new"), saved.stream().map(AuthPathDO::getPath).collect(Collectors.toList()));
+        assertEquals(List.of(false, true, true), saved.stream().map(AuthPathDO::getEnabled).collect(Collectors.toList()));
+        ArgumentCaptor<DataChangedEvent> eventCaptor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        AppAuthData published = (AppAuthData) eventCaptor.getValue().getSource().get(0);
+        assertEquals(List.of(false, true, true), published.getPathDataList().stream().map(path -> path.getEnabled()).collect(Collectors.toList()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"orders", "renamed-app"})
+    public void testUpdateDetailPathDoesNotEnableDisabledPathWhenAppNameChanges(final String appName) {
+        List<AuthPathDO> saved = replacePaths(Collections.singletonList(storedPath("/disabled", "orders", false)),
+                Collections.singletonList(requestedPath("/disabled", appName, null)));
+
+        assertEquals(Boolean.FALSE, saved.get(0).getEnabled());
+        assertEquals(appName, saved.get(0).getAppName());
+    }
+
+    @Test
+    public void testUpdateDetailPathPreservesDifferentStatesForSharedPath() {
+        List<AuthPathDO> saved = replacePaths(List.of(storedPath("/shared", "first-app", true), storedPath("/shared", "second-app", false)),
+                List.of(requestedPath("/shared", "first-app", false), requestedPath("/shared", "second-app", true)));
+
+        assertEquals(List.of(true, false), saved.stream().map(AuthPathDO::getEnabled).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void testUpdateDetailPathKeepsDuplicateResourceEffectiveState() {
+        List<AuthPathDO> saved = replacePaths(List.of(storedPath("/shared", "orders", false), storedPath("/shared", "orders", true)),
+                List.of(requestedPath("/shared", "orders", false), requestedPath("/shared", "orders", null)));
+
+        assertEquals(List.of(true, true), saved.stream().map(AuthPathDO::getEnabled).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void testUpdateDetailPathKeepsNewGrantsEnabledWithoutClientFlag() {
+        List<AuthPathDO> saved = replacePaths(Collections.emptyList(),
+                List.of(requestedPath("/new", "orders", null), requestedPath("/new-disabled-metadata", "orders", false)));
+
+        assertEquals(List.of(true, true), saved.stream().map(AuthPathDO::getEnabled).collect(Collectors.toList()));
     }
 
     @Test
@@ -605,6 +659,41 @@ public final class AppAuthServiceTest {
         authParamDTO.setAppName("testAppName");
         authParamDTO.setAppParam("{\"type\":\"test\"}");
         return authParamDTO;
+    }
+
+    private AuthPathDO storedPath(final String path, final String appName, final boolean enabled) {
+        AuthPathDO stored = AuthPathDO.create(path, appAuthDO.getId(), appName);
+        stored.setEnabled(enabled);
+        return stored;
+    }
+
+    private AuthPathDTO requestedPath(final String path, final String appName, final Boolean enabled) {
+        AuthPathDTO requested = new AuthPathDTO();
+        requested.setPath(path);
+        requested.setAppName(appName);
+        requested.setEnabled(enabled);
+        return requested;
+    }
+
+    private List<AuthPathDO> replacePaths(final List<AuthPathDO> existing, final List<AuthPathDTO> requested) {
+        final List<AuthPathDO> stored = new ArrayList<>(existing);
+        AuthPathWarpDTO update = new AuthPathWarpDTO();
+        update.setId(appAuthDO.getId());
+        update.setAuthPathDTOList(requested);
+        given(appAuthMapper.selectById(appAuthDO.getId())).willReturn(appAuthDO);
+        given(authPathMapper.findByAuthId(appAuthDO.getId())).willAnswer(invocation -> new ArrayList<>(stored));
+        doAnswer(invocation -> {
+            stored.clear();
+            return 1;
+        }).when(authPathMapper).deleteByAuthId(appAuthDO.getId());
+        doAnswer(invocation -> {
+            List<AuthPathDO> replacement = invocation.getArgument(0);
+            stored.addAll(replacement);
+            return replacement.size();
+        }).when(authPathMapper).batchSave(anyList());
+
+        assertEquals(CommonErrorCode.SUCCESSFUL, appAuthService.updateDetailPath(update).getCode().intValue());
+        return stored;
     }
 
     private AuthPathDTO buildAuthPathDTO() {
