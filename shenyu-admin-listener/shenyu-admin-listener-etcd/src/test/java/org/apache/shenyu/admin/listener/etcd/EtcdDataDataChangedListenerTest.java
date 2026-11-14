@@ -18,6 +18,9 @@
 package org.apache.shenyu.admin.listener.etcd;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -32,8 +35,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * The testCase for {@link EtcdDataDataChangedListener}.
@@ -109,14 +115,20 @@ public class EtcdDataDataChangedListenerTest {
      */
     @Test
     public void testOnSelectorChanged() {
-        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME).build();
+        SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
+        String pluginPath = DefaultPathConstants.buildSelectorParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME) + "/";
+        String stalePath = DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME, "STALE");
+        when(etcdClient.getKeysMapByPrefix(pluginPath)).thenReturn(ImmutableMap.of(stalePath, "{}"));
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.DELETE);
         verify(etcdClient, times(3)).put(any(String.class), any(String.class));
-        verify(etcdClient, times(1)).delete(any(String.class));
-        verify(etcdClient, times(1)).deleteEtcdPathRecursive(any(String.class));
+        verify(etcdClient, times(1)).delete(DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID,
+                MOCK_PLUGIN_NAME, MOCK_ID));
+        verify(etcdClient, times(1)).delete(stalePath);
+        verify(etcdClient, never()).deleteEtcdPathRecursive(anyString());
     }
 
     /**
@@ -129,13 +141,21 @@ public class EtcdDataDataChangedListenerTest {
                 .name(MOCK_NAME)
                 .pluginName(MOCK_PLUGIN_NAME)
                 .selectorId(MOCK_SELECTOR_ID)
+                .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
+        String ruleParentPath = DefaultPathConstants.buildRuleParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME) + "/";
+        String stalePath = DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME,
+                MOCK_SELECTOR_ID, "STALE");
+        when(etcdClient.getKeysMapByPrefix(ruleParentPath))
+                .thenReturn(ImmutableMap.of(stalePath, "{}"));
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.UPDATE);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.DELETE);
         verify(etcdClient, times(3)).put(any(String.class), any(String.class));
-        verify(etcdClient, times(1)).delete(any(String.class));
-        verify(etcdClient, times(1)).deleteEtcdPathRecursive(any(String.class));
+        verify(etcdClient, times(1)).delete(DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID,
+                MOCK_PLUGIN_NAME, MOCK_SELECTOR_ID, MOCK_ID));
+        verify(etcdClient, times(1)).delete(stalePath);
+        verify(etcdClient, never()).deleteEtcdPathRecursive(anyString());
     }
 }

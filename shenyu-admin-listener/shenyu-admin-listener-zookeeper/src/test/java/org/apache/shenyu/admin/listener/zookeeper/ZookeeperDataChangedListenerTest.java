@@ -37,7 +37,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -223,10 +225,16 @@ public final class ZookeeperDataChangedListenerTest {
     public void testOnSelectorChangedRefresh() {
         SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).pluginName(MOCK_PLUGIN_NAME).build();
         String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, selectorData.getPluginName());
+        String stalePath = DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID, selectorData.getPluginName(), "STALE");
 
         when(zkClient.isExist(selectorParentPath)).thenReturn(true);
+        when(zkClient.getChildren(selectorParentPath)).thenReturn(Arrays.asList(MOCK_ID, "STALE"));
+        when(zkClient.isExist(stalePath)).thenReturn(true);
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.REFRESH);
-        verify(zkClient, times(1)).delete(selectorParentPath);
+        String selectorRealPath = DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID, selectorData.getPluginName(), selectorData.getId());
+        verify(zkClient, times(1)).createOrUpdate(selectorRealPath, selectorData, CreateMode.PERSISTENT);
+        verify(zkClient, times(1)).delete(stalePath);
+        verify(zkClient, never()).delete(selectorParentPath);
     }
 
     /**
@@ -292,10 +300,19 @@ public final class ZookeeperDataChangedListenerTest {
                 .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         String ruleParentPath = DefaultPathConstants.buildRuleParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, ruleData.getPluginName());
+        String stalePath = DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, ruleData.getPluginName(),
+                ruleData.getSelectorId(), "STALE");
 
         when(zkClient.isExist(ruleParentPath)).thenReturn(true);
+        when(zkClient.getChildren(ruleParentPath))
+                .thenReturn(Arrays.asList(MOCK_SELECTOR_ID + "-" + MOCK_ID, MOCK_SELECTOR_ID + "-STALE"));
+        when(zkClient.isExist(stalePath)).thenReturn(true);
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.REFRESH);
-        verify(zkClient, times(1)).delete(ruleParentPath);
+        String ruleRealPath = DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, ruleData.getPluginName(),
+                ruleData.getSelectorId(), ruleData.getId());
+        verify(zkClient, times(1)).createOrUpdate(ruleRealPath, ruleData, CreateMode.PERSISTENT);
+        verify(zkClient, times(1)).delete(stalePath);
+        verify(zkClient, never()).delete(ruleParentPath);
     }
 
     /**

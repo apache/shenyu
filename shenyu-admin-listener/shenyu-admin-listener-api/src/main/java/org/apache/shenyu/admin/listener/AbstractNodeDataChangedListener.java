@@ -27,19 +27,23 @@ import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -67,24 +71,51 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
-        if (CollectionUtils.isEmpty(changed)) {
+        this.onAppAuthChanged(changed, eventType, null);
+    }
+
+    @Override
+    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
+        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
             return;
         }
-        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, AppAuthData::getNamespaceId);
+        final String configKeyPrefix = resolvedNamespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getAuthDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, AppAuthData::getAppKey, AppAuthData.class);
         LOG.debug("[DataChangedListener] AppAuthChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
-        if (CollectionUtils.isEmpty(changed)) {
+        this.onPluginChanged(changed, eventType, null);
+    }
+
+    @Override
+    public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
+        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
             return;
         }
-        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
+        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, PluginData::getNamespaceId);
+        if (DataEventTypeEnum.REFRESH == eventType && StringUtils.isNotBlank(namespaceId)) {
+            this.deleteStalePluginGroups(resolvedNamespaceId, changed);
+        }
+        final String configKeyPrefix = resolvedNamespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getPluginDataId() + DefaultNodeConstants.JOIN_POINT;
         this.onCommonChanged(configKeyPrefix, changed, eventType, PluginData::getName, PluginData.class);
         LOG.debug("[DataChangedListener] PluginChanged {}", configKeyPrefix);
+    }
+
+    /**
+     * Resolve the namespace of an event. An explicit namespace wins over the payload, so an empty
+     * snapshot can still be reconciled; callers reject an empty payload without one.
+     */
+    private static <T> String resolveNamespace(final String namespaceId, final List<T> changed,
+                                               final Function<? super T, ? extends String> namespaceGetter) {
+        if (StringUtils.isNotBlank(namespaceId)) {
+            return namespaceId;
+        }
+        return StringUtils.defaultString(namespaceGetter.apply(changed.get(0)), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     @Override
@@ -170,27 +201,43 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        if (CollectionUtils.isEmpty(changed)) {
+        this.onSelectorChanged(changed, eventType, null);
+    }
+
+    @Override
+    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
+        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
             return;
         }
-        SelectorData selectorData = changed.stream().findFirst().orElseThrow(() -> new ShenyuException("selectorData is null"));
-        final String configKeyPrefix = StringUtils.defaultString(selectorData.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)
-                + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
-        this.onCommonMultiChanged(changed, eventType, configKeyPrefix, SelectorData::getPluginName, SelectorData::getId);
+        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, SelectorData::getNamespaceId);
+        final String configKeyPrefix = resolvedNamespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (DataEventTypeEnum.REFRESH == eventType && StringUtils.isNotBlank(namespaceId)) {
+            this.onSelectorRefreshed(resolvedNamespaceId, changed, configKeyPrefix);
+        } else {
+            this.onCommonMultiChanged(changed, eventType, configKeyPrefix, SelectorData::getPluginName, SelectorData::getId);
+        }
         LOG.debug("[DataChangedListener] SelectorChanged {}", configKeyPrefix);
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        if (CollectionUtils.isEmpty(changed)) {
+        this.onRuleChanged(changed, eventType, null);
+    }
+
+    @Override
+    public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
+        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
+        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
             return;
         }
-        final String namespaceId = changed.stream().map(value -> StringUtils.defaultString(value.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID)).findFirst().get();
-        final String configKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
-        this.onCommonMultiChanged(changed, eventType,
-                configKeyPrefix,
-                ruleData -> String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId()),
-                RuleData::getId);
+        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, RuleData::getNamespaceId);
+        final String configKeyPrefix = resolvedNamespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId() + DefaultNodeConstants.JOIN_POINT;
+        if (DataEventTypeEnum.REFRESH == eventType && StringUtils.isNotBlank(namespaceId)) {
+            this.onRuleRefreshed(resolvedNamespaceId, changed, configKeyPrefix);
+        } else {
+            this.onCommonMultiChanged(changed, eventType, configKeyPrefix, AbstractNodeDataChangedListener::ruleGroupKey, RuleData::getId);
+        }
         LOG.debug("[DataChangedListener] RuleChanged {}", changeData.getRuleDataId());
     }
 
@@ -252,6 +299,139 @@ public abstract class AbstractNodeDataChangedListener implements DataChangedList
             oldNodeList.forEach(id -> delConfig(configKeyPrefix + key + DefaultNodeConstants.JOIN_POINT + id));
             publishConfig(listKey, listIds);
         });
+    }
+
+    /**
+     * A namespace-scoped REFRESH is a full snapshot of the group. Upsert the payload first, then
+     * reconcile every known group of the namespace so entries absent from the payload are removed.
+     */
+    private void onSelectorRefreshed(final String namespaceId, final List<SelectorData> changed, final String configKeyPrefix) {
+        final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
+        try {
+            reentrantLock.lock();
+            changed.forEach(data -> publishConfig(configKeyPrefix + data.getPluginName() + DefaultNodeConstants.JOIN_POINT + data.getId(), data));
+            final Map<String, List<String>> idsByPlugin = changed.stream()
+                    .collect(Collectors.groupingBy(SelectorData::getPluginName, Collectors.mapping(SelectorData::getId, Collectors.toList())));
+            final Set<String> plugins = new LinkedHashSet<>(getPluginNames(namespaceId));
+            plugins.addAll(idsByPlugin.keySet());
+            this.refreshMapToList(idsByPlugin, plugins, configKeyPrefix,
+                    (pluginName, selectorId) -> deleteRuleGroup(namespaceId, pluginName, selectorId));
+        } catch (Exception e) {
+            LOG.error("AbstractNodeDataChangedListener onSelectorRefreshed error ", e);
+        } finally {
+            reentrantLock.unlock();
+        }
+    }
+
+    private void onRuleRefreshed(final String namespaceId, final List<RuleData> changed, final String configKeyPrefix) {
+        final ReentrantLock reentrantLock = listSaveLockMap.computeIfAbsent(configKeyPrefix, key -> new ReentrantLock());
+        try {
+            reentrantLock.lock();
+            changed.forEach(data -> publishConfig(configKeyPrefix + ruleGroupKey(data) + DefaultNodeConstants.JOIN_POINT + data.getId(), data));
+            final Map<String, List<String>> idsByGroup = changed.stream()
+                    .collect(Collectors.groupingBy(AbstractNodeDataChangedListener::ruleGroupKey, Collectors.mapping(RuleData::getId, Collectors.toList())));
+            final Set<String> groupKeys = new LinkedHashSet<>();
+            getPluginNames(namespaceId).forEach(pluginName -> {
+                final List<String> selectorIds = getConfigList(selectorListKey(namespaceId, pluginName));
+                if (Objects.nonNull(selectorIds)) {
+                    selectorIds.forEach(selectorId -> groupKeys.add(pluginName + DefaultNodeConstants.JOIN_POINT + selectorId));
+                }
+            });
+            groupKeys.addAll(idsByGroup.keySet());
+            this.refreshMapToList(idsByGroup, groupKeys, configKeyPrefix, null);
+        } catch (Exception e) {
+            LOG.error("AbstractNodeDataChangedListener onRuleRefreshed error ", e);
+        } finally {
+            reentrantLock.unlock();
+        }
+    }
+
+    private void refreshMapToList(final Map<String, List<String>> idsByGroup, final Set<String> groupKeys,
+                                  final String configKeyPrefix, final BiConsumer<String, String> staleIdHandler) {
+        groupKeys.forEach(group -> {
+            final List<String> expectedIds = idsByGroup.getOrDefault(group, Collections.emptyList());
+            final String listKey = configKeyPrefix + group + DefaultNodeConstants.POINT_LIST;
+            final List<String> existingIds = getConfigList(listKey);
+            if (Objects.nonNull(existingIds)) {
+                existingIds.removeAll(expectedIds);
+                existingIds.forEach(staleId -> {
+                    delConfig(configKeyPrefix + group + DefaultNodeConstants.JOIN_POINT + staleId);
+                    if (Objects.nonNull(staleIdHandler)) {
+                        staleIdHandler.accept(group, staleId);
+                    }
+                });
+            }
+            // publish the snapshot even when it is empty, like every other REFRESH path in this class
+            publishConfig(listKey, expectedIds);
+        });
+    }
+
+    /**
+     * A plugin absent from the namespace snapshot no longer exists, so its selectors and rules
+     * must go too; otherwise nothing would discover them once the plugin index is overwritten.
+     */
+    private void deleteStalePluginGroups(final String namespaceId, final List<PluginData> changed) {
+        final Set<String> currentPlugins = changed.stream().map(PluginData::getName).collect(Collectors.toSet());
+        getPluginNames(namespaceId).stream()
+                .filter(pluginName -> !currentPlugins.contains(pluginName))
+                .forEach(pluginName -> deletePluginGroups(namespaceId, pluginName));
+    }
+
+    private void deletePluginGroups(final String namespaceId, final String pluginName) {
+        final String selectorPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId()
+                + DefaultNodeConstants.JOIN_POINT + pluginName;
+        final List<String> selectorIds = getConfigList(selectorPrefix + DefaultNodeConstants.POINT_LIST);
+        if (Objects.isNull(selectorIds)) {
+            return;
+        }
+        selectorIds.forEach(selectorId -> {
+            delConfig(selectorPrefix + DefaultNodeConstants.JOIN_POINT + selectorId);
+            deleteRuleGroup(namespaceId, pluginName, selectorId);
+        });
+        delConfig(selectorPrefix + DefaultNodeConstants.POINT_LIST);
+    }
+
+    /**
+     * Rules cannot outlive their selector: the following rule REFRESH can only discover rule groups
+     * through the selector index, so drop them together with the stale selector.
+     */
+    private void deleteRuleGroup(final String namespaceId, final String pluginName, final String selectorId) {
+        final String ruleKeyPrefix = namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getRuleDataId()
+                + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.JOIN_POINT + selectorId;
+        final List<String> ruleIds = getConfigList(ruleKeyPrefix + DefaultNodeConstants.POINT_LIST);
+        if (Objects.isNull(ruleIds)) {
+            return;
+        }
+        ruleIds.forEach(ruleId -> delConfig(ruleKeyPrefix + DefaultNodeConstants.JOIN_POINT + ruleId));
+        delConfig(ruleKeyPrefix + DefaultNodeConstants.POINT_LIST);
+    }
+
+    private static String ruleGroupKey(final RuleData ruleData) {
+        return String.join(DefaultNodeConstants.JOIN_POINT, ruleData.getPluginName(), ruleData.getSelectorId());
+    }
+
+    private String selectorListKey(final String namespaceId, final String pluginName) {
+        return namespaceId + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId()
+                + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST;
+    }
+
+    /**
+     * Plugin names of the namespace, stored in the plugin index. They identify the selector and rule
+     * groups that may hold stale data even when the current payload no longer mentions them.
+     */
+    private List<String> getPluginNames(final String namespaceId) {
+        return Optional.ofNullable(getConfigList(namespaceId + DefaultNodeConstants.JOIN_POINT
+                        + changeData.getPluginDataId() + DefaultNodeConstants.POINT_LIST))
+                .orElseGet(Collections::emptyList);
+    }
+
+    private List<String> getConfigList(final String dataId) {
+        final String value = getConfig(dataId);
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        final List<String> list = GsonUtils.getInstance().fromList(value, String.class);
+        return Objects.isNull(list) ? new ArrayList<>() : list;
     }
 
     private void putChangedMapToList(final Map<String, List<String>> stringListMap, final String configKeyPrefix) {

@@ -21,6 +21,9 @@ import org.apache.shenyu.admin.listener.AbstractPathDataChangedListener;
 import org.apache.shenyu.infra.zookeeper.client.ZookeeperClient;
 import org.apache.zookeeper.CreateMode;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Use zookeeper to push data changes.
  */
@@ -49,5 +52,10 @@ public class ZookeeperDataChangedListener extends AbstractPathDataChangedListene
         if (zkClient.isExist(path)) {
             zkClient.delete(path);
         }
+    }
+
+    @Override
+    public List<String> getChildren(final String path) {
+        return zkClient.isExist(path) ? zkClient.getChildren(path) : Collections.emptyList();
     }
 }
