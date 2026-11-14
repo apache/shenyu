@@ -104,7 +104,8 @@ public final class AgentMcpDispatcher {
                         .map(tool -> (AgentToolProvider) new AgentHttpToolProvider(tool, context.getHttpInvoker())).toList());
                 AgentMcpExecutionContext bound = new AgentMcpExecutionContext(context.getRequestId(), context.getSubject(), context.getRuleId(),
                         context.getConfigurationVersion(), context.getRuleTools(), context.getAllowedTools(), context.getDeadline(), context.getResultFilters(),
-                        context.getRuleResources(), context.getAllowedResources(), AgentGatewayHttpToolConfig.empty(), null, context.getTenant().orElse(null));
+                        context.getRuleResources(), context.getAllowedResources(), AgentGatewayHttpToolConfig.empty(), null,
+                        context.getTenant().orElse(null), context::notifyAttempt);
                 return new AgentMcpDispatcher(captured, serverName, serverVersion, remoteCatalog, resourceRegistry).dispatch(request, () -> bound);
             }
             if (Objects.nonNull(remoteCatalog)) {
@@ -190,7 +191,10 @@ public final class AgentMcpDispatcher {
                 final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, definitions.get(name).get("outputSchema"));
                 ObjectNode params = request.getParams();
                 JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
-                return snapshot.invoke(name, arguments, context)
+                return Mono.defer(() -> {
+                    context.notifyAttempt();
+                    return snapshot.invoke(name, arguments, context);
+                })
                         .switchIfEmpty(Mono.error(new IllegalStateException("Remote tool completed without a result")))
                         .map(value -> {
                             ObjectNode result = value.deepCopy();
@@ -259,8 +263,9 @@ public final class AgentMcpDispatcher {
         final AgentMcpResultFilter filter = prepareResultFilter(request, context, name, null);
         JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
         JsonObject capabilities = request.getClientCapabilities();
-        return registry.invoke(name, context.getAllowedTools(), () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
-                        context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities))
+        return registry.invoke(name, context.getAllowedTools(),
+                () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
+                        context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities), context::notifyAttempt)
                 .map(value -> {
                     // Active field policies must not introduce an opaque metadata channel.
                     ObjectNode result = filter.isActive() ? mapper.createObjectNode().put("resultType", "complete") : complete();

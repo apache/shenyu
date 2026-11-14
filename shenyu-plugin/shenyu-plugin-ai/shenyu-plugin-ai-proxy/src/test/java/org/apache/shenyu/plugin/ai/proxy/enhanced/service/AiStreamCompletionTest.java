@@ -65,6 +65,21 @@ class AiStreamCompletionTest {
 
     private static final String BODY = "{\"messages\":[{\"role\":\"user\",\"content\":\"fixture\"}]}";
 
+    @Test
+    void streamEvidencePreservesNativeUsageAndAttemptAttribution() {
+        Probe probe = new Probe(AiStreamCompletionProperties.Mode.STRICT,
+                Flux.just(bytes("data: {\"usage\":{\"prompt_tokens\":5,\"completion_tokens\":2,\"total_tokens\":7}}\n\n"
+                        + "data: [DONE]\n\n")));
+        probe.execute(new ArrayList<>()).block(Duration.ofSeconds(5));
+        assertEquals(1, probe.attempts.size());
+        assertEquals(1, probe.terminals.size());
+        assertEquals("openai-chat", probe.attempts.get(0).targetProtocol());
+        assertEquals(7L, probe.attempts.get(0).usage().totalTokens());
+        assertEquals(7L, probe.terminals.get(0).usageTotals().totalTokens());
+        assertEquals(1, probe.terminals.get(0).usageTotals().reportedAttemptCount());
+        assertEquals(AiStreamCompletion.Evidence.UPSTREAM_MARKER, probe.terminals.get(0).completion().evidence());
+    }
+
     @ParameterizedTest
     @MethodSource("compatibilityCases")
     void compatibilityRetainsFramingButNeverUpgradesRawEvidence(final String wire, final AiStreamCompletion.Evidence evidence,
