@@ -17,14 +17,21 @@
 
 package org.apache.shenyu.plugin.agent.gateway.protocol;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaConfig;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaGovernor;
+import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaStore;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolExecutionException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -37,10 +44,16 @@ import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -429,8 +442,204 @@ class AgentMcpDispatcherTest {
         assertEquals(1, calls.get());
     }
 
+    @Test
+    void shouldAdmitLocalToolOnlyAfterPreExecutionValidation() {
+        AtomicInteger admitted = new AtomicInteger();
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new AgentGatewayAdmissionConfig(1, 0, 1, 0, 1, 0));
+        try {
+            AgentToolProvider invalid = provider("order_status", input -> {
+                throw new IllegalArgumentException("invalid private input");
+            }, input -> {
+                admitted.incrementAndGet();
+                return Mono.just(input.getArguments());
+            });
+            AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of(invalid)),
+                    "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, null, admission);
+            StepVerifier.create(dispatcher.dispatch(request("tools/call", "1", "order_status"), () -> context("A", Set.of("order_status"))))
+                    .assertNext(response -> assertTrue(response.path("result").path("isError").booleanValue()))
+                    .verifyComplete();
+            assertEquals(0, admitted.get());
+        } finally {
+            admission.close();
+        }
+    }
+
+    @Test
+    void quotaDenialPreventsLocalExecutionAndMapsToQuotaProtocolFailure() {
+        AtomicInteger calls = new AtomicInteger();
+        AgentMcpQuotaGovernor governor = quotaGovernor(false,
+                new AgentMcpQuotaStore.Admission(false, true, false, ""));
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(
+                new AgentToolRegistry(List.of(provider("order_status", input -> {
+                    calls.incrementAndGet();
+                    return Mono.just(input.getArguments());
+                }))), "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION,
+                null, new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, governor);
+        StepVerifier.create(dispatcher.dispatch(request("tools/call", "1", "order_status"), () -> context("A", Set.of("order_status"))))
+                .expectErrorSatisfies(error -> assertProtocol(error, 429, -32027,
+                        "MCP invocation quota exceeded")).verify();
+        assertEquals(0, calls.get());
+    }
+
+    @Test
+    void quotaAdmissionWrapsColdLocalExecutionAndReleasesOnEveryTerminalSignal() {
+        AtomicInteger calls = new AtomicInteger();
+        List<String> releases = new CopyOnWriteArrayList<>();
+        CountDownLatch subscribed = new CountDownLatch(1);
+        AtomicBoolean cancelled = new AtomicBoolean();
+        AgentMcpQuotaGovernor governor = new AgentMcpQuotaGovernor(
+                AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE, 2, Duration.ofSeconds(60),
+                        2, Duration.ofSeconds(60), false),
+                recordingStore(new AgentMcpQuotaStore.Admission(true, false, false, "lease"), releases),
+                AgentRuntimeMetrics.NOOP, "test");
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(
+                new AgentToolRegistry(List.of(provider("order_status", input -> {
+                    calls.incrementAndGet();
+                    subscribed.countDown();
+                    return Mono.<JsonObject>never().doOnCancel(() -> cancelled.set(true));
+                }))), "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION,
+                null, new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, governor);
+        reactor.core.Disposable subscription = dispatcher.dispatch(request("tools/call", "1", "order_status"),
+                () -> context("A", Set.of("order_status"))).subscribe();
+        assertTrue(await(subscribed));
+        assertEquals(1, calls.get());
+        subscription.dispose();
+        assertTrue(cancelled.get());
+        assertTrue(awaitRelease(releases));
+    }
+
+    @Test
+    void toolsListAndDiscoveryDoNotConsumeMcpQuota() {
+        AtomicInteger admissions = new AtomicInteger();
+        AgentMcpQuotaGovernor governor = new AgentMcpQuotaGovernor(
+                AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE, 2, Duration.ofSeconds(60),
+                        2, Duration.ofSeconds(60), false),
+                recordingStore(new AgentMcpQuotaStore.Admission(true, false, false, "lease"), new CopyOnWriteArrayList<>() {
+                    @Override
+                    public boolean add(final String value) {
+                        admissions.incrementAndGet();
+                        return super.add(value);
+                    }
+                }), AgentRuntimeMetrics.NOOP, "test");
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(
+                new AgentToolRegistry(List.of(provider("order_status", input -> Mono.just(input.getArguments())))),
+                "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION,
+                null, new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, governor);
+        StepVerifier.create(dispatcher.dispatch(request("server/discover", "1", "order_status"), () -> context("A", Set.of())))
+                .expectNextCount(1).verifyComplete();
+        StepVerifier.create(dispatcher.dispatch(request("tools/list", "1", "order_status"), () -> context("A", Set.of("order_status"))))
+                .expectNextCount(1).verifyComplete();
+        assertEquals(0, admissions.get());
+    }
+
+    @Test
+    void quotaPolicyOutageMapsFailClosedToServiceUnavailable() {
+        AgentMcpQuotaGovernor governor = new AgentMcpQuotaGovernor(
+                AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE, 2, Duration.ofSeconds(60),
+                        2, Duration.ofSeconds(60), false), failingStore(),
+                AgentRuntimeMetrics.NOOP, "test");
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(
+                new AgentToolRegistry(List.of(provider("order_status", input -> Mono.just(input.getArguments())))),
+                "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION,
+                null, new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, governor);
+        StepVerifier.create(dispatcher.dispatch(request("tools/call", "1", "order_status"), () -> context("A", Set.of("order_status"))))
+                .expectErrorSatisfies(error -> assertProtocol(error, 503, -32027,
+                        "MCP quota policy is unavailable")).verify();
+    }
+
+    @Test
+    void quotaDenialPreventsRemoteExecution() {
+        AtomicInteger calls = new AtomicInteger();
+        AgentMcpRemoteCatalog catalog = operation -> operation.apply(new AgentMcpRemoteCatalog.Snapshot() {
+            @Override
+            public Map<String, ObjectNode> definitions() {
+                ObjectNode definition = new ObjectMapper().createObjectNode()
+                        .put("name", "remote.order_status").put("description", "Remote order");
+                definition.putObject("inputSchema").put("type", "object");
+                return Map.of("remote.order_status", definition);
+            }
+
+            @Override
+            public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
+                calls.incrementAndGet();
+                return Mono.just(new ObjectMapper().createObjectNode());
+            }
+        });
+        AgentMcpQuotaGovernor governor = quotaGovernor(false,
+                new AgentMcpQuotaStore.Admission(false, false, true, ""));
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of()),
+                "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, catalog,
+                new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, governor);
+        StepVerifier.create(dispatcher.dispatch(request("tools/call", "1", "remote.order_status"),
+                () -> context("A", Set.of("remote.order_status"), Set.of("remote.order_status"))))
+                .expectErrorSatisfies(error -> assertProtocol(error, 429, -32027,
+                        "MCP concurrency quota exceeded")).verify();
+        assertEquals(0, calls.get());
+    }
+
+    @Test
+    void remoteCapacityRejectionDoesNotConsumeInvocationQuota() throws InterruptedException {
+        AtomicInteger admissions = new AtomicInteger();
+        AgentMcpQuotaStore store = new AgentMcpQuotaStore() {
+            @Override
+            public Mono<Admission> admit(final AgentMcpQuotaConfig policy, final String tenant, final String subject,
+                                         final String correlationId, final Instant now) {
+                admissions.incrementAndGet();
+                return Mono.just(new Admission(true, false, false, "lease"));
+            }
+
+            @Override
+            public Mono<Boolean> release(final AgentMcpQuotaConfig policy, final String tenant, final String subject,
+                                          final String correlationId, final String lease) {
+                return Mono.just(true);
+            }
+        };
+        AgentMcpRemoteCatalog catalog = operation -> operation.apply(new AgentMcpRemoteCatalog.Snapshot() {
+            @Override
+            public Map<String, ObjectNode> definitions() {
+                ObjectNode definition = new ObjectMapper().createObjectNode().put("name", "remote.lookup");
+                definition.putObject("inputSchema").put("type", "object");
+                return Map.of("remote.lookup", definition);
+            }
+
+            @Override
+            public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
+                return Mono.error(new AssertionError("Rejected work must not start"));
+            }
+        });
+        try (AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(1, 0, 1, 0, 1, 0))) {
+            CountDownLatch acquired = new CountDownLatch(1);
+            reactor.core.Disposable holder = admission.withRemote("remote", Instant.now().plusSeconds(5),
+                    Mono.defer(() -> {
+                        acquired.countDown();
+                        return Mono.never();
+                    })).subscribe();
+            try {
+                assertTrue(acquired.await(5, TimeUnit.SECONDS));
+                AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1", catalog,
+                        new AgentResourceRegistry(List.of()), admission,
+                        new AgentMcpQuotaGovernor(AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE,
+                                10, Duration.ofSeconds(60), 10, Duration.ofSeconds(60), false), store, AgentRuntimeMetrics.NOOP, "test"));
+                StepVerifier.create(dispatcher.dispatch(request("tools/call", "1", "remote.lookup"),
+                        () -> context("owner", Set.of("remote.lookup"), Set.of("remote.lookup"))))
+                        .expectErrorSatisfies(error -> assertEquals(429, ((AgentMcpProtocolException) error).getHttpStatus())).verify();
+                assertEquals(0, admissions.get());
+            } finally {
+                holder.dispose();
+            }
+        }
+    }
+
     private AgentMcpExecutionContext context(final String subject, final Set<String> grants) {
-        return new AgentMcpExecutionContext("internal-" + subject, subject, "rule", 1, Set.of("order_status"), grants);
+        return context(subject, Set.of("order_status"), grants);
+    }
+
+    private AgentMcpExecutionContext context(final String subject, final Set<String> ruleTools, final Set<String> grants) {
+        return new AgentMcpExecutionContext("internal-" + subject, subject, "rule", 1, ruleTools, grants,
+                Instant.now().plusSeconds(10), org.apache.shenyu.common.dto.AgentGatewayResultFilterConfig.empty(),
+                org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig.empty(), null, "tenant");
     }
 
     private AgentMcpDispatcher dispatcher(final AgentToolProvider... providers) {
@@ -468,5 +677,66 @@ class AgentMcpDispatcherTest {
         headers.set("Mcp-Method", method);
         headers.set("Mcp-Name", name);
         return parser.parse(body.getBytes(StandardCharsets.UTF_8), headers, 262144);
+    }
+
+    private static AgentMcpQuotaGovernor quotaGovernor(final boolean failOpen, final AgentMcpQuotaStore.Admission admission) {
+        return new AgentMcpQuotaGovernor(AgentMcpQuotaConfig.of(AgentMcpQuotaConfig.Mode.ENFORCE,
+                2, Duration.ofSeconds(60), 2, Duration.ofSeconds(60), failOpen),
+                Objects.isNull(admission) ? failingStore() : recordingStore(admission, new CopyOnWriteArrayList<>()),
+                AgentRuntimeMetrics.NOOP, "test");
+    }
+
+    private static AgentMcpQuotaStore recordingStore(final AgentMcpQuotaStore.Admission admission, final List<String> releases) {
+        return new AgentMcpQuotaStore() {
+            @Override
+            public Mono<Admission> admit(final AgentMcpQuotaConfig policy, final String tenant,
+                                         final String subject, final String correlationId, final Instant now) {
+                return Mono.just(admission);
+            }
+
+            @Override
+            public Mono<Boolean> release(final AgentMcpQuotaConfig policy, final String tenant,
+                                         final String subject, final String correlationId, final String lease) {
+                releases.add(lease);
+                return Mono.just(true);
+            }
+        };
+    }
+
+    private static AgentMcpQuotaStore failingStore() {
+        return new AgentMcpQuotaStore() {
+            @Override
+            public Mono<Admission> admit(final AgentMcpQuotaConfig policy, final String tenant,
+                                         final String subject, final String correlationId, final Instant now) {
+                return Mono.error(new IllegalStateException("quota backend unavailable"));
+            }
+
+            @Override
+            public Mono<Boolean> release(final AgentMcpQuotaConfig policy, final String tenant,
+                                         final String subject, final String correlationId, final String lease) {
+                return Mono.just(false);
+            }
+        };
+    }
+
+    private static boolean await(final CountDownLatch latch) {
+        try {
+            return latch.await(1, TimeUnit.SECONDS);
+        } catch (InterruptedException error) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    private static boolean awaitRelease(final List<String> releases) {
+        for (int index = 0; index < 20 && releases.isEmpty(); index++) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(20);
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return !releases.isEmpty();
     }
 }

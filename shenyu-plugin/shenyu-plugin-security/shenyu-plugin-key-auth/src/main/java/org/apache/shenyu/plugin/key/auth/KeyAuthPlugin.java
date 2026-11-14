@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.key.auth;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.KeyAuthRuleHandle;
@@ -34,8 +36,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class KeyAuthPlugin extends AbstractShenyuPlugin {
 
@@ -64,14 +69,37 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
                 || StringUtils.isBlank(keyAuthRuleHandle.getKey())) {
             recordRejection(exchange, AgentRuntimeMetrics.AuthenticationReason.INVALID_CONFIGURATION);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.KEY_NAME_AND_KEY_MUST_BE_CONFIGURED);
-            return WebFluxResultUtils.result(exchange, error);
+            return rejected(exchange, error, selector, rule, "INVALID_CONFIGURATION");
         }
         if (checkKey(exchange, keyAuthRuleHandle.getKeyName(), keyAuthRuleHandle.getKey())) {
             return KeyAuthAuthentication.execute(exchange, chain, rule);
         }
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_KEY);
         recordRejection(exchange, AgentRuntimeMetrics.AuthenticationReason.CREDENTIAL_REJECTED);
-        return WebFluxResultUtils.result(exchange, error);
+        return rejected(exchange, error, selector, rule, "CREDENTIAL_REJECTED");
+    }
+
+    private Mono<Void> rejected(final ServerWebExchange exchange, final Object error, final SelectorData selector,
+                                final RuleData rule, final String reason) {
+        return Mono.defer(() -> {
+            long started = System.nanoTime();
+            String requestId = UUID.randomUUID().toString();
+            return WebFluxResultUtils.result(exchange, error).doFinally(signal -> {
+                Object sink = exchange.getAttribute(AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE);
+                if (sink instanceof AgentInvocationAuditObserver audit) {
+                    try {
+                        audit.record(AgentInvocationAuditEvent.logical().requestId(requestId).selectorId(selector.getId()).ruleId(rule.getId())
+                                .configurationVersion("unknown").policyVersion("key-auth-admission-v1")
+                                .decision(AgentInvocationAuditEvent.Decision.REJECTED)
+                                .outcome(signal == SignalType.CANCEL ? "CANCELLED" : "REJECTED").reason(reason)
+                                .httpStatus(Objects.isNull(exchange.getResponse().getStatusCode()) ? null : exchange.getResponse().getStatusCode().value())
+                                .elapsedMillis(TimeUnit.NANOSECONDS.toMillis(Math.max(0, System.nanoTime() - started))).build());
+                    } catch (RuntimeException ignored) {
+                        // Rejection and its response must not depend on diagnostic delivery.
+                    }
+                }
+            });
+        });
     }
 
     private void recordRejection(final ServerWebExchange exchange, final AgentRuntimeMetrics.AuthenticationReason reason) {
@@ -80,6 +108,7 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
             AgentRuntimeMetrics.safely(() -> metrics.authenticationRejected(AgentRuntimeMetrics.AuthenticationSource.KEY_AUTH, reason));
         }
     }
+
 
     /**
      * Check the key.

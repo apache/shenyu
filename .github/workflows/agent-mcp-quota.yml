@@ -1,0 +1,63 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Agent MCP Redis quota
+
+on:
+  pull_request:
+    paths:
+      - 'shenyu-plugin/shenyu-plugin-agent-gateway/**'
+      - '.github/workflows/agent-mcp-quota.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  redis-quota:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Start Redis with cluster slot enforcement
+        run: |
+          docker run -d --name quota-redis -p 6379:6379 redis:7-alpine redis-server --cluster-enabled yes --cluster-config-file /tmp/nodes.conf
+          for attempt in $(seq 1 30); do
+            docker exec quota-redis redis-cli ping && break
+            sleep 1
+          done
+          docker exec quota-redis redis-cli cluster addslotsrange 0 16383
+          for attempt in $(seq 1 30); do
+            if docker exec quota-redis redis-cli cluster info | grep -q 'cluster_state:ok'; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Require real Redis quota regressions
+        run: >-
+          ./mvnw -B -ntp -pl shenyu-plugin/shenyu-plugin-agent-gateway -am test
+          -Dtest=AgentMcpQuotaRedisStoreTest,AgentMcpQuotaGovernorTest,AgentMcpDispatcherTest
+          -Dsurefire.failIfNoSpecifiedTests=false -DskipRemoteResources=true
+          -Dshenyu.agent.mcp-quota.redis.required=true
+      - name: Redis diagnostics
+        if: failure()
+        run: docker logs quota-redis
+      - name: Stop Redis
+        if: always()
+        run: docker rm -f quota-redis

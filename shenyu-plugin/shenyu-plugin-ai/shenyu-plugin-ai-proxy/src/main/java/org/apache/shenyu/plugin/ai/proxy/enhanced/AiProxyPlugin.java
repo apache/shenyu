@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
@@ -118,7 +119,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
                     : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()),
                             callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
-            return executeRequest(exchange, selector, rule)
+            return executeRequest(exchange, selector, rule, observation)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
                     .doFinally(signal -> {
@@ -131,19 +132,21 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule, final AiRequestObservation observation) {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
             final String realApiKey;
             if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
                 String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
-                realApiKey = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
-                        : AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyKey);
+                ProxyApiKeyData mapping = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
+                        : AiProxyApiKeyCache.getInstance().getValidatedMapping(selector.getId(), proxyKey);
+                realApiKey = Objects.isNull(mapping) ? null : mapping.getRealApiKey();
                 if (Objects.isNull(realApiKey)) {
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return exchange.getResponse().setComplete();
                 }
+                observation.updateContext(observation.getContext().withApiKeyId(mapping.getId()));
             } else {
                 realApiKey = null;
             }
