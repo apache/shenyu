@@ -169,4 +169,132 @@ public final class RoundRobinLoadBalanceTest {
         countMap.values().forEach(count -> 
             assertTrue(count >= 8 && count <= 12, "Distribution should be roughly equal for equal weights"));
     }
+
+    /**
+     * Issue #8441: two selectors whose upstream lists share the first upstream's
+     * URL must not share smooth weighted round-robin counters. With isolated
+     * state each selector's sequence is deterministic, so the exact counts of a
+     * smooth cycle hold; on the shared state of the old implementation the
+     * shared upstream's weight flips 1↔9 between calls and the ratios deviate.
+     */
+    @Test
+    public void sharedFirstUpstreamStaysIsolatedPerSelector() {
+        Upstream sharedLight = Upstream.builder().url("shared-a:8080").weight(1).status(true).build();
+        Upstream sharedHeavy = Upstream.builder().url("shared-a:8080").weight(9).status(true).build();
+        Upstream b = Upstream.builder().url("b:8080").weight(9).status(true).build();
+        Upstream c = Upstream.builder().url("c:8080").weight(1).status(true).build();
+        List<Upstream> selectorOne = List.of(sharedLight, b);
+        List<Upstream> selectorTwo = List.of(sharedHeavy, c);
+        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+        Map<String, Integer> firstCounts = new HashMap<>();
+        Map<String, Integer> secondCounts = new HashMap<>();
+        IntStream.range(0, 10000).forEach(i -> {
+            firstCounts.merge(loadBalancer.select(selectorOne, new LoadBalanceData()).getUrl(), 1, Integer::sum);
+            secondCounts.merge(loadBalancer.select(selectorTwo, new LoadBalanceData()).getUrl(), 1, Integer::sum);
+        });
+        assertEquals(1000, firstCounts.get("shared-a:8080").intValue());
+        assertEquals(9000, firstCounts.get("b:8080").intValue());
+        assertEquals(9000, secondCounts.get("shared-a:8080").intValue());
+        assertEquals(1000, secondCounts.get("c:8080").intValue());
+    }
+
+    /**
+     * Issue #8441: parallel selectors sharing an upstream address keep their
+     * deterministic ratios, because each thread drives only its own pool.
+     */
+    @Test
+    public void sharedUpstreamSelectorsStayIsolatedUnderConcurrency() throws Exception {
+        Upstream sharedLight = Upstream.builder().url("shared-a:8080").weight(1).status(true).build();
+        Upstream sharedHeavy = Upstream.builder().url("shared-a:8080").weight(9).status(true).build();
+        Upstream b = Upstream.builder().url("b:8080").weight(9).status(true).build();
+        Upstream c = Upstream.builder().url("c:8080").weight(1).status(true).build();
+        List<Upstream> selectorOne = List.of(sharedLight, b);
+        List<Upstream> selectorTwo = List.of(sharedHeavy, c);
+        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+        Map<String, Integer> firstCounts = new HashMap<>();
+        Map<String, Integer> secondCounts = new HashMap<>();
+        Thread one = new Thread(() -> IntStream.range(0, 10000).forEach(i ->
+                firstCounts.merge(loadBalancer.select(selectorOne, new LoadBalanceData()).getUrl(), 1, Integer::sum)));
+        Thread two = new Thread(() -> IntStream.range(0, 10000).forEach(i ->
+                secondCounts.merge(loadBalancer.select(selectorTwo, new LoadBalanceData()).getUrl(), 1, Integer::sum)));
+        one.start();
+        two.start();
+        one.join();
+        two.join();
+        assertEquals(1000, firstCounts.get("shared-a:8080").intValue());
+        assertEquals(9000, firstCounts.get("b:8080").intValue());
+        assertEquals(9000, secondCounts.get("shared-a:8080").intValue());
+        assertEquals(1000, secondCounts.get("c:8080").intValue());
+    }
+
+    /**
+     * Issue #8441: two selectors over the same upstream set with opposite
+     * weights must each follow their own configuration, not fight over one
+     * pool (the old keying shared the state because the first URL matched).
+     */
+    @Test
+    public void sameUpstreamSetWithDifferentWeightsStaysIsolated() {
+        Upstream lightA = Upstream.builder().url("set-a:8080").weight(1).status(true).build();
+        Upstream heavyB = Upstream.builder().url("set-b:8080").weight(9).status(true).build();
+        Upstream heavyA = Upstream.builder().url("set-a:8080").weight(9).status(true).build();
+        Upstream lightB = Upstream.builder().url("set-b:8080").weight(1).status(true).build();
+        List<Upstream> selectorOne = List.of(lightA, heavyB);
+        List<Upstream> selectorTwo = List.of(heavyA, lightB);
+        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+        Map<String, Integer> firstCounts = new HashMap<>();
+        Map<String, Integer> secondCounts = new HashMap<>();
+        IntStream.range(0, 10000).forEach(i -> {
+            firstCounts.merge(loadBalancer.select(selectorOne, new LoadBalanceData()).getUrl(), 1, Integer::sum);
+            secondCounts.merge(loadBalancer.select(selectorTwo, new LoadBalanceData()).getUrl(), 1, Integer::sum);
+        });
+        assertEquals(1000, firstCounts.get("set-a:8080").intValue());
+        assertEquals(9000, firstCounts.get("set-b:8080").intValue());
+        assertEquals(9000, secondCounts.get("set-a:8080").intValue());
+        assertEquals(1000, secondCounts.get("set-b:8080").intValue());
+    }
+
+    /**
+     * A configured-weight change rotates the state to a fresh pool, so the new
+     * ratio applies from a clean counter instead of a polluted one.
+     */
+    @Test
+    public void weightChangeRotatesToAFreshPool() {
+        Upstream a = Upstream.builder().url("wc-a:8080").weight(1).status(true).build();
+        Upstream heavyB = Upstream.builder().url("wc-b:8080").weight(9).status(true).build();
+        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+        Map<String, Integer> counts = new HashMap<>();
+        List<Upstream> heavy = List.of(a, heavyB);
+        IntStream.range(0, 10000).forEach(i ->
+                counts.merge(loadBalancer.select(heavy, new LoadBalanceData()).getUrl(), 1, Integer::sum));
+        assertEquals(1000, counts.get("wc-a:8080").intValue());
+        assertEquals(9000, counts.get("wc-b:8080").intValue());
+        List<Upstream> lighter = List.of(a, Upstream.builder().url("wc-b:8080").weight(2).status(true).build());
+        IntStream.range(0, 10000).forEach(i ->
+                counts.merge(loadBalancer.select(lighter, new LoadBalanceData()).getUrl(), 1, Integer::sum));
+        final int aTotal = counts.get("wc-a:8080").intValue();
+        final int bTotal = counts.get("wc-b:8080").intValue();
+        // 1:2 over the second window of 10000 picks
+        assertTrue(Math.abs(aTotal - 1000 - 3333) <= 100, "a count in second window: " + aTotal);
+        assertTrue(Math.abs(bTotal - 9000 - 6667) <= 100, "b count in second window: " + bTotal);
+    }
+
+    /**
+     * Reordering a selector's upstream list starts a fresh pool and the old
+     * state never leaks into the new order.
+     */
+    @Test
+    public void reorderedUpstreamListStartsFreshState() {
+        Upstream a = Upstream.builder().url("ro-a:8080").weight(1).status(true).build();
+        Upstream b = Upstream.builder().url("ro-b:8080").weight(9).status(true).build();
+        RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
+        List<Upstream> original = List.of(a, b);
+        Map<String, Integer> counts = new HashMap<>();
+        IntStream.range(0, 10000).forEach(i ->
+                counts.merge(loadBalancer.select(original, new LoadBalanceData()).getUrl(), 1, Integer::sum));
+        assertEquals(1000, counts.get("ro-a:8080").intValue());
+        List<Upstream> reordered = List.of(b, a);
+        IntStream.range(0, 10000).forEach(i ->
+                counts.merge(loadBalancer.select(reordered, new LoadBalanceData()).getUrl(), 1, Integer::sum));
+        assertEquals(1000, counts.get("ro-a:8080").intValue() - 1000);
+    }
 }
