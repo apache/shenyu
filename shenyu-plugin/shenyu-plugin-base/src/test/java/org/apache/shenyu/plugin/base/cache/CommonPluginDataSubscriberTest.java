@@ -118,6 +118,22 @@ public final class CommonPluginDataSubscriberTest {
     }
 
     @Test
+    public void testPluginGroupRefreshPreservesSelectorAndRuleData() {
+        final PluginData pluginData = PluginData.builder().name(mockPluginName1).build();
+        final SelectorData selectorData = SelectorData.builder().id(mockSelectorId1).pluginName(mockPluginName1).build();
+        final RuleData ruleData = RuleData.builder().id(mockName1).selectorId(mockSelectorId1).pluginName(mockPluginName1).build();
+        baseDataCache.cacheSelectData(selectorData);
+        baseDataCache.cacheRuleData(ruleData);
+
+        commonPluginDataSubscriber.refreshPluginDataAll();
+        commonPluginDataSubscriber.onSubscribe(pluginData);
+
+        assertEquals(pluginData, baseDataCache.obtainPluginData(mockPluginName1));
+        assertEquals(List.of(selectorData), baseDataCache.obtainSelectorData(mockPluginName1));
+        assertEquals(List.of(ruleData), baseDataCache.obtainRuleData(mockSelectorId1));
+    }
+
+    @Test
     public void testReplaceExtendPluginDataHandlerWithoutOverridingBuiltInHandler() {
         PluginDataHandler firstExtendHandler = mock(PluginDataHandler.class);
         PluginDataHandler replacementExtendHandler = mock(PluginDataHandler.class);
