@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.InstanceRetentionProperties;
+import org.apache.shenyu.admin.config.properties.RegistrationLeaseProperties;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverter;
 import org.apache.shenyu.admin.service.converter.SelectorHandleConverterFactor;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
@@ -41,7 +42,7 @@ import java.util.stream.Stream;
  */
 @Configuration
 @EnableTransactionManagement
-@EnableConfigurationProperties(InstanceRetentionProperties.class)
+@EnableConfigurationProperties({InstanceRetentionProperties.class, RegistrationLeaseProperties.class})
 public class ShenyuAdminConfiguration {
     
     /**

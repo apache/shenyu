@@ -18,9 +18,11 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.RegistrationFencingProperties;
+import org.apache.shenyu.admin.config.properties.RegistrationLeaseProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.shenyu.register.common.protocol.RegistrationFencingProtocol;
+import org.apache.shenyu.register.common.protocol.RegistrationLeaseProtocol;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -36,20 +38,25 @@ public final class RegistrationProtocolInterceptor implements HandlerInterceptor
 
     private final RegistrationFencingProperties fencingProperties;
 
+    private final RegistrationLeaseProperties leaseProperties;
+
     /**
      * Construct the legacy-compatible interceptor for isolated callers.
      */
     public RegistrationProtocolInterceptor() {
-        this(null);
+        this(null, null);
     }
 
     /**
      * Construct an interceptor with capability advertisement settings.
      *
      * @param fencingProperties fencing properties
+     * @param leaseProperties lease properties
      */
-    public RegistrationProtocolInterceptor(final RegistrationFencingProperties fencingProperties) {
+    public RegistrationProtocolInterceptor(final RegistrationFencingProperties fencingProperties,
+                                           final RegistrationLeaseProperties leaseProperties) {
         this.fencingProperties = fencingProperties;
+        this.leaseProperties = leaseProperties;
     }
 
     @Override
@@ -61,6 +68,9 @@ public final class RegistrationProtocolInterceptor implements HandlerInterceptor
         String capabilities = RegistrationProtocol.V1_CAPABILITIES;
         if (Objects.nonNull(fencingProperties) && fencingProperties.isEnabled()) {
             capabilities = capabilities + "," + RegistrationFencingProtocol.CAPABILITY;
+        }
+        if (Objects.nonNull(leaseProperties) && leaseProperties.isEnabled()) {
+            capabilities = capabilities + "," + RegistrationLeaseProtocol.CAPABILITY;
         }
         response.setHeader(RegistrationProtocol.CAPABILITIES_HEADER, capabilities);
         List<String> versions = Collections.list(request.getHeaders(RegistrationProtocol.VERSION_HEADER));
