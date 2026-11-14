@@ -55,8 +55,6 @@ import java.util.Set;
 public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     private static final Logger LOG = LoggerFactory.getLogger(PullSwaggerDocServiceImpl.class);
 
-    private static final HttpUtils HTTP_UTILS = new HttpUtils();
-
     private static final String SWAGGER_V3_PATH = "/v3/api-docs";
 
     private static final long PULL_MIN_INTERVAL_TIME = 30 * 1000;
@@ -65,6 +63,8 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     @Value("${shenyu.swagger.max-body-size:10485760}")
     private long maxSwaggerBodySize;
+
+    private HttpUtils httpUtils = new HttpUtils();
 
     private final Interner<Object> interner = Interners.newWeakInterner();
 
@@ -88,7 +88,8 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
     @SuppressWarnings("unchecked")
     public void pullApiDocument(final UpstreamInstance instance) {
         TagVO tagVO = null;
-        synchronized (interner.intern(instance.getClusterName())) {
+        // An empty context path has no cluster name; still take a lock so the single root pull can proceed.
+        synchronized (interner.intern(StringUtils.defaultString(instance.getClusterName()))) {
             tagVO = saveTagVOAndAcquireLock(instance);
             if (!canPull(instance, tagVO)) {
                 return;
@@ -96,8 +97,8 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         }
         TagDO.TagExt tagExt = tagVO.getTagExt();
         long newRefreshTime = System.currentTimeMillis();
-        String url = getSwaggerRequestUrl(instance);
-        try (Response response = HTTP_UTILS.requestForResponse(url, Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET)) {
+        StringBuilder url = new StringBuilder();
+        try (Response response = openSwaggerResponse(instance, url)) {
             if (response.code() == HttpStatus.SC_NOT_FOUND) {
                 LOG.warn("add api document not found. clusterName={} url={}", instance.getClusterName(), url);
                 return;
@@ -190,12 +191,53 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
         return StringUtils.isNotEmpty(ext) ? GsonUtils.getInstance().fromJson(ext, TagDO.TagExt.class) : new TagDO.TagExt();
     }
 
+    /**
+     * Open the swagger document response.
+     * The registered context path is requested first so a real servlet context-path still wins.
+     * The backend root is tried once only after HTTP 404 when the context path is a real prefix.
+     *
+     * @param instance upstream whose document is being pulled
+     * @param url url of the response that is returned
+     * @return swagger response, which the caller closes
+     * @throws IOException when the HTTP call fails
+     */
+    private Response openSwaggerResponse(final UpstreamInstance instance, final StringBuilder url) throws IOException {
+        url.setLength(0);
+        url.append(getSwaggerRequestUrl(instance));
+        Response response = requestSwagger(url.toString());
+        if (response.code() != HttpStatus.SC_NOT_FOUND || !shouldRetrySwaggerAtRoot(instance.getContextPath())) {
+            return response;
+        }
+        response.close();
+        url.setLength(0);
+        url.append(getSwaggerRootRequestUrl(instance));
+        return requestSwagger(url.toString());
+    }
+
+    private boolean shouldRetrySwaggerAtRoot(final String contextPath) {
+        return StringUtils.isNotEmpty(contextPath) && !"/".equals(contextPath);
+    }
+
+    private Response requestSwagger(final String url) throws IOException {
+        return this.httpUtils.requestForResponse(url, Collections.emptyMap(), Collections.emptyMap(), HttpUtils.HTTPMethod.GET);
+    }
+
     private String getSwaggerRequestUrl(final UpstreamInstance instance) {
+        return buildSwaggerRequestUrl(instance, true);
+    }
+
+    private String getSwaggerRootRequestUrl(final UpstreamInstance instance) {
+        return buildSwaggerRequestUrl(instance, false);
+    }
+
+    private String buildSwaggerRequestUrl(final UpstreamInstance instance, final boolean includeContextPath) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();
         uriComponentsBuilder.scheme("http");
         uriComponentsBuilder.host(instance.getIp());
         uriComponentsBuilder.port(instance.getPort());
-        uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
+        if (includeContextPath) {
+            uriComponentsBuilder.path(Optional.ofNullable(instance.getContextPath()).orElse(""));
+        }
         uriComponentsBuilder.path(SWAGGER_V3_PATH);
         return uriComponentsBuilder.build().toUriString();
     }
