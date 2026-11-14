@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.codec.ServerCodecConfigurer;
 
@@ -35,6 +36,7 @@ import java.util.Objects;
  * The type Mock plugin configuration.
  */
 @ConditionalOnProperty(prefix = "shenyu.plugins.mcp.server", name = "enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(McpSessionProperties.class)
 public class McpServerPluginConfiguration {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(McpServerPluginConfiguration.class);
@@ -62,11 +64,12 @@ public class McpServerPluginConfiguration {
      * Shenyu mcp server manager.
      *
      * @param shenyuConfig the shenyu config
+     * @param sessionProperties startup session limits
      * @return the shenyu mcp server manager
      */
-    @Bean
-    public ShenyuMcpServerManager shenyuMcpServerManager(final ShenyuConfig shenyuConfig) {
-        return new ShenyuMcpServerManager(resolveCorsAllowedHeaders(shenyuConfig));
+    @Bean(destroyMethod = "close")
+    public ShenyuMcpServerManager shenyuMcpServerManager(final ShenyuConfig shenyuConfig, final McpSessionProperties sessionProperties) {
+        return new ShenyuMcpServerManager(resolveCorsAllowedHeaders(shenyuConfig), sessionProperties.policy());
     }
 
     /**

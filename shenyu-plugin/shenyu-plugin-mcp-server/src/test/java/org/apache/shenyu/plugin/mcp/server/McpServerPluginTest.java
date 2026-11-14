@@ -285,14 +285,11 @@ class McpServerPluginTest {
             StepVerifier.create(plugin.doExecute(messageExchange, chain, selector, rule))
                     .verifyComplete();
 
-            // the session's handle() answers over the SSE stream and completes empty,
-            // so the POST response carries no status; what must NOT happen is the
-            // old behavior: a fresh transport without that session answering 404
+            // The SDK answers over SSE and completes empty; acknowledge the POST
+            // without creating a fresh transport under the message endpoint.
             assertFalse(manager.hasMcpServer("/mcp/rpc"),
                     "no extra shared server may be created under the message endpoint path");
-            // the session answers over the SSE stream, so no HTTP status is written here;
-            // a 404 would mean the POST landed on a sessionless transport
-            assertNull(messageExchange.getResponse().getStatusCode());
+            assertEquals(HttpStatus.OK, messageExchange.getResponse().getStatusCode());
         } finally {
             sseConnection.dispose();
             McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
