@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.AiProxyRuleOverrides;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -34,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * this is ai proxy plugin handler.
@@ -45,6 +49,8 @@ public class AiProxyPluginHandler implements PluginDataHandler {
     private final CommonHandleCache<String, AiProxyHandle> selectorCachedHandle = new CommonHandleCache<>();
 
     private volatile AiCommonConfig globalConfig;
+
+    private final ConcurrentMap<String, PublishedRule> rules = new ConcurrentHashMap<>();
 
     public AiProxyPluginHandler() {
     }
@@ -66,6 +72,7 @@ public class AiProxyPluginHandler implements PluginDataHandler {
     @Override
     public void removePlugin(final PluginData pluginData) {
         globalConfig = null;
+        rules.clear();
     }
 
     /**
@@ -99,6 +106,33 @@ public class AiProxyPluginHandler implements PluginDataHandler {
         AiProxyApiKeyCache.getInstance().removeBySelectorId(selectorData.getId());
         selectorCachedHandle
                 .removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
+        rules.entrySet().removeIf(entry -> Objects.equals(entry.getValue().selectorId(), selectorData.getId()));
+    }
+
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        AiProxyRuleOverrides overrides = AiProxyRuleOverrides.parse(ruleData.getHandle());
+        if (Objects.nonNull(ruleData.getId())) {
+            rules.put(ruleData.getId(), new PublishedRule(ruleData.getSelectorId(), overrides));
+        }
+    }
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        if (Objects.nonNull(ruleData.getId())) {
+            rules.remove(ruleData.getId());
+        }
+    }
+
+    /**
+     * Read an immutable published Rule value without parsing or copying on the request path.
+     * @param selectorId actual selected owner
+     * @param ruleId actual matched Rule
+     * @return matching generation defaults or no overrides
+     */
+    public AiProxyRuleOverrides getRuleOverrides(final String selectorId, final String ruleId) {
+        PublishedRule value = Objects.isNull(ruleId) ? null : rules.get(ruleId);
+        return Objects.nonNull(value) && Objects.equals(selectorId, value.selectorId()) ? value.overrides() : AiProxyRuleOverrides.NONE;
     }
 
     @Override
@@ -113,5 +147,8 @@ public class AiProxyPluginHandler implements PluginDataHandler {
      */
     public CommonHandleCache<String, AiProxyHandle> getSelectorCachedHandle() {
         return selectorCachedHandle;
+    }
+
+    private record PublishedRule(String selectorId, AiProxyRuleOverrides overrides) {
     }
 }

@@ -147,7 +147,8 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             } else {
                 realApiKey = null;
             }
-            AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
+            AiCommonConfig config = AiProxyConfigService.applyRuleOverrides(aiProxyConfigService.resolvePrimaryConfig(handle),
+                    aiProxyPluginHandler.getRuleOverrides(selector.getId(), rule.getId()));
             if (Objects.nonNull(realApiKey)) {
                 config.setApiKey(realApiKey);
             }
