@@ -65,9 +65,7 @@ public class ExponentialRetryBackoffStrategy<R> implements RetryStrategy<R> {
         Mono<R> retriedResponse = failover
                 ? new DefaultRetryStrategy<>(httpClientPlugin).executeFailover(response, exchange, duration, retrySpec)
                 : response.retryWhen(retrySpec);
-        Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(5));
-        return retriedResponse
-                .timeout(totalTimeout, Mono.error(() -> new java.util.concurrent.TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
+        return RetryTimeoutUtils.limitSequence(retriedResponse, exchange, duration, retryTimes, Duration.ofSeconds(5))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
     }
 

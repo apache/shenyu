@@ -104,7 +104,7 @@ Consequences that the rest of this document depends on:
 | `spec.parametersRef` | **Rejected**: `Accepted=False`, reason `InvalidParameters`. ShenYu has no class-level parameters. |
 | `status.conditions[Accepted]` | Written, with `observedGeneration` and stable `lastTransitionTime`. |
 | `status.conditions[SupportedVersion]` | Written from the CRD bundle version (see §1). |
-| `status.supportedFeatures` | Written as a list of `{name}` entries: `Gateway`, `HTTPRoute`, `ReferenceGrant`, sorted per spec. These are exactly the `GATEWAY-HTTP` profile's core features at v1.5.1 (§6). |
+| `status.supportedFeatures` | The three core features plus `HTTPRouteBackendTimeout` and `HTTPRouteRequestTimeout`, sorted by name (§6). |
 | Finalizer `gateway-exists-finalizer.gateway.networking.k8s.io` | Held while at least one Gateway references the class; released when the class is deleted or stops being managed by ShenYu. |
 
 ### 3.2 Gateway and listeners
@@ -154,7 +154,7 @@ where they exist, because that is what decides whether a gap can block core conf
 | `spec.rules[].filters` | **Not supported at all.** Any filter on a rule removes the route's whole config and sets `Accepted=False`, `UnsupportedValue`. At v1.5.1 a core test requires `RequestHeaderModifier` and another requires `RequestRedirect` (§7.3). |
 | `spec.rules[].backendRefs[].filters` | **Silently ignored** (see §5.2). The spec marks this implementation-specific, so ignoring it is permitted — but then it must be documented, which is what this row does. |
 | `spec.rules[].retry` | **Silently ignored** (see §5.2). The data plane always uses 3 retries. API level: Extended. |
-| `spec.rules[].timeouts` | **Silently ignored** (see §5.2). The data plane always uses a fixed 3000 ms timeout. API level: Extended. |
+| `spec.rules[].timeouts` | Extended. `request` bounds proxy execution through downstream completion, including retries and backoff. `backendRequest` bounds each backend call through the full response body. See §7.10. |
 | `spec.rules[].sessionPersistence` | **Silently ignored** (see §5.2). Load balancing is always random. API level: Extended. |
 | `spec.rules[].name` | Ignored; carries no routing semantics. API level: Extended. |
 | `status.parents[]` | Written per parentRef with `controllerName`, `parentRef`, and `conditions[Accepted,ResolvedRefs]` including `observedGeneration`. |
@@ -235,15 +235,13 @@ The route remains `Accepted=True` and `ResolvedRefs=True`.
 | --- | --- |
 | `HTTPRoute.rules[].backendRefs[].filters` | Ignored entirely; the backend is programmed as if no filter existed. Permitted by the spec (implementation-specific support). |
 | `HTTPRoute.rules[].retry` | Ignored; fixed 3 retries apply. |
-| `HTTPRoute.rules[].timeouts` | Ignored; fixed 3000 ms timeout applies. |
 | `HTTPRoute.rules[].sessionPersistence` | Ignored; random load balancing applies. |
 | `Gateway.spec.addresses` | Ignored; the controller does not bind the requested address. |
 | `Gateway.spec.infrastructure` | Ignored; nothing is propagated to generated resources. |
 
 None of these broadens routing, so they are not correctness bugs of the kind §5.1 prevents, but
 they are the weakest part of the current support claim and should be closed in one of two ways:
-honour the field, or reject the route (`Accepted=False` / `UnsupportedValue`). Until then, this
-table is the honest answer to "is my timeout honoured?" — and the answer is no.
+honour the field, or reject the route (`Accepted=False` / `UnsupportedValue`).
 
 ### 5.3 Narrowed
 
@@ -273,10 +271,10 @@ profile and must not be described as such.**
 
 ### 6.1 What is declared
 
-`GatewayClass.status.supportedFeatures` lists `Gateway`, `HTTPRoute` and `ReferenceGrant`. At
-v1.5.1 the `GATEWAY-HTTP` profile's `CoreFeatures` set is exactly those three
-(`conformance/utils/suite/profiles.go`), so the declaration matches the profile's core feature
-set — it is a declaration of *implemented surface*, not a conformance result.
+The controller advertises the three v1.5.1 core features and the two Extended HTTPRoute
+timeout features. The named upstream cases are HTTPRouteTimeoutRequest and
+HTTPRouteTimeoutBackendRequest. Local HTTP routing tests exercise timeout behavior for both
+HTTP clients. An official conformance run is still outstanding.
 
 ### 6.2 What a core `GATEWAY-HTTP` run actually requires
 
@@ -298,8 +296,8 @@ a gap in §7:
 | `HTTPRouteInvalidCrossNamespaceParentRef` | §7.4 wrong `Accepted` reason (`NotAllowedByListeners` expected) |
 | `HTTPRouteServiceTypes` | §7.5 `Endpoints`-only backend resolution |
 
-Everything marked *Extended* in the API reference (response header modification, rewrites,
-mirrors, timeouts, CORS, backend-scoped filters, `TLSRoute`-dependent cases such as
+A full run of the *Extended* suite (response header modification, rewrites,
+mirrors, CORS, backend-scoped filters, `TLSRoute`-dependent cases such as
 `HTTPRouteDisallowedKind`) is out of scope until the core set passes.
 
 ### 6.3 Rules for wiring the suite up
@@ -393,11 +391,22 @@ count, overriding hostname/path precedence.
 The conformance suite can be pointed at an explicit address, so this is not a hard blocker, but a
 gateway that does not publish its address is incomplete for every consumer that reads status.
 
-### 7.10 Per-route tuning is ignored, data-plane defaults are hard-coded
+### 7.10 HTTPRoute timeouts and retry defaults
 
-`rules[].retry`, `timeouts` and `sessionPersistence` are accepted and dropped (§5.2) while
-`DivideRuleHandle` is emitted with `retry=3`, `timeout=3000`, `loadBalance=RANDOM`. A route that
-declares a 30 s timeout is accepted and then times out at 3 s. All three fields are Extended.
+Without either timeout the generated Divide rule uses its legacy 3000 ms timeout and three retries.
+Specifying either field enables separate deadlines. An omitted backend budget defaults to 3000 ms;
+an omitted request budget adds no route-wide deadline. Zero disables that particular route timer.
+When both values are zero, the retry count still applies, but the route imposes no time limit on
+an attempt or on the retry sequence. A stalled backend then relies solely on independently
+configured connection and transport timeouts. Values use the v1.5.1 Gateway API duration
+grammar, including compound values such as `1s250ms`. A malformed value or a backend duration
+greater than a finite explicit request duration withdraws the route and reports
+`Accepted=False/UnsupportedValue`.
+
+The request budget starts at Divide execution and includes backend selection, all attempts, backoff,
+and downstream writing. Each backend attempt has a fresh budget through backend body completion.
+A terminal timeout before downstream commitment yields 504. After commitment the stream terminates.
+The controller still ignores `rules[].retry` and `sessionPersistence` (§5.2).
 
 ### 7.11 `backendRefs[].filters` is ignored while the route reports success
 

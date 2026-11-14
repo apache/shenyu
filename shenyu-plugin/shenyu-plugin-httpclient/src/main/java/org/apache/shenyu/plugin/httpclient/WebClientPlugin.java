@@ -22,6 +22,8 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.base.utils.MediaTypeUtils;
 import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
@@ -36,10 +38,14 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import org.reactivestreams.Subscription;
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Web client plugin.
@@ -148,20 +154,47 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                         .thenReturn(new ShenyuUpstreamStatusException(clientResponse.statusCode().value())))
                 // cover DefaultResponseSpec#DEFAULT_STATUS_HANDLER
                 .onRawStatus(httpStatus -> httpStatus >= 400, clientResponse -> Mono.empty());
+        HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
         return responseSpec.toEntityFlux(DataBuffer.class)
+                .map(entity -> Objects.isNull(attempt) ? entity : ownResponse(entity, attempt))
                 .flatMap(fluxResponseEntity -> {
                     if (fluxResponseEntity.getStatusCode().is2xxSuccessful()) {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
                     } else {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
                     }
-                    HttpHeaders headers = exchange.getResponse().getHeaders();
-                    headers.putAll(fluxResponseEntity.getHeaders());
-                    this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
-                    exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
+                    HttpRouteResponseHeaders.apply(exchange, () -> {
+                        HttpHeaders headers = exchange.getResponse().getHeaders();
+                        headers.putAll(fluxResponseEntity.getHeaders());
+                        this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
+                        exchange.getResponse().setStatusCode(fluxResponseEntity.getStatusCode());
+                    });
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, fluxResponseEntity);
                     return Mono.just(fluxResponseEntity);
                 });
+    }
+
+    private ResponseEntity<Flux<DataBuffer>> ownResponse(final ResponseEntity<Flux<DataBuffer>> entity, final HttpRouteDeadline attempt) {
+        Flux<DataBuffer> body = entity.getBody();
+        if (Objects.isNull(body)) {
+            attempt.received();
+            return entity;
+        }
+        AtomicBoolean claimed = new AtomicBoolean();
+        attempt.onAbandon(() -> {
+            if (claimed.compareAndSet(false, true)) {
+                // Headers arrived but the writer never subscribed. Cancel at subscription, without draining an unbounded body.
+                body.subscribe(new BaseSubscriber<>() {
+                    @Override
+                    protected void hookOnSubscribe(final Subscription subscription) {
+                        cancel();
+                    }
+                });
+            }
+        });
+        Flux<DataBuffer> owned = Flux.defer(() -> claimed.compareAndSet(false, true)
+                ? body.doOnComplete(attempt::received) : Flux.error(new IllegalStateException("HTTP response body already claimed")));
+        return new ResponseEntity<>(owned, entity.getHeaders(), entity.getStatusCode());
     }
 
     @Override

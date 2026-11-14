@@ -21,6 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ssl.SslCrtAndKeyStream;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The configuration that shenyu can read directly.
@@ -41,6 +42,8 @@ public class ShenyuMemoryConfig {
 
     /** Unsupported filters must surface as Accepted=False/UnsupportedValue with the rule unprogrammed. */
     private boolean hasUnsupportedFilters;
+
+    private String ruleRejectionMessage;
 
     /**
      * ShenyuMemoryConfig Constructor.
@@ -116,6 +119,25 @@ public class ShenyuMemoryConfig {
 
     public void setUnresolvedReason(final String unresolvedReason) {
         this.unresolvedReason = unresolvedReason;
+    }
+
+    /**
+     * Get the diagnostic used to withdraw the route and set Accepted=False/UnsupportedValue.
+     * @return the first rejected rule's diagnostic in declaration order, or null for a valid route
+     */
+    public String getRuleRejectionMessage() {
+        if (hasUnsupportedFilters && Objects.isNull(ruleRejectionMessage)) {
+            return "route rules declare filters which are not supported by ShenYu";
+        }
+        return ruleRejectionMessage;
+    }
+
+    /**
+     * Set the first rule-level rejection diagnostic from the parser.
+     * @param ruleRejectionMessage diagnostic, or null if the parser accepted every rule
+     */
+    public void setRuleRejectionMessage(final String ruleRejectionMessage) {
+        this.ruleRejectionMessage = ruleRejectionMessage;
     }
 
     public boolean isHasUnsupportedFilters() {

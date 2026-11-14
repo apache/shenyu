@@ -311,6 +311,12 @@ test('CI validates the Maven wrapper before every independent Maven job', () => 
     const preflight = steps.findIndex(step => step.run === 'bash .github/scripts/ensure-maven-wrapper.sh');
     assert.ok(preflight >= 0 && preflight < firstMaven, name);
   }
+  const sourceBuild = workflows.get('ci.yml').jobs.source_release_check.steps.find(step => step.run?.includes('source_archive=')).run;
+  const extractedRoot = sourceBuild.indexOf('cd "${source_root}/apache-shenyu-${version}-src"');
+  const extractedPreflight = sourceBuild.indexOf('bash "${GITHUB_WORKSPACE}/.github/scripts/ensure-maven-wrapper.sh"');
+  const extractedMaven = sourceBuild.indexOf('./mvnw');
+  assert.ok(extractedRoot >= 0 && extractedPreflight > extractedRoot && extractedMaven > extractedPreflight,
+    'Validate the extracted source distribution wrapper before using it');
 });
 
 test('integration builds validate the Maven wrapper before their first Maven invocation', () => {
