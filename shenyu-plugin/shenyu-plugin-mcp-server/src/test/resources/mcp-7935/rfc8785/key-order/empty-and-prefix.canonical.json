@@ -1,0 +1,1 @@
+{"tools":[{"description":"Synthetic fixture: the empty key sorts before \"a\", \"a\" before \"aa\", \"aa\" before \"ab\".","inputSchema":{"properties":{"":{"type":"integer"},"a":{"type":"integer"},"aa":{"type":"integer"},"ab":{"type":"integer"}},"type":"object"},"name":"rfc8785_key_order_prefix"}]}

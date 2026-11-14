@@ -1,0 +1,20 @@
+{
+  "tools": [
+    {
+      "name": "rfc8785_numbers_negative_zero",
+      "description": "Synthetic fixture: only the number spelling differs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      }
+    }
+  ]
+}
