@@ -130,6 +130,30 @@ class AiProxyPluginConfigurationTest {
     }
 
     @Test
+    void managedAuditCanCoexistWithExistingObserverInAiOnlyDeployment() {
+        contextRunner.withConfiguration(AutoConfigurations.of(
+                org.apache.shenyu.springboot.starter.agent.audit.AgentInvocationAuditConfiguration.class))
+                .withPropertyValues("shenyu.plugins.agent.audit.enabled=true")
+                .withBean(AiCallObserver.class, () -> event -> { })
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed()
+                        .hasSingleBean(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.class)
+                        .hasSingleBean(AiProxyPlugin.class));
+    }
+
+    @Test
+    void managedAuditAndResponseCacheCanCoexistWithApplicationAdapters() {
+        contextRunner.withConfiguration(AutoConfigurations.of(
+                org.apache.shenyu.springboot.starter.agent.audit.AgentInvocationAuditConfiguration.class))
+                .withPropertyValues("shenyu.plugins.agent.audit.enabled=true", "shenyu.plugins.ai.proxy.response-cache.enabled=true")
+                .withBean(AiCallObserver.class, () -> event -> { })
+                .withBean(AiResponseCacheScopeResolver.class, () -> (exchange, selector, rule) -> Mono.empty())
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed()
+                        .hasSingleBean(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.class)
+                        .hasSingleBean(AiExactResponseCache.class)
+                        .hasSingleBean(AiProxyPlugin.class));
+    }
+
+    @Test
     void bindsExplicitStreamCompletionModeAndRejectsUnknownModes() {
         contextRunner.run(context -> assertEquals(AiStreamCompletionProperties.Mode.COMPATIBILITY,
                 context.getBean(AiStreamCompletionProperties.class).getMode()));

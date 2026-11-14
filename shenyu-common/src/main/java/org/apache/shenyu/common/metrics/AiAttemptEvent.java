@@ -24,8 +24,7 @@ import org.apache.shenyu.common.dto.AgentRequestContext;
  * @param context immutable trusted request snapshot
  * @param attemptNumber one-based sequence within a logical request
  * @param kind primary, retry or fallback
- * @param provider selected provider identifier
- * @param protocol selected client protocol
+ * @param route actual client/target protocol and model attribution
  * @param streaming selected response mode
  * @param outcome terminal classification
  * @param httpStatus received upstream status, null before headers
@@ -33,7 +32,7 @@ import org.apache.shenyu.common.dto.AgentRequestContext;
  * @param usage last explicit usage snapshot for this attempt
  * @param completion independent stream evidence and framing; SUCCESS is transport/HTTP outcome only
  */
-public record AiAttemptEvent(AgentRequestContext context, int attemptNumber, Kind kind, String provider, String protocol, boolean streaming,
+public record AiAttemptEvent(AgentRequestContext context, int attemptNumber, Kind kind, AiAttemptRoute route, boolean streaming,
                              AiCallOutcome outcome, Integer httpStatus, long elapsedMillis, AiUsage usage, AiStreamCompletion completion) {
 
     /**
@@ -51,7 +50,76 @@ public record AiAttemptEvent(AgentRequestContext context, int attemptNumber, Kin
      */
     public AiAttemptEvent(final AgentRequestContext context, final int attemptNumber, final Kind kind, final String provider, final String protocol,
                           final boolean streaming, final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis, final AiUsage usage) {
-        this(context, attemptNumber, kind, provider, protocol, streaming, outcome, httpStatus, elapsedMillis, usage, AiStreamCompletion.NOT_INSPECTED);
+        this(context, attemptNumber, kind, new AiAttemptRoute(provider, protocol, null, null, null),
+                streaming, outcome, httpStatus, elapsedMillis, usage, AiStreamCompletion.NOT_INSPECTED);
+    }
+
+    /**
+     * Preserve the original attempt contract without inventing its unknown native protocol.
+     * @param context trusted request
+     * @param attemptNumber attempt sequence
+     * @param kind selection phase
+     * @param provider actual provider
+     * @param protocol client protocol
+     * @param streaming selected mode
+     * @param outcome outcome
+     * @param httpStatus received status
+     * @param elapsedMillis elapsed time
+     * @param usage observed usage
+     * @param completion independent stream completion evidence
+     */
+    public AiAttemptEvent(final AgentRequestContext context, final int attemptNumber, final Kind kind,
+                          final String provider, final String protocol, final boolean streaming,
+                          final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis, final AiUsage usage,
+                          final AiStreamCompletion completion) {
+        this(context, attemptNumber, kind, new AiAttemptRoute(provider, protocol, null, null, null),
+                streaming, outcome, httpStatus, elapsedMillis, usage, completion);
+    }
+
+    /**
+     * Preserve route-aware callers without assuming stream completion evidence.
+     * @param context trusted request
+     * @param attemptNumber attempt sequence
+     * @param kind selection phase
+     * @param route resolved route
+     * @param streaming selected mode
+     * @param outcome outcome
+     * @param httpStatus received status
+     * @param elapsedMillis elapsed time
+     * @param usage observed usage
+     */
+    public AiAttemptEvent(final AgentRequestContext context, final int attemptNumber, final Kind kind,
+                          final AiAttemptRoute route, final boolean streaming,
+                          final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis, final AiUsage usage) {
+        this(context, attemptNumber, kind, route, streaming, outcome, httpStatus, elapsedMillis, usage, AiStreamCompletion.NOT_INSPECTED);
+    }
+
+    /**
+     * Preserve the original client-protocol accessor.
+     * @return client protocol, not the provider-native route
+     */
+    public String protocol() {
+        return route.clientProtocol();
+    }
+
+    public String provider() {
+        return route.provider();
+    }
+
+    public String clientProtocol() {
+        return route.clientProtocol();
+    }
+
+    public String targetProtocol() {
+        return route.targetProtocol();
+    }
+
+    public String requestedModel() {
+        return route.requestedModel();
+    }
+
+    public String resolvedModel() {
+        return route.resolvedModel();
     }
 
     /**
