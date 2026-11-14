@@ -91,6 +91,12 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
      */
     private static final String RESPONSES_EVENT_OBJECT = "response";
 
+    /**
+     * The envelope of an Anthropic Messages {@code message_start} stream event, whose {@code message.usage} reports
+     * the request's input tokens. Kept local for the same reason as {@link #RESPONSES_EVENT_OBJECT}.
+     */
+    private static final String ANTHROPIC_MESSAGE_OBJECT = "message";
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
@@ -305,8 +311,11 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         }
 
         /**
-         * Locate the usage object of a payload. Chat and complete Responses payloads carry it at the root, while a
-         * Responses terminal event carries it inside its {@code response} object.
+         * Locate the usage object of a payload. Chat, complete Responses and complete Anthropic Messages payloads
+         * carry it at the root (an Anthropic {@code message_delta} stream event also carries it at the root); a
+         * Responses terminal event carries it inside its {@code response} object; an Anthropic
+         * {@code message_start} stream event carries it inside its {@code message} object; a Gemini payload —
+         * stream line or complete body — carries it as {@code usageMetadata}.
          *
          * @param node parsed payload of a stream event or a complete body
          * @param eventStream whether the payload is an SSE event
@@ -318,21 +327,31 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 JsonNode responsesEvent = node.get(RESPONSES_EVENT_OBJECT);
                 usage = Objects.nonNull(responsesEvent) && responsesEvent.isObject()
                         ? responsesEvent.get(Constants.USAGE) : null;
+                if (Objects.isNull(usage)) {
+                    JsonNode message = node.get(ANTHROPIC_MESSAGE_OBJECT);
+                    usage = Objects.nonNull(message) && message.isObject() ? message.get(Constants.USAGE) : null;
+                }
+            }
+            if (Objects.isNull(usage)) {
+                usage = node.get(Constants.USAGE_METADATA);
             }
             return usage;
         }
 
         /**
-         * Read the output tokens of a usage object under either protocol's field name.
+         * Read the output tokens of a usage object under any supported protocol's field name.
          *
-         * @param usage usage object of a Chat or Responses payload
-         * @return the reported output tokens, or null when the object has neither field
+         * @param usage usage object of a Chat, Responses, Anthropic Messages or Gemini payload
+         * @return the reported output tokens, or null when the object has none of the fields
          */
         private static JsonNode outputTokensOf(final JsonNode usage) {
             if (usage.has(Constants.COMPLETION_TOKENS)) {
                 return usage.get(Constants.COMPLETION_TOKENS);
             }
-            return usage.has(Constants.OUTPUT_TOKENS) ? usage.get(Constants.OUTPUT_TOKENS) : null;
+            if (usage.has(Constants.OUTPUT_TOKENS)) {
+                return usage.get(Constants.OUTPUT_TOKENS);
+            }
+            return usage.has(Constants.CANDIDATES_TOKEN_COUNT) ? usage.get(Constants.CANDIDATES_TOKEN_COUNT) : null;
         }
 
         /**
