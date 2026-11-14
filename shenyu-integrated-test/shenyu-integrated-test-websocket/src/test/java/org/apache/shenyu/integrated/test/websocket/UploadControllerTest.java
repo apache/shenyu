@@ -32,6 +32,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+
+import static org.awaitility.Awaitility.await;
 
 public class UploadControllerTest extends AbstractPluginDataInit {
 
@@ -57,8 +60,12 @@ public class UploadControllerTest extends AbstractPluginDataInit {
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", FILE_PATH, fileBodyOne)
                 .build();
-        final String response = HttpHelper.INSTANCE.postGateway("/ws-native/ws/upload", requestBody, String.class);
-        Assertions.assertEquals(response, "ok");
+        // Registration and upstream health probing complete after the gateway starts accepting requests.
+        await().alias("WebSocket upload route registration and upstream health").atMost(Duration.ofSeconds(60))
+                .pollInterval(Duration.ofMillis(500)).untilAsserted(() -> {
+                    final String response = HttpHelper.INSTANCE.postGateway("/ws-native/ws/upload", requestBody, String.class);
+                    Assertions.assertEquals("ok", response);
+                });
     }
 
 }
