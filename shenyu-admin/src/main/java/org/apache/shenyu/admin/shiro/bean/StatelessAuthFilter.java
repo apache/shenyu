@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.shiro.bean;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.utils.AdminSecurityAudit;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
@@ -26,8 +27,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shiro.authc.BearerToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.AccessControlFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 
 import jakarta.servlet.ServletRequest;
@@ -44,8 +43,6 @@ import java.util.Objects;
  */
 public class StatelessAuthFilter extends AccessControlFilter {
     
-    private static final Logger LOG = LoggerFactory.getLogger(StatelessAuthFilter.class);
-    
     @Override
     protected boolean isAccessAllowed(final ServletRequest servletRequest,
                                       final ServletResponse servletResponse,
@@ -61,9 +58,10 @@ public class StatelessAuthFilter extends AccessControlFilter {
             return true;
         }
         
+        ((HttpServletResponse) servletResponse).setHeader(AdminSecurityAudit.REQUEST_ID_HEADER, AdminSecurityAudit.requestId(httpServletRequest));
         String tokenValue = getTokenValue(httpServletRequest);
         if (StringUtils.isBlank(tokenValue)) {
-            LOG.error("token is null.");
+            AdminSecurityAudit.authenticationFailed(httpServletRequest, AdminSecurityAudit.Reason.MISSING_TOKEN);
             unionFailResponse(servletResponse);
             return false;
         }
@@ -75,7 +73,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
         try {
             subject.login(token);
         } catch (Exception e) {
-            LOG.error("token is warning. token : {}.", tokenValue, e);
+            AdminSecurityAudit.authenticationFailed(httpServletRequest, AdminSecurityAudit.Reason.REJECTED_TOKEN);
             unionFailResponse(servletResponse);
             return false;
         }
