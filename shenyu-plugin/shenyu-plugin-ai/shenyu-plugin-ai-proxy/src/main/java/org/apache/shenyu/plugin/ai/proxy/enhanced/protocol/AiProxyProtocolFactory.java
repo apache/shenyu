@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Collection;
@@ -59,18 +58,5 @@ public final class AiProxyProtocolFactory {
             throw new ShenyuException("Unsupported AI protocol: " + protocol);
         }
         return result;
-    }
-
-    /**
-     * Detect a protocol from the parsed request payload.
-     *
-     * @param payload parsed request payload
-     * @return matching protocol
-     */
-    public AiProxyProtocol detect(final JsonNode payload) {
-        return aiProxyProtocolMap.values().stream()
-                .filter(protocol -> protocol.matches(payload))
-                .findFirst()
-                .orElseThrow(() -> new ShenyuException("No AI protocol matches the request body"));
     }
 }

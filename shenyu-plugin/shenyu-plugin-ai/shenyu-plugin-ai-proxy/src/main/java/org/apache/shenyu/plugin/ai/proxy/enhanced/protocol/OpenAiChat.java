@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiMessage;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -40,7 +41,7 @@ import java.util.Objects;
  */
 public final class OpenAiChat implements AiProxyProtocol {
 
-    public static final String NAME = "openai-chat";
+    public static final String NAME = AiProtocols.OPENAI_CHAT;
 
     private static final String FIELD_MESSAGES = "messages";
 
@@ -67,14 +68,6 @@ public final class OpenAiChat implements AiProxyProtocol {
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Override
-    public boolean matches(final JsonNode payload) {
-        return Objects.nonNull(payload)
-                && payload.isObject()
-                && payload.has(FIELD_MESSAGES)
-                && payload.get(FIELD_MESSAGES).isArray();
     }
 
     @Override

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.common.view;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.shenyu.common.ai.AiNormalizedRequestView;
 
 import java.util.ArrayList;
@@ -52,24 +53,30 @@ final class AiRequestViewHolder {
     }
 
     /**
-     * Publish the given body version unless it is already the published one. The body
-     * itself is never retained, only a 64-bit content fingerprint.
+     * Publish the given body version with an already parsed payload and an
+     * explicitly resolved protocol identity.
      *
      * @param body the body version the caller observed
+     * @param parsedRoot the already parsed body, {@code null} lets the parser decode it
      * @param mutatorName component that produced the body, used for effective views
+     * @param protocolId the resolved protocol identity, {@code null} or blank when the
+     *                   request stayed unresolved; no hint is derived from the body
      * @return the view of the current body version
      */
-    AiNormalizedRequestView ensurePublished(final String body, final String mutatorName) {
+    AiNormalizedRequestView ensurePublished(final String body, final JsonNode parsedRoot,
+                                            final String mutatorName, final String protocolId) {
         long fingerprint = fingerprint(body);
         synchronized (lock) {
-            if (Objects.nonNull(current) && current.fingerprint == fingerprint) {
+            // a different protocol identity is a different interpretation of the same body
+            if (Objects.nonNull(current) && current.fingerprint == fingerprint
+                    && Objects.equals(current.protocolId, protocolId)) {
                 return current.view;
             }
             AiNormalizedRequestView.ViewKind kind = Objects.isNull(original)
                     ? AiNormalizedRequestView.ViewKind.WIRE : AiNormalizedRequestView.ViewKind.EFFECTIVE;
-            AiNormalizedRequestView view = AiRequestViewParser.parse(body, kind, kind == AiNormalizedRequestView.ViewKind.EFFECTIVE
-                    ? mutatorName : null, nextGeneration);
-            Versioned versioned = new Versioned(view, fingerprint);
+            AiNormalizedRequestView view = AiRequestViewParser.parse(body, parsedRoot, kind,
+                    kind == AiNormalizedRequestView.ViewKind.EFFECTIVE ? mutatorName : null, nextGeneration, protocolId);
+            Versioned versioned = new Versioned(view, fingerprint, protocolId);
             current = versioned;
             if (Objects.isNull(original)) {
                 original = versioned;
@@ -157,6 +164,6 @@ final class AiRequestViewHolder {
         return hash;
     }
 
-    private record Versioned(AiNormalizedRequestView view, long fingerprint) {
+    private record Versioned(AiNormalizedRequestView view, long fingerprint, String protocolId) {
     }
 }

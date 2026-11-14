@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.protocol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.plugin.ai.protocol.OpenAiResponsesProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.junit.jupiter.api.Test;
 
@@ -43,12 +44,12 @@ class OpenAiResponsesTest {
     @Test
     void detectsResponsesWithoutAmbiguousChatRequests() throws Exception {
         assertEquals(OpenAiResponses.NAME, protocol.name());
-        assertFalse(protocol.matches(null));
-        assertFalse(protocol.matches(MAPPER.readTree("[]")));
-        assertFalse(protocol.matches(MAPPER.readTree("{}")));
-        assertFalse(protocol.matches(MAPPER.readTree("{\"input\":\"hi\",\"messages\":[]}")));
-        assertTrue(protocol.matches(MAPPER.readTree("{\"input\":\"hi\"}")));
-        assertEquals(protocol, new AiProxyProtocolFactory(List.of(new OpenAiChat(), protocol)).detect(MAPPER.readTree("{\"input\":\"hi\"}")));
+        OpenAiResponsesProtocol descriptor = new OpenAiResponsesProtocol();
+        assertFalse(descriptor.bodyMatches(null));
+        assertFalse(descriptor.bodyMatches(MAPPER.readTree("[]")));
+        assertFalse(descriptor.bodyMatches(MAPPER.readTree("{}")));
+        assertFalse(descriptor.bodyMatches(MAPPER.readTree("{\"input\":\"hi\",\"messages\":[]}")));
+        assertTrue(descriptor.bodyMatches(MAPPER.readTree("{\"input\":\"hi\"}")));
     }
 
     @Test
