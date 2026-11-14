@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
+import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,9 @@ public final class RemoteServerBinding {
             // A secret-store exception can contain credentials: do not retain its message/cause.
             throw new SecurityException("Service credential resolution failed");
         }
-        if (Objects.isNull(credential) || !config.equals(credential.target)) {
+        // Credential binding identity is the target reference only: budgets are trusted transport
+        // configuration, so a resolver which never copies them keeps resolving every configured value.
+        if (Objects.isNull(credential) || !config.bindsTo(credential.target)) {
             throw new SecurityException("Missing or mismatched service credential binding");
         }
         return new RemoteServerBinding(config, credential);
@@ -105,7 +108,16 @@ public final class RemoteServerBinding {
         return "RemoteServerBinding[" + config.name() + ", " + config.credentialVersion() + ", credential=REDACTED]";
     }
 
-    public record Config(String name, URI endpoint, String credentialRef, String credentialVersion) {
+    /**
+     * Immutable target and credential binding, including the trusted payload budget snapshot.
+     * <p>Record equality, and therefore {@code hashCode}, covers the complete snapshot including
+     * both budgets: two targets configured with different budgets are different values. Credential
+     * matching deliberately does not use that equality, because budgets are not part of the secret
+     * reference; {@link #bindsTo(Config)} defines the binding identity and ignores the budgets.</p>
+     */
+    public record Config(String name, URI endpoint, String credentialRef, String credentialVersion,
+                         int requestBytes, int responseBytes) {
+
         public Config {
             if (Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
                 throw new IllegalArgumentException("Invalid stable server name");
@@ -119,6 +131,35 @@ public final class RemoteServerBinding {
             ) {
                 throw new IllegalArgumentException("Invalid credential reference or version");
             }
+            AgentGatewayAggregationConfig.validateRemotePayloadBudget(requestBytes, responseBytes);
+        }
+
+        /**
+         * Legacy binding without explicit budgets: keep the fixed 8 KiB transport limit.
+         * @param name stable server name
+         * @param endpoint exact configured endpoint
+         * @param credentialRef service credential reference
+         * @param credentialVersion service credential version
+         */
+        public Config(final String name, final URI endpoint, final String credentialRef, final String credentialVersion) {
+            this(name, endpoint, credentialRef, credentialVersion,
+                    AgentGatewayAggregationConfig.DEFAULT_REMOTE_REQUEST_BYTES,
+                    AgentGatewayAggregationConfig.DEFAULT_REMOTE_RESPONSE_BYTES);
+        }
+
+        /**
+         * Whether a resolved credential refers to this exact target.
+         * Only the name, endpoint, credential reference and credential version identify a binding;
+         * the payload budgets are trusted transport settings, so they never invalidate a credential.
+         * @param other target reported by the service credential resolver
+         * @return true when the credential binding identity matches
+         */
+        public boolean bindsTo(final Config other) {
+            return Objects.nonNull(other)
+                    && name.equals(other.name)
+                    && endpoint.equals(other.endpoint)
+                    && credentialRef.equals(other.credentialRef)
+                    && credentialVersion.equals(other.credentialVersion);
         }
     }
 

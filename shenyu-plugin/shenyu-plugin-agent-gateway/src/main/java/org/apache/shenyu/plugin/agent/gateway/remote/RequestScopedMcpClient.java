@@ -65,10 +65,6 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private static final ObjectMapper JSON = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION).enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
-    private static final int LIMIT = 8192;
-
-    private static final int MAX_REQUEST_BYTES = 8192;
-
     private static final int MAX_IN_FLIGHT = 64;
 
     private final HttpClient http;
@@ -76,6 +72,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     private final URI endpoint;
 
     private final String name;
+
+    private final int maxRequestBytes;
+
+    private final int maxResponseBytes;
 
     private final String authorization;
 
@@ -118,6 +118,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         http = builder.build();
         this.endpoint = binding.config().endpoint();
         this.name = binding.config().name();
+        // Trusted, immutable budget snapshot captured at binding time; request metadata cannot change it.
+        this.maxRequestBytes = binding.config().requestBytes();
+        this.maxResponseBytes = binding.config().responseBytes();
         this.authorization = binding.authorization();
         this.observer = observer;
         initialization = request("initialize", Map.of("protocolVersion", VERSION, "capabilities", Map.of(),
@@ -212,7 +215,8 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 return Mono.error(new TimeoutException("Deadline expired before upstream side effect"));
             }
             byte[] requestBytes = message.toString().getBytes(StandardCharsets.UTF_8);
-            if (requestBytes.length > MAX_REQUEST_BYTES) {
+            // Counted on the serialized UTF-8 wire bytes, before any HTTP framing is added.
+            if (requestBytes.length > maxRequestBytes) {
                 return Mono.error(new IllegalArgumentException("Request byte limit"));
             }
             HttpRequest.Builder builder = HttpRequest.newBuilder(endpoint)
@@ -236,7 +240,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             }
             var owned = new AtomicReference<CompletableFuture<HttpResponse<byte[]>>>();
             return Mono.defer(() -> {
-                CompletableFuture<HttpResponse<byte[]>> future = http.sendAsync(outbound, ignored -> new BoundedBody(LIMIT));
+                CompletableFuture<HttpResponse<byte[]>> future = http.sendAsync(outbound, info -> responseBody(info, maxResponseBytes));
                 owned.set(future);
                 inFlight.add(future);
                 if (closed) {
@@ -255,6 +259,26 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                     active.decrementAndGet();
                 });
         });
+    }
+
+    /**
+     * Select the response body subscriber from headers only, so a rejected body is never read.
+     * @param info upstream response metadata available before the body
+     * @param limit configured remote response byte budget
+     * @return bounded body subscriber, or one which cancels the upstream body immediately
+     */
+    static HttpResponse.BodySubscriber<byte[]> responseBody(final HttpResponse.ResponseInfo info, final int limit) {
+        String encoding = info.headers().firstValue("Content-Encoding").orElse("").trim();
+        if (!encoding.isEmpty() && !"identity".equalsIgnoreCase(encoding)) {
+            // Compressed or unknown transfer encodings are refused instead of inflated or silently retried.
+            return BoundedBody.rejecting("Unsupported upstream content encoding");
+        }
+        long declared = info.headers().firstValueAsLong("Content-Length").orElse(-1L);
+        if (declared > limit) {
+            // Declared length already exceeds the budget: reject before any payload byte is retained.
+            return BoundedBody.rejecting("Response byte limit");
+        }
+        return new BoundedBody(limit);
     }
 
     private ObjectNode decodeResponse(final HttpResponse<byte[]> response, final String method, final String id, final boolean notification) {
@@ -398,6 +422,8 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
         private final int limit;
 
+        private final String rejection;
+
         private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
         private final CompletableFuture<byte[]> result = new CompletableFuture<>();
@@ -405,7 +431,16 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         private Flow.Subscription subscription;
 
         private BoundedBody(final int limit) {
+            this(limit, null);
+        }
+
+        private BoundedBody(final int limit, final String rejection) {
             this.limit = limit;
+            this.rejection = rejection;
+        }
+
+        private static BoundedBody rejecting(final String reason) {
+            return new BoundedBody(0, reason);
         }
 
         @Override
@@ -416,6 +451,12 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         @Override
         public void onSubscribe(final Flow.Subscription value) {
             subscription = value;
+            if (Objects.nonNull(rejection)) {
+                // Release the upstream body without requesting a single part.
+                value.cancel();
+                result.completeExceptionally(new IllegalArgumentException(rejection));
+                return;
+            }
             value.request(1);
         }
 
@@ -423,6 +464,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         public void onNext(final List<ByteBuffer> parts) {
             long incoming = parts.stream().mapToLong(ByteBuffer::remaining).sum();
             if (incoming > limit - bytes.size()) {
+                // Stop at the bound during receipt: no growth beyond the configured budget.
                 subscription.cancel();
                 result.completeExceptionally(new IllegalArgumentException("Response byte limit"));
                 return;
