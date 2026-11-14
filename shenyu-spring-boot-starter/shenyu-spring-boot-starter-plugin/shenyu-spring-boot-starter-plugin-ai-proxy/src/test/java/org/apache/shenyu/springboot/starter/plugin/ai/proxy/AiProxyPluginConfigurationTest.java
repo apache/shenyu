@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScopeReso
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocol;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiStreamCompletionProperties;
@@ -63,6 +64,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Auto-configuration for the migrated execution path, provider profiles and transport properties.
@@ -176,10 +179,15 @@ class AiProxyPluginConfigurationTest {
                 .withBean("tenantProvider", AiProxyProvider.class, () -> provider).run(context -> {
                     org.assertj.core.api.Assertions.assertThat(context).hasNotFailed();
                     assertSame(provider, context.getBean(AiProxyProviderFactory.class).getProvider("TENANT_PROFILE"));
-                    AiCommonConfig config = new AiCommonConfig();
-                    config.setProvider("tenant-profile");
-                    config.setBaseUrl("https://example.org");
-                    config.setApiKey("key");
+                    AiProxyPluginHandler handler = context.getBean(AiProxyPluginHandler.class);
+                    PluginData defaults = new PluginData();
+                    defaults.setConfig("{\"provider\":\"TENANT_PROFILE\",\"baseUrl\":\"https://example.org\",\"apiKey\":\"key\"}");
+                    handler.handlerPlugin(defaults);
+                    AiCommonConfig config = handler.getGlobalConfig();
+                    assertEquals("TENANT_PROFILE", config.getProvider());
+                    defaults.setConfig("{\"provider\":\"not-registered\"}");
+                    handler.handlerPlugin(defaults);
+                    assertEquals(config, handler.getGlobalConfig());
                     AiUpstreamRequest request = context.getBean(AiProxyEngine.class).buildRequest("{\"messages\":[{\"role\":\"user\"}]}", config);
                     assertEquals("https://example.org/v1/chat/completions", request.getUri().toString());
                 });
@@ -379,6 +387,25 @@ class AiProxyPluginConfigurationTest {
                     .withPropertyValues("shenyu.plugins.ai.proxy.transport." + property + "=-1")
                     .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
         }
+    }
+
+
+    @Test
+    void validatesDefaultProtocolAgainstTheActualRegistry() {
+        AiProxyProtocol custom = mock(AiProxyProtocol.class);
+        when(custom.name()).thenReturn("tenant-chat");
+        contextRunner.withBean("tenantProtocol", AiProxyProtocol.class, () -> custom).run(context -> {
+            AiProxyPluginHandler handler = context.getBean(AiProxyPluginHandler.class);
+            PluginData defaults = new PluginData();
+            defaults.setConfig("{\"protocol\":\"tenant-chat\",\"model\":\"tenant-model\"}");
+            handler.handlerPlugin(defaults);
+            assertEquals("tenant-chat", handler.getGlobalConfig().getProtocol());
+            assertSame(custom, context.getBean(AiProxyProtocolFactory.class).getProtocol("tenant-chat"));
+            AiCommonConfig original = handler.getGlobalConfig();
+            defaults.setConfig("{\"protocol\":\"TENANT-CHAT\"}");
+            handler.handlerPlugin(defaults);
+            assertEquals(original, handler.getGlobalConfig());
+        });
     }
 
     @Test
