@@ -103,8 +103,8 @@ public final class GeneratorFactory {
                 generateData = ERROR_PARSE;
             }
             String toString = String.valueOf(generateData);
-            placeHolder = placeHolder.replaceAll("([$|{}()\\]\\[])", "\\\\$1");
-            afterDeal = afterDeal.replaceFirst(placeHolder, toString);
+            // Preserve expression operators and generated JSON escapes as literal text.
+            afterDeal = afterDeal.replaceFirst(Pattern.quote(placeHolder), Matcher.quoteReplacement(toString));
             placeHolder = getPlaceholder(afterDeal);
         }
         return afterDeal;
