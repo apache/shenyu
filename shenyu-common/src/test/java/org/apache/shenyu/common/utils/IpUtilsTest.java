@@ -20,6 +20,8 @@ package org.apache.shenyu.common.utils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
 
 import java.net.InetAddress;
@@ -115,6 +117,25 @@ public final class IpUtilsTest {
         assertTrue(IpUtils.isCompleteHost("192.168.1.166"));
         assertFalse(IpUtils.isCompleteHost("192.168."));
         assertFalse(IpUtils.isCompleteHost("192.."));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "zookeeper://zookeeper:2181, zookeeper://192.0.2.10:2181",
+        "zookeeper://zoo:2181, zookeeper://192.0.2.10:2181",
+        "zk://zk:2181, zk://192.0.2.10:2181",
+        "zookeeper://zookeeper:2181/zookeeper?backup=zookeeper:2182, zookeeper://192.0.2.10:2181/zookeeper?backup=zookeeper:2182",
+        "zookeeper://zookeeper:2181/a%2Fb?key=a%26b#zookeeper, zookeeper://192.0.2.10:2181/a%2Fb?key=a%26b#zookeeper",
+        "zookeeper://zookeeper:password@zookeeper:2181, zookeeper://zookeeper:password@192.0.2.10:2181",
+        "zookeeper://zkXsvc:password@zk.svc:2181, zookeeper://zkXsvc:password@192.0.2.10:2181",
+        "zookeeper://shenyu-zk:2181, zookeeper://192.0.2.10:2181",
+        "shenyu-zk:2181, 192.0.2.10:2181",
+        "zookeeper, 192.0.2.10",
+        "zookeeper://192.0.2.20:2181, zookeeper://192.0.2.20:2181",
+        "192.0.2.20:2181, 192.0.2.20:2181"
+    })
+    public void testReplaceZookeeperHost(final String address, final String expected) {
+        assertEquals(expected, IpUtils.replaceZookeeperHost(address, "192.0.2.10"));
     }
 
     @Test
