@@ -186,6 +186,7 @@ public class SpringWebSocketClientEventListenerTest {
                 assertEquals(registerMetaData, metadata.isRegisterMetaData());
                 assertEquals(RpcTypeEnum.WEB_SOCKET.getName(), metadata.getRpcType());
                 assertEquals("/contextPath", metadata.getContextPath());
+                assertEquals("127.0.0.1", metadata.getHost());
             }
         }
     }
@@ -239,6 +240,7 @@ public class SpringWebSocketClientEventListenerTest {
         Method method = mockClass.getClass().getMethod("mockMethod");
         MetaDataRegisterDTO metaDataRegisterDTO = eventListener.buildMetaDataDTO(mockClass, annotation, SUPER_PATH, MockClass.class, method, Constants.SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(metaDataRegisterDTO);
+        assertEquals("127.0.0.1", metaDataRegisterDTO.getHost());
     }
 
     @Test
@@ -283,6 +285,7 @@ public class SpringWebSocketClientEventListenerTest {
             // below the context path unmatched at the gateway (issue #8372).
             assertEquals("/contextPath/**", metadataCaptor.getValue().getPath());
             assertEquals("/contextPath", metadataCaptor.getValue().getRuleName());
+            assertEquals("127.0.0.1", metadataCaptor.getValue().getHost());
             assertEquals(Constants.SYS_DEFAULT_NAMESPACE_ID, metadataCaptor.getValue().getNamespaceId());
         }
     }

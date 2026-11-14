@@ -105,20 +105,21 @@ public final class ShenyuHttpRegistryControllerTest {
     private static Stream<Arguments> registrationCases() {
         return Stream.of(null, "tenant-a").flatMap(namespace -> Stream.of(
                 Arguments.of("register-metadata", MetaDataRegisterDTO.class,
-                        "{\"appName\":\"app\",\"path\":\"/orders\",\"rpcType\":\"http\",\"enabled\":true}", namespace),
+                        "{\"appName\":\"app\",\"contextPath\":\"/app\",\"path\":\"/orders\",\"rpcType\":\"http\",\"ruleName\":\"orders\",\"host\":\"127.0.0.1\",\"enabled\":true}", namespace),
                 Arguments.of("register-uri", URIRegisterDTO.class,
-                        "{\"appName\":\"app\",\"host\":\"127.0.0.1\",\"port\":8080,\"rpcType\":\"http\"}", namespace),
+                        "{\"appName\":\"app\",\"contextPath\":\"/app\",\"host\":\"127.0.0.1\",\"port\":8080,\"rpcType\":\"http\"}", namespace),
                 Arguments.of("register-discoveryConfig", DiscoveryConfigRegisterDTO.class,
-                        "{\"name\":\"discovery\",\"pluginName\":\"divide\",\"discoveryType\":\"zookeeper\",\"serverList\":\"localhost:2181\"}", namespace),
+                        "{\"selectorName\":\"orders\",\"name\":\"discovery\",\"pluginName\":\"divide\",\"discoveryType\":\"zookeeper\",\"serverList\":\"localhost:2181\"}", namespace),
                 Arguments.of("register-mcp", McpToolsRegisterDTO.class,
-                        "{\"mcpConfig\":\"{}\",\"metaDataRegisterDTO\":{\"appName\":\"tools\",\"path\":\"/tool\"}}", namespace),
+                        "{\"mcpConfig\":\"{}\",\"metaDataRegisterDTO\":{\"appName\":\"tools\",\"contextPath\":\"/app\","
+                                + "\"path\":\"/tool\",\"rpcType\":\"http\",\"ruleName\":\"tool\",\"host\":\"127.0.0.1\"}}", namespace),
                 Arguments.of("offline", URIRegisterDTO.class,
-                        "{\"appName\":\"app\",\"host\":\"127.0.0.1\",\"port\":8080,\"eventType\":\"OFFLINE\"}", namespace)));
+                        "{\"appName\":\"app\",\"contextPath\":\"/app\",\"rpcType\":\"http\",\"host\":\"127.0.0.1\",\"port\":8080,\"eventType\":\"OFFLINE\"}", namespace)));
     }
 
     @Test
     void testRegisterApiDoc() throws Exception {
-        JsonNode request = objectMapper.readTree("{\"apiPath\":\"/orders\",\"contextPath\":\"/app\",\"httpMethod\":0,\"document\":\"orders api\"}");
+        JsonNode request = objectMapper.readTree("{\"apiPath\":\"/orders\",\"contextPath\":\"/app\",\"httpMethod\":0,\"rpcType\":\"http\",\"eventType\":\"REGISTER\",\"document\":\"orders api\"}");
         mockMvc.perform(post("/shenyu-client/register-apiDoc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -139,6 +140,15 @@ public final class ShenyuHttpRegistryControllerTest {
     @ValueSource(strings = {"register-metadata", "register-uri", "register-apiDoc", "register-discoveryConfig", "register-mcp", "offline"})
     void testMalformedRequestBodyIsRejected(final String endpoint) throws Exception {
         mockMvc.perform(post("/shenyu-client/" + endpoint).contentType(MediaType.APPLICATION_JSON).content("{"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(publisher);
+    }
+
+    @Test
+    void testRegisterMetadataRejectsInvalidBody() throws Exception {
+        mockMvc.perform(post("/shenyu-client/register-metadata")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(publisher);
     }
