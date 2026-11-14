@@ -49,7 +49,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -100,9 +99,6 @@ public class SpringMvcClientEventListenerTest {
 
     @Mock
     private ApplicationContext applicationContext;
-
-    @Mock
-    private AutowireCapableBeanFactory beanFactory;
 
     @Mock
     private Environment env;
@@ -210,9 +206,8 @@ public class SpringMvcClientEventListenerTest {
     public void testOnApplicationEvent() {
         init();
         SpringMvcClientEventListener springMvcClientEventListener = buildSpringMvcClientEventListener(false, false);
-        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
         MockedStatic<PortUtils> portUtilsMockedStatic = mockStatic(PortUtils.class);
-        portUtilsMockedStatic.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
+        portUtilsMockedStatic.when(() -> PortUtils.findPort(applicationContext)).thenReturn(8080);
         springMvcClientEventListener.onApplicationEvent(contextRefreshedEvent);
 
         // hit `!registered.compareAndSet(false, true)`
@@ -359,14 +354,13 @@ public class SpringMvcClientEventListenerTest {
 
             when(applicationContext.getEnvironment()).thenReturn(env);
             when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
-            when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
 
             try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMock = mockStatic(ShenyuClientRegisterEventPublisher.class);
                  MockedStatic<PortUtils> portUtilsMock = mockStatic(PortUtils.class)) {
 
                 ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
                 publisherMock.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
-                portUtilsMock.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
+                portUtilsMock.when(() -> PortUtils.findPort(applicationContext)).thenReturn(8080);
 
                 SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
                 ContextRefreshedEvent event = new ContextRefreshedEvent(applicationContext);
@@ -426,14 +420,13 @@ public class SpringMvcClientEventListenerTest {
 
             when(applicationContext.getEnvironment()).thenReturn(env);
             when(env.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE)).thenReturn("local");
-            when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(beanFactory);
 
             try (MockedStatic<ShenyuClientRegisterEventPublisher> publisherMock = mockStatic(ShenyuClientRegisterEventPublisher.class);
                  MockedStatic<PortUtils> portUtilsMock = mockStatic(PortUtils.class)) {
 
                 ShenyuClientRegisterEventPublisher publisher = mock(ShenyuClientRegisterEventPublisher.class);
                 publisherMock.when(ShenyuClientRegisterEventPublisher::getInstance).thenReturn(publisher);
-                portUtilsMock.when(() -> PortUtils.findPort(beanFactory)).thenReturn(8080);
+                portUtilsMock.when(() -> PortUtils.findPort(applicationContext)).thenReturn(8080);
 
                 SpringMvcClientEventListener listener = buildSpringMvcClientEventListener(false, false);
                 listener.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
