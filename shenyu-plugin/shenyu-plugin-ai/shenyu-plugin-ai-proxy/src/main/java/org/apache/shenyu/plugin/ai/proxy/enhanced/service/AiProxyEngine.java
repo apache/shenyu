@@ -333,9 +333,12 @@ public final class AiProxyEngine {
             return aiProxyTransport.execute(prepared.request())
                     .flatMap(response -> {
                         observedAttempt.status(response.getStatusCode());
+                        // stream-completion inspection is gated on a successful upstream response;
+                        // the protocol decides which terminal evidence the tap looks for
+                        String tapProtocol = response.getStatusCode() >= 200 && response.getStatusCode() < 300
+                                ? prepared.targetProtocol() : null;
                         AiUpstreamResponse observed = new AiUpstreamUsageTap(
-                                observedAttempt, response.getHeaders(), prepared.stream(), "openai-chat".equals(prepared.targetProtocol())
-                                && response.getStatusCode() >= 200 && response.getStatusCode() < 300).attach(response);
+                                observedAttempt, response.getHeaders(), prepared.stream(), tapProtocol).attach(response);
                         return handleResponse(observed, prepared, fallback, retriesRemaining,
                                 execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe, observedAttempt);
                     })
