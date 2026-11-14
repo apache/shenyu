@@ -584,10 +584,12 @@ an explicit successful update. Old in-flight calls retain their captured version
 removing a credential file alone does not revoke already captured leases.
 Disable/removal withdraws new remote access immediately, including an in-progress
 candidate. Queue overflow also withdraws access and requires an explicit valid refresh.
-Cleanup failures remain quarantined and prevent further allocation; shutdown reports failure.
-Closed catalogs, overlapping refresh reservations, exhausted generation budgets
-and quarantined cleanup all reject reservation with the same sanitized
-catalog-unavailable exception. Superseded updates allocate no generation or client.
+An endpoint cleanup failure is isolated to that client instance: it cannot be reused,
+but it does not permanently block an unrelated replacement generation. Shutdown still
+reports the failed cleanup and does not claim false success. Closed catalogs,
+overlapping refresh reservations and exhausted generation budgets reject reservation
+with the same sanitized catalog-unavailable exception. Superseded updates allocate no
+generation or client.
 Failure diagnostics belong to the latest control-event revision; a newer event
 clears the superseded failure even when the older event exits without publication.
 An empty failure field does not mean ready: check the current generation too.
@@ -605,9 +607,75 @@ pagination/call, opt-in resource pagination/read and JSON or a single final SSE 
 recovery, OAuth, Tasks or nonempty request `_meta` delegation, nor change the inbound
 version. Conservative limits retained from verified experiments: 8 Servers, 4 pages
 per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per client,
-5-second directory update and 2-second session DELETE completion. The trusted
+5-second directory update, a 5-minute outbound idle threshold, and 2-second session
+DELETE completion. The trusted
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.
+
+### Outbound session recovery
+
+The request-owned adapter remembers the optional `MCP-Session-Id` returned by the older
+remote contract. If a request carrying that ID receives HTTP 404, only that client's
+current session binding is invalidated; a stateless target receiving 404 remains an
+ordinary upstream error and is never assigned an invented session ID. The failed
+logical `tools/call` is not replayed. Agent Gateway returns HTTP 502 / JSON-RPC
+`-32026` with an unknown-outcome error, because the remote side effect may already
+have happened. The next eligible operation performs a fresh initialize/initialized
+handshake; concurrent expiry observations issue their own requests only once and
+coalesce on cleanup/reinitialization work.
+
+An idle session is reclaimed before its next use after five minutes. Its bounded
+DELETE is shared by concurrent operations and retried at most twice across later
+operations. Exhaustion is observable through `exhaustedCleanupCount()`; it does not
+add an unbounded DELETE delay to subsequent calls. Whole-client shutdown separately
+attempts both the active and abandoned bindings. Concurrent shutdown subscribers share
+an attempt, and a failed shutdown can be retried. HTTP 404 during cleanup is accepted
+because the remote session may already be gone. No request context or Agent identity
+is attached to recovery requests.
+
+The caller's remaining deadline bounds readiness, including cleanup and recovery.
+Before any recovery handshake, the adapter checks its catalog generation guard;
+withdrawn configurations cannot create a session with captured credentials. Safe
+directory/read failures use the catalog-unavailable response rather than claiming
+an unknown mutating tool outcome.
+
+Failed endpoint cleanup is retried once, then retained in an identity-based quarantine
+visible in client diagnostics. New allocation stops at the quarantine budget;
+shutdown retries retained endpoints and reports only unresolved cleanup failures.
+Historical failure diagnostics remain bounded and do not permanently poison a later
+successful shutdown. This is outbound recovery only; it does not add a cap or idle TTL
+to the legacy SDK servlet's inbound session store.
+
+Verified against the repository-managed MCP SDK `0.17.0` streamable HTTP transport:
+unknown `MCP-Session-Id` values produce HTTP 404 without a protocol-defined global
+session-expiry error code, and the SDK servlet transport keeps sessions in a local
+map without an advertised cap or idle TTL. Consequently, deployments are currently
+expected to route one outbound target to one compatible remote instance (or a backend
+that owns replicated session state). Sticky multi-replica routing, remote-server TTL
+and maximum-session behavior are deployment properties and must be documented by the
+operator; the gateway does not assume affinity or a session store.
+
+### Legacy inbound session acceptance boundary
+
+Outbound recovery does not complete the legacy inbound session-level portion of
+#7954. The ShenYu-owned `ShenyuStreamableHttpServerTransportProvider` retains
+initialized sessions in a local map; `ShenyuSseServerTransportProvider` retains
+each connected SSE session separately. Neither currently exposes an enforced
+maximum session count or a healthy-session idle TTL. The SDK's own servlet
+transport is a third ownership boundary, not the implementation of these two
+WebFlux providers. Request cancellation and output-stall detection must not be
+presented as session capacity or idle reclamation.
+
+The independent #8195 / PR #8350 work owns pending SSE output bounds and
+slow-consumer termination. It explicitly keeps a healthy session with no pending
+output alive. Reuse that terminal owner after its interface is accepted rather
+than adding a competing close timer in the SSE provider. The remaining #7954
+work must enforce concurrent session creation atomically, release capacity once
+on all close paths, expire only eligible idle sessions without disrupting active
+operations, and test both entry points, failed creation and shutdown races.
+Deployment remains single-instance or externally managed affinity/session state;
+no distributed session routing is supplied by this recovery PR. These are
+outstanding acceptance items, not implemented guarantees.
 
 ## Resource aggregation
 
