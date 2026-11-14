@@ -128,6 +128,12 @@
           FROM plugin
     </select>
 
+    <select id="selectAllIdentity" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
+        SELECT
+               <include refid="List_Column_List"/>
+          FROM plugin
+    </select>
+
     <select id="listAllNotInResource" resultType="org.apache.shenyu.admin.model.entity.PluginDO" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>

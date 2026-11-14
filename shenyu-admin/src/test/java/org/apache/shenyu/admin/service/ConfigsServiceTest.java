@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportErrors;
 import org.apache.shenyu.admin.service.impl.ConfigsServiceImpl;
 import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
@@ -167,6 +169,14 @@ public final class ConfigsServiceTest {
     }
 
     @Test
+    public void testConfigsImportRejectsMalformedArchive() {
+        ShenyuAdminResult result = this.configsService.configsImport(new byte[]{1, 2, 3, 4});
+
+        assertThat(result.getCode(), is(HttpStatus.BAD_REQUEST.value()));
+        assertThat(result.getMessage(), is(ConfigsImportErrors.INVALID_ARCHIVE));
+    }
+
+    @Test
     public void testRuleBeforeSelectorInZipCannotBypassHandleValidation() {
         RuleMapper ruleMapper = mock(RuleMapper.class);
         SelectorMapper selectorMapper = mock(SelectorMapper.class);
@@ -194,6 +204,7 @@ public final class ConfigsServiceTest {
         when(ruleMapper.selectAll()).thenReturn(Collections.emptyList());
 
         RuleDTO rule = RuleDTO.builder().selectorId("selector-1").name("agent-rule")
+                .matchMode(0).sort(0).enabled(true).logged(false).matchRestful(false)
                 .handle("{\"trafficType\":\"LLM\",\"unexpected\":true}")
                 .ruleConditions(Collections.emptyList()).build();
         byte[] zip = ZipUtil.zip(Lists.newArrayList(
