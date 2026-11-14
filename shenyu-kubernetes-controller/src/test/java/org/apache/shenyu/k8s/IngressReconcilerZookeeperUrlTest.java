@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.k8s;
 
+import com.google.gson.JsonParser;
 import io.kubernetes.client.extended.controller.reconciler.Request;
 import io.kubernetes.client.extended.controller.reconciler.Result;
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -38,19 +39,26 @@ import org.apache.shenyu.common.config.ssl.ShenyuSniAsyncMapping;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.k8s.cache.IngressCache;
+import org.apache.shenyu.k8s.cache.ServiceIngressCache;
 import org.apache.shenyu.k8s.parser.IngressParser;
 import org.apache.shenyu.k8s.reconciler.IngressReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +67,7 @@ import static org.mockito.Mockito.when;
  */
 public final class IngressReconcilerZookeeperUrlTest {
 
-    private static final String NAMESPACE = "mockedNamespace";
+    private static final String NAMESPACE = "zookeeperUrlNamespace";
 
     private static final String ZOOKEEPER_SERVICE = "zookeeperService";
 
@@ -69,8 +77,13 @@ public final class IngressReconcilerZookeeperUrlTest {
 
     private Indexer<V1Endpoints> endpointsIndexer;
 
+    private V1Ingress mockedIngress;
+
+    private V1Service metadataService;
+
     @BeforeEach
     public void init() {
+        cleanUp();
         final SharedIndexInformer<V1Ingress> ingressInformer = mock(SharedIndexInformer.class);
         final SharedIndexInformer<V1Secret> secretInformer = mock(SharedIndexInformer.class);
         shenyuCacheRepository = mock(ShenyuCacheRepository.class);
@@ -106,16 +119,16 @@ public final class IngressReconcilerZookeeperUrlTest {
         labelsAnnotations.put("shenyu.apache.org/plugin-dubbo-params-type", "java.lang.String");
         labelsAnnotations.put("shenyu.apache.org/plugin-dubbo-rpc-expand", "{\"group\":\"\",\"version\":\"v0.0.2\",\"loadbalance\":\"random\","
                     + "\"retries\":2,\"timeout\":10000,\"url\":\"\",\"sent\":false,\"cluster\":\"failover\",\"protocol\":\"dubbo\"}");
-        V1Service dubboFindIdService = new V1ServiceBuilder().withNewMetadata().withName("dubboFindIdService").withNamespace(NAMESPACE).withAnnotations(labelsAnnotations).endMetadata()
+        metadataService = new V1ServiceBuilder().withNewMetadata().withName("dubboFindIdService").withNamespace(NAMESPACE).withAnnotations(labelsAnnotations).endMetadata()
                 .withNewSpec().endSpec()
                 .withKind("Service").build();
 
-        V1Ingress mockedIngress = new V1IngressBuilder().withNewMetadata().withLabels(labels).withName("mockedIngress").withNamespace(NAMESPACE).withAnnotations(annotations).endMetadata()
+        mockedIngress = new V1IngressBuilder().withNewMetadata().withLabels(labels).withName("mockedIngress").withNamespace(NAMESPACE).withAnnotations(annotations).endMetadata()
                 .withNewSpec().withRules(mockedRule).endSpec()
                 .withKind("Ingress").build();
 
         when(ingressIndexer.getByKey(NAMESPACE + "/mockedIngress")).thenReturn(mockedIngress);
-        when(serviceIndexer.getByKey(NAMESPACE + "/dubboFindIdService")).thenReturn(dubboFindIdService);
+        when(serviceIndexer.getByKey(NAMESPACE + "/dubboFindIdService")).thenReturn(metadataService);
         when(serviceInformer.getIndexer()).thenReturn(serviceIndexer);
         when(ingressInformer.getIndexer()).thenReturn(ingressIndexer);
 
@@ -133,6 +146,47 @@ public final class IngressReconcilerZookeeperUrlTest {
 
         ingressReconciler = new IngressReconciler(ingressInformer, secretInformer, shenyuCacheRepository,
                 shenyuSniAsyncMapping, ingressParser, apiClient);
+    }
+
+    @AfterEach
+    public void cleanUp() {
+        IngressCache.getInstance().remove(NAMESPACE, "mockedIngress");
+        ServiceIngressCache.getInstance().removeAllIngressName(NAMESPACE, "testService");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "dubbo, zookeeper://192.0.2.10:2181",
+        "dubbo, zk://192.0.2.10:2181",
+        "dubbo, 192.0.2.10:2181",
+        "dubbo, zookeeper://192.0.2.10:2181/shenyu?timeout=3000",
+        "dubbo, 192.0.2.10",
+        "sofa, zookeeper://192.0.2.10:2181"
+    })
+    public void testReconcileWithLiteralZookeeperAddress(final String pluginName, final String zookeeperAddress) {
+        Map<String, String> annotations = mockedIngress.getMetadata().getAnnotations();
+        annotations.put("shenyu.apache.org/zookeeper-register-address", zookeeperAddress);
+        if (PluginEnum.SOFA.getName().equals(pluginName)) {
+            annotations.remove("shenyu.apache.org/plugin-dubbo-enabled");
+            annotations.put("shenyu.apache.org/plugin-sofa-enabled", "true");
+            Map<String, String> sofaAnnotations = new HashMap<>();
+            metadataService.getMetadata().getAnnotations().forEach((key, value) -> sofaAnnotations.put(key.replace("-dubbo-", "-sofa-"), value));
+            sofaAnnotations.put("shenyu.apache.org/plugin-sofa-rpc-type", "sofa");
+            metadataService.getMetadata().setAnnotations(sofaAnnotations);
+        }
+
+        Assertions.assertEquals(new Result(false), ingressReconciler.reconcile(new Request(NAMESPACE, "mockedIngress")));
+
+        ArgumentCaptor<PluginData> captor = ArgumentCaptor.forClass(PluginData.class);
+        verify(shenyuCacheRepository, atLeastOnce()).saveOrUpdatePluginData(captor.capture());
+        PluginData pluginData = captor.getAllValues().stream()
+                .filter(data -> pluginName.equals(data.getName()))
+                .findFirst().orElseThrow();
+        Assertions.assertEquals(zookeeperAddress, JsonParser.parseString(pluginData.getConfig()).getAsJsonObject().get("register").getAsString());
+        verify(shenyuCacheRepository, atLeastOnce()).saveOrUpdateSelectorData(any());
+        verify(shenyuCacheRepository, atLeastOnce()).saveOrUpdateRuleData(any());
+        verify(shenyuCacheRepository, atLeastOnce()).saveOrUpdateMetaData(any());
+        verify(endpointsIndexer, never()).getByKey(NAMESPACE + "/192.0.2.10");
     }
 
     /**

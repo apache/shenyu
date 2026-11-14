@@ -328,7 +328,7 @@ public class IngressReconciler implements Reconciler {
         String zookeeperUrl = null;
         String zookeeperK8sIpUrl = getZookeeperHost(zookeeperK8sUrl);
         if (isCompleteHost(zookeeperK8sIpUrl)) {
-            zookeeperUrl = annotations.get(IngressConstants.ZOOKEEPER_REGISTER_ADDRESS);
+            zookeeperUrl = zookeeperK8sIpUrl;
         } else {
             Lister<V1Endpoints> endpointsLister = ingressParser.getEndpointsLister();
             LOG.info("endpointsLister:{}", JsonUtils.toJson(endpointsLister));
