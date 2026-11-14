@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.pii.profile;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -34,11 +35,17 @@ public final class PiiProtocolProfiles {
 
     private static final PiiProtocolProfile RESPONSES = new OpenAiResponsesProfile();
 
+    private static final PiiProtocolProfile ANTHROPIC = new AnthropicMessagesProfile();
+
+    private static final PiiProtocolProfile GEMINI = new GeminiGenerateContentProfile();
+
     private PiiProtocolProfiles() {
     }
 
     /**
      * Select the profile of a request payload by its validated extraction shape.
+     * The Anthropic shape is checked before the generic messages shape so its
+     * top-level {@code system} member is never silently dropped.
      *
      * @param root the parsed payload
      * @return the matching profile, or null for unknown or malformed shapes
@@ -48,7 +55,13 @@ public final class PiiProtocolProfiles {
             return null;
         }
         if (root.has("messages")) {
+            if (root.has("system")) {
+                return validMessages(root.get("messages")) && validSystem(root.get("system")) ? ANTHROPIC : null;
+            }
             return validMessages(root.get("messages")) ? CHAT : null;
+        }
+        if (root.has("contents")) {
+            return validContents(root.get("contents")) ? GEMINI : null;
         }
         JsonElement input = root.get("input");
         return isString(input) || validItems(input) ? RESPONSES : null;
@@ -67,7 +80,83 @@ public final class PiiProtocolProfiles {
         if (root.has("choices")) {
             return validChoices(root.get("choices")) ? CHAT : null;
         }
+        if (root.has("candidates")) {
+            return validCandidates(root.get("candidates")) ? GEMINI : null;
+        }
+        JsonElement content = root.get("content");
+        if (Objects.nonNull(content) && content.isJsonArray()) {
+            return validBlocks(content.getAsJsonArray()) ? ANTHROPIC : null;
+        }
         return validItems(root.get("output")) ? RESPONSES : null;
+    }
+
+    private static boolean validSystem(final JsonElement system) {
+        if (Objects.isNull(system) || system.isJsonNull()) {
+            return false;
+        }
+        if (isString(system)) {
+            return true;
+        }
+        return system.isJsonArray() && validBlocks(system.getAsJsonArray());
+    }
+
+    private static boolean validBlocks(final JsonArray blocks) {
+        for (JsonElement block : blocks) {
+            if (!block.isJsonObject()) {
+                return false;
+            }
+            JsonObject object = block.getAsJsonObject();
+            if (!validTextMember(object)) {
+                return false;
+            }
+            JsonElement type = object.get("type");
+            if (Objects.nonNull(type) && !isString(type)) {
+                return false;
+            }
+            JsonElement input = object.get("input");
+            if (Objects.nonNull(input) && !input.isJsonNull() && !input.isJsonObject()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean validContents(final JsonElement contents) {
+        if (Objects.isNull(contents) || !contents.isJsonArray()) {
+            return false;
+        }
+        for (JsonElement content : contents.getAsJsonArray()) {
+            if (!content.isJsonObject() || !validContentObject(content.getAsJsonObject())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean validContentObject(final JsonObject content) {
+        JsonElement parts = content.get("parts");
+        if (Objects.isNull(parts) || !parts.isJsonArray()) {
+            return false;
+        }
+        for (JsonElement part : parts.getAsJsonArray()) {
+            if (!part.isJsonObject() || !validTextMember(part.getAsJsonObject())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean validCandidates(final JsonElement candidates) {
+        if (Objects.isNull(candidates) || !candidates.isJsonArray()) {
+            return false;
+        }
+        for (JsonElement candidate : candidates.getAsJsonArray()) {
+            JsonElement content = candidate.isJsonObject() ? candidate.getAsJsonObject().get("content") : null;
+            if (Objects.isNull(content) || !content.isJsonObject() || !validContentObject(content.getAsJsonObject())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean validMessages(final JsonElement messages) {
