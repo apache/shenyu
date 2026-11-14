@@ -25,8 +25,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -115,6 +119,116 @@ class AdaptiveLoadBalancerTest {
         assertEquals(before.ewmaLatencyMillis(), after.ewmaLatencyMillis(), "a 4xx must not move the latency");
         assertEquals(before.samples(), after.samples(), "a 4xx must not count as a latency sample");
         assertTrue(after.lastFeedbackMillis() >= before.lastFeedbackMillis());
+    }
+
+    @Test
+    void clientErrorDoesNotReshapeTheNextLatencyUpdate() {
+        Upstream node = upstream("node:8080", 50);
+        AdaptiveUpstreamStats normal = new AdaptiveUpstreamStats();
+        AdaptiveUpstreamStats with4xx = new AdaptiveUpstreamStats();
+        normal.record(node.identity(), 1000L, AdaptiveOutcome.SERVER_ERROR, 0L);
+        with4xx.record(node.identity(), 1000L, AdaptiveOutcome.SERVER_ERROR, 0L);
+        with4xx.record(node.identity(), 1L, AdaptiveOutcome.CLIENT_ERROR, 999L);
+        normal.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, 1000L);
+        with4xx.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, 1000L);
+
+        assertEquals(normal.statsOf(node.identity()).ewmaLatencyMillis(),
+                with4xx.statsOf(node.identity()).ewmaLatencyMillis(),
+                "an unrelated 4xx must not change the decay of the next latency-bearing sample");
+        assertEquals(normal.statsOf(node.identity()).samples(), with4xx.statsOf(node.identity()).samples());
+    }
+
+    @Test
+    void manyClientErrorsLeaveSubsequentUpdatesEquivalent() {
+        Upstream node = upstream("node:8080", 50);
+        AdaptiveUpstreamStats normal = new AdaptiveUpstreamStats();
+        AdaptiveUpstreamStats with4xx = new AdaptiveUpstreamStats();
+        for (int time = 0; time <= 5_000; time += 100) {
+            normal.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, time);
+            with4xx.record(node.identity(), 50L, AdaptiveOutcome.SUCCESS, time);
+            for (int i = 1; i <= 5; i++) {
+                with4xx.record(node.identity(), 1L, AdaptiveOutcome.CLIENT_ERROR, time + i);
+            }
+        }
+
+        assertEquals(normal.statsOf(node.identity()).ewmaLatencyMillis(),
+                with4xx.statsOf(node.identity()).ewmaLatencyMillis(),
+                "any number of interleaved 4xx observations must leave the latency path equivalent");
+        assertEquals(normal.statsOf(node.identity()).samples(), with4xx.statsOf(node.identity()).samples());
+    }
+
+    @Test
+    void clientErrorAloneNeverWarmsAColdTarget() {
+        Upstream node = upstream("cold:8080", 50);
+        Upstream warm = upstream("warm:8080", 50);
+        feed(balancer, warm, AdaptiveOutcome.SUCCESS, 10L, 20);
+        for (int i = 0; i < 20; i++) {
+            balancer.onFeedback(node, 1L, AdaptiveOutcome.CLIENT_ERROR);
+        }
+
+        AdaptiveUpstreamStats.Stats stats = balancer.stats().statsOf(node.identity());
+        assertEquals(0L, stats.samples(), "a 4xx must never count as a latency sample");
+        assertTrue(balancer.stats().score(node.identity(), 1L, 50).isEmpty(),
+                "a target seen only through 4xx must stay cold");
+        assertFalse(balancer.stats().bothAdaptive(node.identity(), warm.identity()));
+    }
+
+    @Test
+    void identityFirstSeenThroughClientErrorStartsFromTheFirstRealSample() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        stats.record(identity, 1L, AdaptiveOutcome.CLIENT_ERROR, 0L);
+        stats.record(identity, 50L, AdaptiveOutcome.SUCCESS, 1000L);
+
+        AdaptiveUpstreamStats.Stats record = stats.statsOf(identity);
+        assertEquals(1L, record.samples());
+        assertEquals(50L, record.ewmaLatencyMillis(),
+                "the first real sample must be taken as-is, not decayed from the 4xx timestamp");
+    }
+
+    @Test
+    void clientErrorActivityStillCountsForRetention() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity retained = upstream("retained:8080", 50).identity();
+        stats.record(retained, 10L, AdaptiveOutcome.SUCCESS, 0L);
+        stats.record(retained, 1L, AdaptiveOutcome.CLIENT_ERROR, AdaptiveUpstreamStats.IDLE_MILLIS);
+        for (int i = 0; i < AdaptiveUpstreamStats.PRUNE_THRESHOLD + 10; i++) {
+            stats.record(upstream("filler-" + i + ":8080", 50).identity(), 10L, AdaptiveOutcome.SUCCESS, 0L);
+        }
+
+        stats.pruneIfNeeded(AdaptiveUpstreamStats.IDLE_MILLIS + 1L);
+        assertNotNull(stats.statsOf(retained),
+                "a recent 4xx keeps the identity alive for retention even without a new latency sample");
+    }
+
+    @Test
+    void concurrentFeedbackKeepsSampleAccountingConsistent() throws Exception {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        int workers = 4;
+        int perWorker = 250;
+        ExecutorService pool = Executors.newFixedThreadPool(workers);
+        try {
+            for (int w = 0; w < workers; w++) {
+                final int worker = w;
+                pool.submit(() -> {
+                    for (int i = 0; i < perWorker; i++) {
+                        long now = (long) worker * perWorker + i;
+                        stats.record(identity, 50L, AdaptiveOutcome.SUCCESS, now);
+                        stats.record(identity, 1L, AdaptiveOutcome.CLIENT_ERROR, now);
+                    }
+                });
+            }
+            pool.shutdown();
+            assertTrue(pool.awaitTermination(30, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+
+        AdaptiveUpstreamStats.Stats record = stats.statsOf(identity);
+        assertEquals((long) workers * perWorker, record.samples(),
+                "only latency-bearing observations may count, regardless of interleaving");
+        assertTrue(Double.isFinite(record.ewmaLatency()) && record.ewmaLatency() >= 0.0);
     }
 
     @Test
@@ -267,9 +381,122 @@ class AdaptiveLoadBalancerTest {
                 "below the idle bound nothing may be pruned");
         assertEquals(AdaptiveUpstreamStats.PRUNE_THRESHOLD + 10, stats.size());
 
-        int pruned = stats.pruneIfNeeded(AdaptiveUpstreamStats.IDLE_MILLIS + 1L);
+        // maintenance is budgeted: each eligible run inspects at most the scan budget,
+        // so draining the expired set takes several windows instead of one full sweep
+        long now = AdaptiveUpstreamStats.IDLE_MILLIS + 1L;
+        int pruned = 0;
+        while (stats.size() > 0) {
+            pruned += stats.pruneIfNeeded(now);
+            assertTrue(stats.lastScanCount() <= AdaptiveUpstreamStats.MAINTENANCE_SCAN_BUDGET,
+                    "one maintenance run must never inspect more than the scan budget");
+            now += AdaptiveUpstreamStats.MAINTENANCE_INTERVAL_MILLIS;
+        }
         assertEquals(AdaptiveUpstreamStats.PRUNE_THRESHOLD + 10, pruned);
         assertEquals(0, stats.size());
+    }
+
+    @Test
+    void singletonTrafficStillDrivesCleanup() {
+        for (int i = 0; i < 1000; i++) {
+            Upstream old = upstream("old-" + i + ":8080", 50);
+            balancer.stats().record(old.identity(), 1L, AdaptiveOutcome.SUCCESS, 0L);
+        }
+        Upstream live = upstream("live:8080", 50);
+        final long before = live.getInflight().get();
+
+        // the singleton fast path bypasses doSelect, so the selection itself must run
+        // maintenance; the epoch-zero feedback is already expired against the real clock
+        Upstream picked = balancer.select(List.of(live), new LoadBalanceData());
+        assertEquals(live, picked);
+        assertTrue(balancer.stats().lastScanCount() > 0,
+                "a singleton selection must drive maintenance, not skip it");
+        assertTrue(balancer.stats().size() < 1000, "the singleton selection must prune expired identities");
+        assertEquals(before + 1L, live.getInflight().get(),
+                "cleanup must not disturb the singleton inflight reservation pairing");
+
+        // deterministic drain across maintenance windows, as repeated discovery
+        // replacement would see under sustained singleton traffic
+        long now = AdaptiveUpstreamStats.IDLE_MILLIS + 1L;
+        while (balancer.stats().size() > 0) {
+            balancer.stats().pruneIfNeeded(now);
+            now += AdaptiveUpstreamStats.MAINTENANCE_INTERVAL_MILLIS;
+        }
+        assertEquals(0, balancer.stats().size(), "removed identities must eventually be reclaimed");
+    }
+
+    @Test
+    void hotSetAboveThresholdDoesNotSweepPerSelection() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        long now = 1_000_000L;
+        for (int i = 0; i < AdaptiveUpstreamStats.PRUNE_THRESHOLD + 200; i++) {
+            stats.record(upstream("hot-" + i + ":8080", 50).identity(), 10L, AdaptiveOutcome.SUCCESS, now);
+        }
+
+        assertEquals(0, stats.pruneIfNeeded(now), "the first run finds nothing expired");
+        for (int i = 1; i < 100; i++) {
+            assertEquals(0, stats.pruneIfNeeded(now + i),
+                    "selections inside the maintenance interval must pay no scan at all");
+            assertEquals(0, stats.lastScanCount());
+        }
+        assertEquals(AdaptiveUpstreamStats.PRUNE_THRESHOLD + 200, stats.size(),
+                "active history must be preserved while nothing is expired");
+
+        assertEquals(0, stats.pruneIfNeeded(now + AdaptiveUpstreamStats.MAINTENANCE_INTERVAL_MILLIS));
+        assertTrue(stats.lastScanCount() <= AdaptiveUpstreamStats.MAINTENANCE_SCAN_BUDGET,
+                "even an eligible run stays within the per-call work budget");
+    }
+
+    @Test
+    void hardCapacityEvictsOldestActivityWhenNothingIsIdle() {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        int total = AdaptiveUpstreamStats.MAX_TRACKED_IDENTITIES + 100;
+        for (int i = 0; i < total; i++) {
+            stats.record(upstream("churn-" + i + ":8080", 50).identity(), 10L, AdaptiveOutcome.SUCCESS, i);
+        }
+
+        // nothing is idle at this timestamp, so only the capacity eviction may act
+        stats.pruneIfNeeded(total + 1000L);
+
+        assertEquals(AdaptiveUpstreamStats.MAX_TRACKED_IDENTITIES, stats.size(),
+                "retained state must stay bounded even when every identity is active");
+        assertNotNull(stats.statsOf(upstream("churn-" + (total - 1) + ":8080", 50).identity()),
+                "the most recently active identity must survive the capacity eviction");
+        assertNull(stats.statsOf(upstream("churn-0:8080", 50).identity()),
+                "the oldest activity must be evicted first");
+    }
+
+    @Test
+    void concurrentFeedbackSurvivesMaintenance() throws Exception {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        UpstreamIdentity target = upstream("target:8080", 50).identity();
+        stats.record(target, 10L, AdaptiveOutcome.SUCCESS, 0L);
+        for (int i = 0; i < AdaptiveUpstreamStats.PRUNE_THRESHOLD + 10; i++) {
+            stats.record(upstream("filler-" + i + ":8080", 50).identity(), 10L, AdaptiveOutcome.SUCCESS, 0L);
+        }
+
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            pool.submit(() -> {
+                for (int i = 0; i < 2_000; i++) {
+                    stats.record(target, 10L, AdaptiveOutcome.SUCCESS, AdaptiveUpstreamStats.IDLE_MILLIS + 1L + i);
+                }
+            });
+            pool.submit(() -> {
+                long now = AdaptiveUpstreamStats.IDLE_MILLIS + 1L;
+                for (int i = 0; i < 50; i++) {
+                    stats.pruneIfNeeded(now);
+                    now += AdaptiveUpstreamStats.MAINTENANCE_INTERVAL_MILLIS;
+                }
+            });
+            pool.shutdown();
+            assertTrue(pool.awaitTermination(30, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+
+        assertNotNull(stats.statsOf(target),
+                "a concurrently refreshed record must not be dropped by maintenance");
+        assertTrue(stats.statsOf(target).lastFeedbackMillis() >= AdaptiveUpstreamStats.IDLE_MILLIS + 1L);
     }
 
     @Test
