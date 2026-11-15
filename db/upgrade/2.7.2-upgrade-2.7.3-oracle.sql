@@ -120,7 +120,7 @@ WHERE resource_id IN (
                       '1534585531108564992'
     );
 
-DELETE FROM resource
+DELETE FROM "resource"
 WHERE id IN (
              '1534577121923309568',
              '1534585430311051264',

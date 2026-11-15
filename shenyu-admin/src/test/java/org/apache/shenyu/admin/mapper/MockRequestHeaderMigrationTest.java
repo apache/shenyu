@@ -83,7 +83,29 @@ public final class MockRequestHeaderMigrationTest {
             statement.execute("CREATE TABLE shenyu_dict (id VARCHAR(128) PRIMARY KEY, type VARCHAR(100), dict_code VARCHAR(100),"
                     + " dict_name VARCHAR(100), dict_value VARCHAR(2048), `desc` VARCHAR(255), sort INT, enabled INT,"
                     + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            statement.execute("CREATE TABLE resource (id VARCHAR(128) PRIMARY KEY)");
+            statement.execute("CREATE TABLE permission (id VARCHAR(128) PRIMARY KEY, resource_id VARCHAR(128))");
+
+            statement.execute("INSERT INTO resource (id) VALUES "
+                    + "('1534577121923309568'), "
+                    + "('1534585430311051264'), "
+                    + "('1534585531108564992'), "
+                    + "('unrelated-resource')");
+
+            statement.execute("INSERT INTO permission (id, resource_id) VALUES "
+                    + "('permission-1', '1534577121923309568'), "
+                    + "('permission-2', '1534585430311051264'), "
+                    + "('permission-3', '1534585531108564992'), "
+                    + "('unrelated-permission', 'unrelated-resource')");
             new ResourceDatabasePopulator(new FileSystemResource(upgradeScript())).execute(dataSource);
+
+            assertEquals(1, countRows(statement, "resource"));
+            assertEquals(1, countRows(statement, "permission"));
+
+            assertEquals(1, countRows(statement,
+                    "resource WHERE id = 'unrelated-resource'"));
+            assertEquals(1, countRows(statement,
+                    "permission WHERE id = 'unrelated-permission'"));
 
             MockRequestRecordDO restored = mapper.queryById("legacy");
             assertEquals(record.getHeader(), restored.getHeader());
@@ -93,6 +115,13 @@ public final class MockRequestHeaderMigrationTest {
             assertEquals(1, mapper.update(record));
             assertEquals(record.getHeader(), mapper.queryById("legacy").getHeader());
             assertEquals("legacy-body", mapper.queryById("legacy").getBody());
+        }
+    }
+
+    private int countRows(final Statement statement, final String tableOrCondition) throws Exception {
+        try (java.sql.ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM " + tableOrCondition)) {
+            resultSet.next();
+            return resultSet.getInt(1);
         }
     }
 
