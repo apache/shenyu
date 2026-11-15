@@ -21,11 +21,17 @@ import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The type random balance test.
@@ -99,30 +105,30 @@ public class RandomLoadBalancerTest {
     @Test
     public void uniformAndWeightedPathsSelectFromCandidates() {
         RandomLoadBalancer loadBalancer = new RandomLoadBalancer();
-        java.util.List<Upstream> equalWeights = java.util.stream.IntStream.range(0, 3)
+        List<Upstream> equalWeights = IntStream.range(0, 3)
                 .mapToObj(index -> Upstream.builder().url("equal-" + index).weight(10).status(true).build())
                 .collect(Collectors.toList());
-        java.util.Map<String, Integer> equalCounts = new java.util.HashMap<>();
+        Map<String, Integer> equalCounts = new HashMap<>();
         for (int i = 0; i < 1000; i++) {
             Upstream picked = loadBalancer.select(equalWeights, new LoadBalanceData());
             assertNotNull(picked);
             equalCounts.merge(picked.getUrl(), 1, Integer::sum);
         }
         assertEquals(3, equalCounts.size());
-        equalCounts.values().forEach(count -> org.junit.jupiter.api.Assertions.assertTrue(count > 200));
+        equalCounts.values().forEach(count -> assertTrue(count > 200));
 
-        java.util.List<Upstream> mixedWeights = java.util.Arrays.asList(
+        List<Upstream> mixedWeights = Arrays.asList(
                 Upstream.builder().url("mixed-a").weight(90).status(true).build(),
                 Upstream.builder().url("mixed-b").weight(5).status(true).build(),
                 Upstream.builder().url("mixed-c").weight(5).status(true).build());
-        java.util.Map<String, Integer> mixedCounts = new java.util.HashMap<>();
+        Map<String, Integer> mixedCounts = new HashMap<>();
         for (int i = 0; i < 1000; i++) {
             Upstream picked = loadBalancer.select(mixedWeights, new LoadBalanceData());
             assertNotNull(picked);
             mixedCounts.merge(picked.getUrl(), 1, Integer::sum);
         }
         // first upstream weight 90 of total 100: ~900 picks, backfilled array keeps it
-        org.junit.jupiter.api.Assertions.assertTrue(mixedCounts.get("mixed-a") > 800);
-        org.junit.jupiter.api.Assertions.assertTrue(mixedCounts.get("mixed-b") + mixedCounts.get("mixed-c") > 20);
+        assertTrue(mixedCounts.get("mixed-a") > 800);
+        assertTrue(mixedCounts.get("mixed-b") + mixedCounts.get("mixed-c") > 20);
     }
 }
