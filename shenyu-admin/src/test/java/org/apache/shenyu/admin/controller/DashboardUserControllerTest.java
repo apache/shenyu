@@ -112,14 +112,20 @@ public final class DashboardUserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andReturn();
+    }
 
-        final CommonPager<DashboardUserVO> commonPagerError = new CommonPager<>(new PageParameter(),
-                Collections.emptyList());
-        given(dashboardUserService.listByPage(any())).willReturn(commonPagerError);
-        mockMvc.perform(get(url))
+    @Test
+    public void queryDashboardUsersReturnsEmptyPage() throws Exception {
+        final CommonPager<DashboardUserVO> emptyPage = new CommonPager<>(new PageParameter(1, 12, 0), Collections.emptyList());
+        given(dashboardUserService.listByPage(any())).willReturn(emptyPage);
+        mockMvc.perform(get("/dashboardUser?userName=missing&currentPage=1&pageSize=12"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DASHBOARD_QUERY_ERROR)))
-                .andReturn();
+                .andExpect(jsonPath("$.code", is(200)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.dataList").isEmpty())
+                .andExpect(jsonPath("$.data.page.totalCount", is(0)))
+                .andExpect(jsonPath("$.data.page.currentPage", is(1)))
+                .andExpect(jsonPath("$.data.page.pageSize", is(12)));
     }
 
     @Test
