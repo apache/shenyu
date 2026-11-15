@@ -158,9 +158,11 @@ public interface ShenyuPlugin {
      */
     default void after(ServerWebExchange exchange) {
         long currentTimeMillis = System.currentTimeMillis();
-        long startTime = (long) exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
+        // build the timing key once: this runs for every executed plugin on every request (#8437)
+        String timingKey = Constants.PLUGIN_START_TIME + named();
+        long startTime = (long) exchange.getAttributes().get(timingKey);
         LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", TraceIdUtils.traceId(exchange), named(), currentTimeMillis - startTime);
-        exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
+        exchange.getAttributes().remove(timingKey);
     }
 }
 
