@@ -32,7 +32,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * RFC 8785 (JSON Canonicalization Scheme) canonicalizer for the #7935 regression fixtures: a test utility, not production code.
+ * RFC 8785 (JSON Canonicalization Scheme) canonicalizer for the MCP tools/list canonicalization fixtures: a test utility, not
+ * production code.
  *
  * <p>The input is parsed with Jackson (duplicate member names are rejected) and the canonical form is written here, not by a
  * Jackson serializer: strings are escaped as RFC 8785 section 3.2.2.2 prescribes, numbers are written as the ECMA-262

@@ -76,7 +76,7 @@
       }
     ]
   },
-  "sidecars": "Each before/after file has a .sha256 sidecar holding the SHA-256 of its canonical bytes; each .canonical.json file holds those canonical bytes with no trailing newline, and its sidecar is the SHA-256 of the file, as in shenyu-admin/src/test/resources/app-auth.",
+  "sidecars": "Each fixture pair has one sidecar, named after the canonical file's stem as in shenyu-admin/src/test/resources/app-auth (canonical-request.json, canonical-request.sha256): <stem>.canonical.sha256 holds the SHA-256 of <stem>.canonical.json, the canonical bytes with no trailing newline. The negative control, whose after document has a canonical form of its own, also has <stem>.after.canonical.sha256. The before/after files have no sidecar of their own: their canonical bytes are compared with the canonical file directly. Every sidecar is referenced from expected/canonical-equivalence.json, and the test fails on any .sha256 file that is not.",
   "issue": {
     "url": "https://github.com/apache/shenyu/issues/7935",
     "comments": [
@@ -89,11 +89,42 @@
       "https://github.com/apache/shenyu/issues/7935#issuecomment-6873885523"
     ]
   },
-  "complements": {
-    "package": "https://github.com/jajazpua/ChangeProof/tree/11bb0c33d70e0211e5649c27566da7069c0f0824/pilots/shenyu-7935",
-    "relation": "These fixtures complement the ChangeProof pilot package and do not repeat it: its cases (a field made required, an output enum widened, an annotation-only change, allOf/not as indeterminate, and an ASCII key-order control) are not re-created here. This directory adds the RFC 8785 number, string-escaping and Unicode key-order rules that the ASCII key-order control does not exercise.",
-    "license_note": "The ChangeProof tree does not name a license, so none of its files are copied into this Apache-licensed repository; it is referenced by URL only."
+  "acceptance_criteria": {
+    "source": "https://github.com/apache/shenyu/issues/7935 (Acceptance criteria)",
+    "rows": [
+      {
+        "criterion": "AC-1: tests cover additive/required/type/enum/removal changes and unsupported schema features, with explicit backward-compatibility direction",
+        "status": "deferred",
+        "note": "The only schema change here is the required-added negative control, and it shows only that the canonical bytes change; there is no diff classifier and no compatibility direction in this set."
+      },
+      {
+        "criterion": "AC-2: canonically equivalent schemas do not generate spurious versions; snapshot history and per-tool/example sizes have retention limits",
+        "status": "covered here",
+        "note": "Covered for the canonical bytes only: number spelling, string escaping and member order give identical RFC 8785 bytes, so a digest over them stays stable; versioning itself and the retention limits are not part of this set."
+      },
+      {
+        "criterion": "AC-3: concurrent refresh/pin/unpin does not mix tool metadata and validators from different generations",
+        "status": "deferred",
+        "note": "Needs the snapshot and generation code in the plugin; these fixtures are static files."
+      },
+      {
+        "criterion": "AC-4: a pinned snapshot does not pretend to restore an old remote implementation, and an unavailable pinned contract fails with a documented result",
+        "status": "deferred",
+        "note": "There is no pinning in this set, so there is no call behavior to test."
+      },
+      {
+        "criterion": "AC-5: tenant/namespace permissions apply to history, pinning and examples; credentials and private source metadata are redacted",
+        "status": "deferred",
+        "note": "The fixtures are synthetic and carry no credentials or source metadata; permissions and redaction belong to the storage and admin work."
+      },
+      {
+        "criterion": "AC-6: existing unpinned behavior remains compatible; legacy tools without output schemas are represented accurately",
+        "status": "deferred",
+        "note": "No production code changes, so unpinned behavior is untouched, but no fixture represents a legacy tool without an output schema."
+      }
+    ]
   },
+  "production_use": "No production code (src/main) consumes this fixture set today: shenyu-plugin-mcp-server/src/main has no canonicalizer, and the canonicalizer these tests run, Rfc8785TestCanonicalizer, is test-scoped. The suite guards the fixture bytes and that test helper only.",
   "not_included": [
     {
       "case": "lone surrogate (for example U+DEAD)",

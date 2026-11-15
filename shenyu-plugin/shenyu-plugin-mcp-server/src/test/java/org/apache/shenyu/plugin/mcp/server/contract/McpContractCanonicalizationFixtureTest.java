@@ -30,8 +30,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,15 +43,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * RFC 8785 canonicalization regression fixtures for issue #7935 (tools/list descriptors).
+ * RFC 8785 canonicalization fixtures for MCP tools/list descriptors.
  *
  * <p>Each before/after pair differs in raw bytes only by number spelling, string escaping or member order, or, in the negative
- * control, by a real schema change. The expected canonical bytes are fixture files written from the RFC 8785 literals, not output
- * of the canonicalizer under test. Canonical equality is not schema-semantic equivalence; see provenance.json.</p>
+ * control, by a real schema change. Both sides must canonicalize to the expected canonical file, which is written from the RFC 8785
+ * literals rather than produced by the canonicalizer under test, and each canonical file has one SHA-256 sidecar. Canonical
+ * equality is not schema-semantic equivalence; see provenance.json.</p>
  */
 class McpContractCanonicalizationFixtureTest {
 
-    private static final Path FIXTURE_ROOT = Paths.get("src/test/resources/mcp-7935");
+    private static final Path FIXTURE_ROOT = Paths.get("src/test/resources/mcp/canonicalization");
 
     private static final String EXPECTED_FILE = "expected/canonical-equivalence.json";
 
@@ -59,72 +64,73 @@ class McpContractCanonicalizationFixtureTest {
 
     private static final String CANONICAL = "canonical";
 
-    private static final String KEY_ORDER_DESCRIPTOR_BEFORE = "rfc8785/key-order/ascii-descriptor.before.json";
+    private static final String AFTER_CANONICAL = "after_canonical";
 
-    private static final String REQUIRED_ADDED_BEFORE = "rfc8785/negative-control/required-added.before.json";
+    private static final String CANONICAL_SHA256 = "canonical_sha256";
+
+    private static final String AFTER_CANONICAL_SHA256 = "after_canonical_sha256";
 
     private static final String TWO_POW_53_PLUS_ONE = "rfc8785/numbers/two-pow-53-plus-one.before.json";
 
-    private static final String PINNED_TWO_POW_53 = "\"minimum\":9007199254740992";
+    private static final String TWO_POW_53_PLUS_ONE_CANONICAL = "{\"tools\":[{\"description\":\"Synthetic fixture: only the number spelling differs.\","
+            + "\"inputSchema\":{\"properties\":{\"amount\":{\"minimum\":9007199254740992,\"type\":\"number\"}},\"required\":[\"amount\"],"
+            + "\"type\":\"object\"},\"name\":\"rfc8785_numbers_two_pow_53_plus_one\"}]}";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
     void testEveryFixtureCanonicalizesToItsExpectedBytes() throws IOException {
         for (final JsonNode pair : pairs()) {
-            assertArrayEquals(read(pair.get(CANONICAL).asText()), canonical(pair.get(BEFORE).asText()), pair.get(BEFORE).asText());
-            assertArrayEquals(read(afterCanonicalOf(pair)), canonical(pair.get(AFTER).asText()), pair.get(AFTER).asText());
-        }
-    }
-
-    @Test
-    void testEverySidecarHoldsTheSha256OfTheCanonicalBytes() throws IOException {
-        for (final JsonNode pair : pairs()) {
-            for (final String side : List.of(BEFORE, AFTER)) {
-                final String file = pair.get(side).asText();
-                assertEquals(sidecar(file), sha256Hex(canonical(file)), file);
-            }
-            final String canonicalFile = pair.get(CANONICAL).asText();
-            assertEquals(sidecar(canonicalFile), sha256Hex(read(canonicalFile)), canonicalFile);
-        }
-    }
-
-    @Test
-    void testPairEqualityMatchesTheExpectedFile() throws IOException {
-        for (final JsonNode pair : pairs()) {
             final String before = pair.get(BEFORE).asText();
             final String after = pair.get(AFTER).asText();
+            assertArrayEquals(read(pair.get(CANONICAL).asText()), canonical(before), before);
+            assertArrayEquals(read(afterCanonicalOf(pair)), canonical(after), after);
             assertEquals(pair.get("raw_equal").asBoolean(), Arrays.equals(read(before), read(after)), before);
             assertEquals(pair.get("canonical_equal").asBoolean(), Arrays.equals(canonical(before), canonical(after)), before);
-            assertFalse(pair.get("semantic_equivalence_proof").asBoolean(), before);
         }
     }
 
     @Test
-    void testAsciiDescriptorKeyOrderIsNoCanonicalDescriptorDrift() throws IOException {
-        final JsonNode pair = pairOf(KEY_ORDER_DESCRIPTOR_BEFORE);
-        final String after = pair.get(AFTER).asText();
-        assertFalse(Arrays.equals(read(KEY_ORDER_DESCRIPTOR_BEFORE), read(after)));
-        assertArrayEquals(canonical(KEY_ORDER_DESCRIPTOR_BEFORE), canonical(after));
+    void testEverySidecarHoldsTheSha256OfItsCanonicalFile() throws IOException {
+        for (final JsonNode pair : pairs()) {
+            assertSidecar(pair.get(CANONICAL).asText(), pair.get(CANONICAL_SHA256).asText());
+            if (pair.has(AFTER_CANONICAL)) {
+                assertSidecar(pair.get(AFTER_CANONICAL).asText(), pair.get(AFTER_CANONICAL_SHA256).asText());
+            }
+        }
     }
 
     @Test
-    void testNewRequiredFieldChangesTheCanonicalBytes() throws IOException {
-        final JsonNode pair = pairOf(REQUIRED_ADDED_BEFORE);
-        assertFalse(pair.get("canonical_equal").asBoolean());
-        assertFalse(Arrays.equals(canonical(REQUIRED_ADDED_BEFORE), canonical(pair.get(AFTER).asText())));
+    void testEverySidecarUnderTheFixtureRootIsReferenced() throws IOException {
+        final Set<String> referenced = new HashSet<>();
+        for (final JsonNode pair : pairs()) {
+            referenced.add(pair.get(CANONICAL_SHA256).asText());
+            if (pair.has(AFTER_CANONICAL_SHA256)) {
+                referenced.add(pair.get(AFTER_CANONICAL_SHA256).asText());
+            }
+        }
+        final Set<String> onDisk;
+        try (Stream<Path> files = Files.walk(FIXTURE_ROOT)) {
+            onDisk = files.filter(Files::isRegularFile)
+                    .map(file -> FIXTURE_ROOT.relativize(file).toString().replace('\\', '/'))
+                    .filter(file -> file.endsWith(SIDECAR_SUFFIX))
+                    .collect(Collectors.toSet());
+        }
+        assertFalse(onDisk.isEmpty());
+        final Set<String> unreferenced = new HashSet<>(onDisk);
+        unreferenced.removeAll(referenced);
+        assertTrue(unreferenced.isEmpty(), "sidecars not referenced by " + EXPECTED_FILE + ": " + unreferenced);
+        assertTrue(onDisk.containsAll(referenced), "referenced sidecars missing on disk");
     }
 
     @Test
     void testTwoPowFiftyThreePlusOneIsWrittenAsTheDoubleItRoundsTo() throws IOException {
-        final String written = new String(canonical(TWO_POW_53_PLUS_ONE), StandardCharsets.UTF_8);
-        assertTrue(written.contains(PINNED_TWO_POW_53), written);
+        assertArrayEquals(TWO_POW_53_PLUS_ONE_CANONICAL.getBytes(StandardCharsets.UTF_8), canonical(TWO_POW_53_PLUS_ONE));
     }
 
-    @Test
-    void testExpectedFileStatesThatCanonicalEqualityIsNotSemanticEquivalence() throws IOException {
-        final String statement = MAPPER.readTree(read(EXPECTED_FILE)).get("statement").asText();
-        assertTrue(statement.contains("not a proof of schema-semantic equivalence"), statement);
+    private static void assertSidecar(final String canonicalFile, final String sidecarFile) throws IOException {
+        assertTrue(sidecarFile.endsWith(SIDECAR_SUFFIX), sidecarFile);
+        assertEquals(new String(read(sidecarFile), StandardCharsets.US_ASCII).trim(), sha256Hex(read(canonicalFile)), sidecarFile);
     }
 
     private static List<JsonNode> pairs() throws IOException {
@@ -134,17 +140,8 @@ class McpContractCanonicalizationFixtureTest {
         return list;
     }
 
-    private static JsonNode pairOf(final String before) throws IOException {
-        for (final JsonNode pair : pairs()) {
-            if (before.equals(pair.get(BEFORE).asText())) {
-                return pair;
-            }
-        }
-        throw new IllegalStateException("no fixture pair for " + before);
-    }
-
     private static String afterCanonicalOf(final JsonNode pair) {
-        return pair.has("after_canonical") ? pair.get("after_canonical").asText() : pair.get(CANONICAL).asText();
+        return pair.has(AFTER_CANONICAL) ? pair.get(AFTER_CANONICAL).asText() : pair.get(CANONICAL).asText();
     }
 
     private static byte[] canonical(final String file) throws IOException {
@@ -153,10 +150,6 @@ class McpContractCanonicalizationFixtureTest {
 
     private static byte[] read(final String file) throws IOException {
         return Files.readAllBytes(FIXTURE_ROOT.resolve(file));
-    }
-
-    private static String sidecar(final String file) throws IOException {
-        return new String(read(file + SIDECAR_SUFFIX), StandardCharsets.US_ASCII).trim();
     }
 
     private static String sha256Hex(final byte[] data) {
