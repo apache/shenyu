@@ -200,6 +200,7 @@ public final class InstanceInfoUpsertTest {
         assertEquals(200, mapper.findAllByNamespaceId("ns").get(0).getLastHeartBeatTime());
     }
 
+
     @Test
     void migrationRetainsLatestCompleteRowsAndRejectsDuplicates() {
         jdbc.execute("ALTER TABLE instance_info DROP CONSTRAINT uk_instance_info_identity");
@@ -215,25 +216,61 @@ public final class InstanceInfoUpsertTest {
         jdbc.execute("CREATE TABLE shenyu_dict (id VARCHAR(128) PRIMARY KEY, type VARCHAR(100), dict_code VARCHAR(100),"
                 + " dict_name VARCHAR(100), dict_value VARCHAR(2048), `desc` VARCHAR(255), sort INT, enabled INT,"
                 + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+
+        // Create obsolete API documentation menu resources and their permission associations.
+        jdbc.execute("CREATE TABLE resource (id VARCHAR(128) PRIMARY KEY)");
+        jdbc.execute("CREATE TABLE permission (id VARCHAR(128) PRIMARY KEY, resource_id VARCHAR(128))");
+
+        String[] obsoleteResourceIds = {
+                "1534577121923309568",
+                "1534585430311051264",
+                "1534585531108564992",
+        };
+        for (int i = 0; i < obsoleteResourceIds.length; i++) {
+            jdbc.update("INSERT INTO resource (id) VALUES (?)", obsoleteResourceIds[i]);
+            jdbc.update("INSERT INTO permission (id, resource_id) VALUES (?, ?)",
+                    "test-permission-" + i, obsoleteResourceIds[i]);
+        }
+
         insertLegacy("old-heartbeat", "ns", 100, "2026-01-03 00:00:00");
         insertLegacy("latest-heartbeat", "ns", 200, "2026-01-01 00:00:00");
         insertLegacy("tie-a", "ns-tie", 0, "2026-01-01 00:00:00");
         insertLegacy("tie-z", "ns-tie", 0, "2026-01-01 00:00:00");
         insertLegacy("other", "ns-other", 100, "2026-01-01 00:00:00");
+
         Path root = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (Objects.nonNull(root) && !Files.isDirectory(root.resolve("db/upgrade"))) {
             root = root.getParent();
         }
         assertNotNull(root);
+
         new ResourceDatabasePopulator(new FileSystemResource(root.resolve("db/upgrade/2.7.2-upgrade-2.7.3-h2.sql")))
                 .execute(Objects.requireNonNull(jdbc.getDataSource()));
-        assertEquals(Set.of("latest-heartbeat", "tie-z", "other"), mapper.selectAll().stream().map(InstanceInfoDO::getId).collect(Collectors.toSet()));
+
+        // Verify the obsolete API documentation resources and permissions are removed.
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT COUNT(*) FROM resource WHERE id IN "
+                        + "('1534577121923309568', '1534585430311051264', '1534585531108564992')",
+                Integer.class));
+
+        assertEquals(0, jdbc.queryForObject(
+                "SELECT COUNT(*) FROM permission WHERE resource_id IN "
+                        + "('1534577121923309568', '1534585430311051264', '1534585531108564992')",
+                Integer.class));
+
+        // Verify the existing instance-info migration behavior.
+        assertEquals(Set.of("latest-heartbeat", "tie-z", "other"),
+                mapper.selectAll().stream().map(InstanceInfoDO::getId).collect(Collectors.toSet()));
+
         InstanceInfoDO retained = mapper.selectById("latest-heartbeat");
         assertEquals(200, retained.getLastHeartBeatTime());
         assertEquals("info-200", retained.getInstanceInfo());
         assertEquals(Timestamp.valueOf("2026-01-01 00:00:00"), retained.getDateUpdated());
-        assertThrows(DuplicateKeyException.class, () -> insertLegacy("conflict", "ns", 300, "2026-01-04 00:00:00"));
+
+        assertThrows(DuplicateKeyException.class,
+                () -> insertLegacy("conflict", "ns", 300, "2026-01-04 00:00:00"));
     }
+
 
     private void insertLegacy(final String id, final String namespace, final long heartbeat, final String updated) {
         InstanceInfoDO row = InstanceInfoDO.buildInstanceInfoDO(report(namespace, heartbeat, 1));
