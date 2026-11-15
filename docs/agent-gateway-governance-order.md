@@ -19,11 +19,13 @@ limitations under the License.
 
 ## Single matched entry
 
-The default AI path is `authentication -> agentGateway -> aiPrompt -> aiTokenLimiter -> aiProxy`.
-KeyAuth and BasicAuth default to 150, Agent Gateway to 169, Prompt to 170,
-Token Limiter to 171 and AI Proxy to 199. JWT/OAuth2 remain earlier.
-169 was unused in PluginEnum before this change; 170 is already used by both
-Prompt and RocketMQ logging. No other plugin enum or sorting algorithm changes.
+The default AI path is `authentication -> aiRequestId -> agentGateway -> aiPrompt -> aiTokenLimiter -> aiProxy`.
+KeyAuth and BasicAuth default to 150, AI RequestId to 168, Agent Gateway to 169,
+Prompt to 170, Token Limiter to 171 and AI Proxy to 199. JWT/OAuth2 remain earlier.
+168 and 169 were unused in PluginEnum before these changes; 170 is already used by
+both Prompt and RocketMQ logging. No other plugin enum or sorting algorithm changes.
+The AI RequestId starter is optional; when it is absent or not matched, Agent Gateway
+still creates its own LLM identifier and the rest of the order is unchanged.
 
 Agent Gateway keeps its existing selector/rule matching and is the only AG entry.
 A matched LLM request establishes its context before continuing through the
@@ -55,10 +57,12 @@ This change neither forbids custom ordering nor claims to correct arbitrary
 custom mistakes, missing plugins or stale gateway caches. The required invariant
 for each enabled LLM path is strictly:
 
-`authentication < agentGateway < aiPrompt < aiTokenLimiter < aiProxy`
+`authentication < aiRequestId < agentGateway < aiPrompt < aiTokenLimiter < aiProxy`
 
-If Prompt is absent/disabled, use `authentication < agentGateway < aiTokenLimiter < aiProxy`.
-Also check extension plugins for a local collision at 169.
+If the AI RequestId plugin is absent/disabled, the original invariant
+`authentication < agentGateway < aiPrompt < aiTokenLimiter < aiProxy` applies.
+If Prompt is absent/disabled, use `authentication < aiRequestId < agentGateway < aiTokenLimiter < aiProxy`.
+Also check extension plugins for local collisions at 168 and 169.
 
 ## Default SQL changes
 
@@ -84,17 +88,17 @@ before changing anything. The following queries intentionally omit credentials:
 ```sql
 SELECT id, name, sort, enabled
 FROM plugin
-WHERE name IN ('jwt', 'oauth2', 'keyAuth', 'basicAuth',
+WHERE name IN ('jwt', 'oauth2', 'keyAuth', 'basicAuth', 'aiRequestId',
                'agentGateway', 'aiPrompt', 'aiTokenLimiter', 'aiProxy')
-   OR sort = 169
+   OR sort IN (168, 169)
 ORDER BY sort, name;
 
 SELECT n.id, n.namespace_id, p.name, p.sort AS plugin_sort,
        n.sort AS namespace_sort, n.enabled
 FROM namespace_plugin_rel n JOIN plugin p ON p.id = n.plugin_id
-WHERE p.name IN ('jwt', 'oauth2', 'keyAuth', 'basicAuth',
+WHERE p.name IN ('jwt', 'oauth2', 'keyAuth', 'basicAuth', 'aiRequestId',
                  'agentGateway', 'aiPrompt', 'aiTokenLimiter', 'aiProxy')
-   OR n.sort = 169
+   OR n.sort IN (168, 169)
 ORDER BY n.namespace_id, n.sort, p.name;
 
 -- All AG migration candidates, including disabled namespace relations.
@@ -111,7 +115,9 @@ JOIN plugin pa ON pa.id = a.plugin_id
 JOIN namespace_plugin_rel b ON b.namespace_id = a.namespace_id
 JOIN plugin pb ON pb.id = b.plugin_id
 WHERE a.enabled = 1 AND b.enabled = 1 AND a.sort >= b.sort
-  AND ((pa.name IN ('jwt', 'oauth2', 'keyAuth', 'basicAuth') AND pb.name = 'agentGateway')
+  AND ((pa.name IN ('jwt', 'oauth2', 'keyAuth', 'basicAuth') AND pb.name = 'aiRequestId')
+    OR (pa.name = 'aiRequestId' AND pb.name IN ('agentGateway', 'aiPrompt', 'aiTokenLimiter', 'aiProxy'))
+    OR (pa.name IN ('jwt', 'oauth2', 'keyAuth', 'basicAuth') AND pb.name = 'agentGateway')
     OR (pa.name = 'agentGateway' AND pb.name IN ('aiPrompt', 'aiTokenLimiter', 'aiProxy'))
     OR (pa.name = 'aiPrompt' AND pb.name = 'aiTokenLimiter')
     OR (pa.name = 'aiTokenLimiter' AND pb.name = 'aiProxy'));

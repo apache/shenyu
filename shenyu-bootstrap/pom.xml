@@ -241,6 +241,14 @@
         </dependency>
         <!--Ai token limiter Plugin end-->
 
+        <!--Ai request id Plugin Start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-ai-request-id</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--Ai request id Plugin end-->
+
         <!--Sensitive word Plugin Start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

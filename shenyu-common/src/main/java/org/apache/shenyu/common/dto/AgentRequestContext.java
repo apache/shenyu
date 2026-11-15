@@ -31,6 +31,12 @@ public final class AgentRequestContext {
 
     public static final String EXCHANGE_ATTRIBUTE = REACTOR_KEY;
 
+    /**
+     * Exchange attribute marking an internal HTTP tool child invocation dispatched by the agent gateway.
+     * Child exchanges own a separate attribute map, so this marker must be visible before any AI plugin runs.
+     */
+    public static final String HTTP_TOOL_CALL_ATTRIBUTE = REACTOR_KEY + ".HTTP_TOOL_CALL";
+
     private final String requestId;
 
     private final String trafficType;

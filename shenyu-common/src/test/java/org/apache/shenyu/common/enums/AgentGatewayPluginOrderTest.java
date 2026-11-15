@@ -45,13 +45,15 @@ class AgentGatewayPluginOrderTest {
     @Test
     void shouldPlaceGatewayAfterAuthenticationAndBeforeTheExistingAiChain() {
         List<String> ordered = Arrays.stream(new PluginEnum[]{PluginEnum.AI_PROXY, PluginEnum.AI_TOKEN_LIMITER,
-            PluginEnum.AGENT_GATEWAY, PluginEnum.KEY_AUTH, PluginEnum.AI_PROMPT})
+            PluginEnum.AI_REQUEST_ID, PluginEnum.AGENT_GATEWAY, PluginEnum.KEY_AUTH, PluginEnum.AI_PROMPT})
                 .sorted(Comparator.comparingInt(PluginEnum::getCode))
                 .map(PluginEnum::getName).collect(Collectors.toList());
-        assertEquals(Arrays.asList("keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy"), ordered);
+        assertEquals(Arrays.asList("keyAuth", "aiRequestId", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy"), ordered);
         assertTrue(PluginEnum.BASIC_AUTH.getCode() < PluginEnum.AGENT_GATEWAY.getCode());
         assertTrue(PluginEnum.JWT.getCode() < PluginEnum.AGENT_GATEWAY.getCode());
         assertTrue(PluginEnum.OAUTH2.getCode() < PluginEnum.AGENT_GATEWAY.getCode());
+        assertEquals(1, Arrays.stream(PluginEnum.values())
+                .filter(plugin -> plugin.getCode() == PluginEnum.AI_REQUEST_ID.getCode()).count());
         assertEquals(1, Arrays.stream(PluginEnum.values())
                 .filter(plugin -> plugin.getCode() == PluginEnum.AGENT_GATEWAY.getCode()).count());
     }
@@ -66,6 +68,21 @@ class AgentGatewayPluginOrderTest {
     void shouldKeepGatewayAndNamespaceSeedsInSync(final String script) throws IOException {
         String sql = Files.readString(repositoryRoot().resolve(script));
         assertSeedOrder(sql, "68", PluginEnum.AGENT_GATEWAY, script);
+        assertSeedOrder(sql, "70", PluginEnum.AI_REQUEST_ID, script);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "db/upgrade/2.7.2-upgrade-2.7.3-h2.sql",
+        "db/upgrade/2.7.2-upgrade-2.7.3-mysql.sql",
+        "db/upgrade/2.7.2-upgrade-2.7.3-ob.sql",
+        "db/upgrade/2.7.2-upgrade-2.7.3-og.sql",
+        "db/upgrade/2.7.2-upgrade-2.7.3-oracle.sql",
+        "db/upgrade/2.7.2-upgrade-2.7.3-pg.sql"
+    })
+    void shouldSeedTheAiRequestIdPluginInEveryUpgradeDialect(final String script) throws IOException {
+        String sql = Files.readString(repositoryRoot().resolve(script));
+        assertSeedOrder(sql, "70", PluginEnum.AI_REQUEST_ID, script);
     }
 
     @ParameterizedTest

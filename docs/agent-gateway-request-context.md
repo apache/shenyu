@@ -19,11 +19,16 @@
 
 ## Governance entry
 
-The matched Agent Gateway rule creates a fresh request identifier at subscription time.
-The default order is authentication (key-auth 150), Agent Gateway 169, AI Prompt 170,
-AI Token Limiter 171, and AI Proxy 199. MCP terminates at Agent Gateway and does not
-enter the LLM limiter/proxy. LLM continues through the existing AI plugins. No second
-selector/rule matcher, request-body subscription, or request-body cache is introduced.
+The AI RequestId plugin (default sort 168) establishes one request identifier for
+matched AI traffic. A matched Agent Gateway LLM rule reuses that identifier; without
+the AI RequestId plugin, Agent Gateway still creates a fresh identifier at
+subscription time. MCP rules continue to create their own entry identifier in the
+first delivery. The default order is authentication (key-auth 150), AI RequestId 168,
+Agent Gateway 169, AI Prompt 170, AI Token Limiter 171, and AI Proxy 199. MCP
+terminates at Agent Gateway and does not enter the LLM limiter/proxy. LLM continues
+through the existing AI plugins. No second selector/rule matcher, request-body
+subscription, or request-body cache is introduced. See
+[AI RequestId](ai-request-id.md) for the canonical response header and activation.
 
 Admin's persisted plugin and namespace-plugin order overrides the Java default.
 Apply the documented default-order migration and check custom orders before enabling
@@ -82,6 +87,14 @@ The matched LLM entry owns `AiRequestObservation` across downstream limiter, pro
 retry/fallback, response writes and cancellation. AI Proxy and its engine reuse that
 owner rather than emitting additional logical terminals. When used without Agent
 Gateway, AI Proxy/engine create their own anonymous correlation and own termination.
+
+Every attempt of one logical request keeps the same `context.requestId`; attempts are
+distinguished by their attempt number/index. The AI RequestId plugin writes the
+canonical `X-Shenyu-Ai-Request-Id` response header, while Agent Gateway's legacy
+`X-Shenyu-Agent-Request-Id` remains controlled only by `responseRequestId`. When both
+headers are present for the same LLM request they carry the same value; top-level MCP
+traffic is outside the first delivery and keeps its own MCP entry id (see
+[AI RequestId](ai-request-id.md)).
 
 MCP snapshots cover matched preflight, identity, parsing, authorization, tool outcome,
 timeout, cancellation and write failure. A requested tool does not prove it was

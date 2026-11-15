@@ -294,6 +294,11 @@ public enum PluginEnum {
     AI_PROXY(199, 0, "aiProxy"),
 
     /**
+     * Ai-request-id plugin enum.
+     */
+    AI_REQUEST_ID(168, 0, "aiRequestId"),
+
+    /**
      * Agent gateway plugin enum.
      */
     AGENT_GATEWAY(169, 0, "agentGateway"),

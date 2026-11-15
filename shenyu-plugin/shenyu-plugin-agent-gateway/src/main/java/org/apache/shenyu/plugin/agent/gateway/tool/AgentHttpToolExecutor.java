@@ -26,6 +26,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -51,6 +52,7 @@ import org.springframework.web.server.ServerWebExchangeDecorator;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.context.ContextView;
 
 import java.io.IOException;
 import java.net.URI;
@@ -92,7 +94,7 @@ public final class AgentHttpToolExecutor implements AgentHttpToolInvoker {
 
     @Override
     public Mono<JsonObject> invoke(final AgentGatewayHttpToolConfig.Tool tool, final AgentToolInvocation invocation) {
-        return Mono.defer(() -> {
+        return Mono.deferContextual(view -> {
             Duration remaining = Duration.between(Instant.now(), invocation.getDeadline());
             if (remaining.isNegative() || remaining.isZero()) {
                 return Mono.error(new TimeoutException("HTTP tool deadline expired"));
@@ -140,11 +142,26 @@ public final class AgentHttpToolExecutor implements AgentHttpToolInvoker {
             context.setRealUrl(target.getRawPath());
             context.setStartDateTime(LocalDateTime.now());
             child.getAttributes().put(Constants.CONTEXT, context);
+            AgentRequestContext parentContext = parentContext(origin, view);
+            if (Objects.nonNull(parentContext)) {
+                child.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE, parentContext);
+            }
             child.getAttributes().put(AgentGatewayConstants.HTTP_TOOL_CALL_ATTRIBUTE, true);
             // The existing MCP Server plugin recognizes this internal-only marker too.
             child.getAttributes().put("MCP_TOOL_CALL", true);
             return chain.fork().execute(child).then(Mono.fromCallable(response::result)).timeout(remaining);
         });
+    }
+
+    private AgentRequestContext parentContext(final ServerWebExchange origin, final ContextView view) {
+        // Agent Gateway installs the MCP parent context in the Reactor context; the AI request id
+        // plugin installs its context in exchange attributes for the LLM path.
+        Object subscribed = view.getOrDefault(AgentRequestContext.REACTOR_KEY, null);
+        if (subscribed instanceof AgentRequestContext context) {
+            return context;
+        }
+        Object attributed = origin.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE);
+        return attributed instanceof AgentRequestContext context ? context : null;
     }
 
     private static final class ToolRequest extends ServerHttpRequestDecorator {

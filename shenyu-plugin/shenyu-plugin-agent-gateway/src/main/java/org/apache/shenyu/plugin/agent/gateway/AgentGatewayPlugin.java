@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.agent.gateway;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
@@ -43,6 +44,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
+import reactor.util.context.ContextView;
 
 import java.util.Objects;
 import java.util.List;
@@ -83,13 +85,14 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         if (Boolean.FALSE.equals(selector.getContinued())) {
             return chain.execute(exchange);
         }
-        return Mono.defer(() -> {
+        return Mono.deferContextual(view -> {
             final AgentGatewayRuleHandle handle = resolveHandle(rule);
             if (!handle.isValid()) {
                 return reject(exchange, handle.getErrorMessage());
             }
+            // LLM traffic reuses the id established by the AI request id plugin; MCP keeps its own entry.
             final AgentTrafficContext context = new AgentTrafficContext(
-                    UUID.randomUUID().toString(), handle.getTrafficType(), selector.getId(), rule.getId());
+                    requestId(exchange, view, handle.getTrafficType()), handle.getTrafficType(), selector.getId(), rule.getId());
             final Object previousContext = exchange.getAttributes()
                     .put(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE, context);
             if (handle.isResponseRequestId()) {
@@ -163,6 +166,21 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
             headers.set(AgentGatewayConstants.REQUEST_ID_HEADER, requestId);
             return Mono.empty();
         });
+    }
+
+    private String requestId(final ServerWebExchange exchange, final ContextView view, final String trafficType) {
+        if ("mcp".equals(trafficType)) {
+            return UUID.randomUUID().toString();
+        }
+        final Object attributed = exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE);
+        if (attributed instanceof AgentRequestContext context && StringUtils.isNotBlank(context.getRequestId())) {
+            return context.getRequestId();
+        }
+        final Object subscribed = view.getOrDefault(AgentRequestContext.REACTOR_KEY, null);
+        if (subscribed instanceof AgentRequestContext context && StringUtils.isNotBlank(context.getRequestId())) {
+            return context.getRequestId();
+        }
+        return UUID.randomUUID().toString();
     }
 
     private Mono<Void> reject(final ServerWebExchange exchange, final String reason) {
