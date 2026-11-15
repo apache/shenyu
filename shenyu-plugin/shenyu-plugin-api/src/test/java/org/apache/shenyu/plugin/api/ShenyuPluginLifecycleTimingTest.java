@@ -56,11 +56,10 @@ public class ShenyuPluginLifecycleTimingTest {
     };
 
     @Test
-    public void beforeRecordsAndAfterRemovesTheTimingAttribute() throws InterruptedException {
+    public void beforeRecordsAndAfterRemovesTheTimingAttribute() {
         plugin.before(exchange);
         String key = Constants.PLUGIN_START_TIME + plugin.named();
         assertNotNull(exchange.getAttributes().get(key));
-        Thread.sleep(5);
         plugin.after(exchange);
         assertNull(exchange.getAttributes().get(key));
     }
