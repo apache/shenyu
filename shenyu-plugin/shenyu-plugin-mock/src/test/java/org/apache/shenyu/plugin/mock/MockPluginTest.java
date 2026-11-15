@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -45,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -145,6 +147,24 @@ public final class MockPluginTest {
                 .verifyComplete();
 
         verify(chain).execute(any());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0, 2147483647", "2147483647, 2147483647", "0, 0", "10, 15"})
+    public void testIntegerResponseSupportsInclusiveBounds(final int min, final int max) {
+        RuleData ruleData = buildRuleData();
+        MockHandle mockHandle = new MockHandle();
+        mockHandle.setResponseContent(String.format("${int|%d-%d}", min, max));
+        MockPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
+
+        StepVerifier.create(mockPlugin.doExecute(exchange, chain, mock(SelectorData.class), ruleData)).verifyComplete();
+
+        String body = exchange.getResponse().getBodyAsString().block();
+        int value = Integer.parseInt(body);
+        assertTrue(value >= min && value <= max);
+        assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
+        assertEquals(body.getBytes(StandardCharsets.UTF_8).length, exchange.getResponse().getHeaders().getContentLength());
+        verify(chain, never()).execute(any());
     }
 
     @Test
