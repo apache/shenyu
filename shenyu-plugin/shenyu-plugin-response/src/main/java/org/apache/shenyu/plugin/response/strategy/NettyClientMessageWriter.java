@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
@@ -64,12 +65,16 @@ public class NettyClientMessageWriter implements MessageWriter {
             }
             ServerHttpResponse response = exchange.getResponse();
             NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
-            final Flux<NettyDataBuffer> body = connection
+            HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
+            Flux<NettyDataBuffer> body = connection
                     .inbound()
                     .receive()
                     .retain()
                     .map(factory::wrap)
                     .doOnDiscard(NettyDataBuffer.class, DataBufferUtils::release);
+            if (Objects.nonNull(attempt)) {
+                body = body.doOnComplete(attempt::received);
+            }
             MediaType contentType = response.getHeaders().getContentType();
 
             Mono<Void> responseMono = isStreamingMediaType(contentType)
@@ -89,6 +94,9 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
     
     private void cleanup(final ServerWebExchange exchange) {
+        if (HttpRouteDeadline.ownsResponseCleanup(exchange)) {
+            return;
+        }
         Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
         if (Objects.nonNull(connection)) {
             connection.dispose();

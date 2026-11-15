@@ -28,9 +28,8 @@
     <artifactId>shenyu-examples-springcloud</artifactId>
 
     <properties>
-        <spring-cloud.version>4.1.2</spring-cloud.version>
-        <nacos-discovery.version>2023.0.1.3</nacos-discovery.version>
-        <eureka-client.version>4.1.2</eureka-client.version>
+        <spring-cloud.version>4.3.3</spring-cloud.version>
+        <nacos-discovery.version>2025.0.0.0</nacos-discovery.version>
     </properties>
 
     <dependencies>
@@ -64,7 +63,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            <version>${eureka-client.version}</version>
+            <version>${spring-cloud.version}</version>
         </dependency>
 
         <dependency>

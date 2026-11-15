@@ -79,6 +79,8 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
 
     private final int maxResponseBody;
 
+    private final Set<String> maskedHeaders;
+
     /**
      * Constructor LoggingServerHttpResponse.
      *
@@ -125,7 +127,28 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
     public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
                                      final LogCollector<L> logCollector, final boolean desensitized,
                                      final KeyWordMatch keyWordMatch, final String dataDesensitizeAlg, final int maxResponseBody) {
+        this(delegate, logInfo, logCollector, desensitized, keyWordMatch, dataDesensitizeAlg, maxResponseBody,
+                LogCollectUtils.getMaskedHeaders(new GenericGlobalConfig()));
+    }
+
+    /**
+     * Create a decorator with a captured body limit and header masking policy.
+     *
+     * @param delegate delegate response
+     * @param logInfo access log
+     * @param logCollector collector
+     * @param desensitized keyword masking enabled
+     * @param keyWordMatch keyword matcher
+     * @param dataDesensitizeAlg keyword masking algorithm
+     * @param maxResponseBody body limit
+     * @param maskedHeaders lowercase header names to mask
+     */
+    public LoggingServerHttpResponse(final ServerHttpResponse delegate, final L logInfo,
+                                     final LogCollector<L> logCollector, final boolean desensitized,
+                                     final KeyWordMatch keyWordMatch, final String dataDesensitizeAlg,
+                                     final int maxResponseBody, final Set<String> maskedHeaders) {
         super(delegate);
+        this.maskedHeaders = Set.copyOf(maskedHeaders);
         this.logInfo = logInfo;
         this.logCollector = logCollector;
         this.desensitized = desensitized;
@@ -168,7 +191,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         if (Objects.nonNull(getStatusCode())) {
             logInfo.setStatus(getStatusCode().value());
         }
-        logInfo.setResponseHeader(() -> LogCollectUtils.getHeaders(getHeaders()));
+        logInfo.setResponseHeader(() -> LogCollectUtils.getHeaders(getHeaders(), maskedHeaders));
         logInfo.setTraceId(getTraceId());
         logInfo.setRequestId(getRequestId());
         final MediaType mediaType = exchange.getResponse().getHeaders().getContentType();
@@ -308,7 +331,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         logInfo.setModule(shenyuContext.getModule());
         long costTime = DateUtils.acquireMillisBetween(shenyuContext.getStartDateTime(), LocalDateTime.now());
         logInfo.setUpstreamResponseTime(costTime);
-        logInfo.setResponseHeader(() -> LogCollectUtils.getHeaders(exchange.getResponse().getHeaders()));
+        logInfo.setResponseHeader(() -> LogCollectUtils.getHeaders(exchange.getResponse().getHeaders(), maskedHeaders));
         logInfo.setRpcType(shenyuContext.getRpcType());
         logInfo.setMethod(shenyuContext.getMethod());
         if (StringUtils.isNotBlank(shenyuContext.getRpcType())) {
