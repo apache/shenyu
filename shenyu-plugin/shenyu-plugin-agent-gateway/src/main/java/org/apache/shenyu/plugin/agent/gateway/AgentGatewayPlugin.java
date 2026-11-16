@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.agent.gateway;
 
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
@@ -39,6 +38,8 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
@@ -55,6 +56,8 @@ import java.util.UUID;
  * and continuing LLM traffic to the existing AI proxy chain.
  */
 public class AgentGatewayPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AgentGatewayPlugin.class);
 
     private final AgentGatewayRuleHandleParser parser = new AgentGatewayRuleHandleParser();
 
@@ -172,15 +175,23 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         if ("mcp".equals(trafficType)) {
             return UUID.randomUUID().toString();
         }
-        final Object attributed = exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE);
-        if (attributed instanceof AgentRequestContext context && StringUtils.isNotBlank(context.getRequestId())) {
-            return context.getRequestId();
+        final String attributed = contextRequestId(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+        if (AgentRequestContext.isReusableRequestId(attributed)) {
+            return attributed;
         }
-        final Object subscribed = view.getOrDefault(AgentRequestContext.REACTOR_KEY, null);
-        if (subscribed instanceof AgentRequestContext context && StringUtils.isNotBlank(context.getRequestId())) {
-            return context.getRequestId();
+        final String subscribed = contextRequestId(view.getOrDefault(AgentRequestContext.REACTOR_KEY, null));
+        if (AgentRequestContext.isReusableRequestId(subscribed)) {
+            return subscribed;
+        }
+        if (Objects.nonNull(attributed) || Objects.nonNull(subscribed)) {
+            // Never log the rejected value; it may contain characters unsafe for log output.
+            LOG.warn("Replacing an invalid existing AI request id on the Agent Gateway path");
         }
         return UUID.randomUUID().toString();
+    }
+
+    private String contextRequestId(final Object value) {
+        return value instanceof AgentRequestContext context ? context.getRequestId() : null;
     }
 
     private Mono<Void> reject(final ServerWebExchange exchange, final String reason) {

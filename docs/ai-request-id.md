@@ -155,6 +155,10 @@ Agent Gateway LLM rules and AI Proxy reuse the id established by `aiRequestId`;
 they do not replace it. An existing context is reused only when its id is 1-128
 characters from `[A-Za-z0-9._:-]`; an invalid or unbounded value is replaced by a
 new gateway id and a bounded warning is logged without the rejected value.
+The logical requestId is preserved, but observation events report the selector
+and rule of the observation owner: Agent Gateway for its LLM path and AI Proxy
+for standalone requests. Enabling `aiRequestId` therefore does not change
+existing usage attribution.
 Agent Gateway MCP rules continue to create their own MCP entry id in the first
 delivery; the canonical header contract above does not apply to top-level MCP
 traffic. HTTP tool child invocations dispatched by the MCP entry copy the parent
@@ -169,7 +173,8 @@ logging plugins run before `aiRequestId` in the sorted chain.
 
 The field appears in every logging sink payload because sinks share
 `ShenyuRequestLog` serialization. Consumers of Kafka/Elasticsearch/etc. should
-tolerate one additional nullable field. `requestId` is not used as a metric label,
+tolerate one additional nullable field. `requestId` participates in the configured
+logging keyword masking like other text fields, is not used as a metric label,
 and no prompt, credential, tool argument or response content is added.
 
 ## Trace ids

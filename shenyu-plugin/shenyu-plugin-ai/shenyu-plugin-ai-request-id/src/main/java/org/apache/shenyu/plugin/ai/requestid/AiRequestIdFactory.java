@@ -17,19 +17,14 @@
 
 package org.apache.shenyu.plugin.ai.requestid;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * Generates and validates bounded AI request identifiers.
  */
 public final class AiRequestIdFactory {
-
-    private static final int MAX_LENGTH = 128;
-
-    private static final Pattern REUSABLE = Pattern.compile("[A-Za-z0-9._:-]{1," + MAX_LENGTH + "}");
 
     private AiRequestIdFactory() {
     }
@@ -51,6 +46,6 @@ public final class AiRequestIdFactory {
      * @return true when the identifier is present and bounded
      */
     public static boolean reusable(final String requestId) {
-        return StringUtils.isNotEmpty(requestId) && REUSABLE.matcher(requestId).matches();
+        return AgentRequestContext.isReusableRequestId(requestId);
     }
 }

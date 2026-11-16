@@ -216,6 +216,44 @@ class AgentGatewayPluginTest {
     }
 
     @Test
+    void shouldReplaceOverlongAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        String overlong = "a".repeat(129);
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext(overlong, "llm", "ai-selector", "ai-rule"));
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertNotEquals(overlong, observed.get());
+        assertTrue(AgentRequestContext.isReusableRequestId(observed.get()));
+    }
+
+    @Test
+    void shouldReplaceUnsafeAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        String unsafe = "bad id";
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext(unsafe, "llm", "ai-selector", "ai-rule"));
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertNotEquals(unsafe, observed.get());
+        assertTrue(AgentRequestContext.isReusableRequestId(observed.get()));
+    }
+
+    @Test
     void shouldReturnLegacyHeaderWithReusedAiRequestId() {
         ServerWebExchange exchange = newExchange();
         exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,

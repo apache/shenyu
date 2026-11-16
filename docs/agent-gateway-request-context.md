@@ -20,9 +20,9 @@
 ## Governance entry
 
 The AI RequestId plugin (default sort 168) establishes one request identifier for
-matched AI traffic. A matched Agent Gateway LLM rule reuses that identifier; without
-the AI RequestId plugin, Agent Gateway still creates a fresh identifier at
-subscription time. MCP rules continue to create their own entry identifier in the
+matched AI traffic. A matched Agent Gateway LLM rule reuses that identifier when it
+is compatible; without the AI RequestId plugin, Agent Gateway still creates a fresh
+identifier at subscription time. MCP rules continue to create their own entry identifier in the
 first delivery. The default order is authentication (key-auth 150), AI RequestId 168,
 Agent Gateway 169, AI Prompt 170, AI Token Limiter 171, and AI Proxy 199. MCP
 terminates at Agent Gateway and does not enter the LLM limiter/proxy. LLM continues
@@ -86,7 +86,8 @@ Applications may provide one `AgentMcpTerminalObserver` and one `AiCallObserver`
 The matched LLM entry owns `AiRequestObservation` across downstream limiter, proxy,
 retry/fallback, response writes and cancellation. AI Proxy and its engine reuse that
 owner rather than emitting additional logical terminals. When used without Agent
-Gateway, AI Proxy/engine create their own anonymous correlation and own termination.
+Gateway, AI Proxy/engine reuse the `aiRequestId` context when present; otherwise
+they create an anonymous correlation and own termination.
 
 Every attempt of one logical request keeps the same `context.requestId`; attempts are
 distinguished by their attempt number/index. The AI RequestId plugin writes the
