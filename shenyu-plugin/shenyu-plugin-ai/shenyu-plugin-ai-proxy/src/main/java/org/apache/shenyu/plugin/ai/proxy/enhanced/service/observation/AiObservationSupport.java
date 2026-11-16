@@ -68,7 +68,8 @@ public final class AiObservationSupport {
             };
         }
         if (error instanceof DataBufferLimitException
-                || error instanceof AiProxyException proxy && proxy.getKind() == AiProxyException.Kind.REQUEST) {
+                || error instanceof AiProxyException proxy && (proxy.getKind() == AiProxyException.Kind.REQUEST
+                || proxy.getKind() == AiProxyException.Kind.CONTENT)) {
             return AiCallOutcome.REJECTED;
         }
         return AiCallOutcome.ERROR;

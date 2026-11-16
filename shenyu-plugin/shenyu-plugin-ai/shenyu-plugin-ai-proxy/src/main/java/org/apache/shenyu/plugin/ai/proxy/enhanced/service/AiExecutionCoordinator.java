@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -52,6 +53,7 @@ final class AiExecutionCoordinator {
     }
 
     Mono<Void> execute(final String requestBody,
+                       final AiCommonConfig primaryConfig,
                        final AiPreparedExchange primary,
                        final Optional<AiCommonConfig> fallbackConfig,
                        final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
@@ -62,6 +64,8 @@ final class AiExecutionCoordinator {
             long deadlineNanos = System.nanoTime()
                     + retryProperties.getRequestDeadline().toNanos();
             String invocationId = UUID.randomUUID().toString();
+            AiStructuredOutputPolicy structuredOutputPolicy =
+                    AiStructuredOutputPolicy.of(primaryConfig.getStructuredOutput());
 
             Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
                 AiCommonConfig copy = new AiCommonConfig(config);
@@ -79,7 +83,10 @@ final class AiExecutionCoordinator {
                         new AtomicInteger(),
                         invocationId,
                         deadlineNanos,
-                        observation);
+                        observation,
+                        structuredOutputPolicy,
+                        new AtomicInteger(structuredOutputPolicy.repairMaxAttempts()),
+                        new AtomicReference<>(primaryConfig));
                 return attemptOrchestrator.execute(execution, primary, fallback);
             };
 

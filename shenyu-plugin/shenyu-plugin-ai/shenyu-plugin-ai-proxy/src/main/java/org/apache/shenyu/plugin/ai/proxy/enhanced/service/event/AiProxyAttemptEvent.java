@@ -74,7 +74,8 @@ public record AiProxyAttemptEvent(
      */
     public enum Phase {
         PRIMARY,
-        FALLBACK
+        FALLBACK,
+        REPAIR
     }
 
     /**
@@ -91,6 +92,10 @@ public record AiProxyAttemptEvent(
         REQUEST_DEADLINE_EXCEEDED,
         OUTPUT_COMMITTED,
         NON_RETRYABLE_RESPONSE,
-        NON_RETRYABLE_TRANSPORT
+        NON_RETRYABLE_TRANSPORT,
+        CONTENT_VALIDATED,
+        CONTENT_REJECTED,
+        CONTENT_REPAIR,
+        CONTENT_REPAIR_FAILED
     }
 }

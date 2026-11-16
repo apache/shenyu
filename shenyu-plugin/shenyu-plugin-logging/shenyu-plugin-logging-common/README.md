@@ -15,6 +15,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
+# Credential header masking
+
+All logging plugins mask the complete values of `Authorization`,
+`Proxy-Authorization`, `Cookie`, `Set-Cookie`, `ShenYu-Authorization` and `token`
+with `***` by default. Matching is case-insensitive and applies to request and
+response headers, including error responses. Multiple values of a protected
+header are replaced by a single `***`. Live HTTP headers are never modified.
+
+The following fields belong to the logging plugin's global JSON `config`
+(Admin's plugin configuration, also accepted by the plugin update API):
+
+| Field | Default | Meaning |
+| --- | --- | --- |
+| `maskCredentialHeaders` | `true` | Enable built-in and additional credential header masking. Set to `false` to disable this policy. |
+| `maskedHeaders` | `[]` | Additional header names to mask, added to the built-in list. Names are case-insensitive; surrounding whitespace, blank and null entries are ignored. |
+
+For example, merge these fields into an existing logging plugin configuration:
+
+```json
+{
+  "maskCredentialHeaders": true,
+  "maskedHeaders": ["X-Api-Key", "X-Access-Token"]
+}
+```
+
+Missing or null settings retain secure defaults. An empty `maskedHeaders` list
+keeps the built-in list. Each request captures its plugin's policy at entry;
+configuration updates apply to subsequent requests. The same policy is used by
+`loggingConsole` and the shared logging pipeline used by Kafka, Elasticsearch
+and other logging sinks. Existing rule keyword masking (including body masking)
+continues to operate independently, even when credential header masking is disabled.
+This policy covers headers; it does not redact credentials in URIs or bodies.
+
 # Logging queue metrics
 
 When ShenYu's metrics starter is enabled (`shenyu.metrics.enabled=true`),

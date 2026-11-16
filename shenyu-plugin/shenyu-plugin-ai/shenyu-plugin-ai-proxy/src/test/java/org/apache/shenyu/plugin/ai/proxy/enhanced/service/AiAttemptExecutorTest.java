@@ -23,6 +23,7 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -122,7 +123,8 @@ class AiAttemptExecutorTest {
         };
         return new AiExecutionState("{}", response -> Mono.empty(), new AtomicBoolean(),
                 new AtomicInteger(), "invocation", System.nanoTime() + Duration.ofSeconds(5).toNanos(),
-                new AiRequestObservation(observer, context));
+                new AiRequestObservation(observer, context), AiStructuredOutputPolicy.of(null),
+                new AtomicInteger(), new AtomicReference<>(new AiCommonConfig()));
     }
 
     private static AiPreparedExchange prepared() {

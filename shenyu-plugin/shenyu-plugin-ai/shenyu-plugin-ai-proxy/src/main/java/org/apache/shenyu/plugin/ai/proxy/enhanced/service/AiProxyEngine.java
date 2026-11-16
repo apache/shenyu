@@ -94,9 +94,10 @@ public final class AiProxyEngine {
                               final Optional<AiCommonConfig> fallbackConfig,
                               final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
         return observationScope.observe(responseConsumer, observedConsumer -> Mono.defer(() -> {
-            AiPreparedExchange primary = exchangePlanner.prepare(
-                    requestBody, new AiCommonConfig(primaryConfig));
-            return executionCoordinator.execute(requestBody, primary, fallbackConfig, observedConsumer);
+            AiCommonConfig resolvedPrimary = new AiCommonConfig(primaryConfig);
+            AiPreparedExchange primary = exchangePlanner.prepare(requestBody, resolvedPrimary);
+            return executionCoordinator.execute(
+                    requestBody, resolvedPrimary, primary, fallbackConfig, observedConsumer);
         }));
     }
 

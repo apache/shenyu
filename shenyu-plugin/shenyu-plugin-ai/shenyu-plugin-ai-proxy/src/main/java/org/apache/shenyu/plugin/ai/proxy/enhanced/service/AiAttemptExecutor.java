@@ -84,6 +84,9 @@ final class AiAttemptExecutor {
         if (phase == AiProxyAttemptEvent.Phase.FALLBACK) {
             return AiAttemptEvent.Kind.FALLBACK;
         }
+        if (phase == AiProxyAttemptEvent.Phase.REPAIR) {
+            return AiAttemptEvent.Kind.REPAIR;
+        }
         return attemptIndex == 0 ? AiAttemptEvent.Kind.PRIMARY : AiAttemptEvent.Kind.RETRY;
     }
 

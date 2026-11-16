@@ -18,11 +18,13 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -35,6 +37,9 @@ import java.util.function.Function;
  * @param invocationId opaque logical invocation identifier
  * @param deadlineNanos absolute shared request deadline
  * @param observation subscription-local terminal observation
+ * @param structuredOutputPolicy request-level structured output policy
+ * @param repairsRemaining bounded structured output regeneration budget
+ * @param activeConfig configuration of the upstream that produced the current response
  */
 record AiExecutionState(
         String requestBody,
@@ -43,5 +48,8 @@ record AiExecutionState(
         AtomicInteger attemptIndex,
         String invocationId,
         long deadlineNanos,
-        AiRequestObservation observation) {
+        AiRequestObservation observation,
+        AiStructuredOutputPolicy structuredOutputPolicy,
+        AtomicInteger repairsRemaining,
+        AtomicReference<AiCommonConfig> activeConfig) {
 }

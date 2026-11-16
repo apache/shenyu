@@ -23,13 +23,13 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEv
 import java.util.Optional;
 
 /**
- * Stable orchestration facts shared while one primary or fallback attempt sequence is evaluated.
+ * Stable orchestration facts shared while one primary, fallback or repair attempt sequence is evaluated.
  *
  * @param execution logical request execution state
  * @param prepared provider-ready exchange for this sequence
  * @param fallback optional fallback configuration and its replay capability
  * @param retryBudget configured and remaining retry allowance
- * @param phase primary or fallback execution phase
+ * @param phase primary, fallback or repair execution phase
  */
 record AiAttemptPlan(
         AiExecutionState execution,
@@ -45,6 +45,11 @@ record AiAttemptPlan(
     AiAttemptPlan forFallback(final AiPreparedExchange fallbackExchange) {
         return new AiAttemptPlan(execution, fallbackExchange, Optional.empty(),
                 new RetryBudget(0, 0), AiProxyAttemptEvent.Phase.FALLBACK);
+    }
+
+    AiAttemptPlan forRepair(final AiPreparedExchange repairExchange) {
+        return new AiAttemptPlan(execution, repairExchange, Optional.empty(),
+                new RetryBudget(0, 0), AiProxyAttemptEvent.Phase.REPAIR);
     }
 
     /**
