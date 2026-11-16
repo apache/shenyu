@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.client.sofa;
 
+import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.sofa.SofaServiceEventListener;
 import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,4 +77,17 @@ public class ShenyuSofaClientConfigurationTest {
         });
         registerUtilsMockedStatic.close();
     }
+
+    @Test
+    public void testInvalidConfigurationPrecedesRepositoryCreation() {
+        try (MockedStatic<ShenyuClientRegisterRepositoryFactory> factory = mockStatic(ShenyuClientRegisterRepositoryFactory.class)) {
+            factory.when(() -> ShenyuClientRegisterRepositoryFactory.newInstance(any())).thenThrow(new AssertionError("repository reached before validation"));
+            applicationContextRunner.withPropertyValues("shenyu.client.sofa.props[port]=65536").run(context -> {
+                assertThat(context).hasFailed();
+                assertThat(context.getStartupFailure()).hasStackTraceContaining("shenyu.client.sofa.props.port");
+                factory.verifyNoInteractions();
+            });
+        }
+    }
+
 }

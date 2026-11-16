@@ -24,8 +24,11 @@ import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * The type shenyu client common bean configuration.
@@ -37,11 +40,18 @@ public class ShenyuClientCommonBeanConfiguration {
     /**
      * Register the register repository for http client bean post processor.
      *
-     * @param config the config
+     * @param config registration transport configuration
+     * @param clientConfig bound client configuration
+     * @param validators active protocol validators
+     * @param context application context
      * @return the client register repository
      */
     @Bean
-    public ShenyuClientRegisterRepository shenyuClientRegisterRepository(final ShenyuRegisterCenterConfig config) {
+    public ShenyuClientRegisterRepository shenyuClientRegisterRepository(final ShenyuRegisterCenterConfig config,
+                                                                          final ShenyuClientConfig clientConfig,
+                                                                          final List<ClientRegistrationValidator> validators,
+                                                                          final ApplicationContext context) {
+        ClientRegistrationValidator.validate(config, clientConfig, context, validators);
         return ShenyuClientRegisterRepositoryFactory.newInstance(config);
     }
 
