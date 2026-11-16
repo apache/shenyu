@@ -42,6 +42,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
+import reactor.netty.http.server.HttpServerResponse;
 
 import java.net.URI;
 import java.util.Objects;
@@ -50,6 +51,12 @@ import java.util.Objects;
  * The type Netty http client plugin.
  */
 public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientResponse> {
+
+    /**
+     * Spring's own Reactor-Netty server response class, package-private and
+     * therefore matched by name (#8435).
+     */
+    private static final String REACTOR_SERVER_RESPONSE_CLASS = "org.springframework.http.server.reactive.ReactorServerHttpResponse";
 
     private static final Logger LOG = LoggerFactory.getLogger(NettyHttpClientPlugin.class);
 
@@ -162,15 +169,19 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
                     final ServerHttpResponse response = exchange.getResponse();
-                    HttpHeaders headers = new HttpHeaders();
-                    res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
-                    this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
-                    String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+                    final boolean nativeCopy = copyUpstreamHeadersFast(exchange, response, res);
+                    final HttpHeaders headers = nativeCopy ? null : slowPathHeaders(exchange, res);
+                    final String contentTypeValue = nativeCopy
+                            ? res.responseHeaders().get(HttpHeaders.CONTENT_TYPE)
+                            : headers.getFirst(HttpHeaders.CONTENT_TYPE);
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
                     HttpRouteResponseHeaders.apply(exchange, () -> {
                         response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
+                        if (nativeCopy) {
+                            return;
+                        }
                         try {
                             response.getHeaders().putAll(headers);
                         } catch (UnsupportedOperationException ex) {
@@ -182,6 +193,55 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     });
                     return Mono.just(res);
                 }));
+    }
+
+    /**
+     * The existing intermediate-map path: build a fresh Spring
+     * {@link HttpHeaders} from the upstream response, apply the configured
+     * {@code RESP_UNIQUE_HEADER} dedup, and hand it back for the putAll write.
+     *
+     * @param exchange the current exchange
+     * @param res the upstream Netty client response
+     * @return the intermediate headers
+     */
+    private HttpHeaders slowPathHeaders(final ServerWebExchange exchange, final HttpClientResponse res) {
+        final HttpHeaders headers = new HttpHeaders();
+        res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
+        this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
+        return headers;
+    }
+
+    /**
+     * Copy the upstream response headers straight into the native Netty headers
+     * of the server response, skipping the intermediate Spring {@link HttpHeaders}
+     * map, whose build-and-putAll round trip costs roughly a kilobyte per request
+     * (#8435). Spring's {@code getHeaders()} on a Reactor-Netty server response is
+     * a live view of the Netty headers, so writing the native headers directly is
+     * equivalent. The fast path is taken only when the response is Spring's own
+     * package-private {@code ReactorServerHttpResponse} (matched by class name),
+     * it is not committed, no {@code RESP_UNIQUE_HEADER} handling is configured
+     * (the dedup works on the intermediate map) and this plugin is not subclassed
+     * — in every other case the caller keeps the current path.
+     *
+     * @param exchange the current exchange
+     * @param response the downstream server response
+     * @param res the upstream Netty client response
+     * @return whether the fast path was taken
+     */
+    boolean copyUpstreamHeadersFast(final ServerWebExchange exchange, final ServerHttpResponse response, final HttpClientResponse res) {
+        if (!REACTOR_SERVER_RESPONSE_CLASS.equals(response.getClass().getName())
+                || response.isCommitted()
+                || StringUtils.isNotEmpty(exchange.getAttribute(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName()))
+                || getClass() != NettyHttpClientPlugin.class) {
+            return false;
+        }
+        // the class-name guard passed: the response is Spring's own Reactor-Netty
+        // server response, whose native response exposes the Netty headers
+        final HttpServerResponse nettyResponse = (HttpServerResponse) ((org.springframework.http.server.reactive.AbstractServerHttpResponse) response).getNativeResponse();
+        final io.netty.handler.codec.http.HttpHeaders nativeHeaders = nettyResponse.responseHeaders();
+        // set replaces the values of each upstream name — the same putAll semantics
+        res.responseHeaders().forEach(entry -> nativeHeaders.set(entry.getKey(), entry.getValue()));
+        return true;
     }
 
     @Override
