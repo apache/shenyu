@@ -27,14 +27,17 @@ import org.apache.shenyu.client.core.register.matcher.ApiRegisterProcessor;
 import org.apache.shenyu.client.core.register.registrar.ApiDocRegistrarImpl;
 import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
 import org.apache.shenyu.client.core.register.registrar.MateDataApiRegistrarImpl;
+import org.apache.shenyu.client.core.register.registrar.UriApiRegistrarImplImpl;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(value = "shenyu.register.enabled", havingValue = "true", matchIfMissing = true)
 public class ClientRegisterConfiguration {
     
     /**
@@ -62,6 +65,20 @@ public class ClientRegisterConfiguration {
         final MateDataApiRegistrarImpl apiRegistrarImpl = new MateDataApiRegistrarImpl(clientRegisterConfig);
         processor.forEach(apiRegistrarImpl::addApiProcessor);
         return apiRegistrarImpl;
+    }
+
+    /**
+     * URI registrar for local instance membership.
+     *
+     * @param clientRegisterConfig client registration configuration
+     * @param processors registration processors
+     * @return URI registrar
+     */
+    @Bean
+    public UriApiRegistrarImplImpl uriApiRegistrar(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processors) {
+        UriApiRegistrarImplImpl registrar = new UriApiRegistrarImplImpl(clientRegisterConfig);
+        processors.forEach(registrar::addApiProcessor);
+        return registrar;
     }
 
     /**

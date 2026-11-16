@@ -17,77 +17,92 @@
 
 package org.apache.shenyu.client.core.register.registrar;
 
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.utils.ApiBeanUtil;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
- * UriApiRegistrarImplImpl.
- *
- * <p>Like the full-mode branches of the client event listeners, URI publication must
- * only happen in local discovery mode. This registrar is not wired by any starter yet;
- * when it becomes reachable, gate {@link #doRegisterApi} / {@link #doRegisterBean} on
- * the discovery mode (see
- * {@code AbstractContextRefreshedEventListener#isDiscoveryLocalMode}) to avoid dual
- * upstream registration for the same selector.
+ * Publishes local instance membership once per namespace and instance identity.
+ * Repository failback owns transport retries after a URI has been enqueued.
  *
  * @see URIRegisterDTO
  */
-public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {
-    
+public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl implements EnvironmentAware {
+
+    private static final int MAX_PORT = 65535;
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final ClientRegisterConfig clientRegisterConfig;
-    
+
+    private final Set<List<?>> publishedIdentities = new HashSet<>();
+
+    private Environment environment = new StandardEnvironment();
+
     public UriApiRegistrarImplImpl(final ClientRegisterConfig clientRegisterConfig) {
         this.clientRegisterConfig = clientRegisterConfig;
     }
-    
+
+    @Override
+    public void setEnvironment(final Environment environment) {
+        this.environment = environment;
+    }
+
+    @Override
+    public Class<?> registerDataType() {
+        return URIRegisterDTO.class;
+    }
+
+    @Override
+    public void register(final ApiBean apiBean) {
+        if (ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(environment.getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE))) {
+            super.register(apiBean);
+        }
+    }
+
     @Override
     protected void doRegisterApi(final ApiBean.ApiDefinition api) {
-        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerApi(api, namespaceId));
+        registerUri(ApiBeanUtil.getRpcType(api));
     }
 
-    private void registerApi(final ApiBean.ApiDefinition api, final String namespaceId) {
-        final URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
-                .namespaceId(namespaceId)
-                .contextPath(clientRegisterConfig.getContextPath())
-                .appName(clientRegisterConfig.getAppName())
-                .eventType(EventType.REGISTER)
-                .host(clientRegisterConfig.getHost())
-                .port(clientRegisterConfig.getPort())
-                .rpcType(getRpcType(api))
-                .build();
-        publisher.publishEvent(uriRegisterDTO);
-    }
-    
     @Override
     protected void doRegisterBean(final ApiBean apiBean) {
-        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerBean(apiBean, namespaceId));
+        registerUri(ApiBeanUtil.getRpcType(apiBean));
     }
 
-    private void registerBean(final ApiBean apiBean, final String namespaceId) {
-        final URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
-                .namespaceId(namespaceId)
-                .contextPath(clientRegisterConfig.getContextPath())
-                .appName(clientRegisterConfig.getAppName())
-                .eventType(EventType.REGISTER)
-                .host(clientRegisterConfig.getHost())
-                .port(clientRegisterConfig.getPort())
-                .rpcType(getRpcType(apiBean))
-                .build();
-        publisher.publishEvent(uriRegisterDTO);
+    private synchronized void registerUri(final String rpcType) {
+        int port = clientRegisterConfig.getPort();
+        if (port <= 0 || port > MAX_PORT) {
+            throw new IllegalArgumentException("Local URI registration requires a port between 1 and " + MAX_PORT);
+        }
+        for (String namespaceId : clientRegisterConfig.getNamespace()) {
+            URIRegisterDTO uri = URIRegisterDTO.builder()
+                    .namespaceId(namespaceId)
+                    .contextPath(clientRegisterConfig.getContextPath())
+                    .appName(clientRegisterConfig.getAppName())
+                    .eventType(EventType.REGISTER)
+                    .host(clientRegisterConfig.getHost())
+                    .port(port)
+                    .rpcType(rpcType)
+                    .build();
+            // Snapshot identity: heartbeat mutates the DTO, and enqueue is not an Admin acknowledgement.
+            List<?> identity = Arrays.asList(namespaceId, rpcType, uri.getAppName(), uri.getContextPath(), uri.getHost(), port);
+            if (!publishedIdentities.contains(identity)) {
+                publisher.publishEvent(uri);
+                publishedIdentities.add(identity);
+            }
+        }
     }
-    
-    private static String getRpcType(final ApiBean.ApiDefinition api) {
-        return ApiBeanUtil.getRpcType(api);
-    }
-    
-    private static String getRpcType(final ApiBean api) {
-        return ApiBeanUtil.getRpcType(api);
-    }
-    
 }
