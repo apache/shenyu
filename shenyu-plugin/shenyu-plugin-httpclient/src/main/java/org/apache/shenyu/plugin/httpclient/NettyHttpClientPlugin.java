@@ -239,8 +239,12 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         // server response, whose native response exposes the Netty headers
         final HttpServerResponse nettyResponse = (HttpServerResponse) ((org.springframework.http.server.reactive.AbstractServerHttpResponse) response).getNativeResponse();
         final io.netty.handler.codec.http.HttpHeaders nativeHeaders = nettyResponse.responseHeaders();
-        // set replaces the values of each upstream name — the same putAll semantics
-        res.responseHeaders().forEach(entry -> nativeHeaders.set(entry.getKey(), entry.getValue()));
+        // remove the names the upstream sends (a pre-existing Netty-side value of
+        // the same name would otherwise survive next to the upstream one), then
+        // add every upstream entry — multi-value headers keep all their values,
+        // exactly the putAll semantics of the slow path
+        res.responseHeaders().names().forEach(name -> nativeHeaders.remove(name));
+        res.responseHeaders().forEach(entry -> nativeHeaders.add(entry.getKey(), entry.getValue()));
         return true;
     }
 

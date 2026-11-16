@@ -91,6 +91,27 @@ public class NettyHttpClientPluginFastHeaderPathTest {
     }
 
     @Test
+    public void fastPathKeepsEveryValueOfMultiValuedUpstreamHeaders() throws Exception {
+        final HttpHeaders nettyHeaders = new DefaultHttpHeaders();
+        nettyHeaders.add("x-shared", "stale");
+        final HttpHeaders upstream = new DefaultHttpHeaders();
+        upstream.add("set-cookie", "a=1");
+        upstream.add("set-cookie", "b=2");
+        upstream.add("x-shared", "fresh");
+        final AbstractServerHttpResponse response = reactorResponse(mockNettyResponse(nettyHeaders));
+
+        final boolean taken = plugin.copyUpstreamHeadersFast(exchange, response, mockUpstream(upstream));
+
+        assertTrue(taken);
+        // putAll semantics: both upstream values survive, the stale one is gone
+        assertEquals(2, nettyHeaders.getAll("set-cookie").size());
+        assertTrue(nettyHeaders.getAll("set-cookie").contains("a=1"));
+        assertTrue(nettyHeaders.getAll("set-cookie").contains("b=2"));
+        assertEquals("fresh", nettyHeaders.get("x-shared"));
+        assertEquals(2, response.getHeaders().get("set-cookie").size());
+    }
+
+    @Test
     public void mockResponseFallsBackToTheSlowPath() {
         final ServerHttpResponse response = new MockServerHttpResponse();
         final boolean taken = plugin.copyUpstreamHeadersFast(exchange, response, mockUpstream(new DefaultHttpHeaders()));
