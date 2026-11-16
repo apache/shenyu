@@ -41,8 +41,7 @@ public final class AiProxyProtocolFactory {
     public AiProxyProtocolFactory(final Collection<AiProxyProtocol> protocols) {
         this.aiProxyProtocolMap = new LinkedHashMap<>();
         protocols.stream()
-                .sorted(Comparator.comparingInt(AiProxyProtocol::detectionOrder).reversed()
-                        .thenComparing(AiProxyProtocol::name))
+                .sorted(Comparator.comparingInt(AiProxyProtocol::detectionOrder).reversed())
                 .forEach(protocol -> {
                     final AiProxyProtocol previous = aiProxyProtocolMap.put(protocol.name(), protocol);
                     if (Objects.nonNull(previous)) {

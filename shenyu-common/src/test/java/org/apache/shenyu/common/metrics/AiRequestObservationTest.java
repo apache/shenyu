@@ -76,7 +76,7 @@ class AiRequestObservationTest {
         assertEquals(List.of("attempt", "terminal"), sink.order);
         assertEquals(AiCallOutcome.CANCELLED, sink.attempts.get(0).outcome());
         assertEquals(AiStreamCompletion.Evidence.SOURCE_CANCELLED, sink.attempts.get(0).completion().evidence());
-        assertEquals(AiStreamCompletion.Framing.NONE, sink.attempts.get(0).completion().framing());
+        assertEquals(AiStreamCompletion.Framing.NOT_INSPECTED, sink.attempts.get(0).completion().framing());
         assertEquals(AiCallOutcome.CANCELLED, sink.events.get(0).outcome());
         assertSame(AiUsage.UNKNOWN, sink.events.get(0).usage());
         assertNull(observation.getContext().getTenant());

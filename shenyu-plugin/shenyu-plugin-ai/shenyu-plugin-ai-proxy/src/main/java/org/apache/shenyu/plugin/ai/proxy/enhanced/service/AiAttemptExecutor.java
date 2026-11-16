@@ -17,13 +17,9 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiObservationSupport;
@@ -40,8 +36,6 @@ import java.util.Objects;
  */
 final class AiAttemptExecutor {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-
     private final AiProxyTransport transport;
 
     AiAttemptExecutor(final AiProxyTransport transport) {
@@ -54,7 +48,7 @@ final class AiAttemptExecutor {
         Objects.requireNonNull(responseHandler, "responseHandler must not be null");
         return Mono.defer(() -> {
             AgentRequestContext target = execution.observation().getContext()
-                    .withTarget(selectedModel(prepared.request()), prepared.operation().name(), null);
+                    .withTarget(prepared.selectedModel(), prepared.operation().name(), null);
             AiRequestObservation.Attempt observation = execution.observation().startAttempt(
                     target, attemptKind(phase, attemptIndex), prepared.providerName(),
                     prepared.clientProtocol(), prepared.stream());
@@ -97,15 +91,4 @@ final class AiAttemptExecutor {
         return Duration.ofNanos(Math.max(1L, deadlineNanos - System.nanoTime()));
     }
 
-    private static String selectedModel(final AiUpstreamRequest request) {
-        // Only inspect the already constructed upstream request, not a second subscription to either HTTP body.
-        // A custom provider may use a non-JSON body; no target is fabricated in that case.
-        try {
-            JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
-            JsonNode model = Objects.isNull(payload) ? null : payload.get("model");
-            return Objects.nonNull(model) && model.isTextual() ? model.textValue() : null;
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
 }

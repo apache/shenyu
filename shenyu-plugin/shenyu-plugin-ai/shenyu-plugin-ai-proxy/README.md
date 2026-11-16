@@ -130,6 +130,31 @@ Native bindings declare accepted protocols; converters supply any supported
 cross-protocol routes. Ordinary protocol and provider additions use the existing
 engine, transport and synchronized selector configuration.
 
+## Java API migration
+
+This release intentionally consolidates the experimental AI Proxy Java extension
+API. External integrations must migrate source code together with the gateway
+artifact:
+
+| Previous API | Replacement |
+| --- | --- |
+| `AiProxyProvider.buildRequest(request, config)` | Implement `capabilities()` and `prepareRequest(request, config)`; return `PreparedAiRequest.identity(upstreamRequest)` when no response adaptation is required |
+| Public `AiProxyEngine` constructor overloads | `AiProxyEngine.builder(protocols, providers, routeResolver, transport)`, optional policy setters, then `build()` |
+| `service.AiProxyAttemptEvent` | `service.event.AiProxyAttemptEvent` |
+| `service.AiProxyAttemptListener` | `service.event.AiProxyAttemptListener` |
+| `service.AiObservationSupport` | `service.observation.AiObservationSupport` |
+| `service.AiUpstreamUsageTap` | Public `service.observation.AiUpstreamUsageTap` |
+
+The `OpenAi(ProviderProfile)` constructor remains available. This does not retain
+source or binary compatibility for implementations of the old Provider interface
+or callers of the removed Engine constructors.
+
+Exact response caching is also an explicit extension opt-in. A custom Provider
+must override `isExactResponseCacheCompatible(targetProtocol)` for every native
+target protocol it approves; the default is `false`. Protocol compatibility,
+route eligibility, request shape and cache authorization are still checked
+independently, so this hook alone never authorizes reuse.
+
 Use the built-in tests as verification references:
 [OpenAiResponsesTest](src/test/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/OpenAiResponsesTest.java),
 [OpenAiTest](src/test/java/org/apache/shenyu/plugin/ai/proxy/enhanced/provider/OpenAiTest.java),
@@ -223,7 +248,9 @@ An opt-in, tenant/subject-isolated local cache is available for explicitly appro
 bounded nonstreaming text Chat routes. It is disabled by default and requires an
 application-owned cache authorization adapter; diagnostic identity and client
 headers do not authorize reuse. Streams, tools, sessions, fallback and unsupported
-payloads bypass. See [configuration, isolation and lifecycle limits](../../../docs/ai-exact-response-cache.md).
+payloads bypass. Custom Providers default to ineligible and must override
+`isExactResponseCacheCompatible(targetProtocol)` to opt in for an approved native
+protocol. See [configuration, isolation and lifecycle limits](../../../docs/ai-exact-response-cache.md).
 
 ## Configuration and use
 
@@ -370,8 +397,8 @@ Register another Chat-compatible service as a Spring bean using the built-in
 DeepSeek profile and registration as the reference described above. Set the
 selector's `provider` to the registered identifier, its `baseUrl` to the service
 base URL and its `apiKey` to the credential. The profile also works with a collection-based
-`AiProxyProviderFactory` without Spring. Existing custom implementations keep their
-interface contract and the `OpenAi(ProviderProfile)` constructor remains available.
+`AiProxyProviderFactory` without Spring. The `OpenAi(ProviderProfile)` constructor
+remains available; custom Provider implementations follow the migration contract above.
 
 Model precedence is configured routed model, then client model, then profile default.
 Alias mapping applies to the selected model. Defaults fill only absent fields; explicit

@@ -35,6 +35,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolResponseIns
  * @param operation prepared AI operation
  * @param providerDeclaredReplaySafe whether the Provider declares the operation replay-safe
  * @param providerName selected Provider identifier
+ * @param selectedModel final upstream model selected during request preparation
  * @param cacheCompatible whether the prepared exchange is compatible with exact response caching
  */
 record AiPreparedExchange(
@@ -48,5 +49,6 @@ record AiPreparedExchange(
         ShenyuAiRequest.Operation operation,
         boolean providerDeclaredReplaySafe,
         String providerName,
+        String selectedModel,
         boolean cacheCompatible) {
 }

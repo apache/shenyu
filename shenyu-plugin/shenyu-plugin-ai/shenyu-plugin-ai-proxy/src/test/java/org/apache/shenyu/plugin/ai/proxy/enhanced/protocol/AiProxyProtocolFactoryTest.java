@@ -62,6 +62,15 @@ class AiProxyProtocolFactoryTest {
         assertSame(high, factory.detect(OBJECT_MAPPER.readTree("{}")));
     }
 
+    @Test
+    void testDetectionRetainsRegistrationOrderForEqualPrecedence() throws Exception {
+        final AiProxyProtocol first = matchingProtocol("z-first", 10);
+        final AiProxyProtocol second = matchingProtocol("a-second", 10);
+        final AiProxyProtocolFactory factory = new AiProxyProtocolFactory(List.of(first, second));
+
+        assertSame(first, factory.detect(OBJECT_MAPPER.readTree("{}")));
+    }
+
     private AiProxyProtocol matchingProtocol(final String name, final int order) {
         return new AiProxyProtocol() {
             @Override

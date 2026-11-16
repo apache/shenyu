@@ -69,6 +69,7 @@ class AiAttemptExecutorTest {
 
         assertEquals(1, attempts.size());
         assertEquals(AiCallOutcome.SUCCESS, attempts.get(0).outcome());
+        assertEquals("test-model", attempts.get(0).context().getTarget());
     }
 
     @Test
@@ -129,6 +130,6 @@ class AiAttemptExecutorTest {
         request.setBody("{\"model\":\"test-model\"}".getBytes(StandardCharsets.UTF_8));
         return new AiPreparedExchange(request, AiResponseAdapter.identity(), AiProtocolResponseInspector.identity(),
                 "openai-chat", "openai-chat", false, true, ShenyuAiRequest.Operation.CHAT_COMPLETION,
-                true, "openai", false);
+                true, "openai", "test-model", false);
     }
 }

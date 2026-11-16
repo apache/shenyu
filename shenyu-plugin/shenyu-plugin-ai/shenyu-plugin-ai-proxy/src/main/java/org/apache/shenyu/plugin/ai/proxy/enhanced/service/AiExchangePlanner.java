@@ -26,6 +26,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProtocolRequestOverrides;
@@ -182,12 +183,23 @@ final class AiExchangePlanner {
                     targetProtocol.responseInspector(),
                     route.clientProtocol(), route.targetProtocol(), stream,
                     AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
-                    providerDeclaredReplaySafe, provider.name(),
+                    providerDeclaredReplaySafe, provider.name(), selectedModel(preparedRequest.request()),
                     clientProtocol.isExactResponseCacheCompatible()
                             && targetProtocol.isExactResponseCacheCompatible()
                             && provider.isExactResponseCacheCompatible(route.targetProtocol()));
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
+        }
+    }
+
+    private String selectedModel(final AiUpstreamRequest request) {
+        try {
+            JsonNode payload = OBJECT_MAPPER.readTree(request.getBody());
+            JsonNode model = Objects.isNull(payload) ? null : payload.get("model");
+            return Objects.nonNull(model) && model.isTextual() ? model.textValue() : null;
+        } catch (Exception ignored) {
+            // A custom Provider may use a non-JSON body, so no model is inferred.
+            return null;
         }
     }
 

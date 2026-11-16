@@ -141,7 +141,15 @@ class AiStreamCompletionTest {
         StepVerifier.create(never.execute(new ArrayList<>())).thenCancel().verify();
         assertEquals(AiCallOutcome.CANCELLED, never.terminals.get(0).outcome());
         assertEquals(AiStreamCompletion.Evidence.SOURCE_CANCELLED, never.attempts.get(0).completion().evidence());
-        assertEquals(AiStreamCompletion.Framing.NONE, never.attempts.get(0).completion().framing());
+        assertEquals(AiStreamCompletion.Framing.NOT_INSPECTED, never.attempts.get(0).completion().framing());
+        AtomicBoolean bodySubscribed = new AtomicBoolean();
+        Probe subscribed = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY,
+                Flux.<byte[]>never().doOnSubscribe(ignored -> bodySubscribed.set(true)));
+        StepVerifier.create(subscribed.execute(new ArrayList<>()))
+                .then(() -> assertTrue(bodySubscribed.get()))
+                .thenCancel()
+                .verify();
+        assertEquals(AiStreamCompletion.Framing.NONE, subscribed.attempts.get(0).completion().framing());
         Probe probe = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY, Flux.defer(() -> Flux.just(bytes("data: {}\n\n"))), 2);
         Mono<Void> cold = probe.execute(new CopyOnWriteArrayList<>());
         Mono.when(cold.subscribeOn(reactor.core.scheduler.Schedulers.parallel()), cold.subscribeOn(reactor.core.scheduler.Schedulers.parallel())).block();
@@ -150,6 +158,24 @@ class AiStreamCompletionTest {
         assertEquals(2, probe.attempts.size());
         assertNotEquals(probe.terminals.get(0).context().getRequestId(), probe.terminals.get(1).context().getRequestId());
         assertTrue(probe.attempts.stream().allMatch(event -> event.completion().evidence() == AiStreamCompletion.Evidence.UNKNOWN));
+    }
+
+    @Test
+    void convertedResponseCancellationDoesNotInventChatFraming() {
+        Probe converted = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY, Flux.never());
+        AiCommonConfig config = config();
+        config.setProtocol(OpenAiResponses.NAME);
+        config.setProvider("fixture-chat");
+
+        StepVerifier.create(converted.engine.execute("{\"input\":\"hello\",\"stream\":true}", config,
+                        Optional.empty(), response -> response.getBody().then()))
+                .thenCancel()
+                .verify();
+
+        assertEquals(AiStreamCompletion.Evidence.SOURCE_CANCELLED,
+                converted.attempts.get(0).completion().evidence());
+        assertEquals(AiStreamCompletion.Framing.NOT_INSPECTED,
+                converted.attempts.get(0).completion().framing());
     }
 
     @Test

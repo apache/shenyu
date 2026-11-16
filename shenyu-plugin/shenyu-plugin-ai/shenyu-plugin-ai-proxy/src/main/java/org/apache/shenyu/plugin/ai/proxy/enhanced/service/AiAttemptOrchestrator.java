@@ -135,13 +135,13 @@ final class AiAttemptOrchestrator {
             return Mono.empty();
         }
         AiAttemptOutcome.Transition transition = (AiAttemptOutcome.Transition) outcome;
-        return switch (transition.decision()) {
-            case RETRY -> retry(transition.failure(), plan, currentAttempt, transition.responseHeaders());
-            case FALLBACK -> fallback(transition.failure(), plan, currentAttempt, transition.responseHeaders());
-            case PROPAGATE_ERROR -> Mono.error(transition.failure());
-            case FORWARD_RESPONSE -> Mono.error(new IllegalStateException(
-                    "forward response cannot escape the current attempt"));
-        };
+        if (transition.decision() == AiProxyRetryPolicy.Decision.RETRY) {
+            return retry(transition.failure(), plan, currentAttempt, transition.responseHeaders());
+        }
+        if (transition.decision() == AiProxyRetryPolicy.Decision.FALLBACK) {
+            return fallback(transition.failure(), plan, currentAttempt, transition.responseHeaders());
+        }
+        return Mono.error(transition.failure());
     }
 
     private Mono<Void> retry(final Throwable error, final AiAttemptPlan plan, final int currentAttempt,

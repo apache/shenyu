@@ -33,6 +33,26 @@ The AI Proxy MUST separate request planning from reactive attempt execution, MUS
 - **WHEN** the planner invokes a registered Provider
 - **THEN** the Provider explicitly declares capabilities and returns the upstream request with its request-scoped response adapter through prepareRequest
 
+#### Scenario: keep orchestration ownership focused
+
+- **WHEN** the Engine plans and executes one logical request
+- **THEN** `AiExchangePlanner` owns decoding, routing, conversion, Provider preparation and prepared metadata; `AiExecutionCoordinator` owns subscription-local execution and caching; and the attempt orchestrator, executor and response consumer own retry/fallback transitions, one upstream subscription, response commitment, backpressure and cancellation
+
+#### Scenario: construct the Engine through one public contract
+
+- **WHEN** a programmatic integration constructs an `AiProxyEngine`
+- **THEN** it uses `AiProxyEngine.builder(protocols, providers, routeResolver, transport)` and optional policy setters while the planner, coordinator and attempt implementation types remain package-private
+
+#### Scenario: migrate Java extension implementations explicitly
+
+- **WHEN** an implementation migrates from the previous experimental Java API
+- **THEN** it replaces Provider `buildRequest` with explicit `capabilities` and `prepareRequest`, replaces Engine constructor overloads with the builder, and updates event and observation imports to their focused packages
+
+#### Scenario: deny exact caching by default
+
+- **WHEN** a custom Protocol or Provider does not explicitly declare exact-response-cache compatibility for the target protocol
+- **THEN** the prepared exchange is not eligible for exact response caching
+
 #### Scenario: keep built-in compatibility during Java API consolidation
 
 - **WHEN** the orchestration and Java extension contracts are consolidated

@@ -23,11 +23,15 @@ import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
@@ -37,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
@@ -109,6 +114,7 @@ class AiExchangePlannerTest {
         assertEquals(64, payload.path("max_completion_tokens").asInt());
         assertTrue(payload.path("stream_options").path("include_usage").asBoolean());
         assertTrue(prepared.stream());
+        assertEquals("gpt-4o-mini", prepared.selectedModel());
     }
 
     @Test
@@ -124,6 +130,22 @@ class AiExchangePlannerTest {
         assertEquals("https://api.openai.com/v1/responses", prepared.request().getUri().toString());
         assertEquals("hello", payload.path("input").asText());
         assertFalse(prepared.cacheCompatible());
+    }
+
+    @Test
+    void testCustomProviderMustExplicitlyOptIntoExactResponseCaching() {
+        final String body = "{\"model\":\"fixture-model\",\"messages\":["
+                + "{\"role\":\"user\",\"content\":\"hello\"}]}";
+        config.setProvider("custom-default");
+
+        AiPreparedExchange defaultPrepared = customPlanner(new CustomProvider("custom-default"))
+                .prepare(body, config);
+        assertFalse(defaultPrepared.cacheCompatible());
+
+        config.setProvider("custom-cache");
+        AiPreparedExchange optedIn = customPlanner(new CacheCompatibleProvider("custom-cache"))
+                .prepare(body, config);
+        assertTrue(optedIn.cacheCompatible());
     }
 
     @Test
@@ -167,5 +189,52 @@ class AiExchangePlannerTest {
 
         assertEquals(AiProxyException.Kind.REQUEST, error.getKind());
         assertTrue(error.getMessage().contains(OpenAiChat.NAME));
+    }
+
+    private AiExchangePlanner customPlanner(final AiProxyProvider provider) {
+        return new AiExchangePlanner(
+                new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                new AiProxyProviderFactory(List.of(provider)),
+                new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())));
+    }
+
+    private static class CustomProvider implements AiProxyProvider {
+
+        private final String name;
+
+        CustomProvider(final String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public AiProviderCapabilities capabilities() {
+            return AiProviderCapabilities.chat();
+        }
+
+        @Override
+        public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+            AiUpstreamRequest upstream = new AiUpstreamRequest();
+            upstream.setUri(URI.create("https://fixture.invalid/v1/chat/completions"));
+            upstream.setMethod("POST");
+            upstream.setBody(request.getRawBody().getBytes(StandardCharsets.UTF_8));
+            return PreparedAiRequest.identity(upstream);
+        }
+    }
+
+    private static final class CacheCompatibleProvider extends CustomProvider {
+
+        CacheCompatibleProvider(final String name) {
+            super(name);
+        }
+
+        @Override
+        public boolean isExactResponseCacheCompatible(final String protocol) {
+            return OpenAiChat.NAME.equals(protocol);
+        }
     }
 }
