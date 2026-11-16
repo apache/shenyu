@@ -208,6 +208,7 @@ public class ResourceServiceImpl implements ResourceService {
      *
      * @param event event
      */
+    @Transactional(rollbackFor = Exception.class)
     @EventListener(value = PluginCreatedEvent.class)
     public void onPluginCreated(final PluginCreatedEvent event) {
         Assert.isNull(resourceMapper.nameExisted(event.getPlugin().getName()), AdminConstants.RESOURCE_NAME_IS_EXIST);

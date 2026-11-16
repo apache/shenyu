@@ -30,11 +30,17 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiResponseCacheScopeResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiStreamCompletionProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
@@ -47,13 +53,16 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Auto-configuration for the migrated execution path, provider profiles and transport properties.
@@ -66,12 +75,70 @@ class AiProxyPluginConfigurationTest {
                     AiProxyPluginConfiguration.class));
 
     @Test
+    void exactResponseCacheIsDisabledByDefaultAndBindsExplicitLimits() {
+        contextRunner.run(context -> {
+            org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().doesNotHaveBean(AiExactResponseCache.class);
+            assertFalse(context.getBean(AiResponseCacheProperties.class).isEnabled());
+        });
+        contextRunner.withPropertyValues("shenyu.plugins.ai.proxy.response-cache.enabled=true",
+                "shenyu.plugins.ai.proxy.response-cache.ttl-seconds=30",
+                "shenyu.plugins.ai.proxy.response-cache.max-request-bytes=4096",
+                "shenyu.plugins.ai.proxy.response-cache.max-entry-bytes=8192",
+                "shenyu.plugins.ai.proxy.response-cache.max-weight-bytes=65536",
+                "shenyu.plugins.ai.proxy.response-cache.max-concurrent-fills=2").run(context -> {
+                    org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiExactResponseCache.class);
+                    AiResponseCacheProperties properties = context.getBean(AiResponseCacheProperties.class);
+                    assertEquals(30, properties.getTtlSeconds());
+                    assertEquals(4096, properties.getMaxRequestBytes());
+                    assertEquals(8192, properties.getMaxEntryBytes());
+                    assertEquals(65536, properties.getMaxWeightBytes());
+                    assertEquals(2, properties.getMaxConcurrentFills());
+                });
+    }
+
+    @Test
+    void invalidCacheLimitsFailStartup() {
+        for (String setting : List.of("ttl-seconds=0", "ttl-seconds=86401", "max-request-bytes=-1", "max-entry-bytes=0",
+                "max-weight-bytes=-1", "max-concurrent-fills=0")) {
+            contextRunner.withPropertyValues("shenyu.plugins.ai.proxy.response-cache.enabled=true",
+                    "shenyu.plugins.ai.proxy.response-cache." + setting)
+                    .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+        }
+    }
+
+    @Test
+    void enabledCacheRejectsAmbiguousScopeResolvers() {
+        AiResponseCacheScopeResolver first = (exchange, selector, rule) -> Mono.empty();
+        AiResponseCacheScopeResolver second = (exchange, selector, rule) -> Mono.empty();
+        contextRunner.withPropertyValues("shenyu.plugins.ai.proxy.response-cache.enabled=true")
+                .withBean("firstScope", AiResponseCacheScopeResolver.class, () -> first)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed());
+        contextRunner.withPropertyValues("shenyu.plugins.ai.proxy.response-cache.enabled=true")
+                .withBean("firstScope", AiResponseCacheScopeResolver.class, () -> first)
+                .withBean("secondScope", AiResponseCacheScopeResolver.class, () -> second)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
     void acceptsOneApplicationObserverAndRejectsAmbiguousSinks() {
         final AiCallObserver first = event -> { };
         final AiCallObserver second = event -> { };
         contextRunner.withBean("firstSink", AiCallObserver.class, () -> first)
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasNotFailed().hasSingleBean(AiProxyPlugin.class));
         contextRunner.withBean("firstSink", AiCallObserver.class, () -> first).withBean("secondSink", AiCallObserver.class, () -> second)
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
+    void bindsExplicitStreamCompletionModeAndRejectsUnknownModes() {
+        contextRunner.run(context -> assertEquals(AiStreamCompletionProperties.Mode.COMPATIBILITY,
+                context.getBean(AiStreamCompletionProperties.class).getMode()));
+        contextRunner.withPropertyValues("shenyu.ai.proxy.stream-completion.mode=STRICT").run(context -> {
+            assertEquals(AiStreamCompletionProperties.Mode.STRICT, context.getBean(AiStreamCompletionProperties.class).getMode());
+            AiUpstreamResponse response = context.getBean(OpenAiChat.class).encodeResponse(new AiUpstreamResponse(200, Map.of(), Flux.empty()), true);
+            assertThrows(AiProxyException.class, () -> response.getBody().blockLast(Duration.ofSeconds(5)));
+        });
+        contextRunner.withPropertyValues("shenyu.ai.proxy.stream-completion.mode=UNRECOGNIZED")
                 .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
     }
 

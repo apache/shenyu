@@ -1,10 +1,19 @@
 Licenses and source notices for the bundled ShenYu dashboard
 
-Dashboard source: apache/shenyu-dashboard@e12b29d2b1efb9c8bde55487417702aa3dbe1b4c
-The component list is based on the modules in static/index.b8226781.js.
+Dashboard source: apache/shenyu-dashboard@5a9e5ae0734fb3ca90b6287479af478dc7480797
+The component list is based on the modules in static/index.600a112f.js.
 It includes nested and bundled runtime components, not development-only tools.
 License texts are taken from the exact installed packages, their versioned
 upstream source, or their explicit published SPDX license declaration as noted.
+
+Provenance: synchronized by apache/shenyu PR #8280 from dashboard workflow
+https://github.com/apache/shenyu-dashboard/actions/runs/41365106233.
+The earlier inventory used dashboard commit e12b29d2b1efb9c8bde55487417702aa3dbe1b4c.
+package.json and package-lock.json are byte-identical at both commits; the
+intervening changes remove API documentation views and adjust application
+logic without adding packages. The retained notices cover that dependency
+baseline, including components no longer referenced by the removed views.
+Build the pinned dashboard source with Node.js 24, npm ci and npm run build.
 
 ========================================================================
 @ant-design/colors@3.2.2 / LICENSE

@@ -60,7 +60,7 @@ public class GatewayClassReconciler implements Reconciler {
     private static final String GATEWAYCLASSES_RESOURCE = "gatewayclasses";
 
     /** Official conformance FeatureName strings; sorted ascending (spec) and limited to implemented capabilities. */
-    private static final List<String> SUPPORTED_FEATURES = List.of("Gateway", "HTTPRoute", "ReferenceGrant");
+    private static final List<String> SUPPORTED_FEATURES = List.of("Gateway", "HTTPRoute", "HTTPRouteBackendTimeout", "HTTPRouteRequestTimeout", "ReferenceGrant");
 
     private final Lister<DynamicKubernetesObject> gatewayClassLister;
 

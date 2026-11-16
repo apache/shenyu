@@ -21,15 +21,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
+import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiContentCompliance;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -49,6 +56,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +77,7 @@ public final class AiProxyEngine {
 
     private static final AiProxyRetryPolicy RETRY_POLICY = new AiProxyRetryPolicy();
 
+
     private final AiProxyProtocolFactory aiProxyProtocolFactory;
 
     private final AiProxyProviderFactory aiProxyProviderFactory;
@@ -82,6 +91,8 @@ public final class AiProxyEngine {
     private final AiCallObserver observer;
 
     private final AiProxyAttemptListener attemptListener;
+
+    private final AiExactResponseCache responseCache;
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers, final AiProxyTransport transport) {
         this(protocols, providers, defaultRouteResolver(), transport, new AiProxyRetryProperties(), null, event -> {
@@ -161,6 +172,25 @@ public final class AiProxyEngine {
                          final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
                          final AiProxyRetryProperties retryProperties, final AiCallObserver observer,
                          final AiProxyAttemptListener attemptListener) {
+        this(protocols, providers, routeResolver, transport, retryProperties, observer, attemptListener, null);
+    }
+
+    /**
+     * Create an engine with an optional, explicitly scoped exact response cache.
+     *
+     * @param protocols protocol registry
+     * @param providers provider registry
+     * @param routeResolver protocol routing resolver
+     * @param transport upstream transport
+     * @param retryProperties retry policy
+     * @param observer optional logical call observer
+     * @param attemptListener bounded attempt observer
+     * @param responseCache optional exact response cache
+     */
+    public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
+                         final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport,
+                         final AiProxyRetryProperties retryProperties, final AiCallObserver observer,
+                         final AiProxyAttemptListener attemptListener, final AiExactResponseCache responseCache) {
         this.aiProxyProtocolFactory = Objects.requireNonNull(protocols, "protocols must not be null");
         this.aiProxyProviderFactory = Objects.requireNonNull(providers, "providers must not be null");
         this.aiProtocolRouteResolver = Objects.requireNonNull(routeResolver, "routeResolver must not be null");
@@ -168,6 +198,7 @@ public final class AiProxyEngine {
         this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
         this.attemptListener = Objects.requireNonNull(attemptListener, "attemptListener must not be null");
         this.observer = observer;
+        this.responseCache = responseCache;
     }
 
     public AiProxyEngine(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
@@ -234,12 +265,27 @@ public final class AiProxyEngine {
                         .map(config -> aiProxyProviderFactory.getProvider(providerName(config))
                                 .capabilities().isReplaySafe(primary.operation()))
                         .orElse(false);
-                Execution execution = new Execution(requestBody, response -> {
+                AiStructuredOutputPolicy structuredOutputPolicy = AiStructuredOutputPolicy.of(primaryConfig.getStructuredOutput());
+                Function<AiUpstreamResponse, Mono<Void>> observedConsumer = response -> {
                     status.set(response.getStatusCode());
                     return responseConsumer.apply(response);
-                }, new AtomicBoolean(), new AtomicInteger(), invocationId, deadlineNanos, observation);
-                return attempt(execution, primary, fallback, maxRetries, maxRetries,
-                        AiProxyAttemptEvent.Phase.PRIMARY, fallbackProviderDeclaredReplaySafe);
+                };
+                Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream = consumer -> {
+                    Execution execution = new Execution(requestBody, consumer, new AtomicBoolean(), new AtomicInteger(),
+                            invocationId, deadlineNanos, observation, primaryConfig, structuredOutputPolicy,
+                            new AtomicInteger(structuredOutputPolicy.repairMaxAttempts()),
+                            new AtomicReference<>(primaryConfig));
+                    return attempt(execution, primary, fallback, maxRetries, maxRetries,
+                            AiProxyAttemptEvent.Phase.PRIMARY, fallbackProviderDeclaredReplaySafe);
+                };
+                if (Objects.nonNull(responseCache) && primary.cacheCompatible()) {
+                    return responseCache.execute(requestBody, primary.request(), primary.provider(), primary.clientProtocol(),
+                            primary.targetProtocol(), primary.stream(), fallback.isPresent(), observedConsumer, upstream)
+                            .timeout(Duration.ofNanos(Math.max(1L, deadlineNanos - System.nanoTime())),
+                                    Mono.error(new AiTransportException(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                                            "AI proxy request deadline exceeded", null)));
+                }
+                return upstream.apply(observedConsumer);
             }).doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .doFinally(signal -> {
                         if (Objects.isNull(inherited)) {
@@ -279,7 +325,8 @@ public final class AiProxyEngine {
             AgentRequestContext target = execution.observation().getContext()
                     .withTarget(selectedModel(prepared.request()), prepared.operation().name(), null);
             AiAttemptEvent.Kind kind = phase == AiProxyAttemptEvent.Phase.FALLBACK
-                    ? AiAttemptEvent.Kind.FALLBACK : currentAttempt == 0
+                    ? AiAttemptEvent.Kind.FALLBACK : phase == AiProxyAttemptEvent.Phase.REPAIR
+                    ? AiAttemptEvent.Kind.REPAIR : currentAttempt == 0
                     ? AiAttemptEvent.Kind.PRIMARY : AiAttemptEvent.Kind.RETRY;
             AiRequestObservation.Attempt observedAttempt = execution.observation()
                     .startAttempt(target, kind, prepared.provider(), prepared.clientProtocol(), prepared.stream());
@@ -287,9 +334,10 @@ public final class AiProxyEngine {
                     .flatMap(response -> {
                         observedAttempt.status(response.getStatusCode());
                         AiUpstreamResponse observed = new AiUpstreamUsageTap(
-                                observedAttempt, response.getHeaders(), prepared.stream()).attach(response);
+                                observedAttempt, response.getHeaders(), prepared.stream(), "openai-chat".equals(prepared.targetProtocol())
+                                && response.getStatusCode() >= 200 && response.getStatusCode() < 300).attach(response);
                         return handleResponse(observed, prepared, fallback, retriesRemaining,
-                                execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe);
+                                execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe, observedAttempt);
                     })
                     .timeout(Duration.ofNanos(Math.max(1L, remainingNanos - elapsedSince(deadlineStartNanos))),
                             Mono.error(new AiTransportException(
@@ -299,7 +347,7 @@ public final class AiProxyEngine {
                     .doOnError(error -> observedAttempt.finish(SignalType.ON_ERROR,
                             error instanceof UpstreamStatusFailure ? null : AiObservationSupport.outcome(error)))
                     .doOnCancel(() -> observedAttempt.finish(SignalType.CANCEL, null))
-                    .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, target))
+                    .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, target).put(AiRequestObservation.Attempt.REACTOR_KEY, observedAttempt))
                     .onErrorResume(error -> resumeAttempt(error, prepared, fallback, maxRetries,
                             retriesRemaining, execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe));
         });
@@ -309,7 +357,7 @@ public final class AiProxyEngine {
                                       final Optional<AiCommonConfig> fallback, final int retriesRemaining,
                                       final Execution execution, final int currentAttempt,
                                       final AiProxyAttemptEvent.Phase phase,
-                                      final boolean fallbackProviderDeclaredReplaySafe) {
+                                      final boolean fallbackProviderDeclaredReplaySafe, final AiRequestObservation.Attempt observation) {
         return Mono.defer(() -> {
             int status = response.getStatusCode();
             if (status >= 400) {
@@ -317,10 +365,195 @@ public final class AiProxyEngine {
                         execution, currentAttempt, phase, fallbackProviderDeclaredReplaySafe);
             }
             AiUpstreamResponse adapted = prepared.responseAdapter().adapt(response);
-            return consumeResponse(adapted, execution.responseConsumer(), execution.emitted())
+            return enforceStructuredOutput(adapted, prepared, execution, currentAttempt, phase)
                     .doOnSuccess(ignored -> emit(execution.invocationId(), currentAttempt, phase,
-                            AiProxyAttemptEvent.Reason.COMPLETED, null));
+                            prepared.stream() && observation.streamCompletion().evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER
+                                    ? AiProxyAttemptEvent.Reason.STREAM_COMPLETION_UNCONFIRMED : AiProxyAttemptEvent.Reason.COMPLETED, null));
         });
+    }
+
+    /**
+     * Opt-in structured output enforcement (issue #8257): when the policy is active
+     * and this is a non-streaming chat completion, the generated content is
+     * classified and either forwarded, rejected, or regenerated inside the shared
+     * deadline with its own repair attempt identity. Validation itself is local
+     * work and is never recorded as another upstream attempt.
+     */
+    private Mono<Void> enforceStructuredOutput(final AiUpstreamResponse adapted, final PreparedExchange prepared,
+                                               final Execution execution, final int currentAttempt,
+                                               final AiProxyAttemptEvent.Phase phase) {
+        AiStructuredOutputPolicy policy = execution.policy();
+        boolean enforced = Objects.nonNull(policy) && policy.isActive() && !prepared.stream()
+                && prepared.operation() == ShenyuAiRequest.Operation.CHAT_COMPLETION;
+        if (!enforced) {
+            return consumeResponse(adapted, execution.responseConsumer(), execution.emitted());
+        }
+        if (phase == AiProxyAttemptEvent.Phase.REPAIR) {
+            return handleRepairOutcome(adapted, execution, currentAttempt);
+        }
+        return materialize(adapted).flatMap(body -> {
+            AiGeneratedContentInspector.AiContentInspection inspection = AiGeneratedContentInspector.classify(policy, body);
+            if (inspection.compliance() == AiContentCompliance.VALID) {
+                emit(execution.invocationId(), currentAttempt, phase, AiProxyAttemptEvent.Reason.CONTENT_VALIDATED, null);
+                return consumeResponse(withBody(adapted, body), execution.responseConsumer(), execution.emitted());
+            }
+            if (inspection.compliance() == AiContentCompliance.TOOL_CALLS_PRESENT) {
+                // a tool-call response is the client's workflow decision: forwarded
+                // untouched, never validated against the content contract, never repaired
+                return consumeResponse(withBody(adapted, body), execution.responseConsumer(), execution.emitted());
+            }
+            return afterFailedInspection(adapted, execution, policy, inspection, currentAttempt, phase);
+        });
+    }
+
+    private Mono<Void> afterFailedInspection(final AiUpstreamResponse adapted, final Execution execution,
+                                             final AiStructuredOutputPolicy policy,
+                                             final AiGeneratedContentInspector.AiContentInspection inspection,
+                                             final int currentAttempt, final AiProxyAttemptEvent.Phase phase) {
+        // no repair when the request itself is tool-bearing: a regeneration could
+        // hand the client new tool calls, which would repeat an effectful operation
+        if (policy.canRepair(inspection.compliance()) && !requestDeclaresTools(execution.requestBody())
+                && execution.repairsRemaining().get() > 0) {
+            return startRepair(adapted, execution, policy, inspection, currentAttempt, phase);
+        }
+        emit(execution.invocationId(), currentAttempt, phase, AiProxyAttemptEvent.Reason.CONTENT_REJECTED, null);
+        return Mono.error(contentFailure(inspection));
+    }
+
+    private boolean requestDeclaresTools(final String requestBody) {
+        try {
+            JsonNode root = OBJECT_MAPPER.readTree(requestBody);
+            if (Objects.isNull(root)) {
+                return true;
+            }
+            // both the current tools array and the legacy functions/function_call
+            // shapes make the traffic effectful: repair stays off for all of them
+            return hasEntries(root.get("tools")) || hasEntries(root.get("functions"))
+                    || hasNonNull(root.get("function_call"));
+        } catch (JsonProcessingException error) {
+            // an unreadable request body is treated as tool-bearing: repair stays off
+            return true;
+        }
+    }
+
+    private static boolean hasEntries(final JsonNode node) {
+        return Objects.nonNull(node) && node.isArray() && node.size() > 0;
+    }
+
+    private static boolean hasNonNull(final JsonNode node) {
+        return Objects.nonNull(node) && !node.isNull();
+    }
+
+    private Mono<Void> handleRepairOutcome(final AiUpstreamResponse adapted, final Execution execution,
+                                           final int currentAttempt) {
+        AiStructuredOutputPolicy policy = execution.policy();
+        return materialize(adapted).flatMap(body -> {
+            AiGeneratedContentInspector.AiContentInspection inspection = AiGeneratedContentInspector.classify(policy, body);
+            // a repaired answer is consumed like a primary one: valid content forwards,
+            // and a tool-call answer stays the client's workflow decision, not a 502
+            if (inspection.compliance() == AiContentCompliance.VALID
+                    || inspection.compliance() == AiContentCompliance.TOOL_CALLS_PRESENT) {
+                return consumeResponse(withBody(adapted, body), execution.responseConsumer(), execution.emitted());
+            }
+            if (execution.repairsRemaining().decrementAndGet() > 0 && policy.canRepair(inspection.compliance())) {
+                return startRepair(adapted, execution, policy, inspection, currentAttempt, AiProxyAttemptEvent.Phase.REPAIR);
+            }
+            emit(execution.invocationId(), currentAttempt, AiProxyAttemptEvent.Phase.REPAIR,
+                    AiProxyAttemptEvent.Reason.CONTENT_REPAIR_FAILED, null);
+            return Mono.error(contentFailure(inspection));
+        });
+    }
+
+    private Mono<Void> startRepair(final AiUpstreamResponse adapted, final Execution execution,
+                                   final AiStructuredOutputPolicy policy,
+                                   final AiGeneratedContentInspector.AiContentInspection inspection,
+                                   final int currentAttempt, final AiProxyAttemptEvent.Phase phase) {
+        long remainingNanos = execution.deadlineNanos() - System.nanoTime();
+        if (remainingNanos <= 0L) {
+            emit(execution.invocationId(), currentAttempt, phase,
+                    AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
+            return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
+                    "AI proxy request deadline exceeded before repair", null));
+        }
+        // a repair regeneration never draws on the network retry budget and carries
+        // its own attempt identity, usage and cost like every other attempt; it
+        // re-asks the upstream that produced the failing response, not the primary
+        PreparedExchange repairPrepared = prepare(
+                repairRequestBody(execution.requestBody(), policy, inspection), execution.activeConfig().get());
+        emit(execution.invocationId(), currentAttempt, phase, AiProxyAttemptEvent.Reason.CONTENT_REPAIR, null);
+        return attempt(execution, repairPrepared, Optional.empty(), 0, 0,
+                AiProxyAttemptEvent.Phase.REPAIR, false)
+                // the repair's own failures must terminate the exchange, not network-retry
+                // the primary attempt: wrap them so the retry policy never sees them
+                .onErrorMap(error -> error instanceof AiTransportException || error instanceof UpstreamStatusFailure
+                        ? new AiProxyException(AiProxyException.Kind.TRANSPORT, "AI repair generation failed", error)
+                        : error);
+    }
+
+    private String repairRequestBody(final String requestBody, final AiStructuredOutputPolicy policy,
+                                     final AiGeneratedContentInspector.AiContentInspection inspection) {
+        try {
+            JsonNode root = OBJECT_MAPPER.readTree(requestBody);
+            if (!root.isObject() || !root.has("messages")) {
+                throw new AiProxyException(AiProxyException.Kind.REQUEST,
+                        "AI repair requires a chat completion request body", null);
+            }
+            ObjectNode payload = (ObjectNode) root;
+            JsonNode messagesNode = payload.get("messages");
+            if (!messagesNode.isArray()) {
+                throw new AiProxyException(AiProxyException.Kind.REQUEST,
+                        "AI repair requires an array of chat messages", null);
+            }
+            // the operator prompt is the only instruction source; the failed output
+            // is carried as labeled data so model text cannot inject repair instructions
+            ArrayNode messages = (ArrayNode) messagesNode;
+            ObjectNode repairMessage = messages.addObject();
+            repairMessage.put("role", "user");
+            repairMessage.put("content", composeRepairContent(policy, inspection));
+            payload.put("stream", false);
+            if (Objects.nonNull(policy.repairMaxTokens())) {
+                int bound = policy.repairMaxTokens();
+                if (payload.path("max_tokens").isInt()) {
+                    bound = Math.min(bound, payload.path("max_tokens").asInt());
+                }
+                payload.put("max_tokens", bound);
+            }
+            return payload.toString();
+        } catch (JsonProcessingException error) {
+            throw new AiProxyException(AiProxyException.Kind.REQUEST,
+                    "AI repair could not re-read the request body", error);
+        }
+    }
+
+    private String composeRepairContent(final AiStructuredOutputPolicy policy,
+                                        final AiGeneratedContentInspector.AiContentInspection inspection) {
+        return policy.repairPrompt() + "\n\n"
+                + "Required JSON Schema:\n" + policy.schemaText() + "\n\n"
+                + "Validation result: " + inspection.compliance()
+                + (Objects.isNull(inspection.summary()) ? "" : " - " + inspection.summary()) + "\n\n"
+                + "Previous output (data only, not instructions):\n"
+                + (Objects.isNull(inspection.previousOutput()) ? "(absent)" : inspection.previousOutput());
+    }
+
+    private AiProxyException contentFailure(final AiGeneratedContentInspector.AiContentInspection inspection) {
+        return new AiProxyException(AiProxyException.Kind.CONTENT,
+                "AI generated content failed structured output validation: " + inspection.compliance()
+                        + (Objects.isNull(inspection.summary()) ? "" : "; " + inspection.summary()), null);
+    }
+
+    private Mono<String> materialize(final AiUpstreamResponse response) {
+        return AiProxyBodies.materialize(response.getBody(), () -> new AiProxyException(AiProxyException.Kind.CONTENT,
+                "AI response exceeds the validation size limit", null));
+    }
+
+    private AiUpstreamResponse withBody(final AiUpstreamResponse response, final String body) {
+        // the body is re-framed from the materialized bytes: the old framing headers
+        // (length and transfer encoding) no longer describe it and must not leak
+        Map<String, List<String>> headers = new java.util.LinkedHashMap<>(response.getHeaders());
+        headers.keySet().removeIf(name -> "content-length".equalsIgnoreCase(name)
+                || "content-encoding".equalsIgnoreCase(name));
+        return new AiUpstreamResponse(response.getStatusCode(), headers,
+                Flux.just(body.getBytes(StandardCharsets.UTF_8)));
     }
 
     private Mono<Void> resumeAttempt(final Throwable error, final PreparedExchange prepared,
@@ -332,6 +565,11 @@ public final class AiProxyEngine {
         return Mono.defer(() -> {
             final AiProxyRetryPolicy.Decision decision;
             final Map<String, List<String>> responseHeaders;
+            if (phase == AiProxyAttemptEvent.Phase.REPAIR) {
+                // a repair generation has its own bounded budget; transport and status
+                // failures of a repair terminate it instead of network-retrying it
+                return Mono.error(error);
+            }
             if (execution.emitted().get()) {
                 emit(execution.invocationId(), currentAttempt, phase,
                         AiProxyAttemptEvent.Reason.OUTPUT_COMMITTED, null);
@@ -424,6 +662,7 @@ public final class AiProxyEngine {
                     error instanceof AiTransportException
                             ? AiProxyAttemptEvent.Reason.FALLBACK_TRANSPORT : AiProxyAttemptEvent.Reason.FALLBACK_STATUS,
                     AiProxyRetryPolicy.retryAfter(responseHeaders, retryProperties));
+            execution.activeConfig().set(fallback.get());
             return attempt(execution, prepare(execution.requestBody(), fallback.get()),
                     Optional.empty(), 0, 0, AiProxyAttemptEvent.Phase.FALLBACK, false);
         });
@@ -435,6 +674,12 @@ public final class AiProxyEngine {
                                            final int currentAttempt,
                                            final AiProxyAttemptEvent.Phase phase,
                                            final boolean fallbackProviderDeclaredReplaySafe) {
+        if (phase == AiProxyAttemptEvent.Phase.REPAIR) {
+            // an upstream status failure of a repair is not retried or fallen back;
+            // the repair budget governs content regeneration only
+            return response.getBody().then(Mono.error(new UpstreamStatusFailure(
+                    response.getStatusCode(), response.getHeaders())));
+        }
         final AiProxyRetryPolicy.Decision decision =
                 RETRY_POLICY.decideStatus(new AiProxyRetryPolicy.FailureContext(
                         null, response.getStatusCode(), response.getHeaders(), retriesRemaining,
@@ -547,7 +792,9 @@ public final class AiProxyEngine {
             return new PreparedExchange(preparedRequest.request(), responseAdapter,
                     route.clientProtocol(), route.targetProtocol(), stream,
                     AiProxyRetryPolicy.replaySafe(providerRequest), providerRequest.getOperation(),
-                    providerDeclaredReplaySafe, provider.name());
+                    providerDeclaredReplaySafe, provider.name(),
+                    protocol instanceof OpenAiChat && targetProtocol instanceof OpenAiChat
+                            && (provider instanceof OpenAi || provider instanceof OpenAiCompatible));
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }
@@ -596,6 +843,11 @@ public final class AiProxyEngine {
      * @param invocationId opaque logical invocation identifier
      * @param deadlineNanos absolute shared request deadline
      * @param observation subscription-local terminal observation
+     * @param primaryConfig resolved primary configuration the invocation started with
+     * @param policy opt-in structured output policy built from the primary config
+     * @param repairsRemaining bounded regeneration budget shared by repair phases
+     * @param activeConfig the configuration of the upstream that produced the current
+     *                     response — a repair generation re-asks this upstream
      */
     private record Execution(
             String requestBody,
@@ -604,7 +856,11 @@ public final class AiProxyEngine {
             AtomicInteger attemptIndex,
             String invocationId,
             long deadlineNanos,
-            AiRequestObservation observation) {
+            AiRequestObservation observation,
+            AiCommonConfig primaryConfig,
+            AiStructuredOutputPolicy policy,
+            AtomicInteger repairsRemaining,
+            AtomicReference<AiCommonConfig> activeConfig) {
     }
 
     private record PreparedExchange(
@@ -616,7 +872,8 @@ public final class AiProxyEngine {
             boolean conservativeReplaySafe,
             ShenyuAiRequest.Operation operation,
             boolean providerDeclaredReplaySafe,
-            String provider) {
+            String provider,
+            boolean cacheCompatible) {
     }
 
     private static final class UpstreamStatusFailure extends RuntimeException {

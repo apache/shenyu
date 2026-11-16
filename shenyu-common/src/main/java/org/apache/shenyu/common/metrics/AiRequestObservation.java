@@ -47,6 +47,8 @@ public final class AiRequestObservation {
 
     private AiUsage usage = AiUsage.UNKNOWN;
 
+    private AiStreamCompletion completion = AiStreamCompletion.NOT_INSPECTED;
+
     private AiCallOutcome failure;
 
     private boolean completed;
@@ -123,6 +125,7 @@ public final class AiRequestObservation {
         updateContext(target);
         active = new Attempt(this, context, ++attempts, kind, provider, protocol, streaming);
         usage = AiUsage.UNKNOWN;
+        completion = AiStreamCompletion.NOT_INSPECTED;
         return active;
     }
 
@@ -142,7 +145,7 @@ public final class AiRequestObservation {
             attemptEvent = Objects.isNull(active) ? null : active.freeze(signal, terminalOutcome(active.status, failure));
             AiCallOutcome error = Objects.isNull(failure) && signal == SignalType.ON_ERROR ? AiCallOutcome.ERROR : failure;
             AiCallOutcome outcome = signal == SignalType.CANCEL ? AiCallOutcome.CANCELLED : terminalOutcome(httpStatus, error);
-            terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage);
+            terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage, completion);
         }
         recordAttempt(attemptEvent);
         AgentRuntimeMetrics.safely(() -> metrics.finished(AgentRuntimeMetrics.Traffic.LLM,
@@ -213,6 +216,8 @@ public final class AiRequestObservation {
      */
     public static final class Attempt {
 
+        public static final String REACTOR_KEY = Attempt.class.getName();
+
         private final AiRequestObservation owner;
 
         private final AgentRequestContext context;
@@ -232,6 +237,8 @@ public final class AiRequestObservation {
         private Integer status;
 
         private AiUsage usage = AiUsage.UNKNOWN;
+
+        private AiStreamCompletion completion = AiStreamCompletion.NOT_INSPECTED;
 
         private boolean completed;
 
@@ -263,6 +270,36 @@ public final class AiRequestObservation {
         }
 
         /**
+         * Record raw upstream evidence separately from any converter or encoder output.
+         * @param evidence bounded evidence
+         */
+        public void streamEvidence(final AiStreamCompletion.Evidence evidence) {
+            synchronized (owner) {
+                if (!completed && completion.evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER) {
+                    completion = new AiStreamCompletion(evidence, completion.framing());
+                }
+            }
+        }
+
+        /**
+         * Record the encoder's framing without upgrading raw evidence.
+         * @param framing bounded output fact
+         */
+        public void streamFraming(final AiStreamCompletion.Framing framing) {
+            synchronized (owner) {
+                if (!completed) {
+                    completion = new AiStreamCompletion(completion.evidence(), framing);
+                }
+            }
+        }
+
+        public AiStreamCompletion streamCompletion() {
+            synchronized (owner) {
+                return completion;
+            }
+        }
+
+        /**
          * Complete before retry/fallback recovery starts; repeated calls are harmless.
          * @param signal attempt terminal signal
          * @param error classified error or null on normal completion
@@ -281,11 +318,16 @@ public final class AiRequestObservation {
             }
             completed = true;
             owner.usage = usage;
+            if (signal == SignalType.CANCEL && completion.evidence() != AiStreamCompletion.Evidence.NOT_INSPECTED
+                    && completion.evidence() != AiStreamCompletion.Evidence.UPSTREAM_MARKER) {
+                completion = new AiStreamCompletion(AiStreamCompletion.Evidence.SOURCE_CANCELLED, completion.framing());
+            }
+            owner.completion = completion;
             if (owner.active == this) {
                 owner.active = null;
             }
             AiCallOutcome outcome = signal == SignalType.CANCEL ? AiCallOutcome.CANCELLED : terminalOutcome(status, error);
-            return new AiAttemptEvent(context, number, kind, provider, protocol, streaming, outcome, status, elapsed(started), usage);
+            return new AiAttemptEvent(context, number, kind, provider, protocol, streaming, outcome, status, elapsed(started), usage, completion);
         }
     }
 }
