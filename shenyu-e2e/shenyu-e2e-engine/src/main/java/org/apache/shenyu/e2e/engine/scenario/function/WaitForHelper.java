@@ -89,13 +89,17 @@ public class WaitForHelper {
                     }
                     return;
                 } catch (AssertionError e) {
+                    if (i == retryTimes - 1) {
+                        throw e;
+                    }
                     log.debug("failed to check endpoint '{}'\n {}", endpoint, e.getMessage());
                 }
                 
                 try {
                     TimeUnit.MILLISECONDS.sleep(timeInRetry.toMillis());
                 } catch (InterruptedException ex) {
-                    log.error(ex.getMessage(), ex);
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("checking endpoint '" + endpoint + "' interrupted", ex);
                 }
             }
         });
@@ -103,7 +107,13 @@ public class WaitForHelper {
         try {
             future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
             log.info("check endpoint({}) successful", endpoint);
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+        } catch (ExecutionException e) {
+            Assertions.fail("checking endpoint '" + endpoint + "' failed", e.getCause());
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            Thread.currentThread().interrupt();
+            Assertions.fail("checking endpoint '" + endpoint + "' interrupted", e);
+        } catch (TimeoutException e) {
             future.cancel(true);
             throw new TimeoutException("checking endpoint '" + endpoint + "' timeout after " + timeout);
         }
@@ -126,22 +136,30 @@ public class WaitForHelper {
                     checker.check(supplier);
                     return;
                 } catch (AssertionError e) {
+                    if (i == retryTimes - 1) {
+                        throw e;
+                    }
                     log.debug(e.getMessage());
                 }
                 
                 try {
                     TimeUnit.MILLISECONDS.sleep(timeInRetry.toMillis());
                 } catch (InterruptedException ex) {
-                    log.error(ex.getMessage(), ex);
-                    break;
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("checking endpoint '" + MDC.get("endpoint") + "' interrupted", ex);
                 }
             }
-            log.info("check endpoint({}) successful", MDC.get("endpoint"));
         });
         
         try {
             future.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+        } catch (ExecutionException e) {
+            Assertions.fail("checking endpoint '" + MDC.get("endpoint") + "' failed", e.getCause());
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            Thread.currentThread().interrupt();
+            Assertions.fail("checking endpoint '" + MDC.get("endpoint") + "' interrupted", e);
+        } catch (TimeoutException e) {
             future.cancel(true);
             throw new TimeoutException("checking endpoint '" + MDC.get("endpoint") + "' timeout after " + timeout);
         }

@@ -31,6 +31,8 @@ public final class AgentMcpIdentity {
 
     private final Set<String> toolGrants;
 
+    private final Set<String> resourceGrants;
+
     private final Set<String> toolDenials;
 
     private final String tenant;
@@ -46,7 +48,11 @@ public final class AgentMcpIdentity {
      * @param toolGrants exact tool names granted by the authority
      */
     public AgentMcpIdentity(final String subject, final Set<String> toolGrants) {
-        this(subject, toolGrants, Set.of(), null);
+        this(subject, toolGrants, Set.of(), Set.of(), null);
+    }
+
+    public AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> resourceGrants) {
+        this(subject, toolGrants, Set.of(), resourceGrants, null);
     }
 
     /**
@@ -57,14 +63,19 @@ public final class AgentMcpIdentity {
      * @param toolDenials exact names denied, taking precedence over grants
      */
     public AgentMcpIdentity(final String tenant, final String subject, final Set<String> toolGrants, final Set<String> toolDenials) {
-        this(subject, toolGrants, toolDenials, Objects.requireNonNull(tenant, "tenant"));
+        this(subject, toolGrants, toolDenials, Set.of(), Objects.requireNonNull(tenant, "tenant"));
     }
 
-    private AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> toolDenials, final String tenant) {
+    public AgentMcpIdentity(final String tenant, final String subject, final Set<String> toolGrants, final Set<String> toolDenials, final Set<String> resourceGrants) {
+        this(subject, toolGrants, toolDenials, resourceGrants, Objects.requireNonNull(tenant, "tenant"));
+    }
+
+    private AgentMcpIdentity(final String subject, final Set<String> toolGrants, final Set<String> toolDenials, final Set<String> resourceGrants, final String tenant) {
         if (Objects.requireNonNull(subject, "subject").isBlank()) {
             throw new IllegalArgumentException("subject must not be blank");
         }
         this.subject = subject;
+        this.resourceGrants = Set.copyOf(resourceGrants);
         if (Objects.nonNull(tenant) && tenant.isBlank()) {
             throw new IllegalArgumentException("tenant must not be blank");
         }
@@ -81,6 +92,10 @@ public final class AgentMcpIdentity {
 
     public Set<String> getToolGrants() {
         return toolGrants;
+    }
+
+    public Set<String> getResourceGrants() {
+        return resourceGrants;
     }
 
     public Set<String> getToolDenials() {

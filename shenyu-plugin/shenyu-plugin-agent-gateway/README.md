@@ -21,12 +21,12 @@
 
 The Agent Gateway plugin adds a request-scoped context to selected LLM traffic
 and then continues the existing plugin chain. Explicitly matched MCP rules use
-a bounded tools-only entry instead, with optional remote tools aggregation.
+a bounded tools entry instead, with optional local and remote resource support.
 It does not replace the AI Proxy or legacy MCP server. Remote aggregation reuses
 the repository-managed MCP SDK `mcp-core` wire models and uses a request-owned
 JDK HTTP adapter for outbound calls. Only the MCP entry reads its body.
 
-Agent Gateway 插件为匹配的 LLM 请求建立请求级上下文并继续现有链；显式匹配的 MCP 规则使用有界 tools-only 入口，可单独启用远程 tools 聚合。它不替换 AI Proxy 或旧 MCP Server；聚合复用仓库统一管理的 MCP SDK `mcp-core` 协议模型，出站调用使用请求独享的 JDK HTTP 适配。仅 MCP 入口读取自己的正文。
+Agent Gateway 插件为匹配的 LLM 请求建立请求级上下文并继续现有链；显式匹配的 MCP 规则使用有界入口，可单独启用远程 tools 聚合以及本地/远程 resources。它不替换 AI Proxy 或旧 MCP Server；聚合复用仓库统一管理的 MCP SDK `mcp-core` 协议模型，出站调用使用请求独享的 JDK HTTP 适配。仅 MCP 入口读取自己的正文。
 
 ## Enablement
 
@@ -95,6 +95,7 @@ equal the nonblank `sub` claim. It reads these dedicated, verified claims:
 | `tenant_id` | Nonblank tenant string. Only an absent claim can use explicit `default-tenant`; null/invalid values are rejected. Startup requires exactly one of `tenant-claim-required: true` or `default-tenant`, so missing-tenant behavior is an explicit deployment policy. |
 | `tool_grants` | Optional array of exact tool names; absence grants nothing. Generic OAuth scopes/roles are not implicitly MCP permissions. |
 | `tool_denies` | Optional array of exact tool names; deny takes precedence over grant. |
+| `resource_grants` | Optional array of exact resource definition names, including `server.name` for remote resources; intersected with `allowedResources`. |
 
 For example, signed claims `"tool_grants":["orders.lookup","inventory.lookup"]`
 and `"tool_denies":["inventory.lookup"]` grant only `orders.lookup`, still
@@ -124,6 +125,111 @@ The tenant is available to a provider through the request-local Reactor
 MCP calls. The bridge neither logs credentials/claims nor owns SDK/key lifecycles.
 Cross-request context/event unification and additional authentication adapters
 remain separate work.
+
+### Explicit resource grants in built-in adapters
+
+Resource permissions are separate from tools. All built-in adapters default to
+an empty resource grant set; neither `tool_grants`, generic scopes/roles, request
+headers, arguments nor `_meta` grant resources. The effective set is the exact
+intersection of the verified identity's resource grants and rule
+`allowedResources`, shared by `resources/list`, `resources/templates/list` and
+`resources/read`. Grants name definitions, not URIs or URI-template expansions.
+For example, `local_status` names a local provider and `orders.status` names the
+upstream `status` resource exposed by configured server `orders`.
+
+Use only one security adapter. The JWT bridge above accepts the following
+**verified** JWT claims (the Resource Server still owns token verification):
+
+```json
+{
+  "iss": "https://issuer.example",
+  "aud": ["mcp"],
+  "sub": "service",
+  "tenant_id": "tenant-a",
+  "tool_grants": ["orders.lookup"],
+  "tool_denies": [],
+  "resource_grants": ["local_status", "local_record", "orders.status"]
+}
+```
+
+Key Auth uses an explicit deployment-owned binding to the authenticated rule,
+not the API key or caller-supplied identity headers:
+
+```yaml
+shenyu:
+  plugins:
+    agent:
+      gateway:
+        enabled: true
+        security:
+          key-auth:
+            enabled: true
+            bindings:
+              - namespace-id: production
+                selector-id: service-selector
+                rule-id: service-rule
+                tenant: tenant-a
+                subject: service
+                tool-grants: [orders.lookup]
+                tool-denials: []
+                resource-grants: [local_status, local_record, orders.status]
+```
+
+The Principal adapter supports the same `resource_grants` array from trusted
+JWT, introspection or OAuth2-login attributes, subject to its configured source
+and authority checks. Optionally map an exact verified scope explicitly:
+
+```yaml
+shenyu:
+  plugins:
+    agent:
+      gateway:
+        enabled: true
+        security:
+          principal:
+            enabled: true
+            source: jwt
+            issuer: https://issuer.example
+            audience: mcp
+            scope-mappings:
+              - scope: inventory:read
+                tool-grants: [orders.lookup]
+                resource-grants: [local_status, local_record, orders.status]
+```
+
+For this Principal example the authenticated claims include `sub: service`,
+`tenant_id: tenant-a`, the configured issuer/audience and `scope: inventory:read`.
+For `opaque-token`, configure the same issuer/audience checks and obtain these
+attributes from the trusted introspector. For `oauth2-login`, select that source
+and configure `registration-id` instead of issuer/audience; only attributes from
+that authenticated registration are used. An explicit `default-tenant` may fill
+an absent tenant claim, never a malformed one. Unmapped scopes grant nothing.
+
+Each example also requires registered providers/catalog entries and a separate
+Agent Gateway rule, for example:
+
+```json
+{
+  "trafficType": "mcp",
+  "mcp": {
+    "allowedTools": ["orders.lookup"],
+    "allowedResources": ["local_status", "local_record", "orders.status"],
+    "responseMode": "json"
+  }
+}
+```
+
+`local_record` may name a template such as `record://items/{id}`; authorization
+uses `local_record`, not `record://items/42`. Remote permission names keep their
+`server.name` prefix; use the catalog's canonical `mcp-resource://` URI for reads.
+Resource grant arrays are limited to 1,024 entries and names to 256 characters,
+using the resource definition name validation (including namespaced names), with
+no controls, surrounding whitespace, blank names or wildcard `*`. Malformed
+explicit claims reject the identity as a whole; malformed bindings/scope mappings
+fail startup. Collections are copied into immutable snapshots so later policy
+bean mutation, concurrent identities and subscription reuse cannot mutate grants.
+Tool denial precedence, legacy identity constructors and custom resolvers are
+unchanged. Resource access still requires the independent rule intersection.
 
 ## Rule handle
 
@@ -167,12 +273,13 @@ An MCP rule uses `"trafficType": "mcp"` and an `mcp` configuration, for example:
 }
 ```
 
-Only `server/discover`, `tools/list` and `tools/call` are supported. Local tools
+The tools entry supports `server/discover`, `tools/list` and `tools/call`. Local tools
 must be explicitly registered; remote tools come from the separately enabled
 managed catalog. Rule permissions intersect trusted server-side tool grants
 for both paths. Missing trusted identity is rejected. See
 [Remote tools aggregation](#remote-tools-aggregation) for configuration and
-the outbound contract.
+the outbound contract. Resource methods are described separately below and use
+independent resource grants.
 
 The entry targets the [2026-07-28 Streamable HTTP client contract](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http#sending-messages):
 clients must explicitly list both `application/json` and `text/event-stream` in
@@ -196,7 +303,7 @@ not enabled by choosing `responseMode=json`.
 
 ### Protocol support and compatibility
 
-This is an implementation contract for the tools-only entry, not a claim of
+This is an implementation contract for the bounded entry, not a claim of
 complete MCP conformance or final protocol approval. Protocol-version and
 compatibility decisions remain open to community discussion. The
 [fixed versioning contract](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning)
@@ -205,12 +312,14 @@ uses per-request version metadata rather than an initialization handshake.
 | Boundary | Current entry behavior |
 | --- | --- |
 | Inbound version | Only `2026-07-28`; older inbound requests are not implicitly accepted or upgraded |
-| `server/discover` | Advertises that version and tools capability only |
+| `server/discover` | Advertises that version, tools, and resources when resources are configured |
 | `tools/list` | Complete permission-filtered local and enabled remote list; any supplied inbound cursor is rejected |
 | `tools/call` | One authorized local Provider or remote tool invocation per subscription, without retry |
+| `resources/list`, `resources/templates/list` | Complete permission-filtered local/remote lists; inbound cursors are rejected |
+| `resources/read` | One authorized registered resource; its URI is an identifier, never a caller-selected destination |
 | Successful response | JSON object, or one final `event: message` SSE frame; no progress stream |
 | Inbound lifecycle | No `initialize`, protocol session, GET listener or session DELETE endpoint; outbound sessions are managed separately |
-| Other methods | Rejected; no prompts/resources, MRTR, Tasks or subscriptions |
+| Other methods | Rejected; no prompts, MRTR, Tasks or subscriptions |
 
 These behaviors apply only after an enabled, continued MCP rule matches. The
 plugin does not expose a universal `/mcp` path. Unmatched or disabled traffic,
@@ -390,10 +499,9 @@ in-flight gauges and persistent reporting remain outside this first version.
 
 ## Scope
 
-This change adds opt-in remote tools aggregation to the LLM
-request-correlation and tools-only MCP entry merged in #7424.
-Prompts/resources, callback bridging, result transformation
-and usage/cost accounting are not included. Legacy MCP sessions and AI Proxy stay separate.
+The entry supports local/remote tools and explicitly configured resources.
+Prompts, callback bridging and usage/cost accounting are not included.
+Tool result filtering is described separately below. Legacy MCP sessions and AI Proxy stay separate.
 
 ## Remote tools aggregation
 
@@ -493,13 +601,27 @@ gateway-bug error. There is no implicit last-good-generation or local-only fallb
 An explicit empty remote configuration can restore a complete local-only view.
 
 Outbound support remains fixed `2025-06-18` initialize/initialized, bounded tools
-pagination/call and JSON or a single final SSE response. It does not add GET stream
+pagination/call, opt-in resource pagination/read and JSON or a single final SSE response. It does not add GET stream
 recovery, OAuth, Tasks or nonempty request `_meta` delegation, nor change the inbound
 version. Conservative limits retained from verified experiments: 8 Servers, 4 pages
 per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per client,
 5-second directory update and 2-second session DELETE completion. The trusted
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.
+
+## Resource aggregation
+
+Register local `AgentResourceProvider` Spring beans with immutable
+`AgentResourceDefinition` metadata and a lazy `read` implementation. This remains
+an application extension, not dynamic Java loading. Remote resources reuse the
+existing allowlisted endpoints, fixed service credentials, request-owned HTTP
+adapter and complete directory generations. They require the additional
+deployment opt-in `shenyu.plugins.agent.gateway.aggregation.resources-enabled=true`.
+Its default is false; existing tools-only deployments do not issue resource
+discovery requests. Only targets advertising resources are queried. A resource-only
+target does not receive `tools/list`.
+
+An Admin MCP rule can specify:
 
 ## Configured HTTP tools
 
@@ -511,6 +633,7 @@ Provider per tool. Plans use the MCP Server plugin's `requestTemplate` /
 {
   "trafficType": "mcp",
   "mcp": {
+    "allowedResources": ["local_status", "orders.status"],
     "allowedTools": ["order_http"],
     "httpTools": {
       "order_http": {
@@ -525,10 +648,48 @@ Provider per tool. Plans use the MCP Server plugin's `requestTemplate` /
           "argsPosition": {"orderId": "query"}
         }
       }
-    }
+    },
+    "responseMode": "json"
   }
 }
 ```
+
+The trusted security adapter must independently supply resource grants using
+`new AgentMcpIdentity(subject, toolGrants, resourceGrants)`. Existing two-argument
+adapters grant no resources. Effective permissions are the intersection of these
+grants and `allowedResources`, for both listing and reading. Tool grants cannot
+authorize resources. Admin rejects unknown or malformed fields before persistence.
+
+Remote permission names are `server.resourceName`. URI identifiers are reversibly
+namespaced as `mcp-resource://server/<percent-encoded-original-uri>`; simple template
+variables remain expandable. For example `test://status` on `orders` is exposed
+as `mcp-resource://orders/test%3A%2F%2Fstatus`. Reads select exactly one authorized
+registration, decode the original identifier once, and use that fixed server's
+`resources/read` callback. No generic HTTP/file URI fetching is provided. Returned
+content identifiers must match the original requested resource and are rewritten
+to the exposed identifier; conflicting or malformed results are refused. Local
+providers cannot occupy the reserved `mcp-resource:` namespace.
+
+The initial contract supports exact resources and simple named URI-template
+variables, not all RFC6570 operators, subscriptions, list-change notifications or
+completion. Names and identifiers must be unambiguous. Remote discovery consumes
+at most four pages per list and sixteen combined resource/template definitions;
+local registration is limited to sixteen definitions and a read to sixteen
+content items. Existing transport byte/deadline limits still apply. The inbound
+list is complete and unpaginated; supplying a cursor is an error, not silently
+ignored. Remote directory changes follow the existing explicit configuration
+reload lifecycle; no periodic upstream refresh is implied.
+
+Resource results support text or canonical-base64 binary content. Unknown and
+unauthorized identifiers use the same sanitized HTTP403 / JSON-RPC `-32002`
+response. A malformed/unavailable remote catalog keeps the existing overall
+fail-closed policy. In-flight reads hold their directory generation across a
+configuration update, and cancellation releases only the current request/lease.
+The existing logical tools/call metrics and span are not relabeled as resource
+observations; unified resource observability is a separate governance item.
+
+Protocol references: [resources](https://modelcontextprotocol.io/specification/2025-06-18/server/resources)
+and [inbound mirrored metadata](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http).
 
 Operators must separately configure the ordinary gateway route and its upstream.
 The fixed URL is a relative gateway path, not an upstream address or client

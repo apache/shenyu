@@ -20,8 +20,9 @@
 Design deliverable for [#6369](https://github.com/apache/shenyu/issues/6369).
 Status: proposal; the configuration and Java types below do not exist yet.
 Inventory: `2.7.2-SNAPSHOT` at `297ac6f84`, reviewed on 2026-10-21.
-This proposal complements the [server JDK migration plan](server-jdk-upgrade.md)
-and keeps the independent Java registration client compatible with Java 8.
+This proposal complements the [server JDK migration plan](server-jdk-upgrade.md).
+It does not change [#7602's Java 17 / Boot 3 client migration target](../shenyu-register-center/CLIENT_MIGRATION.md)
+or the separate legacy registration wire-compatibility obligation.
 
 ## Decision
 
@@ -287,7 +288,7 @@ Set `mode: platform` to retain the new service's admission/deadline contract
 while changing backend; remove the plugin from the allowlist to restore its
 original execution path. Restart and drain rather than replaying active calls.
 The server JDK rollback rules remain those in the JDK proposal. No registration
-payload, split-client dependency or Java 8 target changes are needed.
+payload, split-client dependency or client/foundation Java 17 floor changes are needed.
 
 Runtime maintainers own admission/lifecycle and the Reactor adapter; plugin
 maintainers own invocation/cancellation/context semantics; build/release

@@ -25,7 +25,8 @@ local now = tonumber(ARGV[3])
 local requested = tonumber(ARGV[4])
 
 local fill_time = capacity/rate
-local ttl = math.floor(fill_time*2)
+-- setex rejects a ttl of 0, which floor() yields when capacity < rate/2
+local ttl = math.max(1, math.floor(fill_time*2))
 
 local last_tokens = tonumber(redis.call("get", tokens_key))
 if last_tokens == nil then

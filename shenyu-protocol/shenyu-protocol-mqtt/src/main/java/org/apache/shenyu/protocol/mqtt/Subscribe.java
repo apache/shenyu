@@ -73,9 +73,16 @@ public class Subscribe extends MessageType {
         Singleton.INST.get(SubscribeRepository.class).add(ctx.channel(), mqttTopicSubscriptions);
 
         String clientId = Singleton.INST.get(ChannelRepository.class).get(ctx.channel());
-        MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
-        if (Objects.nonNull(session)) {
-            mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
+        // A SUBSCRIBE can arrive on a channel that the channel repository does not
+        // know: the CONNECT may have failed, or the ownership of the client id may
+        // have been taken over by a newer connection. The session index is keyed by
+        // client id and rejects a null key, so the lookup is skipped instead of
+        // failing the whole SUBSCRIBE.
+        if (Objects.nonNull(clientId)) {
+            MqttSession session = Singleton.INST.get(SessionRepository.class).get(clientId);
+            if (Objects.nonNull(session)) {
+                mqttTopicSubscriptions.forEach(subscription -> session.addTopic(subscription.topicName(), subscription.qualityOfService()));
+            }
         }
 
         for (String ackTopic : ackTopics) {

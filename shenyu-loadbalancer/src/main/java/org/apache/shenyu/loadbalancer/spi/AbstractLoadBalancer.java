@@ -57,9 +57,9 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
     private int getWeight(final long timestamp, final int warmup, final int weight) {
         if (weight > 0 && timestamp > 0) {
-            int uptime = (int) (System.currentTimeMillis() - timestamp);
+            long uptime = System.currentTimeMillis() - timestamp;
             if (uptime > 0 && uptime < warmup) {
-                return calculateWarmupWeight(uptime, warmup, weight);
+                return calculateWarmupWeight((int) uptime, warmup, weight);
             }
         }
         return weight;

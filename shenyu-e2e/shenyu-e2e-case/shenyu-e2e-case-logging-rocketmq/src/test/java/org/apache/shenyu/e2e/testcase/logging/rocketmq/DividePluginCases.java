@@ -19,11 +19,16 @@ package org.apache.shenyu.e2e.testcase.logging.rocketmq;
 
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
+import io.restassured.builder.ResponseSpecBuilder;
 import org.apache.rocketmq.client.consumer.DefaultLitePullConsumer;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.common.TopicConfig;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.ResponseCode;
+import org.apache.rocketmq.common.protocol.body.ClusterInfo;
+import org.apache.rocketmq.common.protocol.route.BrokerData;
+import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
@@ -40,11 +45,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
@@ -52,7 +54,7 @@ import static org.awaitility.Awaitility.await;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
 
-    private static final String NAMESERVER = "http://localhost:31876";
+    private static final String NAMESERVER = "localhost:31876";
 
     private static final String CONSUMERGROUP = "shenyu-plugin-logging-rocketmq";
 
@@ -76,7 +78,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuScenarioSpec.builder()
                 .name("http client hello1")
                 .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .checker(exists("/http/order/findById?id=123"))
+                        .waiting(Method.GET, TEST, new ResponseSpecBuilder().expectStatusCode(200).build())
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
                         .addExists("/http/order/findById?id=123")
@@ -84,34 +86,52 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .build();
     }
 
+    static void initializeTopic() throws Exception {
+        DefaultMQAdminExt admin = new DefaultMQAdminExt("shenyu-e2e-topic-" + UUID.randomUUID());
+        admin.setNamesrvAddr(NAMESERVER);
+        try {
+            admin.start();
+            prepareTopic(admin);
+        } finally {
+            admin.shutdown();
+        }
+    }
+
+    static void prepareTopic(final DefaultMQAdminExt admin) throws Exception {
+        ClusterInfo cluster = await().alias("RocketMQ broker registered with NameServer")
+                .atMost(Duration.ofSeconds(30))
+                .until(admin::examineBrokerClusterInfo, info -> !info.getBrokerAddrTable().isEmpty());
+        for (BrokerData broker : cluster.getBrokerAddrTable().values()) {
+            admin.createAndUpdateTopicConfig(broker.selectBrokerAddr(), new TopicConfig(TOPIC));
+        }
+        await().alias("RocketMQ test topic route published")
+                .atMost(Duration.ofSeconds(30))
+                .until(() -> {
+                    try {
+                        return admin.examineTopicRouteInfo(TOPIC).getQueueDatas().stream()
+                                .anyMatch(queue -> queue.getReadQueueNums() > 0 && queue.getWriteQueueNums() > 0);
+                    } catch (MQClientException ex) {
+                        if (ex.getResponseCode() == ResponseCode.TOPIC_NOT_EXIST) {
+                            return false;
+                        }
+                        throw ex;
+                    }
+                });
+    }
+
+    static void prepareConsumer(final DefaultLitePullConsumer consumer) throws MQClientException {
+        Collection<MessageQueue> queues = consumer.fetchMessageQueues(TOPIC);
+        Assertions.assertFalse(queues.isEmpty(), "RocketMQ test topic has no consumer queues");
+        consumer.assign(queues);
+        for (MessageQueue queue : queues) {
+            consumer.seekToBegin(queue);
+        }
+    }
+
     static void awaitRequestLog(final DefaultLitePullConsumer consumer, final String endpoint) {
-        AtomicBoolean assigned = new AtomicBoolean();
         await().alias("RocketMQ access log for " + endpoint)
                 .atMost(LOG_CONSUME_TIMEOUT).pollInterval(Duration.ofMillis(200))
                 .until(() -> {
-                    if (!assigned.get()) {
-                        Collection<MessageQueue> queues;
-                        try {
-                            queues = consumer.fetchMessageQueues(TOPIC);
-                        } catch (MQClientException ex) {
-                            Throwable cause = ex;
-                            while (Objects.nonNull(cause)) {
-                                if (cause instanceof MQClientException && ((MQClientException) cause).getResponseCode() == ResponseCode.TOPIC_NOT_EXIST) {
-                                    return false;
-                                }
-                                cause = cause.getCause();
-                            }
-                            throw ex;
-                        }
-                        if (queues.isEmpty()) {
-                            return false;
-                        }
-                        consumer.assign(queues);
-                        for (MessageQueue queue : queues) {
-                            consumer.seekToBegin(queue);
-                        }
-                        assigned.set(true);
-                    }
                     return consumer.poll(200).stream().anyMatch(message -> {
                         String body = new String(message.getBody(), StandardCharsets.UTF_8);
                         LOG.info("RocketMQ access log: {}", body);
@@ -137,7 +157,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
                                                 .build()
                                 )
-                                .checker(exists(TEST))
+                                .waiting(Method.GET, TEST, new ResponseSpecBuilder().expectStatusCode(200).build())
                                 .build()
                 )
                 .caseSpec(
@@ -152,6 +172,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         consumer.setAutoCommit(false);
                                         consumer.start();
                                         LOG.info("RocketMQ consumer started");
+                                        prepareConsumer(consumer);
                                         request.request(Method.GET, endpoint).then().statusCode(200);
                                         awaitRequestLog(consumer, endpoint);
                                     } catch (Exception e) {

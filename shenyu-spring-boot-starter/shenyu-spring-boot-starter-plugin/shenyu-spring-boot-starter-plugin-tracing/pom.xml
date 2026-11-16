@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-spring-boot-starter-plugin</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-spring-boot-starter-plugin-tracing</artifactId>
@@ -36,12 +36,21 @@
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk</artifactId>
         </dependency>
-        <!-- the spans are exported over OTLP over http, the grpc transport is deliberately not
-             bundled because grpc netty is already on the classpath of the gateway. The sender of the
-             exporter is the one managed together with the OpenTelemetry version of the framework. -->
+        <!-- Use the JDK HTTP sender to avoid mixing the exporter's OkHttp 5 implementation
+             with the gateway's OkHttp 4 clients. -->
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-exporter-otlp</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.opentelemetry</groupId>
+                    <artifactId>opentelemetry-exporter-sender-okhttp</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-sender-jdk</artifactId>
         </dependency>
     </dependencies>
 

@@ -207,6 +207,24 @@ public class JwtUtilsTest {
     }
 
     @Test
+    public void testGenerateTokenWithTokenVersion() {
+        String token = JwtUtils.generateToken("userName", KEY, "clientId", 3L, EXPIRED_SECONDS);
+        assertThat(JwtUtils.getTokenVersion(token), is(3L));
+        assertThat(JwtUtils.verifyToken(token, KEY), is(true));
+    }
+
+    @Test
+    public void testGenerateTokenWithoutTokenVersionIsLegacy() {
+        String token = JwtUtils.generateToken("userName", KEY, "clientId");
+        assertThat(JwtUtils.getTokenVersion(token), is(JwtUtils.LEGACY_TOKEN_VERSION));
+    }
+
+    @Test
+    public void testGetTokenVersionWithInvalidToken() {
+        assertThrows(Exception.class, () -> JwtUtils.getTokenVersion("invalid.token"));
+    }
+
+    @Test
     public void testGetUserInfoWithNullPrincipal() {
         Subject mockSubject = mock(Subject.class);
         when(mockSubject.getPrincipal()).thenReturn(null);

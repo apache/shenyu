@@ -28,12 +28,14 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
 import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
@@ -55,15 +57,18 @@ import reactor.test.StepVerifier;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -131,9 +136,15 @@ class DivideCanaryRoutingTest {
 
     @Test
     void testEmptyCanaryPoolFallsBackToStable() {
+        ServerWebExchange exchange = exchange(null);
         try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("stable:8080", Map.of("release", "stable"))))) {
-            assertDomain(exchange(null), "http://stable:8080");
+            assertDomain(exchange, "http://stable:8080");
         }
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertEquals("canary", observation.getIntendedPartition());
+        assertEquals("stable", observation.getActualPartition());
+        assertEquals(CanaryContext.CANARY_POOL_EMPTY, observation.getFallbackReason());
+        assertNull(observation.getRejectReason());
     }
 
     @Test
@@ -154,9 +165,45 @@ class DivideCanaryRoutingTest {
     }
 
     @Test
-    void testNoHealthyUpstreamDoesNotDecide() {
-        assertRejected(List.of());
-        verifyNoInteractions(decisions);
+    void testNoHealthyUpstreamRecordsTheIntendedPartition() {
+        ServerWebExchange exchange = exchange(null);
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of())) {
+            StepVerifier.create(plugin.doExecute(exchange, current -> Mono.error(new AssertionError("must reject before forwarding")), selector, rule)).verifyComplete();
+        }
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exchange.getResponse().getStatusCode());
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertEquals("canary", observation.getIntendedPartition());
+        assertNull(observation.getActualPartition());
+        assertEquals(CanaryContext.STABLE_POOL_EMPTY, observation.getRejectReason());
+        assertNull(observation.getFallbackReason());
+        verify(decisions).decide(exchange, rule.getId(), config);
+    }
+
+    @Test
+    void testRoutingCallbackIsOptionalAndCannotBreakForwarding() {
+        ServerWebExchange exchange = exchange(null);
+        exchange.getAttributes().put(Constants.METRICS_CANARY, (Consumer<CanaryContext>) observation -> {
+            assertEquals("canary", observation.getActualPartition());
+            assertTrue(observation.getDecisionDurationNanos() >= 0);
+            throw new IllegalStateException("reporter unavailable");
+        });
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("canary:8080", Map.of("release", "canary", "region", "east"))))) {
+            assertDomain(exchange, "http://canary:8080");
+        }
+    }
+
+    @Test
+    void testFallbackWithoutASelectedUpstreamIsRejected() {
+        ServerWebExchange exchange = exchange(null);
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(upstream("stable:8080", Map.of("release", "stable"))));
+                MockedStatic<LoadbalancerUtils> balancing = mockStatic(LoadbalancerUtils.class)) {
+            balancing.when(() -> LoadbalancerUtils.getForExchange(any(), any(), any())).thenReturn(null);
+            StepVerifier.create(plugin.doExecute(exchange, current -> Mono.error(new AssertionError("must not forward")), selector, rule)).verifyComplete();
+        }
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertNull(observation.getActualPartition());
+        assertNull(observation.getFallbackReason());
+        assertEquals(CanaryContext.NO_UPSTREAM_SELECTED, observation.getRejectReason());
     }
 
     @Test
@@ -277,6 +324,11 @@ class DivideCanaryRoutingTest {
         verifyNoInteractions(chain);
         assertNull(exchange.getAttribute(Constants.HTTP_DOMAIN));
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exchange.getResponse().getStatusCode());
+        CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
+        assertNotNull(observation);
+        assertNull(observation.getActualPartition());
+        assertNull(observation.getFallbackReason());
+        assertNotNull(observation.getRejectReason());
     }
 
     private void assertDomain(final ServerWebExchange exchange, final String domain) {

@@ -32,16 +32,18 @@ import java.util.Objects;
 @Component
 public class MetricsMonitor implements Subject {
 
-    private final List<Observer> observers = new ArrayList<>();
+    private final List<Observer> observers;
 
     private final PrometheusMetricsProvider metricsProvider;
 
     private final ScaleRuleCache scaleRuleCache;
 
     public MetricsMonitor(final PrometheusMetricsProvider metricsProvider,
-                          final ScaleRuleCache scaleRuleCache) {
+                          final ScaleRuleCache scaleRuleCache,
+                          final List<Observer> observers) {
         this.metricsProvider = metricsProvider;
         this.scaleRuleCache = scaleRuleCache;
+        this.observers = new ArrayList<>(observers);
     }
 
     @Override

@@ -9,11 +9,31 @@ outside this migration.
 
 ## Current stage
 
-This change supplies the **main-repository prerequisites**: the v1 wire artifact
-and fixtures, shared MCP generation, removal of Admin and heartbeat dependencies
-on the business SDK, and a staged dependency guard. The client code and examples
-remain in their original reactor pending the release gates below. This is not a
-claim that the external repository has been migrated or independently released.
+Status checked on 2026-10-24 against main `86e932cdf` and external candidate
+`a37668298edef5c501e8b56a0595ed50ef895656`. [#7605](https://github.com/apache/shenyu/pull/7605)
+merged on 2026-10-15 as `fd2a1efac9d53429683886ec39c2def6c25431bb`. It supplies the
+**main-repository prerequisites**: the v1 wire artifact and fixtures, shared MCP
+generation, removal of Admin and heartbeat dependencies on the business SDK, and
+a staged dependency guard. Client code and examples remain in main pending the
+release gates below.
+
+The #7602 checklist still has unchecked items whose implementation landed in
+#7605. Use this evidence to distinguish completed source work from open release
+or approval gates; it does not declare every parent milestone complete:
+
+| Parent milestone | Implemented evidence | Remaining gate |
+| --- | --- | --- |
+| P0 ownership/dependency inventory | #7605 added the staged inventory and guards; beat and its starter remain main-owned | Enforce the inventory through the external release and source removal; further policy changes need maintainer review |
+| P1 main protocol boundary | #7605 extracted `shenyu-register-protocol`, version/header handling, eight v1 JSON fixtures and the contract | Publish reviewed foundations and retain compatibility evidence; source extraction is not artifact publication |
+| P2 reverse dependencies | #7605 removed Admin's business-client production/test dependencies and beat's business-client dependencies | Preserve the source/POM and resolved-dependency checks; this does not mean staged client/example sources have been removed |
+| P3/P4 external clients, starters and examples | [Draft shenyu-client-java#16](https://github.com/apache/shenyu-client-java/pull/16) prepares Java 17 / Boot 3 clients, eight starters and nineteen example roots, removing copied registry/beat ownership | External review/merge, released foundation versions and single-owner coordinate handoff; candidate is still draft/unpublished |
+| P5 compatibility and release | Candidate #16 reports local Java 17/21 reactor and source-runtime HTTP/ZooKeeper/gRPC/MCP checks; no checks are attached to that head | Approved hosted CI and supported released Admin/bootstrap matrices, then external client publication; local reports do not certify released pairs |
+| P6 main-source removal and documentation | [#7947](https://github.com/apache/shenyu/pull/7947) merged boundary/compatibility documents; [#8036](https://github.com/apache/shenyu/issues/8036) reconciles their policy | Remove staged sources only after release/compatibility gates; closed documentation tasks do not complete #7602 |
+
+The external default branch is still the historical Java 8 / Boot 2 implementation
+at `8b93088973bf9f8f50d614e708bb87f662b707d5`. That inventory and its passing reactor
+CI are preserved in the [compatibility matrix](../docs/java-client-compatibility.md),
+separately from candidate #16's reported local results and unpublished status.
 
 The examples previously selected an independent `2.7.0.3` client version through
 `shenyu.client.java.version`. During this preparation stage they use the current
@@ -118,8 +138,14 @@ python3 .github/scripts/check-client-boundary.py
 ```
 
 The protocol [README](shenyu-register-protocol/README.md) is the field/endpoint
-contract for #6365. The client-side matrix and recorded verification above cover
-follow-up work in #6366/#6367; the ownership and contribution rules cover #6373.
+contract for #6365. For the remaining [#6366 verification](https://github.com/apache/shenyu/issues/6366),
+use the [implementation/evidence matrix](../docs/java-client-compatibility.md#migration-target-and-current-implementations)
+and [client-owned/external test strategy](../docs/cross-repo-compatibility-testing.md);
+distinguish source-candidate runs from released-image verification. For
+[#6373 contribution guidance](https://github.com/apache/shenyu/issues/6373), use the
+[current ownership and PR rules](../docs/java-client-repository-boundary.md#review-ownership-and-rules-for-future-changes).
+Those older task descriptions mention Java 8 and differing JDK policies; they do
+not override #7602's Java 17 / Boot 3 target or authorize moving gateway beat code.
 
 ## Rollback and contribution rules
 

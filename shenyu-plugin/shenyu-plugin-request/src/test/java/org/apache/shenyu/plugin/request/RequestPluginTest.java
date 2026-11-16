@@ -297,6 +297,26 @@ public class RequestPluginTest {
     }
 
     @Test
+    public void testParameterRulePreservesLiteralPlus() {
+        ruleData.setHandle("{\"parameter\":{\"addParameters\":{\"added\":\"c+d\"}}}");
+        new RequestPluginHandler().handlerRule(ruleData);
+        ServerWebExchange encodedExchange = MockServerWebExchange.from(MockServerHttpRequest
+                .method(HttpMethod.GET, URI.create("http://localhost/files?q=a%2Bb&s=a+b"))
+                .build());
+        when(chain.execute(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(requestPlugin.doExecute(encodedExchange, chain, new SelectorData(), ruleData)).verifyComplete();
+
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        Mockito.verify(chain).execute(captor.capture());
+        ServerHttpRequest result = captor.getValue().getRequest();
+        assertEquals("q=a%2Bb&s=a%20b&added=c%2Bd", result.getURI().getRawQuery());
+        assertEquals("a+b", result.getQueryParams().getFirst("q"));
+        assertEquals("a b", result.getQueryParams().getFirst("s"));
+        assertEquals("c+d", result.getQueryParams().getFirst("added"));
+    }
+
+    @Test
     public void testRemoveParameterRulePreservesEncodedPath() {
         ruleData.setHandle("{\"parameter\":{\"removeParameterKeys\":[\"x\"]}}");
         new RequestPluginHandler().handlerRule(ruleData);

@@ -39,6 +39,8 @@ permission|idx_permission_resource_id|resource_id|1
 resource|idx_resource_parent|parent_id|1
 user_role|idx_user_role_user_role|user_id|1
 user_role|idx_user_role_user_role|role_id|2
+registration_fencing_target|idx_fencing_domain_session|domain_id|1
+registration_fencing_target|idx_fencing_domain_session|session_id|2
 """
 
 
@@ -48,6 +50,12 @@ def workflow_python_blocks():
 
 
 class NativeSqlMatrixTest(unittest.TestCase):
+    def test_workflow_uses_pr_scoped_cancellation_and_run_specific_groups(self):
+        workflow = (ROOT / ".github/workflows/native-sql-matrix.yml").read_text(encoding="utf-8")
+        self.assertIn("github.event.pull_request.number || github.run_id", workflow)
+        self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", workflow)
+        self.assertIn("if: ${{ !cancelled() }}", workflow)
+
     def test_aggregate_gate_rejects_any_failed_canceled_or_missing_sql_result(self):
         block = workflow_python_blocks()[-1]
         base = {"SCOPE_RESULT": "success", "RUNNER_RESULT": "success", "REQUIRED": "true",
@@ -61,24 +69,31 @@ class NativeSqlMatrixTest(unittest.TestCase):
 
     def test_aggregate_not_applicable_requires_explicit_successful_scope(self):
         block = workflow_python_blocks()[-1]
-        base = {"SCOPE_RESULT": "success", "RUNNER_RESULT": "success", "REQUIRED": "false",
+        base = {"SCOPE_RESULT": "success", "RUNNER_RESULT": "skipped", "REQUIRED": "false",
                 "LIST_RESULT": "skipped", "SQL_RESULT": "skipped"}
         with patch.dict(os.environ, base):
             exec(block, {})
         for value in ("", "unknown"):
             with patch.dict(os.environ, dict(base, REQUIRED=value)), self.assertRaises(AssertionError):
                 exec(block, {})
+        for value in ("success", "failure", "cancelled", ""):
+            with patch.dict(os.environ, dict(base, RUNNER_RESULT=value)), self.assertRaises(AssertionError):
+                exec(block, {})
 
     def test_workflow_scope_includes_sql_admin_and_harness_changes(self):
         block = workflow_python_blocks()[0]
-        for path in ("db/upgrade/test.sql", "db/init/mysql/schema.sql", "shenyu-admin/src/test/java/Test.java",
-                     ".github/scripts/native-sql-matrix.py", ".github/workflows/native-sql-matrix.yml", "README.md"):
+        paths = {"db/upgrade/test.sql": True, "db/init/mysql/schema.sql": True,
+                 "shenyu-admin/src/test/java/Test.java": True, ".github/scripts/native-sql-matrix.py": True,
+                 ".github/workflows/native-sql-matrix.yml": True, "README.md": False,
+                 "shenyu-admin/README.md": False, "db/init/docs/guide.md": False,
+                 "shenyu-admin/README.md\ndb/upgrade/test.sql": True}
+        for path, required in paths.items():
             with tempfile.TemporaryDirectory() as directory:
                 output = Path(directory) / "output"
                 with patch.dict(os.environ, {"BASE_SHA": "1" * 40, "EVENT_NAME": "pull_request", "GITHUB_OUTPUT": str(output)}), \
                         patch.object(subprocess, "run"), patch.object(subprocess, "check_output", return_value=path):
                     exec(block, {})
-                self.assertEqual(output.read_text().strip(), "required=" + str(path != "README.md").lower())
+                self.assertEqual(output.read_text().strip(), "required=" + str(required).lower())
 
     def test_exactly_five_digest_pinned_native_engines(self):
         self.assertEqual(set(matrix.DIALECTS), {"mysql", "ob", "pg", "og", "oracle"})
@@ -330,6 +345,8 @@ class NativeSqlMatrixTest(unittest.TestCase):
     def test_composite_nonleading_column_is_not_an_equivalent_index(self):
         with self.assertRaisesRegex(AssertionError, "permission.resource_id"):
             matrix.verify_index_rows(ROWS.replace("permission|idx_permission_resource_id|resource_id|1\n", ""))
+        with self.assertRaisesRegex(AssertionError, "idx_fencing_domain_session"):
+            matrix.verify_index_rows(ROWS.replace("registration_fencing_target|idx_fencing_domain_session|session_id|2\n", ""))
 
     def test_wrong_index_column_fails(self):
         with self.assertRaises(AssertionError):
@@ -342,6 +359,8 @@ class NativeSqlMatrixTest(unittest.TestCase):
             "permission|permission_object|CREATE INDEX permission_object ON public.permission USING btree (object_id, resource_id)",
             "resource|resource_parent|CREATE INDEX resource_parent ON public.resource USING btree (parent_id)",
             "user_role|user_role_user|CREATE INDEX user_role_user ON public.user_role USING btree (user_id, role_id)",
+            "registration_fencing_target|idx_fencing_domain_session|CREATE INDEX idx_fencing_domain_session "
+            "ON public.registration_fencing_target USING btree (domain_id, session_id)",
         ])
         self.assertEqual(matrix.verify_index_rows(rows, True)[("selector", "idx_selector_plugin_id")], ["plugin_id"])
         decorated = rows.replace("(plugin_id)", '(plugin_id COLLATE pg_catalog."default" pg_catalog.text_ops ASC NULLS LAST)')

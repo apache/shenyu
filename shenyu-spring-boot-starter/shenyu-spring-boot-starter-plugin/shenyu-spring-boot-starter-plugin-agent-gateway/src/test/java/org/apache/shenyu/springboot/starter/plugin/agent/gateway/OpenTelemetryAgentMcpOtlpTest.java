@@ -25,6 +25,13 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
+import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.springboot.starter.plugin.tracing.TracingPluginConfiguration;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.apache.shenyu.plugin.tracing.TracingPlugin;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import reactor.core.publisher.Mono;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.junit.jupiter.api.Test;
 import reactor.util.context.Context;
@@ -41,6 +48,49 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpenTelemetryAgentMcpOtlpTest {
+
+    @Test
+    void tracingStarterOwnsTheOnlyProviderAndExportsGatewayAndLogicalCallTogether() throws Exception {
+        java.util.concurrent.CopyOnWriteArrayList<byte[]> payloads = new java.util.concurrent.CopyOnWriteArrayList<>();
+        HttpServer receiver = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        receiver.createContext("/v1/traces", exchange -> {
+            payloads.add(exchange.getRequestBody().readAllBytes());
+            exchange.getResponseHeaders().set("Content-Type", "application/x-protobuf");
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        receiver.start();
+        try {
+            ShenyuConfig config = new ShenyuConfig();
+            config.getTracing().getOtlp().setEndpoint("http://127.0.0.1:" + receiver.getAddress().getPort());
+            new ApplicationContextRunner().withUserConfiguration(TracingPluginConfiguration.class, AgentGatewayPluginConfiguration.class)
+                    .withBean(ShenyuConfig.class, () -> config)
+                    .withPropertyValues("shenyu.tracing.enabled=true", "shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.tracing.enabled=true")
+                    .run(context -> {
+                        assertTrue(java.util.Objects.isNull(context.getStartupFailure()));
+                        assertEquals(1, context.getBeansOfType(SdkTracerProvider.class).size());
+                        assertTrue(context.getBeansOfType(OpenTelemetry.class).isEmpty());
+                        SdkTracerProvider provider = context.getBean(SdkTracerProvider.class);
+                        AgentMcpCallTracer bridge = context.getBean(AgentMcpCallTracer.class);
+                        TracingPlugin gateway = (TracingPlugin) context.getBean("tracingPlugin");
+                        gateway.execute(MockServerWebExchange.from(MockServerHttpRequest.post("/mcp").build()), exchange -> Mono.deferContextual(view -> {
+                            AgentMcpCallTracer.Trace trace = bridge.start(view);
+                            io.opentelemetry.context.Context serverContext = view.get(org.apache.shenyu.common.tracing.AgentTraceContext.GATEWAY_REACTOR_CONTEXT_KEY);
+                            io.opentelemetry.context.Context logicalContext = trace.attach(Context.empty()).get(io.opentelemetry.context.Context.class);
+                            assertEquals(io.opentelemetry.api.trace.Span.fromContext(serverContext).getSpanContext().getTraceId(),
+                                    io.opentelemetry.api.trace.Span.fromContext(logicalContext).getSpanContext().getTraceId());
+                            trace.finish(Outcome.SUCCESS);
+                            trace.finish(Outcome.SUCCESS);
+                            return Mono.empty();
+                        })).block(Duration.ofSeconds(10));
+                        assertTrue(provider.forceFlush().join(10, TimeUnit.SECONDS).isSuccess());
+                        assertEquals(1, payloads.size());
+                        assertTrue(new String(payloads.get(0), StandardCharsets.UTF_8).contains("shenyu.agent_gateway.tools.call"));
+                    });
+        } finally {
+            receiver.stop(0);
+        }
+    }
 
     @Test
     void applicationOwnedSdkExportsOnceOverRealOtlpHttp() throws Exception {

@@ -63,7 +63,8 @@ public class AiResponseTransformerPluginHandler implements PluginDataHandler {
                     return;
                 }
                 AiModelFactory factory = aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(aiResponseTransformerConfig.getProvider()));
-                ChatClientCache.getInstance().init("default", factory.createAiModel(convertConfig(aiResponseTransformerConfig)));
+                AiCommonConfig effectiveConfig = convertConfig(aiResponseTransformerConfig);
+                ChatClientCache.getInstance().getOrCreate("default", effectiveConfig, () -> factory.createAiModel(effectiveConfig));
                 Singleton.INST.single(AiResponseTransformerConfig.class, aiResponseTransformerConfig);
             } catch (Exception e) {
 

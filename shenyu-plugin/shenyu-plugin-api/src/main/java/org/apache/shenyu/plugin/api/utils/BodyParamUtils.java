@@ -116,7 +116,7 @@ public final class BodyParamUtils {
             paramTypeList.addAll(Arrays.asList(StringUtils.split(parameterTypes, ",")));
         }
 
-        if (paramTypeList.size() == 1 && !isBaseType(paramTypeList.get(0))) {
+        if (!isNameMapping(parameterTypes) && paramTypeList.size() == 1 && !isBaseType(paramTypeList.get(0))) {
             return buildSingleParameter(body, parameterTypes);
         }
         Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);

@@ -27,6 +27,7 @@
         <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="client_id" jdbcType="VARCHAR" property="clientId"/>
+        <result column="token_version" jdbcType="BIGINT" property="tokenVersion"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -37,7 +38,8 @@
         password,
         role,
         enabled,
-        client_id
+        client_id,
+        token_version
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -55,14 +57,6 @@
         limit 1
     </select>
 
-    <select id="findByQuery" resultMap="BaseResultMap">
-        SELECT
-            <include refid="Base_Column_List"/>
-          FROM dashboard_user
-         WHERE user_name = #{userName, jdbcType=VARCHAR}
-           AND password = #{password, jdbcType=VARCHAR}
-    </select>
-
     <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
             resultMap="BaseResultMap">
         SELECT
@@ -71,6 +65,7 @@
         <where>
             <include refid="likeUser"/>
         </where>
+        ORDER BY date_created DESC, id ASC
     </select>
 
     <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.DashboardUserQuery"
@@ -113,6 +108,8 @@
         </if>
     </sql>
 
+    <!-- token_version is intentionally omitted: a new row takes the column default (0),
+         and only incrementTokenVersion or updateSelective may move the version. -->
     <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
         INSERT INTO dashboard_user
                     (id,
@@ -159,6 +156,9 @@
             <if test="clientId != null">
                 client_id,
             </if>
+            <if test="tokenVersion != null">
+                token_version,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
                 #{id, jdbcType=VARCHAR},
@@ -183,9 +183,14 @@
             <if test="clientId != null">
                 #{clientId, jdbcType=VARCHAR},
             </if>
+            <if test="tokenVersion != null">
+                #{tokenVersion, jdbcType=BIGINT},
+            </if>
         </trim>
     </insert>
 
+    <!-- token_version is intentionally omitted: a full update must not reset the revocation
+         state; use incrementTokenVersion to revoke issued tokens. -->
     <update id="update" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
          UPDATE dashboard_user
             SET
@@ -197,6 +202,15 @@
                 enabled = #{enabled, jdbcType=TINYINT},
                 client_id = #{clientId, jdbcType=VARCHAR}
           WHERE id = #{id, jdbcType=VARCHAR}
+    </update>
+
+    <!-- Increment in SQL: concurrent password changes and revocations must not overwrite
+         each other with a stale read-modify-write value. -->
+    <update id="incrementTokenVersion">
+        UPDATE dashboard_user
+           SET token_version = token_version + 1,
+               date_updated = #{dateUpdated, jdbcType=TIMESTAMP}
+         WHERE id = #{id, jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.apache.shenyu.admin.model.entity.DashboardUserDO">
@@ -222,6 +236,9 @@
             </if>
             <if test="clientId != null">
                 client_id = #{clientId, jdbcType=VARCHAR},
+            </if>
+            <if test="tokenVersion != null">
+                token_version = #{tokenVersion, jdbcType=BIGINT},
             </if>
         </set>
          WHERE id = #{id, jdbcType=VARCHAR}

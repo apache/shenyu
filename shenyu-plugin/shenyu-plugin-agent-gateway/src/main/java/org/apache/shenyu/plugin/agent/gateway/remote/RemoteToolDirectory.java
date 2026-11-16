@@ -40,8 +40,15 @@ public final class RemoteToolDirectory {
 
     private final Map<String, Entry> entries;
 
+    private final RemoteResourceDirectory resources;
+
     private RemoteToolDirectory(final Map<String, Entry> values) {
+        this(values, RemoteResourceDirectory.empty());
+    }
+
+    private RemoteToolDirectory(final Map<String, Entry> values, final RemoteResourceDirectory resources) {
         entries = Map.copyOf(values);
+        this.resources = resources;
     }
 
     /**
@@ -87,6 +94,8 @@ public final class RemoteToolDirectory {
                 .flatMapSequential(target -> pages(target, null, 0, maxPages, maxTools, new HashSet<>(), new ArrayList<>()), concurrency)
                 .collectList()
                 .map(pages -> build(pages, maxTools))
+                .flatMap(directory -> RemoteResourceDirectory.discover(targets.stream().map(Target::resources).filter(Objects::nonNull).toList())
+                        .map(resources -> new RemoteToolDirectory(directory.entries, resources)))
                 .timeout(Duration.ofSeconds(5))
         );
     }
@@ -190,6 +199,10 @@ public final class RemoteToolDirectory {
         return entries.keySet();
     }
 
+    public RemoteResourceDirectory resources() {
+        return resources;
+    }
+
     /**
      * definitions.
      * @param rule trusted rule value
@@ -231,7 +244,7 @@ public final class RemoteToolDirectory {
                 throw new IllegalArgumentException("Combined local/remote tool budget exceeded");
             }
         }
-        return new RemoteToolDirectory(result);
+        return new RemoteToolDirectory(result, resources);
     }
 
     /**
@@ -301,8 +314,15 @@ public final class RemoteToolDirectory {
         String name,
         Function<String, Mono<McpSchema.ListToolsResult>> pages,
         Function<McpSchema.CallToolRequest, Mono<McpSchema.CallToolResult>> calls,
-        Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCalls
+        Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCalls,
+        RemoteResourceDirectory.Target resources
     ) {
+        public Target(final String name, final Function<String, Mono<McpSchema.ListToolsResult>> pages,
+                      final Function<McpSchema.CallToolRequest, Mono<McpSchema.CallToolResult>> calls,
+                      final Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCalls) {
+            this(name, pages, calls, rawCalls, null);
+        }
+
         public Target(
             final String name,
             final Function<String, Mono<McpSchema.ListToolsResult>> pages,

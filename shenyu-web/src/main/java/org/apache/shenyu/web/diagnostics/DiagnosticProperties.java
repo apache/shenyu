@@ -66,6 +66,10 @@ public class DiagnosticProperties {
     /**
      * Get the maximum total uncompressed bundle size in bytes.
      *
+     * <p>The bound covers every uncompressed archive entry, {@code manifest.json} included, not
+     * just the section payloads. Sections are trimmed to fit; a value too small to hold the
+     * manifest itself makes bundle export fail rather than produce an archive over the bound.</p>
+     *
      * @return the max total bytes
      */
     public int getMaxTotalBytes() {
@@ -111,6 +115,10 @@ public class DiagnosticProperties {
     /**
      * Set the per-section collection timeout in milliseconds.
      *
+     * <p>The value bounds both the budget handed to a collector and the wait for its result, and
+     * it is capped by the remaining total collection time. Values below one millisecond, including
+     * zero, still allow a one millisecond attempt; they do not mean "no per-section limit".</p>
+     *
      * @param sectionTimeoutMs the section timeout ms
      */
     public void setSectionTimeoutMs(final long sectionTimeoutMs) {
@@ -119,6 +127,11 @@ public class DiagnosticProperties {
 
     /**
      * Get the total collection timeout across all sections in milliseconds.
+     *
+     * <p>It bounds only the time spent starting and waiting for section collectors: each
+     * collector's own budget and the wait for its result are capped by the remaining total time.
+     * Manifest identity lookup and archive assembly happen after collection and are not covered
+     * by this bound.</p>
      *
      * @return the total timeout ms
      */

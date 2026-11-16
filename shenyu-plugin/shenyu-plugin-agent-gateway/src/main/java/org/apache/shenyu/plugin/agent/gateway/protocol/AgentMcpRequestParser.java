@@ -50,7 +50,7 @@ public final class AgentMcpRequestParser {
 
     private static final String ENCODED_SUFFIX = "?=";
 
-    private static final Set<String> METHODS = Set.of("server/discover", "tools/list", "tools/call");
+    private static final Set<String> METHODS = Set.of("server/discover", "tools/list", "tools/call", "resources/list", "resources/templates/list", "resources/read");
 
     private final ObjectMapper mapper = new ObjectMapper(JsonFactory.builder()
             .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
@@ -113,6 +113,9 @@ public final class AgentMcpRequestParser {
         if ("tools/call".equals(method)) {
             validateHeader(headers, "Mcp-Name", params.get("name").textValue(), true, id);
         }
+        if ("resources/read".equals(method)) {
+            validateHeader(headers, "Mcp-Name", params.get("uri").textValue(), true, id);
+        }
         return new AgentMcpRequest(id, method, (ObjectNode) params);
     }
 
@@ -121,8 +124,18 @@ public final class AgentMcpRequestParser {
                 || params.has("arguments") && !params.get("arguments").isObject())) {
             throw failure(400, -32602, "Invalid tool call parameters", id);
         }
-        if ("tools/list".equals(method) && params.has("cursor") && !params.get("cursor").isTextual()) {
+        if (Set.of("tools/list", "resources/list", "resources/templates/list").contains(method) && params.has("cursor") && !params.get("cursor").isTextual()) {
             throw failure(400, -32602, "Invalid tools cursor", id);
+        }
+        if ("resources/read".equals(method)) {
+            if (!params.path("uri").isTextual() || params.get("uri").textValue().length() > 4096) {
+                throw failure(400, -32602, "Invalid resource URI", id);
+            }
+            try {
+                org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceContent.text(params.get("uri").textValue(), null, "");
+            } catch (IllegalArgumentException error) {
+                throw failure(400, -32602, "Invalid resource URI", id);
+            }
         }
     }
 

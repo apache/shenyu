@@ -26,7 +26,7 @@
         <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
         <result column="config" jdbcType="VARCHAR" property="config"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
-        <result column="enable" jdbcType="BOOLEAN" property="sort"/>
+        <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
     <sql id="Base_Column_List">

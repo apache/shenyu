@@ -122,6 +122,32 @@ public class RedisRateLimiterScriptsTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void tokenBucketLuaWithCapacityLessThanHalfRateTest() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("tokenBucket");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        List<String> keys = rateLimiterAlgorithm.getKeys("test-tokenBucket-small-capacity");
+        long now = Instant.now().getEpochSecond();
+        List<String> scriptArgs = Arrays.asList("10", "4", String.valueOf(now), "1");
+        List<String> refillArgs = Arrays.asList("10", "4", String.valueOf(now + 1), "1");
+        Flux<List<Long>> resultFlux = Flux.range(0, 5)
+                .concatMap(index -> redisTemplate.execute(script, keys, scriptArgs))
+                .concatWith(redisTemplate.execute(script, keys, refillArgs));
+        StepVerifier
+                .create(resultFlux)
+                .expectSubscription()
+                .expectNext(Arrays.asList(1L, 3L))
+                .expectNext(Arrays.asList(1L, 2L))
+                .expectNext(Arrays.asList(1L, 1L))
+                .expectNext(Arrays.asList(1L, 0L))
+                .expectNext(Arrays.asList(0L, 0L))
+                .expectNext(Arrays.asList(1L, 3L))
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void slidingWindowLuaTest() {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
         RedisScript<?> script = rateLimiterAlgorithm.getScript();

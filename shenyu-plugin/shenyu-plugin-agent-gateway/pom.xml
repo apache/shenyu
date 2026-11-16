@@ -20,14 +20,10 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-agent-gateway</artifactId>
-
-    <properties>
-        <json-schema-validator.version>2.0.0</json-schema-validator.version>
-    </properties>
 
     <build>
         <resources>
@@ -53,11 +49,6 @@
             <artifactId>shenyu-plugin-context-path</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.networknt</groupId>
-            <artifactId>json-schema-validator</artifactId>
-            <version>${json-schema-validator.version}</version>
         </dependency>
         <dependency>
             <groupId>io.modelcontextprotocol.sdk</groupId>

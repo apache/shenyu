@@ -86,6 +86,17 @@ public interface PluginDataSubscriber {
      */
     default void refreshSelectorDataSelf(List<SelectorData> selectorDataList) {
     }
+
+    /**
+     * Authoritatively replace the selector rows of the namespaces and plugins present
+     * in the payload. The default keeps the legacy whole-cache clear for custom subscribers.
+     *
+     * @param selectorDataList the received data
+     */
+    default void refreshSelectorDataScoped(List<SelectorData> selectorDataList) {
+        refreshSelectorDataAll();
+        onSelectorRefresh(selectorDataList);
+    }
     
     /**
      * On rule subscribe.
@@ -115,6 +126,17 @@ public interface PluginDataSubscriber {
      * @param ruleDataList the rule data list
      */
     default void refreshRuleDataSelf(List<RuleData> ruleDataList) {
+    }
+
+    /**
+     * Authoritatively replace the rule rows of the namespaces and plugins present
+     * in the payload. The default keeps the legacy whole-cache clear for custom subscribers.
+     *
+     * @param ruleDataList the received data
+     */
+    default void refreshRuleDataScoped(List<RuleData> ruleDataList) {
+        refreshRuleDataAll();
+        onRuleRefresh(ruleDataList);
     }
 
     /**
@@ -149,65 +171,71 @@ public interface PluginDataSubscriber {
 
     /**
      * Remove cached plugin rows belonging to one namespace before applying a snapshot.
-     * Custom subscribers must implement this operation before enabling reconciliation.
+     * The default keeps the legacy whole-cache clear for custom subscribers; override
+     * for namespace-scoped cleanup before enabling reconciliation.
      *
      * @param namespaceId namespace to replace
      */
     default void refreshPluginDataNamespace(final String namespaceId) {
-        throw new UnsupportedOperationException("Namespace-scoped plugin snapshots are not supported");
+        refreshPluginDataAll();
     }
 
     /**
      * Remove cached selector rows belonging to one namespace before applying a snapshot.
-     * Custom subscribers must implement this operation before enabling reconciliation.
+     * The default keeps the legacy whole-cache clear for custom subscribers; override
+     * for namespace-scoped cleanup before enabling reconciliation.
      *
      * @param namespaceId namespace to replace
      */
     default void refreshSelectorDataNamespace(final String namespaceId) {
-        throw new UnsupportedOperationException("Namespace-scoped selector snapshots are not supported");
+        refreshSelectorDataAll();
     }
 
     /**
      * Remove cached rule rows belonging to one namespace before applying a snapshot.
-     * Custom subscribers must implement this operation before enabling reconciliation.
+     * The default keeps the legacy whole-cache clear for custom subscribers; override
+     * for namespace-scoped cleanup before enabling reconciliation.
      *
      * @param namespaceId namespace to replace
      */
     default void refreshRuleDataNamespace(final String namespaceId) {
-        throw new UnsupportedOperationException("Namespace-scoped rule snapshots are not supported");
+        refreshRuleDataAll();
     }
 
     /**
      * Apply an authoritative plugin snapshot while retaining cached rows present in the snapshot.
+     * The default equals the legacy whole-group refresh for custom subscribers.
      *
      * @param namespaceId namespace to reconcile
      * @param dataList complete plugin snapshot for the namespace
      */
     default void applyPluginDataSnapshot(final String namespaceId, final List<PluginData> dataList) {
         refreshPluginDataNamespace(namespaceId);
-        dataList.forEach(this::onSubscribe);
+        onPluginRefresh(dataList);
     }
 
     /**
      * Apply an authoritative selector snapshot while retaining cached rows present in the snapshot.
+     * The default equals the legacy whole-group refresh for custom subscribers.
      *
      * @param namespaceId namespace to reconcile
      * @param dataList complete selector snapshot for the namespace
      */
     default void applySelectorDataSnapshot(final String namespaceId, final List<SelectorData> dataList) {
         refreshSelectorDataNamespace(namespaceId);
-        dataList.forEach(this::onSelectorSubscribe);
+        onSelectorRefresh(dataList);
     }
 
     /**
      * Apply an authoritative rule snapshot while retaining cached rows present in the snapshot.
+     * The default equals the legacy whole-group refresh for custom subscribers.
      *
      * @param namespaceId namespace to reconcile
      * @param dataList complete rule snapshot for the namespace
      */
     default void applyRuleDataSnapshot(final String namespaceId, final List<RuleData> dataList) {
         refreshRuleDataNamespace(namespaceId);
-        dataList.forEach(this::onRuleSubscribe);
+        onRuleRefresh(dataList);
     }
 
 }

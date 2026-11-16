@@ -22,6 +22,7 @@ import jakarta.annotation.Resource;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.NamespaceService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
@@ -50,6 +51,9 @@ public class ShenyuClientHttpRegistryController {
     @Resource
     private NamespaceService namespaceService;
 
+    @Resource
+    private RegistrationFencingGuard registrationFencingGuard;
+
     /**
      * Register metadata string.
      *
@@ -77,6 +81,9 @@ public class ShenyuClientHttpRegistryController {
     public String registerURI(@RequestBody final URIRegisterDTO uriRegisterDTO) {
         if (Objects.isNull(uriRegisterDTO.getNamespaceId())) {
             uriRegisterDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        }
+        if (Objects.nonNull(registrationFencingGuard)) {
+            registrationFencingGuard.assertLegacyUriWriteByAddress(uriRegisterDTO.getNamespaceId(), uriRegisterDTO.getHost(), uriRegisterDTO.getPort());
         }
         publisher.publish(uriRegisterDTO);
         return RegistrationProtocol.SUCCESS;
@@ -138,6 +145,9 @@ public class ShenyuClientHttpRegistryController {
     public String offline(@RequestBody final URIRegisterDTO offlineDTO) {
         if (Objects.isNull(offlineDTO.getNamespaceId())) {
             offlineDTO.setNamespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID);
+        }
+        if (Objects.nonNull(registrationFencingGuard)) {
+            registrationFencingGuard.assertLegacyUriWriteByAddress(offlineDTO.getNamespaceId(), offlineDTO.getHost(), offlineDTO.getPort());
         }
         publisher.publish(offlineDTO);
         return RegistrationProtocol.SUCCESS;

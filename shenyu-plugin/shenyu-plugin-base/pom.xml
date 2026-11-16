@@ -20,12 +20,27 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu-plugin</artifactId>
-        <version>2.7.2-SNAPSHOT</version>
+        <version>2.7.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-base</artifactId>
 
+    <properties>
+        <json-schema-validator.version>2.0.0</json-schema-validator.version>
+    </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema-validator.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>

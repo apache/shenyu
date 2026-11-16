@@ -175,7 +175,7 @@ public class NamespacePluginController implements PagedController<NamespacePlugi
     @PostMapping("/enabled")
     @RequiresPermissions("system:plugin:disable")
     public ShenyuAdminResult enabled(@Valid @RequestBody final BatchCommonDTO batchCommonDTO) {
-        final String result = namespacePluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        final String result = namespacePluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled(), batchCommonDTO.getNamespaceId());
         if (StringUtils.isNoneBlank(result)) {
             return ShenyuAdminResult.error(result);
         }

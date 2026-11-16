@@ -23,7 +23,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.common.metrics.AgentCatalogMetrics;
+import org.apache.shenyu.common.tracing.AgentTraceContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
 import org.slf4j.Logger;
@@ -55,7 +61,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    private final RemoteCatalogLifecycle lifecycle = new RemoteCatalogLifecycle(3);
+    private final RemoteCatalogLifecycle lifecycle;
 
     private final Set<URI> allowedEndpoints;
 
@@ -71,6 +77,8 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private final Disposable worker;
 
+    private final AgentCatalogMetrics catalogMetrics;
+
     private volatile String lastFailure = "";
 
     private volatile boolean closed;
@@ -82,6 +90,12 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
      * @param credentials trusted credentials value
      */
     public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials) {
+        this(allowedEndpoints, localNames, credentials, false);
+    }
+
+    public ManagedRemoteMcpCatalog(final Set<URI> allowedEndpoints, final Set<String> localNames, final RemoteServiceCredentialResolver credentials,
+                                    final boolean resourcesEnabled) {
+        lifecycle = new RemoteCatalogLifecycle(3, resourcesEnabled);
         this.allowedEndpoints = Set.copyOf(allowedEndpoints);
         this.localNames = Set.copyOf(localNames);
         this.credentials = Objects.requireNonNull(credentials, "credentials");
@@ -89,6 +103,14 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         // The single owned subscription belongs to the control-plane lifecycle, never a request.
         lifecycle.refresh(List.of()).block(Duration.ofSeconds(6));
         worker = updates.asFlux().publishOn(scheduler, 1).concatMap(this::applyUpdate, 1).subscribe();
+        catalogMetrics = AgentCatalogMetrics.register(() -> {
+            Diagnostics state = diagnosticsState();
+            RemoteCatalogLifecycle.Diagnostics lifecycleState = state.lifecycle();
+            return new AgentCatalogMetrics.Snapshot(!closed && !lifecycleState.closed() && lifecycleState.currentVersion() > 0,
+                    lifecycleState.updating(), lifecycleState.generations(), lifecycleState.clients(), lifecycleState.references(),
+                    lifecycleState.pending(),
+                    !state.lastFailure().isEmpty() || !lifecycleState.cleanupFailures().isEmpty());
+        });
     }
 
     private Mono<Long> applyUpdate(final ControlUpdate update) {
@@ -144,6 +166,10 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     private Mono<Long> reload(final String source, final BooleanSupplier stillCurrent) {
         return Mono.defer(() -> {
+            ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate("agentGateway", ConfigurationScope.PLUGIN, "1", source);
+            if (validation.status() == ConfigurationValidation.Status.INVALID) {
+                return Mono.error(new IllegalArgumentException("Invalid Agent Gateway aggregation configuration"));
+            }
             AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(source);
             List<RemoteCatalogLifecycle.Config> targets = new ArrayList<>();
             for (AgentGatewayAggregationConfig.Server server : config.servers()) {
@@ -156,7 +182,19 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
 
     @Override
     public Mono<ObjectNode> withSnapshot(final Function<Snapshot, Mono<ObjectNode>> operation) {
-        return lifecycle.withSnapshot(directory -> operation.apply(new CatalogSnapshot(directory)));
+        return Mono.deferContextual(context -> {
+            AgentRuntimeMetrics metrics = context.getOrDefault(AgentRuntimeMetrics.KEY, AgentRuntimeMetrics.NOOP);
+            java.util.concurrent.atomic.AtomicBoolean acquired = new java.util.concurrent.atomic.AtomicBoolean();
+            return lifecycle.withSnapshot(directory -> {
+                acquired.set(true);
+                AgentRuntimeMetrics.safely(() -> metrics.catalog(true));
+                return operation.apply(new CatalogSnapshot(directory));
+            }).doOnError(CatalogUnavailableException.class, error -> {
+                if (!acquired.get()) {
+                    AgentRuntimeMetrics.safely(() -> metrics.catalog(false));
+                }
+            });
+        });
     }
 
     /**
@@ -191,6 +229,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
     public Mono<Void> closeAsync() {
         return Mono.defer(() -> {
             closed = true;
+            catalogMetrics.close();
             worker.dispose();
             scheduler.dispose();
             return lifecycle.closeGracefully();
@@ -225,6 +264,17 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
         }
 
         @Override
+        public Map<String, ObjectNode> resourceDefinitions() {
+            return directory.resources().definitions();
+        }
+
+        @Override
+        public Mono<ObjectNode> readResource(final String uri, final AgentMcpExecutionContext context) {
+            return directory.resources().read(uri, context.getAllowedResources())
+                    .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("deadline", context.getDeadline()))));
+        }
+
+        @Override
         public Mono<ObjectNode> invoke(final String name, final JsonObject arguments, final AgentMcpExecutionContext context) {
             Map<String, Object> values;
             try {
@@ -234,7 +284,9 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             }
             return directory
                 .callRaw(name, context.getRuleTools(), context.getAllowedTools(), values)
-                .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of("subject", context.getSubject(), "deadline", context.getDeadline()))));
+                .contextWrite(value -> value.put(McpTransportContext.KEY, McpTransportContext.create(Map.of(
+                        "subject", context.getSubject(), "deadline", context.getDeadline(),
+                        AgentTraceContext.HEADERS_KEY, AgentTraceContext.headers(value.getOrDefault(AgentTraceContext.HEADERS_KEY, null))))));
         }
     }
 }

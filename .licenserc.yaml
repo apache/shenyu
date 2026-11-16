@@ -30,6 +30,7 @@ header:
     - '**/spring.provides'
     - '/script/**'
     - '**/*.json'
+    - '**/*.sha256'
     - '**/*.iml'
     - '**/.idea/**'
     - '**/*.classpath'

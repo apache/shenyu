@@ -19,6 +19,8 @@ package org.apache.shenyue.e2e.testcase.cluster;
 
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.specification.ResponseSpecification;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuAfterEachSpec;
@@ -31,7 +33,6 @@ import org.apache.shenyu.e2e.model.data.Condition.ParamType;
 
 import java.util.List;
 
-import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newBindingData;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newCondition;
@@ -41,6 +42,7 @@ import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newUpstreamsBuilder;
 import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Testing Cluster Divide plugin testcases.
@@ -79,7 +81,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(ANYTHING))
-                                .waiting(exists(ANYTHING))
+                                .waiting(Method.GET, ANYTHING, successfulFixtureResponse(Method.GET, ANYTHING))
                                 .build()
                 )
                 .caseSpec(
@@ -115,7 +117,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(ANYTHING + "/xx/yyy"))
-                                .waiting(exists(ANYTHING + "/xx/yyy"))
+                                .waiting(Method.GET, ANYTHING + "/xx/yyy", successfulFixtureResponse(Method.GET, ANYTHING + "/xx/yyy"))
                                 .build()
                 )
                 .caseSpec(
@@ -154,7 +156,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(ANYTHING + "/xx"))
-                                .waiting(exists(ANYTHING + "/xx"))
+                                .waiting(Method.GET, ANYTHING + "/xx", successfulFixtureResponse(Method.GET, ANYTHING + "/xx"))
                                 .build()
                 )
                 .caseSpec(
@@ -192,7 +194,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(ANYTHING + "/200"))
-                                .waiting(exists(ANYTHING + "/200"))
+                                .waiting(Method.GET, ANYTHING + "/200", successfulFixtureResponse(Method.GET, ANYTHING + "/200"))
                                 .build()
                 )
                 .caseSpec(
@@ -238,7 +240,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(Method.GET, ANYTHING))
-                                .waiting(exists(Method.GET, ANYTHING))
+                                .waiting(Method.GET, ANYTHING, successfulFixtureResponse(Method.GET, ANYTHING))
                                 .build()
                 )
                 .caseSpec(
@@ -283,7 +285,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(Method.POST, ANYTHING))
-                                .waiting(exists(Method.POST, ANYTHING))
+                                .waiting(Method.POST, ANYTHING, successfulFixtureResponse(Method.POST, ANYTHING))
                                 .build()
                 )
                 .caseSpec(
@@ -328,7 +330,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(Method.PUT, ANYTHING))
-                                .waiting(exists(Method.PUT, ANYTHING))
+                                .waiting(Method.PUT, ANYTHING, successfulFixtureResponse(Method.PUT, ANYTHING))
                                 .build()
                 )
                 .caseSpec(
@@ -373,7 +375,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                                 .build()
                                 )
                                 .checker(notExists(Method.DELETE, ANYTHING))
-                                .waiting(exists(Method.DELETE, ANYTHING))
+                                .waiting(Method.DELETE, ANYTHING, successfulFixtureResponse(Method.DELETE, ANYTHING))
                                 .build()
                 )
                 .caseSpec(
@@ -389,5 +391,11 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 )
                 .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(Method.DELETE, ANYTHING)).build())
                 .build();
+    }
+
+    private ResponseSpecification successfulFixtureResponse(final Method method, final String endpoint) {
+        return new ResponseSpecBuilder().expectStatusCode(200)
+                .expectBody("method", equalTo(method.name()))
+                .expectBody("url", equalTo(endpoint)).build();
     }
 }

@@ -81,17 +81,6 @@ public interface DashboardUserService {
     DashboardUserVO findByUserName(String username);
 
     /**
-     * find dashboard user by query.
-     *
-     * @param userName user name
-     * @param password exact stored password value
-     * @return {@linkplain DashboardUserVO}
-     * @deprecated use {@link #findByUserName(String)} and {@link PasswordHashService} for authentication.
-     */
-    @Deprecated
-    DashboardUserVO findByQuery(String userName, String password);
-
-    /**
      * find page of dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
@@ -116,6 +105,17 @@ public interface DashboardUserService {
      * @return rows
      */
     int modifyPassword(DashboardUserModifyPasswordDTO dashboardUserModifyPasswordDTO);
+
+    /**
+     * revoke every token issued to the given dashboard user.
+     *
+     * <p>The stored token version is incremented so that tokens issued before
+     * this call are rejected on their next request, on every Admin instance.</p>
+     *
+     * @param id primary key of the dashboard user
+     * @return rows
+     */
+    int revokeTokens(String id);
 
     /**
      * check password.

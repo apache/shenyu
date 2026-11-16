@@ -30,7 +30,13 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,6 +57,51 @@ class DefaultCanaryDecisionServiceTest {
         assertEquals(9925, service.hashToBucket("规则甲", "用户乙"));
         assertEquals(912, service.hashToBucket("ab", "c"));
         assertEquals(6726, service.hashToBucket("a", "bc"));
+        assertEquals(2277, service.hashToBucket("", ""));
+        assertEquals(6055, service.hashToBucket("规则🚀", "用户😀".repeat(64)));
+        assertEquals(7748, service.hashToBucket("rule-1", "x".repeat(1024)));
+    }
+
+    @Test
+    void testHashingResetsAfterIncompleteInput() {
+        assertThrows(NullPointerException.class, () -> service.hashToBucket("unfinished-rule", null));
+        assertEquals(3033, service.hashToBucket("rule-1", "user-1"));
+        assertEquals(9925, service.hashToBucket("规则甲", "用户乙"));
+    }
+
+    @Test
+    void testConcurrentHashingPreservesBuckets() throws Exception {
+        String[] ruleIds = {"rule-1", "规则甲", "ab", "a"};
+        String[] keys = {"user-1", "用户乙", "c", "bc"};
+        int[] buckets = {3033, 9925, 912, 6726};
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        CountDownLatch ready = new CountDownLatch(4);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<?>> results = new ArrayList<>();
+        try {
+            for (int worker = 0; worker < 4; worker++) {
+                final int offset = worker;
+                results.add(executor.submit(() -> {
+                    ready.countDown();
+                    assertTrue(start.await(5, TimeUnit.SECONDS));
+                    DefaultCanaryDecisionService otherService = new DefaultCanaryDecisionService();
+                    for (int iteration = 0; iteration < 1000; iteration++) {
+                        int index = (iteration + offset) % buckets.length;
+                        assertEquals(buckets[index], service.hashToBucket(ruleIds[index], keys[index]));
+                        assertEquals(buckets[index], otherService.hashToBucket(ruleIds[index], keys[index]));
+                    }
+                    return null;
+                }));
+            }
+            assertTrue(ready.await(5, TimeUnit.SECONDS));
+            start.countDown();
+            for (Future<?> result : results) {
+                result.get(10, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
+        }
     }
 
     @Test

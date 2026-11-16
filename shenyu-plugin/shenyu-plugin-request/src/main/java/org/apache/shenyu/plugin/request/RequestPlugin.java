@@ -117,12 +117,25 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         MultiValueMap<String, String> queryParams = getQueryParams(request, requestHandle);
         MultiValueMap<String, String> encodedQueryParams = new LinkedMultiValueMap<>(queryParams.size());
         queryParams.forEach((key, values) -> values.forEach(value -> encodedQueryParams.add(
-                UriUtils.encodeQueryParam(key, StandardCharsets.UTF_8),
-                UriUtils.encodeQueryParam(value, StandardCharsets.UTF_8))));
+                encodeQueryComponent(key), encodeQueryComponent(value))));
         return UriComponentsBuilder.fromUri(request.getURI())
                 .replaceQueryParams(encodedQueryParams)
                 .build(true)
                 .toUri();
+    }
+
+    /**
+     * Encode a decoded query component. {@link UriUtils#encodeQueryParam} keeps '+' as is,
+     * which upstream servers decode as a space, so a literal '+' is escaped explicitly.
+     *
+     * @param component the decoded query name or value, null for a parameter without value
+     * @return the encoded query component
+     */
+    private static String encodeQueryComponent(final String component) {
+        if (Objects.isNull(component)) {
+            return null;
+        }
+        return UriUtils.encodeQueryParam(component, StandardCharsets.UTF_8).replace("+", "%2B");
     }
 
     /**

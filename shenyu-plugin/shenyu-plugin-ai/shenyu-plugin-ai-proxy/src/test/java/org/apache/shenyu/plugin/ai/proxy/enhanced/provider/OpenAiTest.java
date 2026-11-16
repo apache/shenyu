@@ -20,11 +20,11 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpenAiTest {
 
@@ -75,11 +76,19 @@ class OpenAiTest {
     }
 
     @Test
-    void testBuildRequestRejectsInvalidStreamOptions() throws Exception {
-        final String body = "{\"messages\":[{\"role\":\"user\"}],\"stream\":true,"
-                + "\"stream_options\":false}";
+    void testBuildsNativeResponsesRequest() throws Exception {
+        String body = "{\"model\":\"gpt-5\",\"input\":\"hello\",\"stream\":true,\"max_output_tokens\":16}";
+        ShenyuAiRequest request = new OpenAiResponses().decodeRequest(body, (ObjectNode) OBJECT_MAPPER.readTree(body));
+        AiUpstreamRequest upstreamRequest = provider.buildRequest(request, config);
+        JsonNode payload = OBJECT_MAPPER.readTree(upstreamRequest.getBody());
 
-        assertThrows(ShenyuException.class, () -> provider.buildRequest(decode(body), config));
+        assertTrue(provider.supports(OpenAiResponses.NAME));
+        assertEquals("https://api.openai.com/v1/responses", upstreamRequest.getUri().toString());
+        assertEquals("hello", payload.path("input").asText());
+        assertEquals(16, payload.path("max_output_tokens").asInt());
+        assertFalse(payload.has("messages"));
+        assertFalse(payload.has("max_completion_tokens"));
+        assertFalse(payload.has("stream_options"));
     }
 
     private ShenyuAiRequest decode(final String body) throws Exception {

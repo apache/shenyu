@@ -103,4 +103,13 @@ public interface InstanceInfoMapper extends ExistProvider {
      * @return rows
      */
     int updateById(InstanceInfoDO instanceInfoDO);
+
+    /**
+     * delete expired instance rows.
+     * Only rows that are still in the DELETED state and have not beaten after the cutoff are removed.
+     *
+     * @param cutoff only rows whose last heartbeat is older than this epoch millisecond cutoff are deleted
+     * @return rows
+     */
+    int deleteExpired(@Param("cutoff") Long cutoff);
 }

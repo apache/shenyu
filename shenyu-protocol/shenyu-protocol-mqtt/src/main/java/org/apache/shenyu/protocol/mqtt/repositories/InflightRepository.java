@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Tracks the inbound packet identifiers currently being acknowledged, so that
@@ -31,24 +32,29 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>The state is keyed by the client id, not by the channel: session state
  * belongs to the client id per spec, so during a duplicate-clientId takeover the
  * replacement channel shares — and must keep honoring — the same in-flight ids.</p>
+ *
+ * <p>{@link #register} and {@link #release} each run inside a single per-key
+ * {@code compute}, so a packet id added concurrently with an empty-entry cleanup
+ * can never be evicted with it, and an id is never added to a set that the map
+ * has already dropped (#8021).</p>
  */
 public class InflightRepository implements BaseRepository<String, Set<Integer>> {
 
-    private static final Map<String, Set<Integer>> INBOUND_INFLIGHT = new ConcurrentHashMap<>();
+    private final Map<String, Set<Integer>> inboundInflight = new ConcurrentHashMap<>();
 
     @Override
     public void add(final String clientId, final Set<Integer> packetIds) {
-        INBOUND_INFLIGHT.put(clientId, packetIds);
+        inboundInflight.put(clientId, packetIds);
     }
 
     @Override
     public void remove(final String clientId) {
-        INBOUND_INFLIGHT.remove(clientId);
+        inboundInflight.remove(clientId);
     }
 
     @Override
     public Set<Integer> get(final String clientId) {
-        return INBOUND_INFLIGHT.get(clientId);
+        return inboundInflight.get(clientId);
     }
 
     /**
@@ -59,7 +65,13 @@ public class InflightRepository implements BaseRepository<String, Set<Integer>> 
      * @return true when the packet was seen for the first time, false on a retransmission
      */
     public boolean register(final String clientId, final int packetId) {
-        return INBOUND_INFLIGHT.computeIfAbsent(clientId, key -> ConcurrentHashMap.newKeySet()).add(packetId);
+        final AtomicBoolean firstSeen = new AtomicBoolean();
+        inboundInflight.compute(clientId, (key, packetIds) -> {
+            final Set<Integer> ids = Objects.nonNull(packetIds) ? packetIds : ConcurrentHashMap.newKeySet();
+            firstSeen.set(ids.add(packetId));
+            return ids;
+        });
+        return firstSeen.get();
     }
 
     /**
@@ -71,10 +83,12 @@ public class InflightRepository implements BaseRepository<String, Set<Integer>> 
      * @param packetId the packet identifier to release
      */
     public void release(final String clientId, final int packetId) {
-        Set<Integer> packetIds = INBOUND_INFLIGHT.get(clientId);
-        if (Objects.nonNull(packetIds) && packetIds.remove(packetId) && packetIds.isEmpty()) {
-            // two-arg remove: a concurrent register must not be evicted
-            INBOUND_INFLIGHT.remove(clientId, packetIds);
-        }
+        inboundInflight.compute(clientId, (key, packetIds) -> {
+            if (Objects.isNull(packetIds)) {
+                return null;
+            }
+            packetIds.remove(packetId);
+            return packetIds.isEmpty() ? null : packetIds;
+        });
     }
 }

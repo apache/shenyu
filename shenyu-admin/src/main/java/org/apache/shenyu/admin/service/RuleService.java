@@ -93,6 +93,18 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     int deleteByIdsAndNamespaceId(List<String> ids, String namespaceId);
 
     /**
+     * delete rules for the registration flow.
+     *
+     * <p>Registration runs without a login user, so this path skips the plugin data permission
+     * check applied by {@link #deleteByIdsAndNamespaceId(List, String)}. Only use it from registration.</p>
+     *
+     * @param ids         primary key.
+     * @param namespaceId namespaceId.
+     * @return rows int
+     */
+    int deleteForRegistration(List<String> ids, String namespaceId);
+
+    /**
      * find rule by id and namespaceId.
      *
      * @param id primary key.
@@ -101,7 +113,10 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
     RuleVO findById(String id);
 
     /**
-     * find page of rule by query.
+     * find page of rule by query with the caller's data permission.
+     * <p>This legacy path applies the same data scope semantics as the condition-based
+     * {@code searchByPage} path: a non-administrator with no grants sees no rule,
+     * while a global administrator is unrestricted.</p>
      *
      * @param ruleQuery {@linkplain RuleQuery}
      * @return {@linkplain CommonPager}

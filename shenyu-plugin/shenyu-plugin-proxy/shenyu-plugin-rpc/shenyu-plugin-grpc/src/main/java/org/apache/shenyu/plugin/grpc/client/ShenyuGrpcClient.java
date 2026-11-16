@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
 import io.grpc.ClientCall;
+import io.grpc.ForwardingClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
@@ -97,7 +99,7 @@ public class ShenyuGrpcClient implements Closeable {
                 jsonResponse);
         
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse,
+        MessageWriter<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse,
                 resolveMaxAggregatedResultCount(), resolveMaxAggregatedResultBytes());
         
         ShenyuGrpcCallRequest callParams = new ShenyuGrpcCallRequest();
@@ -109,16 +111,31 @@ public class ShenyuGrpcClient implements Closeable {
         
         ListenableFuture<Void> invocation = this.invoke(callParams);
         CompletableFuture<ShenyuGrpcResponse> result = new CompletableFuture<>();
+        streamObserver.getOverflowFuture().thenAccept(failure -> {
+            if (result.completeExceptionally(failure)) {
+                invocation.cancel(true);
+            }
+        });
         Futures.addCallback(invocation, new FutureCallback<>() {
             @Override
             public void onSuccess(final Void ignored) {
-                result.complete(shenyuGrpcResponse);
+                ShenyuGrpcException overflow = streamObserver.getOverflowFuture().getNow(null);
+                if (Objects.nonNull(overflow)) {
+                    result.completeExceptionally(overflow);
+                } else {
+                    result.complete(shenyuGrpcResponse);
+                }
             }
 
             @Override
             public void onFailure(final Throwable throwable) {
-                result.completeExceptionally(new ShenyuGrpcException(
-                        "Caught exception while waiting for rpc :{ " + throwable.getMessage() + "}", throwable));
+                ShenyuGrpcException overflow = streamObserver.getOverflowFuture().getNow(null);
+                if (Objects.nonNull(overflow)) {
+                    result.completeExceptionally(overflow);
+                } else {
+                    result.completeExceptionally(new ShenyuGrpcException(
+                            "Caught exception while waiting for rpc :{ " + throwable.getMessage() + "}", throwable));
+                }
             }
         }, MoreExecutors.directExecutor());
         result.whenComplete((ignored, throwable) -> {
@@ -143,7 +160,22 @@ public class ShenyuGrpcClient implements Closeable {
         CompleteObserver<DynamicMessage> doneObserver = new CompleteObserver<>();
         StreamObserver<DynamicMessage> compositeObserver = CompositeStreamObserver.of(responseObserver, doneObserver);
 
-        ClientCall<DynamicMessage, DynamicMessage> call = createCall(callParams);
+        AtomicBoolean cancelled = new AtomicBoolean();
+        ClientCall<DynamicMessage, DynamicMessage> call = new ForwardingClientCall.SimpleForwardingClientCall<>(createCall(callParams)) {
+            @Override
+            public void cancel(final String message, final Throwable cause) {
+                // Downstream cancellation and aggregate overflow share one transport cleanup.
+                if (cancelled.compareAndSet(false, true)) {
+                    super.cancel(message, cause);
+                }
+            }
+        };
+        ListenableFuture<Void> completion = doneObserver.getCompletionFuture();
+        completion.addListener(() -> {
+            if (completion.isCancelled()) {
+                call.cancel("Gateway gRPC invocation cancelled", null);
+            }
+        }, MoreExecutors.directExecutor());
         if (responseObserver instanceof MessageWriter) {
             // allow the aggregator to cancel the RPC when a response budget is exhausted.
             @SuppressWarnings("unchecked")
@@ -160,14 +192,14 @@ public class ShenyuGrpcClient implements Closeable {
                 asyncServerStreamingCall(call, requestList.get(0), compositeObserver);
                 return doneObserver.getCompletionFuture();
             case CLIENT_STREAMING:
-                requestObserver = asyncClientStreamingCall(call, compositeObserver);
-                requestList.forEach(requestObserver::onNext);
-                requestObserver.onCompleted();
+                StreamingResponseObserver clientStreamingObserver = new StreamingResponseObserver(compositeObserver, requestList);
+                requestObserver = asyncClientStreamingCall(call, clientStreamingObserver);
+                startStreaming(doneObserver, requestObserver, clientStreamingObserver, requestList);
                 return doneObserver.getCompletionFuture();
             case BIDI_STREAMING:
-                requestObserver = asyncBidiStreamingCall(call, compositeObserver);
-                requestList.forEach(requestObserver::onNext);
-                requestObserver.onCompleted();
+                StreamingResponseObserver bidiStreamingObserver = new StreamingResponseObserver(compositeObserver, requestList);
+                requestObserver = asyncBidiStreamingCall(call, bidiStreamingObserver);
+                startStreaming(doneObserver, requestObserver, bidiStreamingObserver, requestList);
                 return doneObserver.getCompletionFuture();
             default:
                 LOG.info("Unknown methodType:{}", methodType);
@@ -189,6 +221,18 @@ public class ShenyuGrpcClient implements Closeable {
             return 0L;
         }
         return Optional.ofNullable(getter.apply(config)).orElse(0L);
+    }
+
+    private void startStreaming(final CompleteObserver<DynamicMessage> doneObserver,
+                                final StreamObserver<DynamicMessage> requestObserver,
+                                final StreamingResponseObserver streamingObserver,
+                                final List<DynamicMessage> requestList) {
+        if (streamingObserver.start()) {
+            doneObserver.getCompletionFuture().addListener(streamingObserver::terminate, MoreExecutors.directExecutor());
+            return;
+        }
+        requestList.forEach(requestObserver::onNext);
+        requestObserver.onCompleted();
     }
     
     @Override

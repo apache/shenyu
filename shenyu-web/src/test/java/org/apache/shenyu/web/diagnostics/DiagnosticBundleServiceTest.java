@@ -74,6 +74,34 @@ public final class DiagnosticBundleServiceTest {
     }
 
     @Test
+    public void totalBudgetCapsSectionWait() {
+        DiagnosticProperties properties = new DiagnosticProperties();
+        properties.setTotalTimeoutMs(50L);
+        properties.setSectionTimeoutMs(5000L);
+        DiagnosticBundleService service = service(properties, new SleepingCollector("slow", 5000L));
+        long startNanos = System.nanoTime();
+        DiagnosticSection section = service.collect().getSections().get(0);
+        long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+        assertEquals(SectionStatus.FAILED, section.getStatus());
+        assertEquals("total budget exhausted", section.getReason());
+        assertTrue(elapsedMs < 1000L, "a section started near the total deadline must not wait for a full section timeout, took " + elapsedMs + "ms");
+    }
+
+    @Test
+    public void laterCollectorCannotRestartFullSectionAllowance() {
+        DiagnosticProperties properties = new DiagnosticProperties();
+        properties.setTotalTimeoutMs(50L);
+        properties.setSectionTimeoutMs(5000L);
+        DiagnosticBundleService service = service(properties, new SleepingCollector("slow", 5000L), new FixedCollector("runtime", "{}"));
+        List<DiagnosticSection> sections = service.collect().getSections();
+        assertEquals(2, sections.size());
+        assertEquals(SectionStatus.FAILED, sections.get(0).getStatus());
+        assertEquals("total budget exhausted", sections.get(0).getReason());
+        assertEquals(SectionStatus.SKIPPED, sections.get(1).getStatus());
+        assertEquals("total budget exhausted", sections.get(1).getReason());
+    }
+
+    @Test
     public void oversizedSectionIsTruncated() {
         DiagnosticProperties properties = new DiagnosticProperties();
         properties.setMaxSectionBytes(8);

@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,20 +46,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see org.apache.shenyu.plugin.base.AbstractShenyuPlugin
  * @see org.apache.shenyu.plugin.wasm.api.loader.WasmLoader
  */
-public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
-    
+public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin implements AutoCloseable {
+
     protected static final Logger LOG = LoggerFactory.getLogger(AbstractShenyuWasmPlugin.class);
-    
+
     protected static final Map<Long, Argument> ARGUMENTS = new ConcurrentHashMap<>();
-    
+
     protected static final String DO_EXECUTE_METHOD_NAME = "doExecute";
-    
+
     protected static final String BEFORE_METHOD_NAME = "before";
-    
+
     protected static final String AFTER_METHOD_NAME = "after";
-    
+
     private final WasmLoader wasmLoader;
-    
+
     public AbstractShenyuWasmPlugin() {
         // Pass null initializer so WasmLoader registers built-in get_args/put_result
         // and calls its own initWasmCallJavaFunc (no-op by default).
@@ -78,7 +79,7 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
     public AbstractShenyuWasmPlugin(final java.util.function.Consumer<Store> initializer) {
         this.wasmLoader = new WasmLoader(this.getClass(), initializer);
     }
-    
+
     /**
      * Get the WASM module's linear memory for use in host functions.
      *
@@ -87,23 +88,23 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
     public Memory getMemory() {
         return wasmLoader.getMemory();
     }
-    
+
+    @Override
+    public void close() {
+        wasmLoader.close();
+    }
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange,
                                    final ShenyuPluginChain chain,
                                    final SelectorData selector,
                                    final RuleData rule) {
-        return wasmLoader.getWasmExtern(DO_EXECUTE_METHOD_NAME).map(doExecute -> {
-            final Long argumentId = callWASI(exchange, chain, selector, rule, doExecute);
-            return doExecute(exchange, chain, selector, rule, argumentId);
-        }).orElseGet(() -> {
-            LOG.error("{} function not found in {}", DO_EXECUTE_METHOD_NAME, wasmLoader.getWasmName());
-            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.WASM_FUNC_NOT_FOUND);
-            return WebFluxResultUtils.result(exchange, error);
-        });
+        if (wasmLoader.hasExecutionDeadline()) {
+            return Mono.defer(() -> executeWasm(exchange, chain, selector, rule)).subscribeOn(Schedulers.boundedElastic());
+        }
+        return executeWasm(exchange, chain, selector, rule);
     }
-    
+
     /**
      * this is Template Method child has implements your own logic.
      *
@@ -115,7 +116,20 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     protected abstract Mono<Void> doExecute(ServerWebExchange exchange, ShenyuPluginChain chain, SelectorData selector, RuleData rule, Long argumentId);
-    
+
+    private Mono<Void> executeWasm(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
+        return wasmLoader.getWasmExtern(DO_EXECUTE_METHOD_NAME).map(doExecute -> {
+            final Long argumentId = callWASI(exchange, chain, selector, rule, doExecute);
+            return doExecute(exchange, chain, selector, rule, argumentId);
+        }).orElseGet(() -> {
+            LOG.error("{} function not found in {}", DO_EXECUTE_METHOD_NAME, wasmLoader.getWasmName());
+            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.WASM_FUNC_NOT_FOUND);
+            return WebFluxResultUtils.result(exchange, error);
+        });
+    }
+
     private Long callWASI(final ServerWebExchange exchange,
                           final ShenyuPluginChain chain,
                           final SelectorData selector,
@@ -133,34 +147,34 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
         }
         return argumentId;
     }
-    
+
     protected abstract Long getArgumentId(ServerWebExchange exchange,
                                           ShenyuPluginChain chain,
                                           SelectorData selector,
                                           RuleData rule);
-    
+
     @Override
     public void before(final ServerWebExchange exchange) {
         wasmLoader.getWasmExtern(BEFORE_METHOD_NAME)
                 .ifPresent(before -> callWASI(exchange, null, null, null, before));
     }
-    
+
     @Override
     public void after(final ServerWebExchange exchange) {
         wasmLoader.getWasmExtern(AFTER_METHOD_NAME)
                 .ifPresent(before -> callWASI(exchange, null, null, null, before));
     }
-    
+
     protected static final class Argument {
-        
+
         private final ServerWebExchange exchange;
-        
+
         private final ShenyuPluginChain chain;
-        
+
         private final SelectorData selector;
-        
+
         private final RuleData rule;
-        
+
         private Argument(final ServerWebExchange exchange,
                          final ShenyuPluginChain chain,
                          final SelectorData selector,
@@ -170,19 +184,19 @@ public abstract class AbstractShenyuWasmPlugin extends AbstractShenyuPlugin {
             this.selector = selector;
             this.rule = rule;
         }
-        
+
         public ServerWebExchange getExchange() {
             return exchange;
         }
-        
+
         public ShenyuPluginChain getChain() {
             return chain;
         }
-        
+
         public SelectorData getSelector() {
             return selector;
         }
-        
+
         public RuleData getRule() {
             return rule;
         }

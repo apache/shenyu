@@ -46,6 +46,16 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
     protected abstract void doRefresh(List<T> dataList);
 
     /**
+     * Do a refresh scoped to the payload when the group supports it; the default
+     * keeps the legacy whole-group refresh.
+     *
+     * @param dataList the data list
+     */
+    protected void doScopedRefresh(final List<T> dataList) {
+        doRefresh(dataList);
+    }
+
+    /**
      * Do update.
      *
      * @param dataList the data list
@@ -86,9 +96,11 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
         List<T> dataList = convert(json);
         DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
         switch (eventTypeEnum) {
-            case REFRESH:
             case MYSELF:
                 doRefresh(CollectionUtils.isEmpty(dataList) ? Collections.emptyList() : dataList);
+                break;
+            case REFRESH:
+                doScopedRefresh(CollectionUtils.isEmpty(dataList) ? Collections.emptyList() : dataList);
                 break;
             case UPDATE:
             case CREATE:

@@ -23,6 +23,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.WebSocketRuleHandle;
+import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
@@ -56,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -103,10 +105,29 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = buildWsRealPath(exchange, upstream, shenyuContext);
-        LOG.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("websocket upstream url: {}", toLogUrl(wsRequestUrl));
+        }
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
-                wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
+        // The Mono returned by the WebSocket service completes when the upgrade handshake finishes; the
+        // proxied session then runs on its own subscription. The count therefore has to be attached to the
+        // handler, which is where the session actually lives, not to the handshake.
+        WebSocketHandler handler = new ShenyuWebSocketHandler(wsRequestUrl, this.webSocketClient,
+                filterHeaders(headers), buildWsProtocols(headers));
+        final boolean selectionAlreadyReserved = LoadBalanceEnum.SHORTEST_RESPONSE.getName().equals(ruleHandle.getLoadBalance());
+        if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(ruleHandle.getLoadBalance()) || selectionAlreadyReserved) {
+            InflightWebSocketHandler inflightHandler = new InflightWebSocketHandler(handler, upstream, selectionAlreadyReserved);
+            handler = inflightHandler;
+            Mono<Void> handshake = this.webSocketService.handleRequest(exchange, handler);
+            if (selectionAlreadyReserved) {
+                // Selection already reserved this attempt. The handshake Mono completes when the upgrade
+                // finishes, while the session keeps running on its own subscription, so release here only
+                // when that session never started. A session that does start releases itself exactly once.
+                return handshake.doFinally(signalType -> inflightHandler.releaseSelectionIfSessionDidNotStart());
+            }
+            return handshake;
+        }
+        return this.webSocketService.handleRequest(exchange, handler);
     }
 
     private WebSocketRuleHandle buildRuleHandle(final RuleData rule) {
@@ -119,6 +140,22 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             protocol = "ws://";
         }
         return RequestUrlUtils.buildRequestUri(exchange, upstream.buildDomain(protocol));
+    }
+
+    /**
+     * Describe the upstream url for logging without the query, fragment or user info,
+     * which may carry credentials such as {@code ?token=...}.
+     *
+     * @param uri the upstream url
+     * @return scheme, host, port and path of the url
+     */
+    static String toLogUrl(final URI uri) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(uri.getScheme()).append("://").append(uri.getHost());
+        if (uri.getPort() != -1) {
+            builder.append(':').append(uri.getPort());
+        }
+        return builder.append(Objects.toString(uri.getRawPath(), "")).toString();
     }
 
     private List<String> buildWsProtocols(final HttpHeaders headers) {
@@ -211,6 +248,94 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.WEB_SOCKET.getCode();
+    }
+
+    /**
+     * Keeps an upstream's outstanding-request count paired with the proxied session.
+     *
+     * <p>Least active reserves when the session starts, because that algorithm does not reserve on selection.
+     * Shortest response already reserved on selection, so this wrapper only releases that reservation: when
+     * the session ends, or when the handshake ends without a session. The count cannot be attached only to
+     * the Mono the plugin returns, because that one completes as soon as the upgrade handshake is done while
+     * the session keeps running.
+     */
+    private static final class InflightWebSocketHandler implements WebSocketHandler {
+
+        private static final int IDLE = 0;
+
+        private static final int SESSION_STARTED = 1;
+
+        private static final int RELEASED = 2;
+
+        private final WebSocketHandler delegate;
+
+        private final Upstream upstream;
+
+        private final boolean selectionAlreadyReserved;
+
+        private final AtomicInteger reservation = new AtomicInteger(IDLE);
+
+        InflightWebSocketHandler(final WebSocketHandler delegate, final Upstream upstream, final boolean selectionAlreadyReserved) {
+            this.delegate = delegate;
+            this.upstream = upstream;
+            this.selectionAlreadyReserved = selectionAlreadyReserved;
+        }
+
+        @NonNull
+        @Override
+        public Mono<Void> handle(@NonNull final WebSocketSession session) {
+            return Mono.defer(() -> {
+                if (selectionAlreadyReserved) {
+                    reservation.compareAndSet(IDLE, SESSION_STARTED);
+                } else {
+                    upstream.getInflight().incrementAndGet();
+                }
+                Mono<Void> proxied;
+                try {
+                    proxied = delegate.handle(session);
+                } catch (RuntimeException e) {
+                    // A failure before the session starts must not leave the upstream reserved forever.
+                    releaseReservation();
+                    throw e;
+                }
+                if (Objects.isNull(proxied)) {
+                    releaseReservation();
+                    return Mono.empty();
+                }
+                return proxied.doFinally(signalType -> releaseReservation());
+            });
+        }
+
+        private void releaseSelectionIfSessionDidNotStart() {
+            if (reservation.compareAndSet(IDLE, RELEASED)) {
+                releaseInflight();
+            }
+        }
+
+        private void releaseReservation() {
+            if (!selectionAlreadyReserved) {
+                upstream.getInflight().decrementAndGet();
+                return;
+            }
+            int current;
+            do {
+                current = reservation.get();
+                if (current == RELEASED) {
+                    return;
+                }
+            } while (!reservation.compareAndSet(current, RELEASED));
+            releaseInflight();
+        }
+
+        private void releaseInflight() {
+            upstream.getInflight().updateAndGet(current -> current > 0 ? current - 1 : 0);
+        }
+
+        @NonNull
+        @Override
+        public List<String> getSubProtocols() {
+            return delegate.getSubProtocols();
+        }
     }
 
     private static class ShenyuWebSocketHandler implements WebSocketHandler {

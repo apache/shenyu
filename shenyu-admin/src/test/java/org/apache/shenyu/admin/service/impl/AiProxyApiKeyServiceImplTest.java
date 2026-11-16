@@ -25,9 +25,12 @@ import org.apache.shenyu.admin.model.query.ProxyApiKeyQuery;
 import org.apache.shenyu.admin.model.vo.ProxyApiKeyVO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.page.CommonPager;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -38,6 +41,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -78,16 +82,72 @@ class AiProxyApiKeyServiceImplTest {
         assertEquals(ConfigGroupEnum.AI_PROXY_API_KEY, captor.getValue().getGroupKey());
     }
 
-    @Test
-    void testUpdatePublishesEvent() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testUpdatePublishesPersistedMapping(final boolean enabled) {
         ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
         dto.setId("id-1");
-        dto.setNamespaceId("default");
+        dto.setNamespaceId("namespace-1");
+        dto.setEnabled(enabled);
+        ProxyApiKeyDO persisted = new ProxyApiKeyDO("proxy-1", "description", enabled, "namespace-1");
+        persisted.setId("id-1");
+        persisted.setSelectorId("selector-1");
         when(mapper.updateSelective(any())).thenReturn(1);
-        service.update(dto);
+        when(mapper.selectById("id-1")).thenReturn(persisted);
+        when(realKeyResolver.resolveRealKey("selector-1")).thenReturn(Optional.of("real-1"));
+
+        assertEquals(1, service.update(dto));
+
         ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
         verify(publisher).publishEvent(captor.capture());
         assertEquals(ConfigGroupEnum.AI_PROXY_API_KEY, captor.getValue().getGroupKey());
+        assertEquals(1, captor.getValue().getSource().size());
+        ProxyApiKeyData data = (ProxyApiKeyData) captor.getValue().getSource().get(0);
+        assertEquals("selector-1", data.getSelectorId());
+        assertEquals("proxy-1", data.getProxyApiKey());
+        assertEquals("namespace-1", data.getNamespaceId());
+        assertEquals("description", data.getDescription());
+        assertEquals(enabled, data.getEnabled());
+        assertEquals("real-1", data.getRealApiKey());
+    }
+
+    @Test
+    void testUpdateDescriptionPreservesEnabledStatus() {
+        ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
+        dto.setId("id-1");
+        dto.setNamespaceId("namespace-1");
+        dto.setDescription("updated description");
+        ProxyApiKeyDO persisted = new ProxyApiKeyDO("proxy-1", "updated description", true, "namespace-1");
+        persisted.setId("id-1");
+        persisted.setSelectorId("selector-1");
+        when(mapper.updateSelective(any())).thenReturn(1);
+        when(mapper.selectById("id-1")).thenReturn(persisted);
+        when(realKeyResolver.resolveRealKey("selector-1")).thenReturn(Optional.of("real-1"));
+
+        assertEquals(1, service.update(dto));
+
+        ArgumentCaptor<DataChangedEvent> captor = ArgumentCaptor.forClass(DataChangedEvent.class);
+        verify(publisher).publishEvent(captor.capture());
+        ProxyApiKeyData data = (ProxyApiKeyData) captor.getValue().getSource().get(0);
+        assertEquals("selector-1", data.getSelectorId());
+        assertEquals("proxy-1", data.getProxyApiKey());
+        assertEquals("updated description", data.getDescription());
+        assertEquals(Boolean.TRUE, data.getEnabled());
+        assertEquals("real-1", data.getRealApiKey());
+    }
+
+    @Test
+    void testUpdateNoEventWhenNoRows() {
+        ProxyApiKeyDTO dto = new ProxyApiKeyDTO();
+        dto.setId("id-1");
+        dto.setNamespaceId("namespace-1");
+        dto.setEnabled(false);
+        when(mapper.updateSelective(any())).thenReturn(0);
+
+        assertEquals(0, service.update(dto));
+
+        verify(mapper, never()).selectById(any());
+        verify(publisher, never()).publishEvent(any());
     }
 
     @Test

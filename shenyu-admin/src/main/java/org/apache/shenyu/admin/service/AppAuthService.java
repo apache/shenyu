@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * this is application authority service.
  */
-public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
+public interface AppAuthService extends PageService<AppAuthQuery, AppAuthListVO> {
 
 
     /**
@@ -130,7 +131,7 @@ public interface AppAuthService extends PageService<AppAuthQuery, AppAuthVO> {
      * @param appAuthQuery {@linkplain AppAuthQuery}
      * @return {@linkplain CommonPager}
      */
-    CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
+    CommonPager<AppAuthListVO> listByPage(AppAuthQuery appAuthQuery);
 
     /**
      * List all list.

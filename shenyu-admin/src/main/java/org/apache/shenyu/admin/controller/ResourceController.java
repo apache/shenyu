@@ -105,10 +105,7 @@ public class ResourceController {
     @RequiresPermissions(value = {"system:resource:addButton", "system:resource:list"}, logical = Logical.OR)
     public ShenyuAdminResult getButton(final String id) {
         List<ResourceVO> resourceVOList = resourceService.findByParentId(id);
-        if (CollectionUtils.isNotEmpty(resourceVOList)) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, resourceVOList);
-        }
-        return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, resourceVOList);
     }
     
     /**

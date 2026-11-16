@@ -79,13 +79,13 @@ public class ShenyuClientRegisterTarsServiceImpl extends AbstractShenyuClientReg
         if (CollectionUtils.isEmpty(existList)) {
             canAddList = addList;
         } else {
-            List<TarsUpstream> diffList = addList.stream().filter(upstream -> !existList.contains(upstream)).collect(Collectors.toList());
+            List<TarsUpstream> diffList = addList.stream().filter(upstream -> existList.stream().noneMatch(existing -> sameUpstreamIdentity(existing, upstream))).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
             }
             List<TarsUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
-                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+                    || existList.stream().anyMatch(e -> sameUpstreamIdentity(e, upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffStatusList)) {
                 canAddList.addAll(diffStatusList);
                 syncUpstreamStatus(existList, diffStatusList);

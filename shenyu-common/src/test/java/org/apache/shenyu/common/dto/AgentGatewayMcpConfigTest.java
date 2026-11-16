@@ -38,6 +38,7 @@ class AgentGatewayMcpConfigTest {
     void shouldDefaultToNoToolsAndBoundedJson() {
         AgentGatewayMcpConfig config = parse("{}");
         assertEquals(Set.of(), config.getAllowedTools());
+        assertEquals(Set.of(), config.getAllowedResources());
         assertEquals(Set.of(), config.getAllowedOrigins());
         assertEquals("json", config.getResponseMode());
         assertEquals(30000, config.getTimeoutMs());
@@ -86,5 +87,21 @@ class AgentGatewayMcpConfigTest {
 
     private AgentGatewayMcpConfig parse(final String source) {
         return AgentGatewayMcpConfig.parse(JsonParser.parseString(source), true);
+    }
+
+    @Test
+    void shouldFreezeResourcePermissionsWithoutGrantingTools() {
+        JsonObject source = JsonParser.parseString("{\"allowedResources\":[\"orders.status\"]}").getAsJsonObject();
+        AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(source, true);
+        source.getAsJsonArray("allowedResources").add("inventory.status");
+        assertEquals(Set.of("orders.status"), config.getAllowedResources());
+        assertEquals(Set.of(), config.getAllowedTools());
+        assertThrows(UnsupportedOperationException.class, () -> config.getAllowedResources().clear());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "1", "[null]", "[\"*\"]", "[\" \" ]", "[\"orders.status\",\"orders.status\"]"})
+    void shouldRejectInvalidResourcePermissions(final String resources) {
+        assertThrows(IllegalArgumentException.class, () -> parse("{\"allowedResources\":" + resources + "}"));
     }
 }

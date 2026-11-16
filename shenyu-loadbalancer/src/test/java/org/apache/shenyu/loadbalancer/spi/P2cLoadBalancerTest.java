@@ -63,4 +63,38 @@ public class P2cLoadBalancerTest {
         Upstream upstream1 = p2cLoadBalancer.doSelect(upstreamList, new LoadBalanceData());
         Assertions.assertTrue(upstream.getUrl().equals("baidu.com") && upstream1.getUrl().equals("pro.jd.com"));
     }
+
+    @Test
+    public void testSingletonSelectionIncrementsInflightOnce() {
+        Upstream upstream = Upstream.builder()
+                .url("a:80")
+                .protocol("http://")
+                .weight(100)
+                .status(true)
+                .build();
+        final P2cLoadBalancer p2cLoadBalancer = new P2cLoadBalancer();
+        long before = upstream.getInflight().get();
+        Upstream picked = p2cLoadBalancer.select(List.of(upstream), new LoadBalanceData());
+        Assertions.assertSame(upstream, picked);
+        Assertions.assertEquals(before + 1, upstream.getInflight().get());
+    }
+
+    @Test
+    public void testSingletonSelectionStaysPairedWithCompletionDecrement() {
+        Upstream upstream = Upstream.builder()
+                .url("a:80")
+                .protocol("http://")
+                .weight(100)
+                .status(true)
+                .build();
+        final P2cLoadBalancer p2cLoadBalancer = new P2cLoadBalancer();
+        long baseline = upstream.getInflight().get();
+        for (int i = 0; i < 2; i++) {
+            p2cLoadBalancer.select(List.of(upstream), new LoadBalanceData());
+            // mirrors DividePlugin's P2C completion callback (responseTrigger)
+            upstream.getInflight().decrementAndGet();
+        }
+        Assertions.assertEquals(baseline, upstream.getInflight().get());
+        Assertions.assertTrue(upstream.getInflight().get() >= 0);
+    }
 }

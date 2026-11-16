@@ -27,14 +27,15 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * least active algorithm impl.
  *
- * <p>An upstream is active while it is serving a request, which the divide plugin records in
- * {@link Upstream#getInflight()}: the count is increased before a request is forwarded and released on
- * success, error and cancellation. The least active upstream wins; when several upstreams share the lowest
- * count they are picked by weight, warmup included, so a newly added upstream is not sent a catch-up burst
- * while its weight is still ramping up.
+ * <p>An upstream is active while it is serving a request, which is recorded in {@link Upstream#getInflight()}:
+ * the count is increased before a request is forwarded and released on success, error and cancellation. The
+ * least active upstream wins; when several upstreams share the lowest count they are picked by weight, warmup
+ * included, so a newly added upstream is not sent a catch-up burst while its weight is still ramping up.
  *
- * <p>Selection only reads the count. A caller that does not maintain it sees every upstream at the same
- * baseline and the choice falls back to weight.
+ * <p>The divide, websocket and apache dubbo gray routing paths maintain the count. Other callers see every
+ * upstream at the same baseline and the choice falls back to weight: the grpc picker, the tcp proxy and the
+ * java sdk rebuild {@link Upstream} objects on every call, so a count kept on them could not be shared across
+ * requests.
  */
 @Join
 public class LeastActiveLoadBalance extends AbstractLoadBalancer {
@@ -46,7 +47,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
         int leastCount = 0;
         int[] leastIndexes = new int[length];
         int[] weights = new int[length];
-        int totalWeight = 0;
+        long totalWeight = 0;
         int firstWeight = 0;
         boolean sameWeight = true;
 
@@ -75,7 +76,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalancer {
             return upstreamList.get(leastIndexes[0]);
         }
         if (!sameWeight && totalWeight > 0) {
-            int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+            long offsetWeight = ThreadLocalRandom.current().nextLong(totalWeight);
             for (int i = 0; i < leastCount; i++) {
                 int leastIndex = leastIndexes[i];
                 offsetWeight -= weights[leastIndex];

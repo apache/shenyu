@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Websocket sync data service. */
@@ -174,7 +175,15 @@ public class WebsocketSyncDataService implements SyncDataService {
             // An open socket may still be waiting for its running-mode reply.
             if (Objects.equals(runningMode, RunningModeEnum.CLUSTER.name()) && !websocketClient.isConnectedToMaster()) {
                 URI masterUri = parseMasterUri(websocketClient.getMasterUrl());
-                if (Objects.nonNull(masterUri) && !masterUri.equals(websocketClient.getURI())) {
+                URI currentUri = websocketClient.getURI();
+                if (Objects.nonNull(masterUri) && !masterUri.equals(currentUri)) {
+                    if (!isTrustedMaster(masterUri, currentUri)) {
+                        // keep the trusted follower connection instead of reconnecting to an
+                        // advertised destination that must not receive the sync credential
+                        LOG.warn("Ignore untrusted websocket master [{}] advertised by [{}]",
+                                describeOrigin(masterUri), describeOrigin(currentUri));
+                        continue;
+                    }
                     masterUrls.add(masterUri);
                 }
                 websocketClient.nowClose();
@@ -235,6 +244,22 @@ public class WebsocketSyncDataService implements SyncDataService {
         for (String url : urls) {
             clients.add(createClient(url));
         }
+    }
+
+    private boolean isTrustedMaster(final URI advertised, final URI current) {
+        final List<URI> connected = clients.stream()
+                .map(ShenyuWebsocketClient::getURI)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        return MasterTargetPolicy.isTrustedMaster(advertised, current, connected, websocketConfig.getUrls(),
+                websocketConfig.getTrustedMasterHosts(), websocketConfig.isAllowInsecureMasterRedirect());
+    }
+
+    private String describeOrigin(final URI uri) {
+        if (Objects.isNull(uri)) {
+            return "null";
+        }
+        return uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     }
 
     private URI parseMasterUri(final String masterUrl) {
@@ -311,6 +336,9 @@ public class WebsocketSyncDataService implements SyncDataService {
         }
         if (StringUtils.isNotBlank(websocketConfig.getToken())) {
             headers.put(Constants.X_SHENYU_SYNC_TOKEN, websocketConfig.getToken());
+        }
+        if (websocketConfig.isCompactDiscoveryPayload()) {
+            headers.put(Constants.X_SHENYU_DISCOVERY_PAYLOAD, Constants.COMPACT_DISCOVERY_PAYLOAD_V1);
         }
         return new ShenyuWebsocketClient(
                 URI.create(url),

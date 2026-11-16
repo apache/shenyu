@@ -92,6 +92,27 @@ class HttpbinTest(unittest.TestCase):
                 self.assertTrue(mount["read_only"])
                 self.assertIn("/anything", fixture["healthcheck"]["test"][-1])
 
+    def test_mysql_healthchecks_use_the_application_tcp_port(self):
+        compose = Path(__file__).resolve().parent.parent
+        files = sorted((compose / "storage").glob("*.yml"))
+        files += sorted((compose / "sync").glob("*.yml"))
+        checked_services = 0
+        for path in files:
+            result = subprocess.run(
+                ["docker", "compose", "-f", str(path), "config", "--format", "json"],
+                check=True, capture_output=True, text=True,
+            )
+            for name, service in json.loads(result.stdout)["services"].items():
+                if service["image"].startswith("mysql:"):
+                    checked_services += 1
+                    with self.subTest(compose=path.name, service=name):
+                        command = service["healthcheck"]["test"]
+                        self.assertIn("-h", command)
+                        self.assertEqual("127.0.0.1", command[command.index("-h") + 1])
+                        self.assertIn("-P", command)
+                        self.assertEqual("3306", command[command.index("-P") + 1])
+        self.assertGreater(checked_services, 0, "No MySQL services were checked")
+
 
 if __name__ == "__main__":
     unittest.main()

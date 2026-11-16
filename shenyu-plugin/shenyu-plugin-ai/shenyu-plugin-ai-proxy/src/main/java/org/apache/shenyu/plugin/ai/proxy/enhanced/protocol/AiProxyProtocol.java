@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 
+import java.util.Objects;
+
 /**
  * Contract for decoding a client AI protocol into ShenYu-owned models.
  */
@@ -52,6 +54,21 @@ public interface AiProxyProtocol {
     ShenyuAiRequest decodeRequest(
             String rawBody,
             ObjectNode payload);
+
+    /**
+     * Prepare a request payload for this target protocol.
+     *
+     * <p>The engine supplies a request-scoped copy, so implementations may modify and return it.
+     * Provider authentication, endpoint selection and provider-specific dialect adaptation do not belong here.</p>
+     *
+     * @param payload target protocol request payload
+     * @param overrides protocol-level request overrides
+     * @return prepared request payload
+     */
+    default ObjectNode prepareOutgoingRequest(final ObjectNode payload, final AiProtocolRequestOverrides overrides) {
+        Objects.requireNonNull(overrides, "AI protocol request overrides are required");
+        return Objects.requireNonNull(payload, "AI protocol payload is required");
+    }
 
     /**
      * Encode provider-adapted response bytes for the client protocol.

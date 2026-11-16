@@ -70,7 +70,7 @@ public final class SelectorDataHandlerTest {
 
 
     @ParameterizedTest
-    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    @ValueSource(strings = {"MYSELF"})
     void testRefreshEventsClearThenUseBatchCallback(final String eventType) {
         List<SelectorData> batch = createFakeSelectorDataObjects(2);
         batch.forEach(data -> data.setContinued(true));
@@ -80,12 +80,28 @@ public final class SelectorDataHandlerTest {
         verifyNoMoreInteractions(subscriber);
     }
 
+    @Test
+    void testRefreshEventUsesScopedCallback() {
+        List<SelectorData> batch = createFakeSelectorDataObjects(2);
+        batch.forEach(data -> data.setContinued(true));
+        selectorDataHandler.handle(new Gson().toJson(batch), "REFRESH");
+        verify(subscriber).refreshSelectorDataScoped(batch);
+        verifyNoMoreInteractions(subscriber);
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    @ValueSource(strings = {"MYSELF"})
     void testEmptyRefreshClearsSnapshot(final String eventType) {
         selectorDataHandler.handle("[]", eventType);
         verify(subscriber).refreshSelectorDataAll();
         verify(subscriber).onSelectorRefresh(java.util.Collections.emptyList());
+        verifyNoMoreInteractions(subscriber);
+    }
+
+    @Test
+    void testEmptyRefreshEventUsesScopedCallback() {
+        selectorDataHandler.handle("[]", "REFRESH");
+        verify(subscriber).refreshSelectorDataScoped(Collections.emptyList());
         verifyNoMoreInteractions(subscriber);
     }
 
