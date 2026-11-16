@@ -64,6 +64,22 @@ import java.util.stream.Collectors;
 public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryStrategy.class);
 
+    /**
+     * Immutable template for the CURRENT retry strategy (#8433): reactor-core's
+     * {@link RetryBackoffSpec} is copy-on-write — every configurator returns a new
+     * spec and the per-retry state lives on per-subscription subscribers — so this
+     * static instance can be shared across concurrent requests, and each request
+     * only derives its own copy. The exhausted-throw hook reads the per-request
+     * exchange, so it stays a per-request configurator instead of a template part.
+     */
+    private static final RetryBackoffSpec CURRENT_RETRY_TEMPLATE = Retry.backoff(1, Duration.ofMillis(20L))
+            .maxBackoff(Duration.ofSeconds(20L))
+            .transientErrors(true)
+            .jitter(0.5d)
+            .filter(t -> (t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
+                    || t instanceof io.netty.handler.timeout.ReadTimeoutException || t instanceof IllegalStateException)
+                    && !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException));
+
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
     public DefaultRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
@@ -75,13 +91,8 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(() -> "current");
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
-            RetryBackoffSpec retryBackoffSpec = Retry.backoff(retryTimes, Duration.ofMillis(20L))
-                    .maxBackoff(Duration.ofSeconds(20L))
-                    .transientErrors(true)
-                    .jitter(0.5d)
-                    .filter(t -> (t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
-                            || t instanceof io.netty.handler.timeout.ReadTimeoutException || t instanceof IllegalStateException)
-                            && !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException))
+            RetryBackoffSpec retryBackoffSpec = CURRENT_RETRY_TEMPLATE
+                    .maxAttempts(retryTimes)
                     .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
                         if (exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST) && retrySignal.failure() instanceof TimeoutException) {
                             return retrySignal.failure();
