@@ -42,6 +42,10 @@ final class AiProxyRetryPolicy {
                     AiTransportException.Kind.IO_FAILURE);
 
     Decision decideStatus(final FailureContext context) {
+        if (context.credentialFailure() && context.hasStatus()
+                && AiProxyCredentialFailureClassifier.isCredentialStatus(context.status())) {
+            return decideReplayableFailure(context, false, true);
+        }
         if (!retryableStatus(context.status())) {
             return Decision.FORWARD_RESPONSE;
         }
@@ -164,6 +168,7 @@ final class AiProxyRetryPolicy {
      * @param replayPolicy configured replay policy
      * @param providerDeclaredReplaySafe whether the current provider explicitly declared replay safety
      * @param fallbackProviderDeclaredReplaySafe whether the fallback provider explicitly declared replay safety
+     * @param credentialFailure whether the upstream response matched a trusted credential failure declaration
      */
     record FailureContext(
             AiTransportException.Kind kind,
@@ -175,7 +180,16 @@ final class AiProxyRetryPolicy {
             ShenyuAiRequest.Operation operation,
             AiProxyRetryProperties.ReplayProperties replayPolicy,
             boolean providerDeclaredReplaySafe,
-            boolean fallbackProviderDeclaredReplaySafe) {
+            boolean fallbackProviderDeclaredReplaySafe,
+            boolean credentialFailure) {
+
+        FailureContext(final AiTransportException.Kind kind, final Integer status, final Map<String, ?> headers,
+                       final int retriesRemaining, final boolean fallbackAvailable, final boolean conservativeReplaySafe,
+                       final ShenyuAiRequest.Operation operation, final AiProxyRetryProperties.ReplayProperties replayPolicy,
+                       final boolean providerDeclaredReplaySafe, final boolean fallbackProviderDeclaredReplaySafe) {
+            this(kind, status, headers, retriesRemaining, fallbackAvailable, conservativeReplaySafe,
+                    operation, replayPolicy, providerDeclaredReplaySafe, fallbackProviderDeclaredReplaySafe, false);
+        }
 
         FailureContext {
             Objects.requireNonNull(headers, "headers must not be null");
@@ -188,6 +202,11 @@ final class AiProxyRetryPolicy {
 
         boolean hasStatus() {
             return Objects.nonNull(status);
+        }
+
+        FailureContext withCredentialFailure(final boolean classified) {
+            return new FailureContext(kind, status, headers, retriesRemaining, fallbackAvailable, conservativeReplaySafe,
+                    operation, replayPolicy, providerDeclaredReplaySafe, fallbackProviderDeclaredReplaySafe, classified);
         }
 
         boolean executionAmbiguous() {

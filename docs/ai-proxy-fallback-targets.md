@@ -81,3 +81,7 @@ Each request uses the selector configuration it captures when execution starts. 
 Managed target authorization controls which administrator-configured URI a request can select. It does not resolve or pin DNS addresses, impose an IP-range policy, or turn a hostname into a DNS-rebinding defense. Keep deployment egress and DNS restrictions in place for approved endpoints, and keep redirects disabled in the shared HTTP transport. The standard WebClient transport does not follow redirects; a custom transport must preserve that boundary. This change does not replace ShenYu's shared transport policy or make arbitrary third-party endpoints trusted.
 
 Fallback resolution logs neither configuration objects nor request payloads. Rejections use fixed messages and the gateway records only the exception class before returning an empty error response.
+
+## Credential failure trigger
+
+Fallback targets can also be considered for explicitly declared upstream credential failures through the default-off [credential failure fallback option](ai-proxy-credential-fallback.md). This startup option changes failure eligibility; it does not change target authorization, credential binding or the existing replay policy.

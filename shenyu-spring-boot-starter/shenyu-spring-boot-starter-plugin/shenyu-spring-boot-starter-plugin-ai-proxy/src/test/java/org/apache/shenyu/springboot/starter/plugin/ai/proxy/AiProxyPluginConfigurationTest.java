@@ -64,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -298,6 +299,8 @@ class AiProxyPluginConfigurationTest {
         contextRunner.run(context -> {
             final AiProxyRetryProperties properties = context.getBean(AiProxyRetryProperties.class);
             assertEquals(3, properties.getMaxRetries());
+            assertFalse(properties.getCredentialFailureFallback().isEnabled());
+            assertTrue(properties.getCredentialFailureFallback().getDeclarations().isEmpty());
             assertEquals(1, properties.getStreamingMaxRetries());
             assertEquals(Duration.ofSeconds(1), properties.getInitialBackoff());
             assertEquals(Duration.ofSeconds(30), properties.getMaxBackoff());
@@ -311,6 +314,75 @@ class AiProxyPluginConfigurationTest {
             assertEquals(AiProxyRetryProperties.ReplayMode.CONSERVATIVE,
                     properties.getReplay().getAmbiguousTransport());
         });
+    }
+
+    @Test
+    void shouldBindAndValidateCredentialDeclarationsAfterBinding() {
+        contextRunner.withPropertyValues(credentialFailureProperties()).run(context -> {
+            org.assertj.core.api.Assertions.assertThat(context).hasNotFailed();
+            final AiProxyRetryProperties properties = context.getBean(AiProxyRetryProperties.class);
+            assertTrue(properties.getCredentialFailureFallback().isEnabled());
+            assertEquals(1, properties.getCredentialFailureFallback().getDeclarations().size());
+            final AiProxyRetryProperties.CredentialFailureDeclaration declaration = properties.getCredentialFailureFallback().getDeclarations().get(0);
+            assertEquals("https://fixture.example/v1/chat/completions", declaration.getEndpoint());
+            assertEquals("openai-chat", declaration.getProtocol());
+            assertEquals(401, declaration.getStatus());
+            assertEquals("error.code", declaration.getType());
+            assertEquals("credential_revoked", declaration.getValue());
+            org.assertj.core.api.Assertions.assertThat(context).hasSingleBean(AiProxyEngine.class);
+        });
+    }
+
+    @Test
+    void shouldRejectInvalidCredentialDeclarationsAtEngineCreation() {
+        final String prefix = "shenyu.plugins.ai.proxy.retry.credential-failure-fallback.";
+        contextRunner.withPropertyValues(prefix + "enabled=true")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+        for (String invalid : List.of("endpoint=http://fixture.example/v1/chat/completions", "protocol=unsupported",
+                "status=400", "value=", "type=", "type=error.message")) {
+            contextRunner.withPropertyValues(credentialFailureProperties())
+                    .withPropertyValues(prefix + "declarations[0]." + invalid)
+                    .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+        }
+        contextRunner.withPropertyValues(credentialFailureProperties())
+                .withPropertyValues(prefix + "enabled=false", prefix + "declarations[0].status=500")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    @Test
+    void shouldBindMultipleCredentialRulesInSameScope() {
+        final String prefix = "shenyu.plugins.ai.proxy.retry.credential-failure-fallback.declarations[1].";
+        for (String type : List.of("error.code", "error.type")) {
+            contextRunner.withPropertyValues(credentialFailureProperties()).withPropertyValues(
+                    prefix + "endpoint=https://fixture.example/v1/chat/completions", prefix + "protocol=openai-chat",
+                    prefix + "status=401", prefix + "type=" + type, prefix + "value=credential_expired").run(context -> {
+                        org.assertj.core.api.Assertions.assertThat(context).hasNotFailed();
+                        final List<AiProxyRetryProperties.CredentialFailureDeclaration> rules = context.getBean(AiProxyRetryProperties.class)
+                                .getCredentialFailureFallback().getDeclarations();
+                        assertEquals(2, rules.size());
+                        assertEquals(type, rules.get(1).getType());
+                        assertEquals("credential_expired", rules.get(1).getValue());
+                        org.assertj.core.api.Assertions.assertThat(context).hasSingleBean(AiProxyEngine.class);
+                    });
+        }
+    }
+
+    @Test
+    void shouldRejectDuplicateCredentialRulesAfterBinding() {
+        final String prefix = "shenyu.plugins.ai.proxy.retry.credential-failure-fallback.declarations[1].";
+        contextRunner.withPropertyValues(credentialFailureProperties()).withPropertyValues(
+                prefix + "endpoint=https://FIXTURE.example:443/v1/chat/completions", prefix + "protocol=openai-chat",
+                prefix + "status=401", prefix + "type=error.code", prefix + "value=credential_revoked")
+                .run(context -> org.assertj.core.api.Assertions.assertThat(context).hasFailed());
+    }
+
+    private String[] credentialFailureProperties() {
+        final String prefix = "shenyu.plugins.ai.proxy.retry.credential-failure-fallback.";
+        return new String[] {prefix + "enabled=true",
+            prefix + "declarations[0].endpoint=https://fixture.example/v1/chat/completions",
+            prefix + "declarations[0].protocol=openai-chat",
+            prefix + "declarations[0].status=401",
+            prefix + "declarations[0].value=credential_revoked"};
     }
 
     @Test
