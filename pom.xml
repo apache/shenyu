@@ -142,7 +142,7 @@
 
         <!-- dependency version start -->
         <jasypt.version>1.9.2</jasypt.version>
-        <mybatis.starter.version>3.0.3</mybatis.starter.version>
+        <mybatis.starter.version>3.0.5</mybatis.starter.version>
         <mysql.version>8.3.0</mysql.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <guava.version>33.7.2-jre</guava.version>
@@ -156,10 +156,10 @@
         <pagehelper.version>5.3.3</pagehelper.version>
         <apache.dubbo.version>3.2.14</apache.dubbo.version>
         <gson.version>2.13.2</gson.version>
-        <okhttp.version>4.9.3</okhttp.version>
+        <okhttp.version>4.12.0</okhttp.version>
         <prometheus-java-client.version>0.15.0</prometheus-java-client.version>
         <prometheus-jmx.version>0.15.0</prometheus-jmx.version>
-        <springdoc.version>2.5.0</springdoc.version>
+        <springdoc.version>2.8.17</springdoc.version>
         <sofa.rpc.version>5.13.0</sofa.rpc.version>
         <sofa-common-tools.version>2.1.1</sofa-common-tools.version>
         <tars.version>1.7.2</tars.version>
@@ -167,45 +167,60 @@
         <wiremock.version>3.0.1</wiremock.version>
         <zookeeper.version>3.9.5</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
-        <shiro.version>1.13.0</shiro.version>
+        <shiro.version>2.2.1</shiro.version>
         <jwt.version>3.12.0</jwt.version>
-        <spring-boot.version>3.3.1</spring-boot.version>
+        <spring-boot.version>3.5.16</spring-boot.version>
         <netty.version>4.1.139.Final</netty.version>
-        <aspectjweaver.version>1.9.6</aspectjweaver.version>
-        <h2.version>1.4.200</h2.version>
+        <aspectjweaver.version>1.9.25.1</aspectjweaver.version>
+        <h2.version>2.3.232</h2.version>
         <jetcd-core.version>0.7.3</jetcd-core.version>
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>5.11.0</mockito.version>
         <awaitility.version>4.0.3</awaitility.version>
-        <commons-io.version>2.11.0</commons-io.version>
+        <commons-io.version>2.21.0</commons-io.version>
         <nacos-client.version>2.2.4</nacos-client.version>
-        <spring-security.version>6.3.0</spring-security.version>
+        <spring-security.version>6.5.11</spring-security.version>
         <grpc.version>1.65.1</grpc.version>
         <rocketmq-client.version>4.9.3</rocketmq-client.version>
-        <lz4-java.version>1.8.0</lz4-java.version>
+        <lz4-java.version>1.11.4</lz4-java.version>
         <elasticsearch-java.version>8.2.3</elasticsearch-java.version>
-        <jackson-databind.version>2.15.3</jackson-databind.version>
+        <jackson-databind.version>2.21.7</jackson-databind.version>
+        <jackson-bom.version>2.21.7</jackson-bom.version>
+        <tomcat.version>10.1.61</tomcat.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
+        <xstream.version>1.4.21</xstream.version>
+        <jose4j.version>0.9.6</jose4j.version>
+        <xerces.version>2.12.2</xerces.version>
+        <log4j2.version>2.25.5</log4j2.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
+        <httpclient.version>4.5.14</httpclient.version>
+        <vertx.version>4.5.27</vertx.version>
+        <rhino.version>1.7.15.1</rhino.version>
+        <fastjson.version>2.0.66</fastjson.version>
+        <snappy.version>1.1.10.9</snappy.version>
+        <opentelemetry.version>1.67.0</opentelemetry.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
         <elasticsearch-rest-client.version>8.2.3</elasticsearch-rest-client.version>
         <kafka-clients.version>3.9.2</kafka-clients.version>
         <eureka.version>2.0.2</eureka.version>
         <javatuples.version>1.2</javatuples.version>
-        <k8s-client.version>17.0.2</k8s-client.version>
+        <k8s-client.version>19.0.3</k8s-client.version>
         <bytebuddy.version>1.14.11</bytebuddy.version>
-        <spring-ldap.version>2.3.4.RELEASE</spring-ldap.version>
+        <spring-ldap.version>3.3.8</spring-ldap.version>
         <jaxb.api.version>2.3.1</jaxb.api.version>
         <mail-api.version>2.1.3</mail-api.version>
         <mail.version>2.0.2</mail.version>
         <ojdbc8.version>19.3.0.0</ojdbc8.version>
-        <spring-cloud-commons.version>4.1.2</spring-cloud-commons.version>
-        <spring-cloud.version>4.1.2</spring-cloud.version>
+        <spring-cloud-commons.version>4.3.3</spring-cloud-commons.version>
+        <spring-cloud.version>4.3.3</spring-cloud.version>
+        <spring-cloud-dependencies.version>2025.0.3</spring-cloud-dependencies.version>
         <caffeine.version>2.9.3</caffeine.version>
         <httpasyncclient.version>4.1.5</httpasyncclient.version>
         <asm.version>9.2</asm.version>
         <apollo.version>2.1.0</apollo.version>
         <resilience.version>1.7.1</resilience.version>
         <sentinel.version>1.8.3</sentinel.version>
-        <lettuce.version>6.1.2.RELEASE</lettuce.version>
+        <lettuce.version>6.6.0.RELEASE</lettuce.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
         <jsonpath.version>2.4.0</jsonpath.version>
         <opengauss-jdbc.version>5.0.0-og</opengauss-jdbc.version>
@@ -213,8 +228,8 @@
         <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
         <oceanbase.version>2.4.12</oceanbase.version>
         <spring-ai.version>1.1.8</spring-ai.version>
-        <mcp.version>0.17.0</mcp.version>
-        <swagger-models.version>2.2.34</swagger-models.version>
+        <mcp.version>0.18.3</mcp.version>
+        <swagger-models.version>2.2.47</swagger-models.version>
         <swagger-parser.version>2.1.30</swagger-parser.version>
         <re2j.version>1.8</re2j.version>
         <slf4j.version>2.0.17</slf4j.version>
@@ -242,6 +257,192 @@
             </dependency>
 
             <dependency>
+                <!-- Override the imported Boot BOM with the patched Jackson release train. -->
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-el</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${tomcat.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.thoughtworks.xstream</groupId>
+                <artifactId>xstream</artifactId>
+                <version>${xstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bitbucket.b_c</groupId>
+                <artifactId>jose4j</artifactId>
+                <version>${jose4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>${xerces.version}</version>
+            </dependency>
+
+            <!-- Apply security fixes to transitive dependencies before importing the Boot BOM. -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-bom</artifactId>
+                <version>${log4j2.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-stack-depchain</artifactId>
+                <version>${vertx.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino</artifactId>
+                <version>${rhino.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk18on</artifactId>
+                <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2-extension</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>at.yawk.lz4</groupId>
+                <artifactId>lz4-java</artifactId>
+                <version>${lz4-java.version}</version>
+            </dependency>
+            <!-- This relocation POM redirects legacy consumers to the maintained LZ4 group. -->
+            <dependency>
+                <groupId>org.lz4</groupId>
+                <artifactId>lz4-java</artifactId>
+                <version>1.8.1</version>
+            </dependency>
+
+            <!-- Boot 3.5 no longer manages OkHttp; keep the client and interceptor aligned. -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp-bom</artifactId>
+                <version>${okhttp.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Keep the existing plugin API and every transitive Resilience4j module on the same line. -->
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-bulkhead</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-circuitbreaker</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-core</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-micrometer</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-ratelimiter</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-reactor</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-retry</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-timelimiter</artifactId>
+                <version>${resilience.version}</version>
+            </dependency>
+
+            <!-- Use the release train compatible with Boot 3.5 for all Cloud components. -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${opentelemetry.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -251,17 +452,17 @@
             </dependency>
             
             <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-bom</artifactId>
-                <version>${spring-ai.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            
-            <dependency>
                 <groupId>io.modelcontextprotocol.sdk</groupId>
                 <artifactId>mcp-bom</artifactId>
                 <version>${mcp.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -806,6 +1007,34 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>project-release-notice</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Use the project attribution in every Maven classifier, including shaded JARs. -->
+                            <outputDirectory>${project.build.directory}/maven-shared-archive-resources/META-INF</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${maven.multiModuleProjectDirectory}</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>NOTICE</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
@@ -821,6 +1050,8 @@
                     <sourcepath>src/main/java</sourcepath>
                     <detectJavaApiLink>false</detectJavaApiLink>
                     <detectOfflineLinks>false</detectOfflineLinks>
+                    <!-- Javadoc's own legal/LICENSE does not license the ShenYu artifact. -->
+                    <javadocDirectory>${project.build.directory}/maven-shared-archive-resources</javadocDirectory>
                 </configuration>
                 <executions>
                     <execution>

@@ -35,7 +35,8 @@ public class RandomUtil {
      */
     public static int randomInt(final int min, final int max) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        return random.nextInt(max - min + 1) + min;
+        // Widen the exclusive upper bound to preserve inclusive ranges across integer overflow.
+        return (int) random.nextLong(min, (long) max + 1);
     }
     
     /**

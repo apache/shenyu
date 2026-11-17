@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
+import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import reactor.core.publisher.Flux;
 
 import java.io.ByteArrayOutputStream;
@@ -49,12 +51,32 @@ final class OpenAiChatSse {
 
     private int eventBytes;
 
+    private final AiStreamCompletionProperties.Mode mode;
+
+    private final AiRequestObservation.Attempt observation;
+
+    private OpenAiChatSse(final AiStreamCompletionProperties.Mode mode, final AiRequestObservation.Attempt observation) {
+        this.mode = mode;
+        this.observation = observation;
+    }
+
     static Flux<byte[]> encode(final Flux<byte[]> source) {
-        return Flux.defer(() -> {
-            OpenAiChatSse decoder = new OpenAiChatSse();
+        return encode(source, AiStreamCompletionProperties.Mode.COMPATIBILITY);
+    }
+
+    static Flux<byte[]> encode(final Flux<byte[]> source, final AiStreamCompletionProperties.Mode mode) {
+        return Flux.deferContextual(context -> {
+            OpenAiChatSse decoder = new OpenAiChatSse(mode, context.getOrDefault(AiRequestObservation.Attempt.REACTOR_KEY, null));
+            decoder.framing(AiStreamCompletion.Framing.NONE);
             return source.concatMapIterable(decoder::accept, 1)
                     .takeUntil(bytes -> java.util.Arrays.equals(bytes, "data: [DONE]\n\n".getBytes(StandardCharsets.UTF_8)))
-                    .concatWith(Flux.defer(() -> Flux.fromIterable(decoder.finish())));
+                    .concatWith(Flux.defer(() -> Flux.fromIterable(decoder.finish())))
+                    .doOnError(ignored -> decoder.framing(AiStreamCompletion.Framing.NONE))
+                    .doOnCancel(() -> {
+                        if (!decoder.done) {
+                            decoder.framing(AiStreamCompletion.Framing.NONE);
+                        }
+                    });
         });
     }
 
@@ -85,6 +107,7 @@ final class OpenAiChatSse {
         data.setLength(0);
         if ("[DONE]".equals(payload)) {
             done = true;
+            framing(AiStreamCompletion.Framing.PASSTHROUGH_MARKER);
         } else {
             try {
                 JsonNode parsed = MAPPER.readTree(payload);
@@ -102,15 +125,26 @@ final class OpenAiChatSse {
     private List<byte[]> finish() {
         List<byte[]> events = new ArrayList<>();
         if (!done) {
+            if (mode == AiStreamCompletionProperties.Mode.STRICT) {
+                framing(AiStreamCompletion.Framing.NONE);
+                throw new AiProxyException(AiProxyException.Kind.PROTOCOL, "AI stream ended without a terminal marker", null);
+            }
             if (line.size() > 0) {
                 readLine(events);
             }
             dispatch(events);
             if (!done) {
+                framing(AiStreamCompletion.Framing.SYNTHESIZED_MARKER);
                 events.add("data: [DONE]\n\n".getBytes(StandardCharsets.UTF_8));
             }
         }
         return events;
+    }
+
+    private void framing(final AiStreamCompletion.Framing value) {
+        if (java.util.Objects.nonNull(observation)) {
+            observation.streamFraming(value);
+        }
     }
 
     private final class EventIterator implements Iterator<byte[]> {

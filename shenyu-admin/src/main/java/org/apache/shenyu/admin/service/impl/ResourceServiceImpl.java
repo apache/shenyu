@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.config.properties.DashboardProperties;
+import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.model.dto.CreateResourceDTO;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
@@ -43,7 +44,14 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -51,21 +59,25 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ResourceServiceImpl implements ResourceService {
-    
+
     private final ResourceMapper resourceMapper;
-    
+
+    private final PluginMapper pluginMapper;
+
     private final ResourceEventPublisher publisher;
-    
+
     private final DashboardProperties properties;
-    
+
     public ResourceServiceImpl(final ResourceMapper resourceMapper,
+                               final PluginMapper pluginMapper,
                                final ResourceEventPublisher publisher,
                                final DashboardProperties properties) {
         this.resourceMapper = resourceMapper;
+        this.pluginMapper = pluginMapper;
         this.publisher = publisher;
         this.properties = properties;
     }
-    
+
     /**
      * create Resources.
      *
@@ -104,7 +116,7 @@ public class ResourceServiceImpl implements ResourceService {
         }
         return updateCount;
     }
-    
+
     /**
      * delete resource info.
      *
@@ -122,7 +134,7 @@ public class ResourceServiceImpl implements ResourceService {
         }
         return deleteCount;
     }
-    
+
     /**
      * find resource info by id.
      *
@@ -133,7 +145,7 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceVO findById(final String id) {
         return ResourceVO.buildResourceVO(resourceMapper.selectById(id));
     }
-    
+
     /**
      * find resource info by title.
      *
@@ -144,18 +156,18 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceVO findByTitle(final String title) {
         return ResourceVO.buildResourceVO(resourceMapper.selectByTitle(title));
     }
-    
+
     /**
      * find by title.
      *
      * @param titles resource titles
-     * @return {@linkplain ResourceVO}
+     * @return {@linkplain List}
      */
     @Override
     public List<ResourceVO> listByTitles(final List<String> titles) {
         return ListUtil.map(resourceMapper.selectByTitles(titles), ResourceVO::buildResourceVO);
     }
-    
+
     /**
      * find page of role by query.
      *
@@ -170,7 +182,7 @@ public class ResourceServiceImpl implements ResourceService {
                 .map(ResourceVO::buildResourceVO)
                 .collect(Collectors.toList()));
     }
-    
+
     /**
      * get menu info.
      *
@@ -178,15 +190,71 @@ public class ResourceServiceImpl implements ResourceService {
      */
     @Override
     public List<MenuInfo> getMenuTree() {
-        // Hide super administrator special privileges
-        List<ResourceVO> resourceVOList = resourceMapper.selectAll()
-                .stream()
-                .filter(r -> !properties.getOnlySuperAdminPermission().contains(r.getPerms()))
+        List<ResourceDO> resources = resourceMapper.selectAll();
+        if (CollectionUtils.isEmpty(resources)) {
+            return null;
+        }
+
+        Set<String> disabledPluginNames = pluginMapper.selectAll().stream()
+                .filter(plugin -> !Boolean.TRUE.equals(plugin.getEnabled()))
+                .map(PluginDO::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> hiddenResourceIds = getDisabledPluginResourceIds(resources, disabledPluginNames);
+
+        // Hide super administrator special privileges and disabled plugin resources.
+        List<ResourceVO> resourceVOList = resources.stream()
+                .filter(resource -> !properties.getOnlySuperAdminPermission().contains(resource.getPerms()))
+                .filter(resource -> !hiddenResourceIds.contains(resource.getId()))
                 .map(ResourceVO::buildResourceVO)
                 .collect(Collectors.toList());
+
         return CollectionUtils.isEmpty(resourceVOList) ? null : ResourceUtil.buildMenu(resourceVOList);
     }
-    
+
+    /**
+     * Get all resource IDs belonging to disabled plugins, including their descendants.
+     *
+     * @param resources all resources
+     * @param disabledPluginNames names of disabled plugins
+     * @return resource IDs to hide
+     */
+    private Set<String> getDisabledPluginResourceIds(final List<ResourceDO> resources, final Set<String> disabledPluginNames) {
+        Set<String> hiddenResourceIds = new HashSet<>();
+        if (CollectionUtils.isEmpty(disabledPluginNames)) {
+            return hiddenResourceIds;
+        }
+
+        Map<String, List<ResourceDO>> childrenByParentId = new HashMap<>();
+        for (ResourceDO resource : resources) {
+            childrenByParentId.computeIfAbsent(resource.getParentId(), key -> new ArrayList<>()).add(resource);
+        }
+
+        Queue<String> resourceIdsToProcess = new ArrayDeque<>();
+        for (ResourceDO resource : resources) {
+            if (AdminConstants.RESOURCE_PLUGIN_ID.equals(resource.getParentId())
+                    && disabledPluginNames.contains(resource.getName())) {
+                if (hiddenResourceIds.add(resource.getId())) {
+                    resourceIdsToProcess.offer(resource.getId());
+                }
+            }
+        }
+
+        while (!resourceIdsToProcess.isEmpty()) {
+            String parentId = resourceIdsToProcess.poll();
+            List<ResourceDO> children = childrenByParentId.get(parentId);
+            if (CollectionUtils.isNotEmpty(children)) {
+                for (ResourceDO child : children) {
+                    if (hiddenResourceIds.add(child.getId())) {
+                        resourceIdsToProcess.offer(child.getId());
+                    }
+                }
+            }
+        }
+
+        return hiddenResourceIds;
+    }
+
     /**
      * get button by parent id.
      *
@@ -201,13 +269,14 @@ public class ResourceServiceImpl implements ResourceService {
                 .map(ResourceVO::buildResourceVO)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * The associated Handle needs to be created synchronously.
      * add plugin and add plugin resource.
      *
      * @param event event
      */
+    @Transactional(rollbackFor = Exception.class)
     @EventListener(value = PluginCreatedEvent.class)
     public void onPluginCreated(final PluginCreatedEvent event) {
         Assert.isNull(resourceMapper.nameExisted(event.getPlugin().getName()), AdminConstants.RESOURCE_NAME_IS_EXIST);
@@ -215,7 +284,7 @@ public class ResourceServiceImpl implements ResourceService {
         this.createOne(resourceDO);
         insertResourceBatch(ResourceUtil.buildPluginDataPermissionResource(resourceDO.getId(), event.getPlugin().getName()));
     }
-    
+
     /**
      * The associated Handle needs to be deleted synchronously.
      *
@@ -230,7 +299,7 @@ public class ResourceServiceImpl implements ResourceService {
             delete(ListUtil.map(resources, ResourceVO::getId));
         }
     }
-    
+
     private int createOne(final ResourceDO resource) {
         final int insertCount = resourceMapper.insertSelective(resource);
         if (insertCount > 0) {
@@ -238,7 +307,6 @@ public class ResourceServiceImpl implements ResourceService {
         }
         return insertCount;
     }
-    
 
     /**
      * insert Resources.

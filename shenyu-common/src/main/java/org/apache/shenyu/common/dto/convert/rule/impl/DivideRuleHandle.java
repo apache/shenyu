@@ -56,6 +56,9 @@ public class DivideRuleHandle implements RuleHandle {
      */
     private long timeout = Constants.TIME_OUT;
 
+    /** Overall HTTPRoute timeout in milliseconds; null selects legacy timeout handling. */
+    private Long requestTimeout;
+
     /**
      * headerMaxSize.
      */
@@ -75,6 +78,48 @@ public class DivideRuleHandle implements RuleHandle {
      * Optional sticky session affinity configuration.
      */
     private StickySessionConfig sticky;
+
+    /**
+     * Optional name of a configured upstream connection-pool group (see
+     * {@code shenyu.httpclient.pool-groups}); null selects the default shared pool.
+     * The name must reference a group that exists at gateway startup; an unknown
+     * reference visibly fails the request instead of falling back silently.
+     */
+    private String poolGroup;
+
+    /**
+     * Get the overall HTTPRoute request budget.
+     * @return milliseconds, zero for a disabled deadline, or null for legacy retry handling
+     */
+    public Long getRequestTimeout() {
+        return requestTimeout;
+    }
+
+    /**
+     * Set the overall HTTPRoute request budget.
+     * @param requestTimeout milliseconds, zero for a disabled deadline, or null for legacy retry handling
+     */
+    public void setRequestTimeout(final Long requestTimeout) {
+        this.requestTimeout = requestTimeout;
+    }
+
+    /**
+     * Gets the optional pool group name.
+     *
+     * @return the pool group name, or null for the default pool
+     */
+    public String getPoolGroup() {
+        return poolGroup;
+    }
+
+    /**
+     * Sets the optional pool group name.
+     *
+     * @param poolGroup the pool group name
+     */
+    public void setPoolGroup(final String poolGroup) {
+        this.poolGroup = poolGroup;
+    }
 
     /**
      * New instance divide rule handle.
@@ -249,14 +294,14 @@ public class DivideRuleHandle implements RuleHandle {
         DivideRuleHandle that = (DivideRuleHandle) o;
         return retry == that.retry && timeout == that.timeout && headerMaxSize == that.headerMaxSize
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
-                && Objects.equals(retryStrategy, that.retryStrategy)
+                && Objects.equals(requestTimeout, that.requestTimeout) && Objects.equals(retryStrategy, that.retryStrategy)
                 && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary)
-                && Objects.equals(sticky, that.sticky);
+                && Objects.equals(sticky, that.sticky) && Objects.equals(poolGroup, that.poolGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, headerMaxSize, requestMaxSize, canary, sticky);
+        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, requestTimeout, headerMaxSize, requestMaxSize, canary, sticky, poolGroup);
     }
 
     @Override
@@ -275,6 +320,8 @@ public class DivideRuleHandle implements RuleHandle {
                 + retry
                 + ", timeout="
                 + timeout
+                + ", requestTimeout="
+                + requestTimeout
                 + ", headerMaxSize="
                 + headerMaxSize
                 + ", requestMaxSize="
@@ -283,6 +330,9 @@ public class DivideRuleHandle implements RuleHandle {
                 + canary
                 + ", sticky="
                 + sticky
+                + ", poolGroup='"
+                + poolGroup
+                + '\''
                 + '}';
     }
 }

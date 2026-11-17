@@ -21,8 +21,8 @@ import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.vo.NamespacePluginVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
-import org.springframework.util.Base64Utils;
 
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -50,7 +50,7 @@ public enum PluginTransfer {
                         .role(element.getRole())
                         .enabled(element.getEnabled())
                         .sort(element.getSort())
-                        .pluginJar(Optional.ofNullable(element.getPluginJar()).map(Base64Utils::encodeToString).orElse(""))
+                        .pluginJar(Optional.ofNullable(element.getPluginJar()).map(Base64.getEncoder()::encodeToString).orElse(""))
                         .build())
                 .orElse(null);
     }
@@ -90,7 +90,7 @@ public enum PluginTransfer {
                         .role(element.getRole())
                         .enabled(element.getEnabled())
                         .sort(element.getSort())
-                        .pluginJar(Optional.ofNullable(element.getPluginJar()).map(Base64Utils::encodeToString).orElse(""))
+                        .pluginJar(Optional.ofNullable(element.getPluginJar()).map(Base64.getEncoder()::encodeToString).orElse(""))
                         .namespaceId(element.getNamespaceId())
                         .build())
                 .orElse(null);

@@ -18,27 +18,25 @@
 package org.apache.shenyu.admin.validation.validator;
 
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
-import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
 
-/** Reject invalid aggregation references before persistence and data-sync publication. */
+/** Registry-backed plugin-scope validation retaining the existing public entry point. */
 public final class AgentGatewayPluginConfigValidator {
 
     private AgentGatewayPluginConfigValidator() {
     }
 
     /**
-     * Leave other plugins' configuration contracts unchanged.
+     * Validate registered contracts and preserve the unregistered legacy path.
      * @param name trusted stored plugin name
      * @param config supplied plugin configuration
      */
     public static void validate(final String name, final String config) {
-        if (PluginEnum.AGENT_GATEWAY.getName().equals(name)) {
-            try {
-                AgentGatewayAggregationConfig.parsePluginConfig(config);
-            } catch (IllegalArgumentException error) {
-                throw new ShenyuAdminException("Invalid Agent Gateway aggregation configuration");
-            }
+        ConfigurationValidation result = ConfigurationContractRegistry.shared().validate(name, ConfigurationScope.PLUGIN, "1", config);
+        if (result.status() == ConfigurationValidation.Status.INVALID) {
+            throw new ShenyuAdminException("Invalid plugin configuration: " + result.plugin() + " " + result.violations().get(0).code());
         }
     }
 }
