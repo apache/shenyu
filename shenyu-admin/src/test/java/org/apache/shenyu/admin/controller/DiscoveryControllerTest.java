@@ -20,12 +20,16 @@ package org.apache.shenyu.admin.controller;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
+import org.apache.shenyu.admin.model.dto.DiscoveryRelDTO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -44,6 +48,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -118,6 +123,37 @@ public final class DiscoveryControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.discoveryName").value("test-discovery"));
         verify(discoveryService).createOrUpdate(any(DiscoveryDTO.class));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"handler, false", "handler, true", "relation, false", "relation, true", "both, false", "both, true"})
+    public void testNestedDiscoveryObjectsAreRejectedBeforeServiceCall(final String nestedField, final boolean update) throws Exception {
+        when(namespaceMapper.existed(NAMESPACE_ID)).thenReturn(true);
+        DiscoveryDTO discoveryDTO = buildDiscoveryDTO();
+        discoveryDTO.setId(update ? "discovery-1" : null);
+        if (!"relation".equals(nestedField)) {
+            DiscoveryHandlerDTO handler = new DiscoveryHandlerDTO();
+            if (update) {
+                handler.setHandler("{}");
+                handler.setDiscoveryId("discovery-1");
+            }
+            discoveryDTO.setDiscoveryHandler(handler);
+        }
+        if (!"handler".equals(nestedField)) {
+            DiscoveryRelDTO relation = new DiscoveryRelDTO();
+            if (update) {
+                relation.setSelectorId("selector-1");
+            }
+            discoveryDTO.setDiscoveryRel(relation);
+        }
+
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/discovery/insertOrUpdate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(discoveryDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message", containsString("discoveryHandler and discoveryRel are not supported")));
+        verifyNoInteractions(discoveryService);
     }
 
     @Test

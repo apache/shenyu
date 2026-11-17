@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 
+import java.util.Objects;
+
 /**
  * this is discovery controller.
  */
@@ -78,6 +80,9 @@ public class DiscoveryController {
     @PostMapping("/insertOrUpdate")
     @RequiresPermissions("system:plugin:edit")
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final DiscoveryDTO discoveryDTO) {
+        if (Objects.nonNull(discoveryDTO.getDiscoveryHandler()) || Objects.nonNull(discoveryDTO.getDiscoveryRel())) {
+            return ShenyuAdminResult.error("discoveryHandler and discoveryRel are not supported by /discovery/insertOrUpdate; submit discovery configuration only");
+        }
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.createOrUpdate(discoveryDTO));
     }
 
