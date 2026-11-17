@@ -53,10 +53,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -113,7 +115,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         // proxied session then runs on its own subscription. The count therefore has to be attached to the
         // handler, which is where the session actually lives, not to the handshake.
         WebSocketHandler handler = new ShenyuWebSocketHandler(wsRequestUrl, this.webSocketClient,
-                filterHeaders(headers), buildWsProtocols(headers));
+                filterHeaders(headers), buildWsProtocols(headers), ruleHandle.getTimeout());
         final boolean selectionAlreadyReserved = LoadBalanceEnum.SHORTEST_RESPONSE.getName().equals(ruleHandle.getLoadBalance());
         if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(ruleHandle.getLoadBalance()) || selectionAlreadyReserved) {
             InflightWebSocketHandler inflightHandler = new InflightWebSocketHandler(handler, upstream, selectionAlreadyReserved);
@@ -349,20 +351,32 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         private final List<String> subProtocols;
 
         /**
+         * The rule's timeout, applied as an upper bound on the upstream handshake
+         * only (#8474). The established session never inherits it: websocket
+         * sessions are legitimately idle, and a session-wide timer would
+         * re-introduce the idle-close bug that the starter already fixed by
+         * removing the shared HTTP client's timeout handlers.
+         */
+        private final long timeout;
+
+        /**
          * Instantiates a new shenyu web socket handler.
          *
          * @param url       the url
          * @param client    the client
          * @param headers   the headers
          * @param protocols the protocols
+         * @param timeout   the rule timeout in milliseconds, bounding the upstream handshake; a non-positive value disables the deadline
          */
         ShenyuWebSocketHandler(final URI url, final WebSocketClient client,
                                final HttpHeaders headers,
-                               final List<String> protocols) {
+                               final List<String> protocols,
+                               final long timeout) {
             this.client = client;
             this.url = url;
             this.headers = headers;
             this.subProtocols = ObjectUtils.defaultIfNull(protocols, Collections.emptyList());
+            this.timeout = timeout;
         }
 
         @NonNull
@@ -375,7 +389,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         @Override
         public Mono<Void> handle(@NonNull final WebSocketSession session) {
             // pass headers along so custom headers can be sent through
-            return client.execute(url, this.headers, new WebSocketHandler() {
+            Mono<Void> upstream = client.execute(url, this.headers, new WebSocketHandler() {
 
                 @NonNull
                 @Override
@@ -400,6 +414,15 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                     return ShenyuWebSocketHandler.this.subProtocols;
                 }
             });
+            // bound the upstream handshake with the rule's timeout (#8474): a dead
+            // upstream fails the upgrade in a rule-controlled time instead of hanging.
+            // The established session keeps running on its own subscription and is
+            // never bounded by this timer.
+            if (this.timeout > 0) {
+                upstream = upstream.timeout(Duration.ofMillis(this.timeout),
+                        Mono.error(new TimeoutException("Websocket handshake took longer than timeout: " + this.timeout + " ms")));
+            }
+            return upstream;
         }
     }
 }
