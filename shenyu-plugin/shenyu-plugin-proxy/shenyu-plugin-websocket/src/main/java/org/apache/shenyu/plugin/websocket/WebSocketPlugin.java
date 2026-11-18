@@ -50,7 +50,9 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.net.URI;
 import java.time.Duration;
@@ -60,6 +62,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -70,6 +73,12 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(WebSocketPlugin.class);
 
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
+
+    private static final String REASON_HANDSHAKE_TIMEOUT = "upstream websocket handshake timed out";
+
+    private static final String REASON_IDLE_TIMEOUT = "websocket session idle timeout";
+
+    private static final Duration MIN_IDLE_CHECK_INTERVAL = Duration.ofMillis(1);
 
     private final WebSocketClient webSocketClient;
 
@@ -115,7 +124,8 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         // proxied session then runs on its own subscription. The count therefore has to be attached to the
         // handler, which is where the session actually lives, not to the handshake.
         WebSocketHandler handler = new ShenyuWebSocketHandler(wsRequestUrl, this.webSocketClient,
-                filterHeaders(headers), buildWsProtocols(headers), ruleHandle.getTimeout());
+                filterHeaders(headers), buildWsProtocols(headers),
+                Timeouts.ofMillis(ruleHandle.getTimeout(), ruleHandle.getIdleTimeout()));
         final boolean selectionAlreadyReserved = LoadBalanceEnum.SHORTEST_RESPONSE.getName().equals(ruleHandle.getLoadBalance());
         if (LoadBalanceEnum.LEAST_ACTIVITY.getName().equals(ruleHandle.getLoadBalance()) || selectionAlreadyReserved) {
             InflightWebSocketHandler inflightHandler = new InflightWebSocketHandler(handler, upstream, selectionAlreadyReserved);
@@ -253,6 +263,31 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     }
 
     /**
+     * The rule's timeout controls, with the unit carried by the type. A {@code null}
+     * value disables the corresponding deadline (#8474).
+     *
+     * @param handshake the upstream connection and upgrade deadline
+     * @param idle the established session's idle limit
+     */
+    record Timeouts(Duration handshake, Duration idle) {
+
+        /**
+         * Build the timeout controls from the rule's millisecond values.
+         *
+         * @param handshakeMillis the rule timeout in milliseconds; a non-positive value disables the deadline
+         * @param idleMillis the rule idle timeout in milliseconds; a non-positive value disables idle expiry
+         * @return the timeout controls
+         */
+        static Timeouts ofMillis(final long handshakeMillis, final long idleMillis) {
+            return new Timeouts(enabled(handshakeMillis), enabled(idleMillis));
+        }
+
+        private static Duration enabled(final long millis) {
+            return millis > 0 ? Duration.ofMillis(millis) : null;
+        }
+    }
+
+    /**
      * Keeps an upstream's outstanding-request count paired with the proxied session.
      *
      * <p>Least active reserves when the session starts, because that algorithm does not reserve on selection.
@@ -340,7 +375,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         }
     }
 
-    private static class ShenyuWebSocketHandler implements WebSocketHandler {
+    static class ShenyuWebSocketHandler implements WebSocketHandler {
 
         private final WebSocketClient client;
 
@@ -351,13 +386,11 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         private final List<String> subProtocols;
 
         /**
-         * The rule's timeout, applied as an upper bound on the upstream handshake
-         * only (#8474). The established session never inherits it: websocket
-         * sessions are legitimately idle, and a session-wide timer would
-         * re-introduce the idle-close bug that the starter already fixed by
-         * removing the shared HTTP client's timeout handlers.
+         * The rule timeout controls (#8474). The handshake deadline bounds the upstream
+         * connection and upgrade only and goes inert once the upgrade succeeds; the idle
+         * limit applies after establishment and never fires on traffic in either direction.
          */
-        private final long timeout;
+        private final Timeouts timeouts;
 
         /**
          * Instantiates a new shenyu web socket handler.
@@ -366,17 +399,17 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
          * @param client    the client
          * @param headers   the headers
          * @param protocols the protocols
-         * @param timeout   the rule timeout in milliseconds, bounding the upstream handshake; a non-positive value disables the deadline
+         * @param timeouts  the rule timeout controls
          */
         ShenyuWebSocketHandler(final URI url, final WebSocketClient client,
                                final HttpHeaders headers,
                                final List<String> protocols,
-                               final long timeout) {
+                               final Timeouts timeouts) {
             this.client = client;
             this.url = url;
             this.headers = headers;
             this.subProtocols = ObjectUtils.defaultIfNull(protocols, Collections.emptyList());
-            this.timeout = timeout;
+            this.timeouts = timeouts;
         }
 
         @NonNull
@@ -388,24 +421,17 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         @NonNull
         @Override
         public Mono<Void> handle(@NonNull final WebSocketSession session) {
+            // completed as soon as the upstream handler is invoked, which is the only
+            // observable point at which the upstream upgrade has succeeded
+            final Sinks.Empty<Void> upgraded = Sinks.empty();
             // pass headers along so custom headers can be sent through
-            Mono<Void> upstream = client.execute(url, this.headers, new WebSocketHandler() {
+            final Mono<Void> attempt = client.execute(url, this.headers, new WebSocketHandler() {
 
                 @NonNull
                 @Override
                 public Mono<Void> handle(@NonNull final WebSocketSession proxySocketSession) {
-                    Mono<Void> serverClose = proxySocketSession.closeStatus().filter(it -> session.isOpen())
-                        .map(WebSocketPlugin::adaptCloseStatus).flatMap(session::close);
-                    Mono<Void> proxyClose = session.closeStatus().filter(it -> proxySocketSession.isOpen())
-                        .map(WebSocketPlugin::adaptCloseStatus).flatMap(proxySocketSession::close);
-                    // Use retain() for Reactor Netty
-                    Mono<Void> proxySessionSend = proxySocketSession
-                        .send(session.receive().doOnNext(WebSocketMessage::retain));
-                    Mono<Void> serverSessionSend = session.send(
-                        proxySocketSession.receive().doOnNext(WebSocketMessage::retain));
-                    // Ensure closeStatus from one propagates to the other
-                    Mono.when(serverClose, proxyClose).subscribe();
-                    return Mono.zip(proxySessionSend, serverSessionSend).then();
+                    upgraded.tryEmitEmpty();
+                    return pipe(session, proxySocketSession);
                 }
 
                 @NonNull
@@ -414,15 +440,78 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                     return ShenyuWebSocketHandler.this.subProtocols;
                 }
             });
-            // bound the upstream handshake with the rule's timeout (#8474): a dead
-            // upstream fails the upgrade in a rule-controlled time instead of hanging.
-            // The established session keeps running on its own subscription and is
-            // never bounded by this timer.
-            if (this.timeout > 0) {
-                upstream = upstream.timeout(Duration.ofMillis(this.timeout),
-                        Mono.error(new TimeoutException("Websocket handshake took longer than timeout: " + this.timeout + " ms")));
+            if (Objects.isNull(this.timeouts.handshake())) {
+                return attempt;
             }
-            return upstream;
+            // The upgrade signal turns the deadline inert, so an established session keeps
+            // running untimed; a stalled upgrade is closed before the rule timeout elapses.
+            final Mono<Void> deadline = upgraded.asMono()
+                    .timeout(this.timeouts.handshake())
+                    .switchIfEmpty(Mono.<Void>never())
+                    .onErrorResume(TimeoutException.class, error -> closeSessions(session, null,
+                            CloseStatus.SERVER_ERROR.withReason(REASON_HANDSHAKE_TIMEOUT)));
+            return Mono.firstWithSignal(attempt, deadline);
+        }
+
+        private Mono<Void> pipe(final WebSocketSession session, final WebSocketSession proxySocketSession) {
+            final AtomicLong lastActivity = new AtomicLong(System.nanoTime());
+            Mono<Void> serverClose = proxySocketSession.closeStatus().filter(it -> session.isOpen())
+                .map(WebSocketPlugin::adaptCloseStatus).flatMap(session::close);
+            Mono<Void> proxyClose = session.closeStatus().filter(it -> proxySocketSession.isOpen())
+                .map(WebSocketPlugin::adaptCloseStatus).flatMap(proxySocketSession::close);
+            // Use retain() for Reactor Netty
+            Mono<Void> proxySessionSend = proxySocketSession.send(
+                session.receive().doOnNext(message -> trackActivity(lastActivity, message)));
+            Mono<Void> serverSessionSend = session.send(
+                proxySocketSession.receive().doOnNext(message -> trackActivity(lastActivity, message)));
+            // Ensure closeStatus from one propagates to the other
+            Mono.when(serverClose, proxyClose).subscribe();
+            final Mono<Void> piping = Mono.zip(proxySessionSend, serverSessionSend).then();
+            if (Objects.isNull(this.timeouts.idle())) {
+                return piping;
+            }
+            return Mono.firstWithSignal(piping, idleWatch(session, proxySocketSession, lastActivity));
+        }
+
+        private static void trackActivity(final AtomicLong lastActivity, final WebSocketMessage message) {
+            message.retain();
+            lastActivity.set(System.nanoTime());
+        }
+
+        /**
+         * Polls while the session is established and closes both sides once no message moved
+         * in either direction for the configured idle limit. Cancellation of the race disposes
+         * the periodic task, so the watch never outlives the session.
+         */
+        private Mono<Void> idleWatch(final WebSocketSession session, final WebSocketSession proxySocketSession,
+                                     final AtomicLong lastActivity) {
+            final Duration idle = this.timeouts.idle();
+            final long idleNanos = idle.toNanos();
+            final Duration half = idle.dividedBy(2);
+            final Duration period = half.isZero() ? MIN_IDLE_CHECK_INTERVAL : half;
+            return Flux.interval(period)
+                .filter(tick -> System.nanoTime() - lastActivity.get() >= idleNanos)
+                .next()
+                .flatMap(tick -> closeSessions(session, proxySocketSession,
+                    CloseStatus.GOING_AWAY.withReason(REASON_IDLE_TIMEOUT)))
+                .then();
+        }
+
+        /**
+         * Closes both sides with an explicit status so a session terminated by a rule timeout
+         * is not surfaced as an abrupt close without a code or reason. Closing errors are
+         * logged and swallowed: the caller's race must terminate either way.
+         */
+        private Mono<Void> closeSessions(final WebSocketSession session, final WebSocketSession proxySocketSession,
+                                         final CloseStatus status) {
+            LOG.info("closing websocket session {} with {}: {}", toLogUrl(this.url), status.getCode(), status.getReason());
+            final Mono<Void> sessionClose = session.isOpen() ? session.close(status) : Mono.empty();
+            final Mono<Void> proxyClose = Objects.isNull(proxySocketSession) || !proxySocketSession.isOpen()
+                ? Mono.empty() : proxySocketSession.close(status);
+            return Mono.when(sessionClose, proxyClose).onErrorResume(error -> {
+                LOG.warn("can not close websocket session {} cleanly", toLogUrl(this.url), error);
+                return Mono.empty();
+            });
         }
     }
 }

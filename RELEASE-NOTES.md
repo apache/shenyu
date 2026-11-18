@@ -112,6 +112,14 @@
   picker, the tcp proxy and the java sdk rebuild their `Upstream` objects on every
   call and remain weight-based for both algorithms.
 
+- Websocket rules now apply `timeout` to the upstream connection and upgrade only.
+  The deadline ends as soon as the upgrade succeeds, so an established session is
+  never closed at a fixed age, and a non-positive `timeout` disables it. A separate
+  opt-in `idleTimeout` (milliseconds, zero disables) closes a session that moved no
+  message in either direction for the configured period, with close code 1001 and an
+  explicit reason; the default keeps long-lived idle sessions open. Admin rejects
+  negative values for both fields. (#8474)
+
 - In `DividePlugin`, `headerMaxSize` now accounts for the complete HTTP header
   field section: header names, field values, line framing (`: ` and CRLF),
   and section-terminating CRLF. Previously only header values were counted. Existing

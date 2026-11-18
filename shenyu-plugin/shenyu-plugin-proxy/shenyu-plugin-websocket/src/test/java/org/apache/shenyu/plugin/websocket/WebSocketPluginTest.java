@@ -39,7 +39,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -51,10 +50,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.List;
@@ -335,16 +331,10 @@ public class WebSocketPluginTest {
     }
 
     @Test
-    public void getSubProtocolsTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
-        Class<?>[] clazz = webSocketPlugin.getClass().getDeclaredClasses();
-        Class<?> cla = clazz[0];
-        Method method = cla.getDeclaredMethod("getSubProtocols");
-        method.setAccessible(true);
-        Constructor declaredConstructor = cla.getDeclaredConstructor(URI.class, WebSocketClient.class, HttpHeaders.class, List.class);
-        declaredConstructor.setAccessible(true);
-        Object obj = declaredConstructor.newInstance(null, null, null, null);
-        List<String> list = (List<String>) method.invoke(obj);
-        assertTrue(list.isEmpty());
+    public void getSubProtocolsTest() {
+        WebSocketPlugin.ShenyuWebSocketHandler handler =
+                new WebSocketPlugin.ShenyuWebSocketHandler(null, null, null, null, null);
+        assertTrue(handler.getSubProtocols().isEmpty());
     }
 
     /**

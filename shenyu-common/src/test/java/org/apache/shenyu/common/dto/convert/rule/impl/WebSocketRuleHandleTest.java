@@ -37,10 +37,17 @@ public class WebSocketRuleHandleTest {
         handle.setLoadBalance(LoadBalanceEnum.HASH.getName());
         handle.setRetry(10);
         handle.setTimeout(1000L);
-        
+        handle.setIdleTimeout(30000L);
+
         assertThat(handle.getLoadBalance(), is(LoadBalanceEnum.HASH.getName()));
         assertThat(handle.getRetry(), is(10));
         assertThat(handle.getTimeout(), is(1000L));
+        assertThat(handle.getIdleTimeout(), is(30000L));
+    }
+
+    @Test
+    public void testIdleTimeoutIsDisabledByDefault() {
+        assertThat(new WebSocketRuleHandle().getIdleTimeout(), is(0L));
     }
     
     @Test
@@ -49,6 +56,15 @@ public class WebSocketRuleHandleTest {
         WebSocketRuleHandle handle2 = new WebSocketRuleHandle();
         
         assertThat(ImmutableSet.of(handle1, handle2), hasSize(1));
+    }
+
+    @Test
+    public void testEqualsDistinguishesIdleTimeout() {
+        WebSocketRuleHandle handle1 = new WebSocketRuleHandle();
+        WebSocketRuleHandle handle2 = new WebSocketRuleHandle();
+        handle2.setIdleTimeout(1L);
+
+        assertThat(ImmutableSet.of(handle1, handle2), hasSize(2));
     }
     
 }
