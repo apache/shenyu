@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
@@ -184,6 +185,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                     .stream()
                     .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
                     .collect(Collectors.toList());
+            retainPathStates(collect, existList);
             authPathMapper.batchSave(collect);
         }
 
@@ -210,12 +212,14 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         List<AuthPathDTO> authPathDTOList = appAuthDTO.getAuthPathList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
+            final List<AuthPathDO> existingPaths = authPathMapper.findByAuthId(appAuthDTO.getId());
             authPathMapper.deleteByAuthId(appAuthDTO.getId());
 
             List<AuthPathDO> authPathDOList = authPathDTOList.stream()
                     .filter(Objects::nonNull)
                     .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), dto.getAppName()))
                     .collect(Collectors.toList());
+            retainPathStates(authPathDOList, existingPaths);
             authPathMapper.batchSave(authPathDOList);
         }
 
@@ -235,18 +239,36 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
+            final List<AuthPathDO> existingPaths = authPathMapper.findByAuthId(appAuthDO.getId());
             authPathMapper.deleteByAuthId(authPathWarpDTO.getId());
 
             List<AuthPathDO> collect = authPathDTOList.stream()
                     .filter(Objects::nonNull)
                     .map(authPathDTO -> AuthPathDO.create(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName()))
                     .collect(Collectors.toList());
+            retainPathStates(collect, existingPaths);
             authPathMapper.batchSave(collect);
         }
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
                 DataEventTypeEnum.UPDATE,
                 Lists.newArrayList(buildByEntity(appAuthDO))));
         return ShenyuAdminResult.success();
+    }
+
+    private void retainPathStates(final List<AuthPathDO> replacement, final List<AuthPathDO> existing) {
+        final Map<Pair<String, String>, Boolean> resourceEnabled = existing.stream()
+                .collect(Collectors.toMap(path -> Pair.of(path.getPath(), path.getAppName()),
+                        path -> Boolean.TRUE.equals(path.getEnabled()), Boolean::logicalOr));
+        // A renamed label is ambiguous: do not enable it when any previous grant for that path was disabled.
+        final Map<String, Boolean> pathEnabled = existing.stream()
+                .collect(Collectors.toMap(AuthPathDO::getPath,
+                        path -> Boolean.TRUE.equals(path.getEnabled()), Boolean::logicalAnd));
+        replacement.forEach(path -> {
+            final Boolean enabled = resourceEnabled.getOrDefault(Pair.of(path.getPath(), path.getAppName()), pathEnabled.get(path.getPath()));
+            if (Objects.nonNull(enabled)) {
+                path.setEnabled(enabled);
+            }
+        });
     }
 
     @Override
