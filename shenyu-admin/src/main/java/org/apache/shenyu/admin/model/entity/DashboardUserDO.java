@@ -250,7 +250,7 @@ public final class DashboardUserDO extends BaseDO {
                 .build();
             if (StringUtils.isEmpty(item.getId())) {
                 dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                dashboardUserDO.setEnabled(true);
+                dashboardUserDO.setEnabled(!Boolean.FALSE.equals(item.getEnabled()));
                 dashboardUserDO.setDateCreated(currentTime);
             } else {
                 dashboardUserDO.setId(item.getId());
