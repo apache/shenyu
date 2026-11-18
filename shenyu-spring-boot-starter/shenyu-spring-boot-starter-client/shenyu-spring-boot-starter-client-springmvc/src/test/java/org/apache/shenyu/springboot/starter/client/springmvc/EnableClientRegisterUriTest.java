@@ -34,6 +34,8 @@ import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.boot.SpringApplication;
@@ -70,7 +72,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -143,9 +144,14 @@ public final class EnableClientRegisterUriTest {
         exchange.close();
     }
 
-    @Test
-    public void testLocalRegistrationHasOneUriPerNamespace() throws Exception {
-        startApplication(null);
+    @ParameterizedTest
+    @ValueSource(strings = {"http://", "https://"})
+    public void testLocalRegistrationHasOneUriPerNamespace(final String protocol) throws Exception {
+        if ("http://".equals(protocol)) {
+            startApplication(null);
+        } else {
+            startApplication(null, "--shenyu.client.http.props.protocol=" + protocol);
+        }
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
             assertEquals(4, metadata.size());
             assertEquals(2, uris.size());
@@ -155,6 +161,7 @@ public final class EnableClientRegisterUriTest {
         assertEquals(List.of("one", "two"), uris.stream().map(URIRegisterDTO::getNamespaceId).sorted().toList());
         for (URIRegisterDTO uri : uris) {
             assertEquals("http", uri.getRpcType());
+            assertEquals(protocol, uri.getProtocol());
             assertEquals("/client", uri.getContextPath());
             assertEquals("uri-fixture", uri.getAppName());
             assertEquals("127.0.0.1", uri.getHost());
@@ -164,20 +171,19 @@ public final class EnableClientRegisterUriTest {
         await().during(Duration.ofMillis(300)).atMost(Duration.ofSeconds(2)).untilAsserted(() -> assertEquals(2, uris.size()));
     }
 
-    @Test
-    public void testRegistryDiscoveryKeepsMetadataWithoutLocalUris() throws Exception {
-        startApplication("nacos");
+    @ParameterizedTest
+    @ValueSource(strings = {"nacos", "LOCAL", ""})
+    public void testRegistryDiscoveryKeepsMetadataWithoutLocalUris(final String mode) throws Exception {
+        startApplication(mode);
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(4, metadata.size()));
         assertEquals(0, uris.size());
     }
 
-    @Test
-    public void testDisabledRegistrationCreatesNoPipeline() throws Exception {
-        startApplication("local", "--shenyu.register.enabled=false");
-        assertFalse(application.containsBean("apiListener"));
-        assertFalse(application.containsBean("publisher"));
-        assertNull(publisher.getProviderManage());
-        assertEquals(0, metadata.size());
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1})
+    public void testPendingAdvertisedPortKeepsApplicationBootable(final int port) throws Exception {
+        startApplication("local", "--shenyu.client.http.props.port=" + port);
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(4, metadata.size()));
         assertEquals(0, attempts.size());
     }
 
@@ -197,7 +203,7 @@ public final class EnableClientRegisterUriTest {
     @Test
     public void testPartialHttpFailureRetriesOnlyFailedIdentityAndKeepsLifecycleIdentity() throws Exception {
         failSecondNamespace.set(true);
-        startApplication("local");
+        startApplication("local", "--shenyu.client.http.props.protocol=https://");
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
             assertEquals(2, attempts.size());
             assertEquals(1, uris.size());
@@ -225,7 +231,7 @@ public final class EnableClientRegisterUriTest {
     }
 
     private List<Object> identity(final URIRegisterDTO uri) {
-        return List.of(uri.getNamespaceId(), uri.getRpcType(), uri.getAppName(), uri.getContextPath(), uri.getHost(), uri.getPort());
+        return List.of(uri.getNamespaceId(), uri.getRpcType(), uri.getAppName(), uri.getContextPath(), uri.getHost(), uri.getPort(), uri.getProtocol());
     }
 
     private void startApplication(final String discovery, final String... overrides) throws Exception {

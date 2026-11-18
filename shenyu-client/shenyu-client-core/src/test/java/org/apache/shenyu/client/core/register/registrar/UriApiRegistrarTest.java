@@ -20,10 +20,15 @@ package org.apache.shenyu.client.core.register.registrar;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
+import org.apache.shenyu.client.core.register.ClientRegisterConfigImpl;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -33,7 +38,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -73,12 +78,15 @@ class UriApiRegistrarTest {
 
     @Test
     void testEnqueueFailureCanRetryWithoutRepeatingPublishedNamespaces() throws Exception {
-        doNothing().doThrow(new IllegalStateException("queue unavailable")).doNothing().when(publisher).publishEvent(any());
-        assertThrows(IllegalStateException.class, () -> registrar.register(bean()));
-        registrar.register(bean());
+        doThrow(new IllegalStateException("queue unavailable")).doNothing().when(publisher).publishEvent(any());
+        ApiBean bean = bean();
+        bean.setStatus(ApiBean.Status.REGISTRABLE_BEAN);
+        registrar.register(bean);
+        verify(publisher, times(2)).publishEvent(any());
+        registrar.register(bean);
         ArgumentCaptor<URIRegisterDTO> events = ArgumentCaptor.forClass(URIRegisterDTO.class);
         verify(publisher, times(3)).publishEvent(events.capture());
-        assertEquals(List.of("one", "two", "two"), events.getAllValues().stream().map(URIRegisterDTO::getNamespaceId).toList());
+        assertEquals(List.of("one", "two", "one"), events.getAllValues().stream().map(URIRegisterDTO::getNamespaceId).toList());
     }
 
     @Test
@@ -107,7 +115,7 @@ class UriApiRegistrarTest {
 
     @Test
     void testInvalidPortIsNotPublished() {
-        for (int port : List.of(-1, 0, 65536)) {
+        for (int port : List.of(-2, 65536)) {
             when(config.getPort()).thenReturn(port);
             assertThrows(IllegalArgumentException.class, () -> registrar.register(bean()));
         }
@@ -115,12 +123,38 @@ class UriApiRegistrarTest {
     }
 
     @Test
-    void testNonLocalDiscoveryDoesNotReadLocalAddress() throws Exception {
-        for (String mode : List.of("nacos", "LOCAL", "")) {
-            registrar.setEnvironment(new MockEnvironment().withProperty("shenyu.discovery.type", mode));
+    void testPendingPortCanPublishOnRediscovery() throws Exception {
+        for (int port : List.of(0, -1)) {
+            when(config.getPort()).thenReturn(port);
             registrar.register(bean());
         }
         verifyNoInteractions(publisher);
+        when(config.getPort()).thenReturn(8080);
+        registrar.register(bean());
+        verify(publisher, times(2)).publishEvent(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ws://", "wss://"})
+    void testWebSocketProtocolIsPublished(final String protocol) throws Exception {
+        ShenyuClientConfig.ClientPropertiesConfig websocket = new ShenyuClientConfig.ClientPropertiesConfig();
+        websocket.getProps().setProperty("host", "127.0.0.1");
+        websocket.getProps().setProperty("port", "8080");
+        if ("wss://".equals(protocol)) {
+            websocket.getProps().setProperty("protocol", protocol);
+        }
+        ShenyuClientConfig client = new ShenyuClientConfig();
+        client.getClient().put(RpcTypeEnum.WEB_SOCKET.getName(), websocket);
+        UriApiRegistrarImplImpl websocketRegistrar = new UriApiRegistrarImplImpl(
+                new ClientRegisterConfigImpl(client, RpcTypeEnum.WEB_SOCKET, null, new MockEnvironment()));
+        ReflectionTestUtils.setField(websocketRegistrar, "publisher", publisher);
+        ApiBean bean = bean();
+        bean.addProperties("rpcType", RpcTypeEnum.WEB_SOCKET.getName());
+        bean.setStatus(ApiBean.Status.REGISTRABLE_BEAN);
+        websocketRegistrar.register(bean);
+        ArgumentCaptor<URIRegisterDTO> event = ArgumentCaptor.forClass(URIRegisterDTO.class);
+        verify(publisher).publishEvent(event.capture());
+        assertEquals(protocol, event.getValue().getProtocol());
     }
 
     private ApiBean bean() throws Exception {
