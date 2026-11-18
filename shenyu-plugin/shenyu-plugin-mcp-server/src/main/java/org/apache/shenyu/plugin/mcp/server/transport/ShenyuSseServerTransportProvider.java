@@ -225,8 +225,10 @@ public class ShenyuSseServerTransportProvider implements McpServerTransportProvi
      */
     @Override
     public Mono<Void> closeGracefully() {
-        close();
-        return Mono.empty();
+        return Mono.defer(() -> {
+            isClosing = true;
+            return lifecycle.closeGracefully();
+        });
     }
 
     @Override

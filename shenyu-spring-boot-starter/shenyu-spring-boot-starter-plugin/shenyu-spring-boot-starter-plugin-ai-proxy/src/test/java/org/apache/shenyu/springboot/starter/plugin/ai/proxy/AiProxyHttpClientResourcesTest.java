@@ -67,7 +67,8 @@ class AiProxyHttpClientResourcesTest {
             assertEquals(Duration.ofMillis(2345),
                     resources.getHttpClient().configuration().responseTimeout());
             assertNotNull(resources.getHttpClient().configuration().sslProvider());
-            final ProxyProvider proxy = resources.getHttpClient().configuration().proxyProvider();
+            assertNotNull(resources.getHttpClient().configuration().proxyProviderSupplier());
+            final ProxyProvider proxy = resources.getHttpClient().configuration().proxyProviderSupplier().get();
             assertNotNull(proxy);
             assertEquals(ProxyProvider.Proxy.HTTP, proxy.getType());
             assertEquals("127.0.0.1", proxy.getAddress().get().getHostString());

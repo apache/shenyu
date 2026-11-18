@@ -38,6 +38,9 @@ public record McpSessionPolicy(int maxSessions, Duration idleTimeout, Duration s
         if (maxSessions < 0 || idleTimeout.isNegative() || sweepInterval.isNegative() || sweepInterval.isZero()) {
             throw new IllegalArgumentException("Invalid MCP session limits");
         }
+        if (maxSessions > 0 && idleTimeout.isZero()) {
+            throw new IllegalArgumentException("A positive MCP session capacity requires a positive idle timeout");
+        }
         if (!idleTimeout.isZero() && sweepInterval.compareTo(idleTimeout) > 0) {
             throw new IllegalArgumentException("Session sweep interval exceeds idle timeout");
         }

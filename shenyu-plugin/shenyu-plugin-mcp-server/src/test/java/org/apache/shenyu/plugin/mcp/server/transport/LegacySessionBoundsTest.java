@@ -41,6 +41,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.resources.LoopResources;
@@ -51,6 +52,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -80,7 +82,7 @@ class LegacySessionBoundsTest {
 
     @Test
     void streamableCapacityIncludesTemporarySessionsAndFailedHandshakeReleasesIt() {
-        try (ShenyuStreamableHttpServerTransportProvider provider = httpProvider(McpSessionPolicy.unlimited().idleTimeout())) {
+        try (ShenyuStreamableHttpServerTransportProvider provider = httpProvider(Duration.ofMinutes(1))) {
             factory(provider);
             final String id = initialize(provider);
             assertEquals(HttpStatus.SERVICE_UNAVAILABLE, provider.handleUnifiedEndpoint(post(INITIALIZE, null)).block().statusCode());
@@ -150,7 +152,7 @@ class LegacySessionBoundsTest {
 
     @Test
     void sseVoidHandlersReturnResponsesOnBothMessageEntrypoints() {
-        try (ShenyuSseServerTransportProvider provider = sseProvider(Duration.ZERO)) {
+        try (ShenyuSseServerTransportProvider provider = sseProvider(Duration.ofMinutes(1))) {
             final McpServerSession session = mock(McpServerSession.class);
             when(session.getId()).thenReturn("void-sse");
             when(session.handle(any())).thenReturn(Mono.empty());
@@ -168,7 +170,7 @@ class LegacySessionBoundsTest {
 
     @Test
     void failedSseFactoryAndCancelledStreamReleaseCapacityAndBindings() {
-        try (ShenyuSseServerTransportProvider provider = sseProvider(Duration.ZERO)) {
+        try (ShenyuSseServerTransportProvider provider = sseProvider(Duration.ofMinutes(1))) {
             provider.setSessionFactory(transport -> {
                 throw new IllegalStateException("factory");
             });
@@ -207,8 +209,43 @@ class LegacySessionBoundsTest {
     }
 
     @Test
+    void bothProvidersWaitForTheSdkGracefulClosePublisher() throws Exception {
+        try (ShenyuStreamableHttpServerTransportProvider http = httpProvider(Duration.ofMinutes(1));
+                ShenyuSseServerTransportProvider sse = sseProvider(Duration.ofMinutes(1))) {
+            final Sinks.Empty<Void> httpClosed = Sinks.empty();
+            final McpServerSession httpSession = mock(McpServerSession.class);
+            when(httpSession.getId()).thenReturn("http-closing");
+            when(httpSession.closeGracefully()).thenReturn(httpClosed.asMono());
+            http.setSessionFactory(transport -> httpSession);
+            final String httpId = initialize(http);
+            final CompletableFuture<Void> httpClosing = http.closeGracefully().toFuture();
+            assertFalse(httpClosing.isDone());
+            httpClosed.tryEmitEmpty();
+            httpClosing.get(5, TimeUnit.SECONDS);
+            assertFalse(http.bindExchange(httpId, MockServerWebExchange.from(MockServerHttpRequest.get("/late").build())));
+
+            final Sinks.Empty<Void> sseClosed = Sinks.empty();
+            final McpServerSession sseSession = mock(McpServerSession.class);
+            when(sseSession.getId()).thenReturn("sse-closing");
+            when(sseSession.closeGracefully()).thenReturn(sseClosed.asMono());
+            sse.setSessionFactory(transport -> sseSession);
+            final Disposable stream = sse.createSseFlux(null).subscribe();
+            try {
+                final CompletableFuture<Void> sseClosing = sse.closeGracefully().toFuture();
+                assertFalse(sseClosing.isDone());
+                assertTrue(sse.hasSession("sse-closing"));
+                sseClosed.tryEmitEmpty();
+                sseClosing.get(5, TimeUnit.SECONDS);
+                assertFalse(sse.hasSession("sse-closing"));
+            } finally {
+                stream.dispose();
+            }
+        }
+    }
+
+    @Test
     void managerShutdownClosesBothProtocolsAndRejectsRecreation() {
-        final ShenyuMcpServerManager manager = new ShenyuMcpServerManager(null, new McpSessionPolicy(1, Duration.ZERO, Duration.ofSeconds(1)));
+        final ShenyuMcpServerManager manager = new ShenyuMcpServerManager(null, new McpSessionPolicy(1, Duration.ofMinutes(1), Duration.ofSeconds(1)));
         final ShenyuStreamableHttpServerTransportProvider http = manager.getOrCreateStreamableHttpTransport("/test/streamablehttp");
         final ShenyuSseServerTransportProvider sse = manager.getOrCreateMcpServerTransport("/test/sse", "/message");
         final String id = initialize(http);

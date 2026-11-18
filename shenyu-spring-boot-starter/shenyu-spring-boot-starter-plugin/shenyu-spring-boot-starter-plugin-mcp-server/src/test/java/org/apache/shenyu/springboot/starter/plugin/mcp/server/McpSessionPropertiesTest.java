@@ -63,7 +63,7 @@ class McpSessionPropertiesTest {
 
     @Test
     void invalidConfigurationFailsBeforeAnyServerIsCreated() {
-        for (String property : new String[]{"max-sessions=-1", "idle-timeout=-1s", "sweep-interval=0s", "unknown=true", "max-sessions=oops"}) {
+        for (String property : new String[]{"max-sessions=-1", "max-sessions=1", "idle-timeout=-1s", "sweep-interval=0s", "unknown=true", "max-sessions=oops"}) {
             runner.withPropertyValues("shenyu.plugins.mcp.server.session." + property).run(context -> assertNotNull(context.getStartupFailure(), property));
         }
         runner.withPropertyValues("shenyu.plugins.mcp.server.session.idle-timeout=1s", "shenyu.plugins.mcp.server.session.sweep-interval=2s")

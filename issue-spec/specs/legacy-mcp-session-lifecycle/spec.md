@@ -45,12 +45,15 @@ waiters and removes exchange bindings even when SDK close fails.
 - Idle selection and lease acquisition are atomic. Expiry, disconnect,
   explicit close and provider shutdown release capacity and exchange state
   exactly once. Shutdown rejects further creations and disposes the sweep.
+  Graceful provider closure also rejects new operations and completes after
+  active operations and SDK closure; immediate close cancels remaining work.
 - Unknown Streamable HTTP IDs retain the existing one-request restoration
   behavior, subject to the same limits. No tool call is replayed here.
 - Configuration is startup-owned under `shenyu.plugins.mcp.server.session`:
   `max-sessions` (zero disables capacity), `idle-timeout` (zero disables idle
   expiry), `sweep-interval` (positive, no greater than an enabled idle timeout).
-  Defaults disable the new limits for compatibility. Invalid configuration
+  A positive capacity requires a positive idle timeout. Defaults disable the
+  new limits for compatibility. Invalid configuration
   fails application startup. Manager destruction closes every provider.
 - These are local, per-transport bounds, not a cluster-wide quota. A path
   serving both protocols has two pools. Stateful clients need replica affinity;

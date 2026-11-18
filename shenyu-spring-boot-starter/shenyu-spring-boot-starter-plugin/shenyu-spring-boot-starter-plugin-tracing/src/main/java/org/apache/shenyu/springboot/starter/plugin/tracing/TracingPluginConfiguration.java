@@ -26,6 +26,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.apache.commons.lang3.StringUtils;
@@ -116,7 +117,8 @@ public class TracingPluginConfiguration {
                 .setResource(resource)
                 .setSampler(sampler);
         final Optional<SpanProcessor> processor = exporterHolder.exporter().flatMap(this::spanProcessor);
-        processor.ifPresent(builder::addSpanProcessor);
+        // SDK 1.67 returns a no-op tracer without processors; keep local spans when export is disabled.
+        builder.addSpanProcessor(processor.orElseGet(() -> SimpleSpanProcessor.create(SpanExporter.composite())));
         // the processor of the exporter may fail to be created, so the log reports the export from
         // the processor which is really attached instead of claiming that the spans are exported
         LOG.info("shenyu tracing: service name {}, sampler {}, span creation {}, spans exported {}",

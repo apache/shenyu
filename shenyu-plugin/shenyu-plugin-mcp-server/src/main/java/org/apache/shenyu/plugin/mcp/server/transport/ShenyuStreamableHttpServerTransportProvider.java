@@ -218,8 +218,10 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
 
     @Override
     public Mono<Void> closeGracefully() {
-        close();
-        return Mono.empty();
+        return Mono.defer(() -> {
+            isClosing = true;
+            return lifecycle.closeGracefully();
+        });
     }
 
     @Override
@@ -368,7 +370,7 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
             return Mono.just(createMessageHandlingResult(200, initializeResponse, newSessionId));
         } catch (Exception e) {
             LOGGER.error("Error handling initialize request: {}", e.getMessage(), e);
-            final Object errorResponse = createJsonRpcError(extractMessageId(message), -32603,
+            final Object errorResponse = createJsonRpcError(extractMessageId(message), INTERNAL_ERROR_CODE,
                     "Internal error during initialization: " + e.getMessage());
             return Mono.just(createMessageHandlingResult(sessionFailureStatus(e), errorResponse, null));
         }
@@ -799,7 +801,6 @@ public class ShenyuStreamableHttpServerTransportProvider implements McpServerTra
      */
     public void removeSession(final String sessionId) {
         lifecycle.remove(sessionId);
-        cleanupSession(sessionId);
     }
 
     /**

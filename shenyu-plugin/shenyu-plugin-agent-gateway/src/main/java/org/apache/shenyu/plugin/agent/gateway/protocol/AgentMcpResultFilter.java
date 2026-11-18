@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.dto.AgentGatewayResultFilterConfig;
+import org.apache.shenyu.plugin.base.schema.BoundedJsonSchemaValidator;
 
 import java.util.Objects;
 
@@ -30,7 +31,7 @@ final class AgentMcpResultFilter {
 
     private final AgentMcpStructuredContentFilter filter;
 
-    private final AgentMcpOutputSchemaValidator validator;
+    private final BoundedJsonSchemaValidator validator;
 
     AgentMcpResultFilter(final AgentGatewayResultFilterConfig config, final String name, final JsonNode outputSchema) {
         if (config.getPlan(name).isEmpty()) {
@@ -38,7 +39,7 @@ final class AgentMcpResultFilter {
             validator = null;
         } else {
             filter = new AgentMcpStructuredContentFilter(config, name);
-            validator = Objects.isNull(outputSchema) || outputSchema.isNull() ? null : new AgentMcpOutputSchemaValidator(outputSchema);
+            validator = Objects.isNull(outputSchema) || outputSchema.isNull() ? null : new BoundedJsonSchemaValidator(outputSchema);
         }
     }
 
@@ -48,7 +49,7 @@ final class AgentMcpResultFilter {
         }
         ObjectNode filtered = filter.filter(result);
         if (Objects.nonNull(validator) && (filtered.has("structuredContent") || !filtered.path("isError").asBoolean(false))) {
-            validator.validate(filtered.get("structuredContent"));
+            validator.validateObject(filtered.get("structuredContent"));
         }
         new AgentMcpResultCopiesFilter().apply(result, filtered);
         return filtered;

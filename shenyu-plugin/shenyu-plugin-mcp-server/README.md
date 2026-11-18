@@ -17,6 +17,12 @@ limitations under the License.
 
 # Legacy MCP Server session limits
 
+Before these limits, the ShenYu WebFlux transports had no session count cap
+or idle expiry. SDK request timeouts bounded individual requests, not the
+lifetime of the session. SSE sessions were removed on stream disposal;
+Streamable HTTP sessions could remain registered until explicit local removal
+or server shutdown. The legacy HTTP endpoint does not implement session DELETE.
+
 The ShenYu-owned WebFlux SSE and Streamable HTTP providers support optional
 startup limits:
 
@@ -32,7 +38,9 @@ shenyu:
 ```
 
 `max-sessions: 0` (default) disables the capacity limit. `idle-timeout: 0s`
-(default) disables idle expiry. The sweep interval defaults to `1s`, must be
+(default) disables idle expiry. A positive `max-sessions` requires a positive
+`idle-timeout` so an abandoned HTTP session cannot hold a slot permanently.
+The sweep interval defaults to `1s`, must be
 positive, and cannot exceed an enabled idle timeout. Negative, overflowing
 or unknown settings fail startup. Configuration changes require restart;
 this policy is not an Admin rule or a database-backed setting.
@@ -54,6 +62,9 @@ occurs within the idle timeout plus one sweep interval, subject to scheduler
 availability. Disconnect, explicit session removal, provider shutdown and
 manager destruction clean local maps, exchange bindings and pending waiters.
 Cleanup and capacity release are idempotent and independent across sessions.
+Graceful removal rejects new operations, waits for active operations and SDK
+session closure, then completes. Immediate provider or manager close continues
+to cancel remaining work.
 
 These are local resource bounds, not a distributed quota or durable session
 store. Multi-replica deployments must route a stateful session's SSE and

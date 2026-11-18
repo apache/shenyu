@@ -379,6 +379,7 @@ public class ShenyuMcpServerManager implements AutoCloseable {
         LOG.info("Removed MCP server for path: {}", normalizedPath);
     }
 
+    /** Stop the manager and immediately close the transports it still owns. */
     @Override
     public synchronized void close() {
         closed = true;

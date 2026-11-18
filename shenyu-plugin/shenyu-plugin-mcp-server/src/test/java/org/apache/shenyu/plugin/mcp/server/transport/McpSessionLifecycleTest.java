@@ -32,12 +32,16 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -50,7 +54,7 @@ class McpSessionLifecycleTest {
     void concurrentCreationNeverExceedsCapacityAndRemovalIsIdempotent() {
         final AtomicInteger created = new AtomicInteger();
         final AtomicInteger removed = new AtomicInteger();
-        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(new McpSessionPolicy(2, Duration.ZERO, Duration.ofSeconds(1)), id -> removed.incrementAndGet())) {
+        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(new McpSessionPolicy(2, Duration.ofHours(1), Duration.ofSeconds(1)), id -> removed.incrementAndGet())) {
             final List<CompletableFuture<Void>> contenders = new ArrayList<>();
             for (int i = 0; i < 40; i++) {
                 contenders.add(CompletableFuture.runAsync(() -> {
@@ -73,7 +77,7 @@ class McpSessionLifecycleTest {
 
     @Test
     void factoryAndInstallFailureReleaseCapacity() {
-        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(new McpSessionPolicy(1, Duration.ZERO, Duration.ofSeconds(1)), id -> { })) {
+        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(new McpSessionPolicy(1, Duration.ofHours(1), Duration.ofSeconds(1)), id -> { })) {
             assertThrows(IllegalStateException.class, () -> lifecycle.create(() -> {
                 throw new IllegalStateException("factory");
             }, item -> { }));
@@ -139,11 +143,100 @@ class McpSessionLifecycleTest {
     @Test
     void rejectsInvalidPoliciesAndKeepsUnlimitedCompatibility() {
         assertThrows(IllegalArgumentException.class, () -> new McpSessionPolicy(-1, Duration.ZERO, Duration.ofSeconds(1)));
+        assertThrows(IllegalArgumentException.class, () -> new McpSessionPolicy(1, Duration.ZERO, Duration.ofSeconds(1)));
         assertThrows(IllegalArgumentException.class, () -> new McpSessionPolicy(1, Duration.ofSeconds(-1), Duration.ofSeconds(1)));
         assertThrows(IllegalArgumentException.class, () -> new McpSessionPolicy(1, Duration.ofSeconds(1), Duration.ZERO));
         assertThrows(IllegalArgumentException.class, () -> new McpSessionPolicy(1, Duration.ofSeconds(1), Duration.ofSeconds(2)));
         assertThrows(ArithmeticException.class, () -> new McpSessionPolicy(1, Duration.ofSeconds(Long.MAX_VALUE), Duration.ofSeconds(1)));
         assertEquals(0, McpSessionPolicy.unlimited().maxSessions());
+    }
+
+    @Test
+    void gracefulShutdownDrainsOperationsAndWaitsForSessionCloseOnce() {
+        final AtomicInteger removed = new AtomicInteger();
+        final Sinks.One<String> response = Sinks.one();
+        final Sinks.Empty<Void> transportClosed = Sinks.empty();
+        final McpServerSession session = session("draining");
+        when(session.closeGracefully()).thenReturn(transportClosed.asMono());
+        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(McpSessionPolicy.unlimited(), id -> removed.incrementAndGet())) {
+            lifecycle.create(() -> session, item -> { });
+            final CompletableFuture<String> request = lifecycle.withActivity("draining", response::asMono).toFuture();
+            final CompletableFuture<Void> first = lifecycle.closeGracefully().toFuture();
+            final CompletableFuture<Void> second = lifecycle.closeGracefully().toFuture();
+            assertFalse(first.isDone());
+            assertFalse(second.isDone());
+            verify(session, never()).closeGracefully();
+            assertThrows(ResponseStatusException.class, () -> lifecycle.create(() -> session("late"), item -> { }));
+            StepVerifier.create(lifecycle.withActivity("draining", () -> Mono.just("late")))
+                    .expectError(ResponseStatusException.class).verify();
+            response.tryEmitValue("complete response");
+            assertEquals("complete response", request.join());
+            assertFalse(first.isDone());
+            assertEquals(0, removed.get());
+            transportClosed.tryEmitEmpty();
+            first.join();
+            second.join();
+            verify(session, times(1)).closeGracefully();
+            verify(session, never()).close();
+            assertEquals(1, removed.get());
+        }
+    }
+
+    @Test
+    void gracefulFailureCleansEverySessionAndReportsFailure() {
+        final AtomicInteger removed = new AtomicInteger();
+        final McpServerSession broken = session("broken");
+        final McpServerSession peer = session("peer");
+        when(broken.closeGracefully()).thenReturn(Mono.error(new IllegalStateException("fixture")));
+        when(peer.closeGracefully()).thenReturn(Mono.empty());
+        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(McpSessionPolicy.unlimited(), id -> removed.incrementAndGet())) {
+            lifecycle.create(() -> broken, item -> { });
+            lifecycle.create(() -> peer, item -> { });
+            StepVerifier.create(lifecycle.closeGracefully()).expectError(IllegalStateException.class).verify();
+            verify(broken).close();
+            verify(peer).closeGracefully();
+            assertEquals(2, removed.get());
+        }
+    }
+
+    @Test
+    void immediateCloseCanAbortAnAlreadyClosingSessionWithoutDoubleCleanup() {
+        final AtomicInteger removed = new AtomicInteger();
+        final McpServerSession session = session("slow-close");
+        when(session.closeGracefully()).thenReturn(Mono.never());
+        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(McpSessionPolicy.unlimited(), id -> removed.incrementAndGet())) {
+            lifecycle.create(() -> session, item -> { });
+            StepVerifier.create(lifecycle.closeGracefully()).then(lifecycle::close).verifyComplete();
+            verify(session).closeGracefully();
+            verify(session).close();
+            lifecycle.remove("slow-close");
+            assertEquals(1, removed.get());
+        }
+    }
+
+    @Test
+    void installFailureDoesNotHoldAdmissionMonitorDuringSlowClose() throws Exception {
+        final CountDownLatch closing = new CountDownLatch(1);
+        final CountDownLatch finish = new CountDownLatch(1);
+        final McpServerSession failed = session("failed");
+        doAnswer(invocation -> {
+            closing.countDown();
+            assertTrue(finish.await(5, TimeUnit.SECONDS));
+            return null;
+        }).when(failed).close();
+        try (McpSessionLifecycle lifecycle = new McpSessionLifecycle(McpSessionPolicy.unlimited(), id -> { })) {
+            final CompletableFuture<Void> installation = CompletableFuture.runAsync(() ->
+                    assertThrows(IllegalStateException.class, () -> lifecycle.create(() -> failed, item -> {
+                        throw new IllegalStateException("install");
+                    })));
+            try {
+                assertTrue(closing.await(5, TimeUnit.SECONDS));
+                CompletableFuture.runAsync(() -> lifecycle.create(() -> session("peer"), item -> { })).get(2, TimeUnit.SECONDS);
+            } finally {
+                finish.countDown();
+                installation.get(5, TimeUnit.SECONDS);
+            }
+        }
     }
 
     @Test

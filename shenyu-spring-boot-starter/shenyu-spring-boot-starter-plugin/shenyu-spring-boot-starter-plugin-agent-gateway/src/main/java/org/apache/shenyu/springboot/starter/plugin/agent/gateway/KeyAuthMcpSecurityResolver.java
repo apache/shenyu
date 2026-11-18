@@ -45,7 +45,7 @@ public final class KeyAuthMcpSecurityResolver implements AgentMcpSecurityResolve
         for (KeyAuthMcpSecurityProperties.Binding binding : Objects.requireNonNull(properties.getBindings(), "bindings")) {
             List<String> reference = List.of(text(binding.getNamespaceId(), "namespaceId"), text(binding.getSelectorId(), "selectorId"), text(binding.getRuleId(), "ruleId"));
             AgentMcpIdentity identity = new AgentMcpIdentity(text(binding.getTenant(), "tenant"), text(binding.getSubject(), "subject"),
-                    tools(binding.getToolGrants()), tools(binding.getToolDenials()));
+                    tools(binding.getToolGrants()), tools(binding.getToolDenials()), AgentMcpResourceGrants.parse(binding.getResourceGrants()));
             if (Objects.nonNull(snapshot.putIfAbsent(reference, identity))) {
                 throw new IllegalArgumentException("Duplicate key-auth authorization binding");
             }

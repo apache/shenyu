@@ -72,7 +72,7 @@ final class AiProxyFailureMapper {
     private static AiProxyFailureResponse mapProxyFailure(final AiProxyException failure) {
         HttpStatus status = switch (failure.getKind()) {
             case REQUEST -> HttpStatus.BAD_REQUEST;
-            case PROVIDER, TRANSPORT, PROTOCOL -> HttpStatus.BAD_GATEWAY;
+            case PROVIDER, TRANSPORT, PROTOCOL, CONTENT -> HttpStatus.BAD_GATEWAY;
         };
         return response(status);
     }
