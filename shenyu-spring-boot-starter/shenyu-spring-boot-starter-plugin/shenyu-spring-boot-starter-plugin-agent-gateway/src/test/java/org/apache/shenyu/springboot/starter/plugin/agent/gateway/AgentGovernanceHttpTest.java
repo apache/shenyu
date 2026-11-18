@@ -48,6 +48,8 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.ai.prompt.AiPromptPlugin;
 import org.apache.shenyu.plugin.ai.prompt.handler.AiPromptPluginDataHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyPlugin;
+import org.apache.shenyu.plugin.ai.requestid.AiRequestIdPlugin;
+import org.apache.shenyu.plugin.ai.requestid.handler.AiRequestIdPluginDataHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConverterFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
@@ -81,6 +83,7 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
+import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
@@ -91,6 +94,7 @@ import reactor.netty.http.server.HttpServer;
 import reactor.netty.resources.LoopResources;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -99,6 +103,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -116,7 +121,8 @@ class AgentGovernanceHttpTest {
     @Test
     void invalidKeyIsCountedBeforeAgentRoutingWithoutCreatingALogicalAiCall() {
         try (Fixture fixture = new Fixture(false, false)) {
-            fixture.request("wrong").expectBody().consumeWith(ignored -> { });
+            assertNull(fixture.request("wrong").expectBody(String.class).returnResult().getResponseHeaders()
+                    .getFirst(Constants.X_SHENYU_AI_REQUEST_ID));
             assertEquals(0, fixture.upstreamCalls.get());
             assertEquals(0, fixture.terminals.size());
             assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AUTHENTICATION_REJECTIONS_TOTAL,
@@ -130,13 +136,18 @@ class AgentGovernanceHttpTest {
     @ValueSource(booleans = {false, true})
     void keyAuthToLimiterToProxyHasOneTerminalAndOneBodySubscription(final boolean stream) {
         try (Fixture fixture = new Fixture(stream, false)) {
-            String response = fixture.request().expectStatus().isOk().expectBody(String.class).returnResult().getResponseBody();
+            EntityExchangeResult<String> result = fixture.request().expectStatus().isOk()
+                    .expectBody(String.class).returnResult();
+            String response = result.getResponseBody();
+            String responseRequestId = result.getResponseHeaders().getFirst(Constants.X_SHENYU_AI_REQUEST_ID);
             assertEquals(fixture.response, response);
+            assertNotNull(responseRequestId);
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.terminals.size()));
             assertEquals(1, fixture.attempts.size());
             assertEquals(1, fixture.upstreamCalls.get());
             assertEquals(1, fixture.bodySubscriptions.get());
             AiTerminalEvent event = fixture.terminals.element();
+            assertEquals(responseRequestId, event.context().getRequestId());
             assertEquals(AiCallOutcome.SUCCESS, event.outcome());
             assertEquals("tenant", event.context().getTenant());
             assertEquals("service", event.context().getSubject());
@@ -148,7 +159,8 @@ class AgentGovernanceHttpTest {
             assertEquals(5L, event.usage().totalTokens());
             assertNull(event.context().getSessionId());
             assertEquals(event.context().getRequestId(), fixture.attempts.element().context().getRequestId());
-            assertEquals(List.of("tracing", "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy"), fixture.handler.getPlugins().stream().map(ShenyuPlugin::named).toList());
+            assertEquals(List.of("tracing", "keyAuth", "aiRequestId", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy"),
+                    fixture.handler.getPlugins().stream().map(ShenyuPlugin::named).toList());
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.exporter.getFinishedSpanItems().size()));
             var span = fixture.exporter.getFinishedSpanItems().get(0);
             assertEquals(SpanKind.SERVER, span.getKind());
@@ -164,12 +176,32 @@ class AgentGovernanceHttpTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void standaloneProxyCarriesTheIngressRequestId(final boolean stream) {
+        try (Fixture fixture = new Fixture(stream, false, false)) {
+            EntityExchangeResult<String> result = fixture.request().expectStatus().isOk()
+                    .expectBody(String.class).returnResult();
+            String responseRequestId = result.getResponseHeaders().getFirst(Constants.X_SHENYU_AI_REQUEST_ID);
+            assertEquals(fixture.response, result.getResponseBody());
+            assertNotNull(responseRequestId);
+            await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.terminals.size()));
+            assertEquals(responseRequestId, fixture.terminals.element().context().getRequestId());
+            assertEquals(1, fixture.terminals.element().attemptCount());
+            assertEquals(1, fixture.upstreamCalls.get());
+        }
+    }
+
     @Test
     void tokenDenialHasTrustedContextWithoutCallingModel() {
         try (Fixture fixture = new Fixture(false, true)) {
-            fixture.request().expectStatus().isEqualTo(429).expectBody().consumeWith(ignored -> { });
+            EntityExchangeResult<String> result = fixture.request().expectStatus().isEqualTo(429)
+                    .expectBody(String.class).returnResult();
+            String responseRequestId = result.getResponseHeaders().getFirst(Constants.X_SHENYU_AI_REQUEST_ID);
+            assertNotNull(responseRequestId);
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.terminals.size()));
             AiTerminalEvent event = fixture.terminals.element();
+            assertEquals(responseRequestId, event.context().getRequestId());
             assertEquals(AiCallOutcome.RATE_LIMITED, event.outcome());
             assertEquals("tenant", event.context().getTenant());
             assertEquals(0, event.attemptCount());
@@ -224,8 +256,14 @@ class AgentGovernanceHttpTest {
 
         private final AgentGatewayPluginDataHandler agentHandler = new AgentGatewayPluginDataHandler();
 
-        @SuppressWarnings("unchecked")
+        private final AiRequestIdPluginDataHandler requestIdHandler = new AiRequestIdPluginDataHandler();
+
         private Fixture(final boolean stream, final boolean deny) {
+            this(stream, deny, true);
+        }
+
+        @SuppressWarnings("unchecked")
+        private Fixture(final boolean stream, final boolean deny, final boolean withAgentGateway) {
             this.stream = stream;
             String json = "{\"choices\":[],\"usage\":{\"prompt_tokens\":3,\"completion_tokens\":2,\"total_tokens\":5}}";
             response = stream ? "data: " + json + "\n\ndata: [DONE]\n\n" : json;
@@ -236,6 +274,8 @@ class AgentGovernanceHttpTest {
                 assertNull(request.requestHeaders().get("X-Tenant-Id"));
                 assertNull(request.requestHeaders().get("X-Subject"));
                 assertNull(request.requestHeaders().get("X-Api-Key"));
+                // The first version does not forward the correlation id upstream.
+                assertNull(request.requestHeaders().get("X-Shenyu-Ai-Request-Id"));
                 assertEquals("Bearer upstream-service-key", request.requestHeaders().get("Authorization"));
                 return request.receive().then(result.header("Content-Type", stream ? "text/event-stream" : "application/json")
                         .sendString(Flux.just(response.substring(0, 29), response.substring(29))).then());
@@ -274,7 +314,11 @@ class AgentGovernanceHttpTest {
             };
             AgentGatewayPlugin agent = new AgentGatewayPlugin(new AgentMcpHttpHandler(
                     new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1"), resolver), resolver, observer);
-            agentHandler.handlerRule(register(agent, "{\"trafficType\":\"LLM\"}"));
+            if (withAgentGateway) {
+                agentHandler.handlerRule(register(agent, "{\"trafficType\":\"LLM\"}"));
+            }
+            AiRequestIdPlugin requestId = new AiRequestIdPlugin();
+            requestIdHandler.handlerRule(register(requestId, "{\"responseHeaderEnabled\":true}"));
             AiPromptPlugin prompt = new AiPromptPlugin(ServerCodecConfigurer.create().getReaders());
             RuleData promptRule = register(prompt, "{\"prepend\":\"governed\",\"preRole\":\"system\"}");
             promptHandler.handlerRule(promptRule);
@@ -293,7 +337,7 @@ class AgentGovernanceHttpTest {
             AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                     new AiProxyProviderFactory(List.of(new OpenAi())), new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())),
                     new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
-            AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler);
+            AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler, observer);
             final RuleData proxyRule = register(proxy, "{}");
             AiProxyHandle handle = new AiProxyHandle();
             handle.setProvider("OpenAI");
@@ -302,8 +346,14 @@ class AgentGovernanceHttpTest {
             handle.setModel("model");
             proxyHandler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(proxyRule.getSelectorId(), Constants.DEFAULT_RULE), handle);
             TracingPlugin tracing = new TracingPlugin(telemetry.getTracer("governance-fixture"));
-            handler = new ShenyuWebHandler(List.of(proxy, limiter, prompt, agent, key, tracing), mock(ShenyuLoaderService.class), config);
-            handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, BaseDataCache.getInstance().obtainPluginData(agent.named())));
+            List<ShenyuPlugin> plugins = new ArrayList<>(List.of(proxy, limiter, prompt, requestId, key, tracing));
+            if (withAgentGateway) {
+                plugins.add(agent);
+            }
+            handler = new ShenyuWebHandler(plugins, mock(ShenyuLoaderService.class), config);
+            ShenyuPlugin sortAnchor = withAgentGateway ? agent : key;
+            handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED,
+                    BaseDataCache.getInstance().obtainPluginData(sortAnchor.named())));
             MetricsReporter.clean();
             CollectorRegistry.defaultRegistry.clear();
             MetricsReporter.register(new PrometheusMetricsRegister());
@@ -359,13 +409,14 @@ class AgentGovernanceHttpTest {
             MetricsReporter.clean();
             CollectorRegistry.defaultRegistry.clear();
             BaseDataCache cache = BaseDataCache.getInstance();
-            for (String name : List.of("keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy")) {
+            for (String name : List.of("keyAuth", "aiRequestId", "agentGateway", "aiPrompt", "aiTokenLimiter", "aiProxy")) {
                 cache.removeRuleDataBySelectorId("governance-" + name);
                 cache.removeSelectDataByPluginName(name);
                 cache.removePluginDataByPluginName(name);
             }
             KeyAuthPluginDataHandler.CACHED_HANDLE.get().removeHandle("governance-keyAuth_governance-keyAuth-rule");
             AgentGatewayPluginDataHandler.CACHED_HANDLE.get().removeHandle("governance-agentGateway_governance-agentGateway-rule");
+            AiRequestIdPluginDataHandler.CACHED_HANDLE.get().removeHandle("governance-aiRequestId_governance-aiRequestId-rule");
             promptHandler.CACHED_HANDLE.get().removeHandle("governance-aiPrompt_governance-aiPrompt-rule");
             AiTokenLimiterPluginHandler.CACHED_HANDLE.get().removeHandle("governance-aiTokenLimiter_governance-aiTokenLimiter-rule");
             AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().removeHandle("aiTokenLimiter");

@@ -38,11 +38,14 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
+import reactor.util.context.ContextView;
 
 import java.util.Objects;
 import java.util.List;
@@ -53,6 +56,8 @@ import java.util.UUID;
  * and continuing LLM traffic to the existing AI proxy chain.
  */
 public class AgentGatewayPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AgentGatewayPlugin.class);
 
     private final AgentGatewayRuleHandleParser parser = new AgentGatewayRuleHandleParser();
 
@@ -83,13 +88,14 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         if (Boolean.FALSE.equals(selector.getContinued())) {
             return chain.execute(exchange);
         }
-        return Mono.defer(() -> {
+        return Mono.deferContextual(view -> {
             final AgentGatewayRuleHandle handle = resolveHandle(rule);
             if (!handle.isValid()) {
                 return reject(exchange, handle.getErrorMessage());
             }
+            // LLM traffic reuses the id established by the AI request id plugin; MCP keeps its own entry.
             final AgentTrafficContext context = new AgentTrafficContext(
-                    UUID.randomUUID().toString(), handle.getTrafficType(), selector.getId(), rule.getId());
+                    requestId(exchange, view, handle.getTrafficType()), handle.getTrafficType(), selector.getId(), rule.getId());
             final Object previousContext = exchange.getAttributes()
                     .put(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE, context);
             if (handle.isResponseRequestId()) {
@@ -163,6 +169,29 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
             headers.set(AgentGatewayConstants.REQUEST_ID_HEADER, requestId);
             return Mono.empty();
         });
+    }
+
+    private String requestId(final ServerWebExchange exchange, final ContextView view, final String trafficType) {
+        if ("mcp".equals(trafficType)) {
+            return UUID.randomUUID().toString();
+        }
+        final String attributed = contextRequestId(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+        if (AgentRequestContext.isReusableRequestId(attributed)) {
+            return attributed;
+        }
+        final String subscribed = contextRequestId(view.getOrDefault(AgentRequestContext.REACTOR_KEY, null));
+        if (AgentRequestContext.isReusableRequestId(subscribed)) {
+            return subscribed;
+        }
+        if (Objects.nonNull(attributed) || Objects.nonNull(subscribed)) {
+            // Never log the rejected value; it may contain characters unsafe for log output.
+            LOG.warn("Replacing an invalid existing AI request id on the Agent Gateway path");
+        }
+        return UUID.randomUUID().toString();
+    }
+
+    private String contextRequestId(final Object value) {
+        return value instanceof AgentRequestContext context ? context.getRequestId() : null;
     }
 
     private Mono<Void> reject(final ServerWebExchange exchange, final String reason) {

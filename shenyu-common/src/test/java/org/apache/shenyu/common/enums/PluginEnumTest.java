@@ -103,6 +103,7 @@ public final class PluginEnumTest {
             "basicAuth, 150",
             "tcp, 320",
             "aiProxy, 199",
+            "aiRequestId, 168",
             "aiTokenLimiter, 171",
             "aiPrompt, 170",
             "aiRequestTransformer, 65",

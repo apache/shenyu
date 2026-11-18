@@ -28,6 +28,24 @@ JDK HTTP adapter for outbound calls. Only the MCP entry reads its body.
 
 Agent Gateway 插件为匹配的 LLM 请求建立请求级上下文并继续现有链；显式匹配的 MCP 规则使用有界入口，可单独启用远程 tools 聚合以及本地/远程 resources。它不替换 AI Proxy 或旧 MCP Server；聚合复用仓库统一管理的 MCP SDK `mcp-core` 协议模型，出站调用使用请求独享的 JDK HTTP 适配。仅 MCP 入口读取自己的正文。
 
+## AI request id correlation
+
+The optional `aiRequestId` plugin (default sort 168) establishes one logical AI
+request id before Agent Gateway. A matched LLM rule reuses that id instead of
+generating a second one; MCP rules keep their own entry id in the first delivery.
+When the AI RequestId plugin is absent or does not match, Agent Gateway continues
+to generate a fresh LLM id as before.
+
+Response headers remain compatible:
+
+- `X-Shenyu-Agent-Request-Id` is still controlled only by `responseRequestId`.
+- The AI RequestId plugin writes the canonical `X-Shenyu-Ai-Request-Id`.
+- When both are returned they carry the same value; Agent Gateway does not write
+  the canonical header itself.
+
+See [AI RequestId](../../../docs/ai-request-id.md) for activation, ordering,
+CORS exposure, logging and upgrade details.
+
 ## Enablement
 
 Add the starter dependency:

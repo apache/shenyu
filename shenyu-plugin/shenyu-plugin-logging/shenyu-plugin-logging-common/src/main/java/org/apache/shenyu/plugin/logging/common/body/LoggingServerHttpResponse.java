@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.logging.common.body;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -192,6 +193,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         }
         logInfo.setResponseHeader(() -> LogCollectUtils.getHeaders(getHeaders(), maskedHeaders));
         logInfo.setTraceId(getTraceId());
+        logInfo.setRequestId(getRequestId());
         final MediaType mediaType = exchange.getResponse().getHeaders().getContentType();
         if (MediaTypeUtils.isByteType(mediaType)) {
             return Flux.from(body).doFinally(signal -> logResponse(shenyuContext, null));
@@ -284,6 +286,17 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
     }
 
     /**
+     * Read the AI request id installed by the AI request id plugin. This is read at response time
+     * because access-logging plugins may run before the ingress plugin in the sorted chain.
+     *
+     * @return AI request id, or null when the request is not matched by the plugin
+     */
+    private String getRequestId() {
+        Object value = exchange.getAttributes().get(AgentRequestContext.EXCHANGE_ATTRIBUTE);
+        return value instanceof AgentRequestContext context ? context.getRequestId() : null;
+    }
+
+    /**
      * collect access error.
      *
      * @param throwable Exception occurred.
@@ -296,6 +309,7 @@ public class LoggingServerHttpResponse<L extends ShenyuRequestLog> extends Serve
         final int statusCode = httpStatus.value();
         logInfo.setStatus(statusCode);
         logInfo.setTraceId(getTraceId());
+        logInfo.setRequestId(getRequestId());
         final HttpStatus resolvedStatus = HttpStatus.resolve(statusCode);
         final String reasonPhrase = Objects.isNull(resolvedStatus)
                 ? String.valueOf(statusCode)

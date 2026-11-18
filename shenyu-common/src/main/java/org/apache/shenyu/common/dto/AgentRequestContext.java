@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * Immutable subscription-local correlation snapshot shared by AI and MCP.
@@ -30,6 +31,17 @@ public final class AgentRequestContext {
     public static final String REACTOR_KEY = AgentRequestContext.class.getName();
 
     public static final String EXCHANGE_ATTRIBUTE = REACTOR_KEY;
+
+    /**
+     * Exchange attribute marking an internal HTTP tool child invocation dispatched by the agent gateway.
+     * Child exchanges own a separate attribute map, so this marker must be visible before any AI plugin runs.
+     */
+    public static final String HTTP_TOOL_CALL_ATTRIBUTE = REACTOR_KEY + ".HTTP_TOOL_CALL";
+
+    private static final int MAX_REQUEST_ID_LENGTH = 128;
+
+    private static final Pattern REUSABLE_REQUEST_ID =
+            Pattern.compile("[A-Za-z0-9._:-]{1," + MAX_REQUEST_ID_LENGTH + "}");
 
     private final String requestId;
 
@@ -73,9 +85,31 @@ public final class AgentRequestContext {
         this.sessionId = sessionId;
     }
 
+    /**
+     * Whether an existing request id is bounded and safe to reuse in response headers and logs.
+     *
+     * @param requestId candidate request id
+     * @return true when the identifier is present and bounded
+     */
+    public static boolean isReusableRequestId(final String requestId) {
+        return Objects.nonNull(requestId) && REUSABLE_REQUEST_ID.matcher(requestId).matches();
+    }
+
     public AgentRequestContext withIdentity(final String trustedTenant, final String trustedSubject) {
         return new AgentRequestContext(requestId, trafficType, selectorId, ruleId, configurationVersion, trustedTenant, trustedSubject,
                 target, operation, protocolVersion, sessionId);
+    }
+
+    /**
+     * Create a copy for the matched observation owner while preserving the logical request id.
+     *
+     * @param newSelectorId matched selector id
+     * @param newRuleId matched rule id
+     * @return context copy with refreshed route identity
+     */
+    public AgentRequestContext withSelectorAndRule(final String newSelectorId, final String newRuleId) {
+        return new AgentRequestContext(requestId, trafficType, newSelectorId, newRuleId, configurationVersion,
+                tenant, subject, target, operation, protocolVersion, sessionId);
     }
 
     public AgentRequestContext withTarget(final String resolvedTarget, final String resolvedOperation, final String resolvedProtocolVersion) {

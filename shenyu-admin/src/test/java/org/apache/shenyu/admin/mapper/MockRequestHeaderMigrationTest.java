@@ -75,8 +75,17 @@ public final class MockRequestHeaderMigrationTest {
             statement.execute("CREATE TABLE rule (loged INT, handle VARCHAR(1024))");
             statement.execute("CREATE TABLE instance_info (id VARCHAR(128), namespace_id VARCHAR(50), instance_ip VARCHAR(128),"
                     + "instance_port VARCHAR(128), instance_type VARCHAR(128), last_heart_beat_time BIGINT, date_updated TIMESTAMP, date_created TIMESTAMP)");
-            statement.execute("CREATE TABLE plugin (id VARCHAR(128), name VARCHAR(128), sort INT)");
-            statement.execute("CREATE TABLE namespace_plugin_rel (plugin_id VARCHAR(128), sort INT)");
+            statement.execute("CREATE TABLE plugin (id VARCHAR(128) PRIMARY KEY, name VARCHAR(128), role VARCHAR(64), sort INT,"
+                    + " config VARCHAR(2048), enabled INT)");
+            statement.execute("CREATE TABLE namespace_plugin_rel (id VARCHAR(128) PRIMARY KEY, namespace_id VARCHAR(50),"
+                    + " plugin_id VARCHAR(128), config VARCHAR(2048), sort INT, enabled INT,"
+                    + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            statement.execute("CREATE TABLE `resource` (id VARCHAR(128) PRIMARY KEY, parent_id VARCHAR(128), title VARCHAR(128),"
+                    + " name VARCHAR(32), url VARCHAR(32), component VARCHAR(32), resource_type INT, sort INT, icon VARCHAR(32),"
+                    + " is_leaf INT, is_route INT, perms VARCHAR(64), status INT,"
+                    + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            statement.execute("CREATE TABLE `permission` (id VARCHAR(128) PRIMARY KEY, object_id VARCHAR(128), resource_id VARCHAR(128),"
+                    + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
             statement.execute("CREATE TABLE plugin_handle (id VARCHAR(128) PRIMARY KEY, plugin_id VARCHAR(128), field VARCHAR(100),"
                     + " label VARCHAR(100), data_type INT, type INT, sort INT, ext_obj VARCHAR(2048),"
                     + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");

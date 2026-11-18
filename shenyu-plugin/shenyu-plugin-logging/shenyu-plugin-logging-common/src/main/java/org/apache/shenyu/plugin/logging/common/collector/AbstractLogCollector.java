@@ -276,6 +276,7 @@ public abstract class AbstractLogCollector<T extends AbstractLogConsumeClient<?,
         logInfo.setHost(desensitizeForSingleWord(GenericLoggingConstant.HOST, logInfo.getHost(), keyWordMatch, desensitizedAlg));
         logInfo.setModule(desensitizeForSingleWord(GenericLoggingConstant.MODULE, logInfo.getModule(), keyWordMatch, desensitizedAlg));
         logInfo.setTraceId(desensitizeForSingleWord(GenericLoggingConstant.TRACE_ID, logInfo.getTraceId(), keyWordMatch, desensitizedAlg));
+        logInfo.setRequestId(desensitizeForSingleWord(GenericLoggingConstant.REQUEST_ID, logInfo.getRequestId(), keyWordMatch, desensitizedAlg));
         logInfo.setPath(desensitizeForSingleWord(GenericLoggingConstant.PATH, logInfo.getPath(), keyWordMatch, desensitizedAlg));
         logInfo.setRequestHeader(desensitizeForSingleWord(GenericLoggingConstant.REQUEST_HEADER, logInfo.getRequestHeader(), keyWordMatch, desensitizedAlg));
         logInfo.setResponseHeader(desensitizeForSingleWord(GenericLoggingConstant.RESPONSE_HEADER, logInfo.getResponseHeader(),

@@ -40,6 +40,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -64,8 +65,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 class AgentGatewayPluginTest {
 
@@ -176,6 +179,111 @@ class AgentGatewayPluginTest {
         assertEquals("selector-1", exchangeContext.get().getSelectorId());
         assertEquals("rule-1", exchangeContext.get().getRuleId());
         assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+    }
+
+    @Test
+    void shouldReuseAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("ai-request-id", "llm", "ai-selector", "ai-rule"));
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertEquals("ai-request-id", observed.get());
+    }
+
+    @Test
+    void shouldReuseAiRequestIdFromReactorContextForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}"))
+                        .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
+                                new AgentRequestContext("reactor-request-id", "llm", "s", "r"))))
+                .verifyComplete();
+
+        assertEquals("reactor-request-id", observed.get());
+    }
+
+    @Test
+    void shouldReplaceOverlongAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        String overlong = "a".repeat(129);
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext(overlong, "llm", "ai-selector", "ai-rule"));
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertNotEquals(overlong, observed.get());
+        assertTrue(AgentRequestContext.isReusableRequestId(observed.get()));
+    }
+
+    @Test
+    void shouldReplaceUnsafeAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        String unsafe = "bad id";
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext(unsafe, "llm", "ai-selector", "ai-rule"));
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertNotEquals(unsafe, observed.get());
+        assertTrue(AgentRequestContext.isReusableRequestId(observed.get()));
+    }
+
+    @Test
+    void shouldReturnLegacyHeaderWithReusedAiRequestId() {
+        ServerWebExchange exchange = newExchange();
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("ai-request-id", "llm", "ai-selector", "ai-rule"));
+
+        StepVerifier.create(plugin.doExecute(exchange, next -> exchange.getResponse().setComplete(), selector(),
+                        rule("{\"trafficType\":\"LLM\",\"responseRequestId\":true}")))
+                .verifyComplete();
+
+        assertEquals("ai-request-id", exchange.getResponse().getHeaders()
+                .getFirst(AgentGatewayConstants.REQUEST_ID_HEADER));
+    }
+
+    @Test
+    void shouldKeepFreshRequestIdForMcpTraffic() {
+        AgentMcpHttpHandler handler = mock(AgentMcpHttpHandler.class);
+        when(handler.handle(any(), any(), any(), anyLong(), any())).thenReturn(Mono.empty());
+        AgentGatewayPlugin mcpPlugin = new AgentGatewayPlugin(handler);
+        ServerWebExchange exchange = newExchange();
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("ai-request-id", "llm", "ai-selector", "ai-rule"));
+
+        StepVerifier.create(mcpPlugin.doExecute(exchange, ignored -> Mono.empty(), selector(),
+                        rule("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"read\"]}}")))
+                .verifyComplete();
+
+        ArgumentCaptor<AgentTrafficContext> captor = ArgumentCaptor.forClass(AgentTrafficContext.class);
+        verify(handler).handle(any(), any(), captor.capture(), anyLong(), any());
+        assertNotEquals("ai-request-id", captor.getValue().getRequestId());
+        assertTrue(Objects.nonNull(captor.getValue().getRequestId()));
     }
 
     @Test

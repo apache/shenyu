@@ -20,8 +20,10 @@ package org.apache.shenyu.common.dto;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AgentRequestContextTest {
 
@@ -54,5 +56,30 @@ class AgentRequestContextTest {
         assertNull(context.getSessionId());
         assertNull(context.getProtocolVersion());
         assertNull(context.getConfigurationVersion());
+    }
+
+    @Test
+    void reusableRequestIdsAreBoundedAndHeaderSafe() {
+        assertTrue(AgentRequestContext.isReusableRequestId("abc.DEF_123:456-789"));
+        assertTrue(AgentRequestContext.isReusableRequestId("a".repeat(128)));
+        assertFalse(AgentRequestContext.isReusableRequestId(null));
+        assertFalse(AgentRequestContext.isReusableRequestId(""));
+        assertFalse(AgentRequestContext.isReusableRequestId("a".repeat(129)));
+        assertFalse(AgentRequestContext.isReusableRequestId("bad id"));
+        assertFalse(AgentRequestContext.isReusableRequestId("bad\nid"));
+    }
+
+    @Test
+    void routeIdentityRefreshPreservesLogicalRequestId() {
+        AgentRequestContext initial = new AgentRequestContext("request", "llm", "correlation-selector", "correlation-rule")
+                .withIdentity("tenant", "subject");
+        AgentRequestContext refreshed = initial.withSelectorAndRule("proxy-selector", "proxy-rule");
+        assertNotSame(initial, refreshed);
+        assertEquals("request", refreshed.getRequestId());
+        assertEquals("llm", refreshed.getTrafficType());
+        assertEquals("proxy-selector", refreshed.getSelectorId());
+        assertEquals("proxy-rule", refreshed.getRuleId());
+        assertEquals("tenant", refreshed.getTenant());
+        assertEquals("subject", refreshed.getSubject());
     }
 }

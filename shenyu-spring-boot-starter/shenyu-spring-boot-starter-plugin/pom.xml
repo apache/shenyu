@@ -72,5 +72,6 @@
         <module>shenyu-spring-boot-starter-plugin-mcp-server</module>
         <module>shenyu-spring-boot-starter-plugin-ai-sensitive-word</module>
         <module>shenyu-spring-boot-starter-plugin-ai-pii</module>
+        <module>shenyu-spring-boot-starter-plugin-ai-request-id</module>
     </modules>
 </project>

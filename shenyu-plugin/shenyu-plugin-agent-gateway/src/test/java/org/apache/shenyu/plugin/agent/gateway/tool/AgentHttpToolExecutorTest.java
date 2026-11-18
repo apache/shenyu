@@ -22,6 +22,7 @@ import com.google.gson.JsonParser;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -163,6 +164,33 @@ class AgentHttpToolExecutorTest {
         assertEquals("private=session", origin.getRequest().getHeaders().getFirst("Cookie"));
         assertEquals(1, chain.forks.get());
         assertEquals(0, chain.parentExecutions.get());
+    }
+
+    @Test
+    void propagatesReactorParentContextToChildAttributes() {
+        AgentRequestContext parent = new AgentRequestContext("mcp-request-id", "mcp", "selector", "rule");
+        RecordingChain chain = new RecordingChain(child -> {
+            assertEquals(parent, child.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+            return write(child, "{}");
+        });
+
+        StepVerifier.create(executor(origin(), chain, 4096).invoke(tool("GET"), invocation("A&B"))
+                        .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, parent)))
+                .expectNextCount(1).verifyComplete();
+    }
+
+    @Test
+    void propagatesExchangeParentContextToChildAttributes() {
+        MockServerWebExchange origin = origin();
+        AgentRequestContext parent = new AgentRequestContext("llm-request-id", "llm", "selector", "rule");
+        origin.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE, parent);
+        RecordingChain chain = new RecordingChain(child -> {
+            assertEquals(parent, child.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+            return write(child, "{}");
+        });
+
+        StepVerifier.create(executor(origin, chain, 4096).invoke(tool("GET"), invocation("A&B")))
+                .expectNextCount(1).verifyComplete();
     }
 
     @Test

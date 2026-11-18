@@ -323,6 +323,17 @@ public class AbstractLogCollectorTest {
     }
 
     @Test
+    public void testDesensitizeMasksRequestId() {
+        ShenyuRequestLog log = new ShenyuRequestLog();
+        log.setRequestId("sensitive-request-id");
+        KeyWordMatch keyWordMatch = new KeyWordMatch(new HashSet<>(Collections.singletonList(GenericLoggingConstant.REQUEST_ID)));
+
+        collector.desensitize(log, keyWordMatch, DataDesensitizeEnum.CHARACTER_REPLACE.getDataDesensitizeAlg());
+
+        assertNotEquals("sensitive-request-id", log.getRequestId());
+    }
+
+    @Test
     public void testDesensitizePreservesPopulatedNumericFields() {
         ShenyuRequestLog log = new ShenyuRequestLog();
         log.setClientIp("192.168.1.1");

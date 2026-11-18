@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.agent.gateway;
 
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.utils.VersionUtils;
 
 import java.io.IOException;
@@ -36,8 +37,9 @@ public final class AgentGatewayConstants {
 
     /**
      * Internal-only marker preventing the HTTP child dispatch from re-entering the MCP entry.
+     * Shared with other AI plugins so they can skip internal child invocations without depending on this module.
      */
-    public static final String HTTP_TOOL_CALL_ATTRIBUTE = AgentGatewayConstants.class.getName() + ".HTTP_TOOL_CALL";
+    public static final String HTTP_TOOL_CALL_ATTRIBUTE = AgentRequestContext.HTTP_TOOL_CALL_ATTRIBUTE;
 
     /**
      * Reactor context key containing the current request context.

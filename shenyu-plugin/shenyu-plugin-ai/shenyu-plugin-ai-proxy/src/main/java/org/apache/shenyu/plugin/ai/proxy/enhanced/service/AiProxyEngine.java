@@ -62,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -251,7 +250,7 @@ public final class AiProxyEngine {
             AtomicReference<Integer> status = new AtomicReference<>();
             return Mono.defer(() -> {
                 long deadlineNanos = System.nanoTime() + retryProperties.getRequestDeadline().toNanos();
-                String invocationId = UUID.randomUUID().toString();
+                String invocationId = observation.getContext().getRequestId();
                 PreparedExchange primary = prepare(requestBody, new AiCommonConfig(primaryConfig));
                 Optional<AiCommonConfig> fallback = fallbackConfig.map(config -> {
                     AiCommonConfig copy = new AiCommonConfig(config);

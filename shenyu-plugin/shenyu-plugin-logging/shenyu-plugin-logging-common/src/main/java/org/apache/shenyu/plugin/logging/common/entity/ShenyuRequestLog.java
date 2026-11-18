@@ -75,6 +75,8 @@ public class ShenyuRequestLog {
 
     private String traceId;
 
+    private String requestId;
+
     private String selectorId;
 
     private String ruleId;
@@ -464,6 +466,24 @@ public class ShenyuRequestLog {
     }
 
     /**
+     * get AI request id.
+     *
+     * @return AI request id
+     */
+    public String getRequestId() {
+        return requestId;
+    }
+
+    /**
+     * set AI request id.
+     *
+     * @param requestId AI request id
+     */
+    public void setRequestId(final String requestId) {
+        this.requestId = requestId;
+    }
+
+    /**
      * get request path.
      *
      * @return request path
@@ -557,6 +577,7 @@ public class ShenyuRequestLog {
                 + ", host=" + host
                 + ", module=" + module
                 + ", traceId=" + traceId
+                + ", requestId=" + requestId
                 + ", path=" + path
                 + ", selectorId=" + selectorId
                 + ", ruleId=" + ruleId
