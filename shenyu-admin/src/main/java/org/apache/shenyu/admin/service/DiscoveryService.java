@@ -43,7 +43,20 @@ public interface DiscoveryService {
      * @param namespaceId namespaceId
      * @return the discovery
      */
-    DiscoveryVO discovery(String pluginName, String level, String namespaceId);
+    default DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId) {
+        return discovery(pluginName, level, namespaceId, null);
+    }
+
+    /**
+     * Look up a discovery definition with optional regular selector scope.
+     *
+     * @param pluginName plugin name
+     * @param level discovery level
+     * @param namespaceId namespace ID
+     * @param selectorId optional selector ID for selector-level lookup
+     * @return the matching discovery or null
+     */
+    DiscoveryVO discovery(String pluginName, String level, String namespaceId, String selectorId);
 
     /**
      * Create or update string.

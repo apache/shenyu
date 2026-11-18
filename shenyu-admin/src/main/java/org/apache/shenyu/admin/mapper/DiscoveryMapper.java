@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.session.RowBounds;
 import org.apache.shenyu.admin.model.entity.DiscoveryDO;
 import org.apache.shenyu.admin.validation.ExistProvider;
 
@@ -80,14 +81,17 @@ public interface DiscoveryMapper extends ExistProvider {
     List<DiscoveryDO> selectAllByNamespaceIds(List<String> namespaceIds);
 
     /**
-     * select discovery by plugin name and level.
+     * Select discovery definitions matching the lookup scope.
      *
      * @param pluginName    plugin name
      * @param level         level
      * @param namespaceId   namespaceId
-     * @return {@linkplain DiscoveryDO}
+     * @param selectorId optional regular selector ID
+     * @param bounds maximum result window
+     * @return matching discoveries
      */
-    DiscoveryDO selectByPluginNameAndLevelAndNamespaceId(@Param("pluginName") String pluginName, @Param("level") String level, @Param("namespaceId") String namespaceId);
+    List<DiscoveryDO> selectDiscoveryMatches(@Param("pluginName") String pluginName, @Param("level") String level,
+                                             @Param("namespaceId") String namespaceId, @Param("selectorId") String selectorId, RowBounds bounds);
 
     /**
      * select discovery by plugin name and level.

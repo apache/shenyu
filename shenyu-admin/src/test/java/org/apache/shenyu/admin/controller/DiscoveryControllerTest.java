@@ -92,7 +92,7 @@ public final class DiscoveryControllerTest {
     public void testDiscoveryShouldDelegateToService() throws Exception {
         DiscoveryVO discoveryVO = new DiscoveryVO();
         discoveryVO.setPluginName("divide");
-        when(discoveryService.discovery("divide", "proxy", NAMESPACE_ID)).thenReturn(discoveryVO);
+        when(discoveryService.discovery("divide", "proxy", NAMESPACE_ID, null)).thenReturn(discoveryVO);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/discovery")
                         .param("pluginName", "divide")

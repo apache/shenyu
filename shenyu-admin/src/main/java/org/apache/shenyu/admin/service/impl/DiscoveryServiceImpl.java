@@ -21,10 +21,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.RowBounds;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -78,6 +80,8 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiscoveryServiceImpl.class);
 
+    private static final RowBounds DISCOVERY_LOOKUP_LIMIT = new RowBounds(RowBounds.NO_ROW_OFFSET, 2);
+
     private final DiscoveryMapper discoveryMapper;
 
     private final ProxySelectorMapper proxySelectorMapper;
@@ -123,9 +127,20 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId) {
-        return DiscoveryTransfer.INSTANCE.mapToVo(discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(pluginName, level, namespaceId));
+    @Transactional(readOnly = true)
+    public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId, final String selectorId) {
+        boolean selectorLevel = DiscoveryLevel.SELECTOR.getCode().equals(level);
+        if (Objects.nonNull(selectorId) && (!selectorLevel || StringUtils.isBlank(selectorId))) {
+            throw new ValidFailException("selectorId must be nonblank and is only supported for selector-level discovery (level=0).");
+        }
+        List<DiscoveryDO> matches = discoveryMapper.selectDiscoveryMatches(pluginName, level, namespaceId, selectorId, DISCOVERY_LOOKUP_LIMIT);
+        if (matches.size() > 1) {
+            if (selectorLevel && Objects.isNull(selectorId)) {
+                throw new ValidFailException("Multiple discovery records match. Specify selectorId to look up one selector.");
+            }
+            throw new ValidFailException("Multiple discovery records match the requested scope.");
+        }
+        return matches.isEmpty() ? null : DiscoveryTransfer.INSTANCE.mapToVo(matches.get(0));
     }
 
     @Override

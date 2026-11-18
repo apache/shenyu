@@ -63,11 +63,23 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByPluginNameAndLevelAndNamespaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectDiscoveryMatches" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM discovery
         WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND discovery_level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        <if test="selectorId != null">
+            AND EXISTS (
+                SELECT 1
+                FROM discovery_handler h
+                INNER JOIN discovery_rel r ON r.discovery_handler_id = h.id
+                INNER JOIN selector s ON s.id = r.selector_id
+                WHERE h.discovery_id = discovery.id
+                AND s.id = #{selectorId, jdbcType=VARCHAR}
+                AND s.namespace_id = discovery.namespace_id
+                AND r.plugin_name = discovery.plugin_name
+            )
+        </if>
     </select>
 
     <select id="selectByPluginNameAndLevelAndNamespaceIdAndType" parameterType="java.lang.String" resultMap="BaseResultMap">
