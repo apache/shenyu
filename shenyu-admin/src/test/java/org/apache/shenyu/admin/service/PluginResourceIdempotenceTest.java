@@ -40,6 +40,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -221,6 +222,30 @@ public final class PluginResourceIdempotenceTest extends AbstractSpringIntegrati
         assertThrows(ValidFailException.class, () -> pluginService.createPluginResource(request()));
 
         assertEquals(3, resources().size());
+    }
+
+    @Test
+    public void caseInsensitivePermissionMatchIsRejectedWithoutCreatingResources() {
+        ResourceDO conflicting = ResourceUtil.buildPluginDataPermissionResource("unrelated-parent", PLUGIN_NAME).get(0);
+        final String canonical = conflicting.getPerms();
+        conflicting.setPerms(canonical.toUpperCase(Locale.ROOT));
+        jdbcTemplate.execute("ALTER TABLE resource ALTER COLUMN perms VARCHAR_IGNORECASE(64)");
+        try {
+            resourceService.createResourceBatch(Collections.singletonList(conflicting));
+            assertEquals(conflicting.getPerms(), resourceMapper.selectByPerms(Collections.singletonList(canonical)).get(0).getPerms());
+            final Integer resourceCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM resource", Integer.class);
+            final Integer permissionCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM permission", Integer.class);
+
+            assertThrows(ValidFailException.class, () -> pluginService.createPluginResource(request()));
+
+            assertEquals(resourceCount, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM resource", Integer.class));
+            assertEquals(permissionCount, jdbcTemplate.queryForObject("SELECT COUNT(*) FROM permission", Integer.class));
+            assertEquals(conflicting.getPerms(), resourceMapper.selectById(conflicting.getId()).getPerms());
+        } finally {
+            jdbcTemplate.update("DELETE FROM permission WHERE resource_id = ?", conflicting.getId());
+            jdbcTemplate.update("DELETE FROM resource WHERE id = ?", conflicting.getId());
+            jdbcTemplate.execute("ALTER TABLE resource ALTER COLUMN perms VARCHAR(64)");
+        }
     }
 
     @Test

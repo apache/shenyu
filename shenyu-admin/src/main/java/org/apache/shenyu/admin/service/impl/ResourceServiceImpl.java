@@ -82,13 +82,16 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void createPluginResource(final String pluginId) {
-        // The database lock serializes repairs across admin instances, including missing resource trees.
+        // The database lock serializes resource repair requests for this plugin ID across admin instances.
         final PluginDO plugin = pluginMapper.selectByIdForUpdate(pluginId);
         Assert.notNull(plugin, AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
         final ResourceDO root = getOrCreatePluginResource(plugin.getName());
         final List<ResourceDO> expected = ResourceUtil.buildPluginDataPermissionResource(root.getId(), plugin.getName());
-        final Map<String, List<ResourceDO>> existing = resourceMapper.selectByPerms(ListUtil.map(expected, ResourceDO::getPerms))
-                .stream().collect(Collectors.groupingBy(ResourceDO::getPerms));
+        final List<String> permissions = ListUtil.map(expected, ResourceDO::getPerms);
+        final List<ResourceDO> resources = resourceMapper.selectByPerms(permissions);
+        // Database collations may match noncanonical permission values; never ignore these conflicts.
+        Assert.isTrue(resources.stream().allMatch(resource -> permissions.contains(resource.getPerms())), AdminConstants.RESOURCE_NAME_IS_EXIST);
+        final Map<String, List<ResourceDO>> existing = resources.stream().collect(Collectors.groupingBy(ResourceDO::getPerms));
         final List<ResourceDO> missing = new ArrayList<>();
         for (ResourceDO button : expected) {
             List<ResourceDO> matches = existing.get(button.getPerms());
