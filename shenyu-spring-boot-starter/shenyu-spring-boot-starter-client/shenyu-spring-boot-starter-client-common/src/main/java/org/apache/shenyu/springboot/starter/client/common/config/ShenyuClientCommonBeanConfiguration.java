@@ -17,18 +17,22 @@
 
 package org.apache.shenyu.springboot.starter.client.common.config;
 
+import org.apache.shenyu.client.core.register.ClientApiRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type shenyu client common bean configuration.
@@ -42,6 +46,7 @@ public class ShenyuClientCommonBeanConfiguration {
      *
      * @param config registration transport configuration
      * @param clientConfig bound client configuration
+     * @param discovery optional bound discovery configuration
      * @param validators active protocol validators
      * @param context application context
      * @return the client register repository
@@ -49,9 +54,16 @@ public class ShenyuClientCommonBeanConfiguration {
     @Bean
     public ShenyuClientRegisterRepository shenyuClientRegisterRepository(final ShenyuRegisterCenterConfig config,
                                                                           final ShenyuClientConfig clientConfig,
+                                                                          final ObjectProvider<ShenyuDiscoveryConfig> discovery,
                                                                           final List<ClientRegistrationValidator> validators,
                                                                           final ApplicationContext context) {
-        ClientRegistrationValidator.validate(config, clientConfig, context, validators);
+        Environment environment = context.getEnvironment();
+        ShenyuDiscoveryConfig discoveryConfig = discovery.getIfAvailable();
+        String discoveryRegistration = Objects.isNull(discoveryConfig) ? null : environment.getProperty("shenyu.discovery.register");
+        ClientRegistrationValidator.validateShared(config, clientConfig, discoveryConfig, discoveryRegistration);
+        boolean optIn = context.getBeanNamesForType(ClientApiRefreshedEventListener.class, false, false).length > 0;
+        String applicationName = environment.getProperty("spring.application.name");
+        validators.forEach(validator -> validator.validateProtocol(clientConfig, applicationName, optIn));
         return ShenyuClientRegisterRepositoryFactory.newInstance(config);
     }
 

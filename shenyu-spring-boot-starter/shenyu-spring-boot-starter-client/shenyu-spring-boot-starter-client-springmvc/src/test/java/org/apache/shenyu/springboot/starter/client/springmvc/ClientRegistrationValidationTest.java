@@ -98,6 +98,12 @@ class ClientRegistrationValidationTest {
     }
 
     @Test
+    void testLegacyMvcRequiresAnApplicationNameEvenWithAContextPath() {
+        assertInvalid(runner.withPropertyValues("spring.application.name=", "shenyu.client.http.props.contextPath=/orders"),
+                "shenyu.client.http.props.appName=", "shenyu.client.http.props.appName or spring.application.name");
+    }
+
+    @Test
     void testDisabledOptInDoesNotConstructPipeline() {
         try (MockedStatic<ShenyuClientRegisterRepositoryFactory> factory = mockStatic(ShenyuClientRegisterRepositoryFactory.class);
                 MockedStatic<ShenyuClientRegisterEventPublisher> publishers = mockStatic(ShenyuClientRegisterEventPublisher.class)) {

@@ -36,7 +36,7 @@
     {
       "name": "shenyu.client.http.props.appName",
       "type": "java.lang.String",
-      "description": "Application identity. HTTP legacy falls back to spring.application.name when blank; opt-in falls back only when appName is absent. Other built-in listeners accept appName or contextPath."
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
     },
     {
       "name": "shenyu.client.http.props.contextPath",
@@ -66,7 +66,7 @@
     {
       "name": "shenyu.client.websocket.props.appName",
       "type": "java.lang.String",
-      "description": "Application identity. HTTP legacy falls back to spring.application.name when blank; opt-in falls back only when appName is absent. Other built-in listeners accept appName or contextPath."
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
     },
     {
       "name": "shenyu.client.websocket.props.contextPath",
@@ -91,7 +91,7 @@
     {
       "name": "shenyu.client.grpc.props.appName",
       "type": "java.lang.String",
-      "description": "Application identity. HTTP legacy falls back to spring.application.name when blank; opt-in falls back only when appName is absent. Other built-in listeners accept appName or contextPath."
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
     },
     {
       "name": "shenyu.client.grpc.props.contextPath",
@@ -116,7 +116,7 @@
     {
       "name": "shenyu.client.dubbo.props.appName",
       "type": "java.lang.String",
-      "description": "Application identity. HTTP legacy falls back to spring.application.name when blank; opt-in falls back only when appName is absent. Other built-in listeners accept appName or contextPath."
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
     },
     {
       "name": "shenyu.client.dubbo.props.contextPath",
@@ -136,7 +136,7 @@
     {
       "name": "shenyu.client.sofa.props.appName",
       "type": "java.lang.String",
-      "description": "Application identity. HTTP legacy falls back to spring.application.name when blank; opt-in falls back only when appName is absent. Other built-in listeners accept appName or contextPath."
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
     },
     {
       "name": "shenyu.client.sofa.props.contextPath",
@@ -156,7 +156,7 @@
     {
       "name": "shenyu.client.tars.props.appName",
       "type": "java.lang.String",
-      "description": "Application identity. HTTP legacy falls back to spring.application.name when blank; opt-in falls back only when appName is absent. Other built-in listeners accept appName or contextPath."
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
     },
     {
       "name": "shenyu.client.tars.props.contextPath",
@@ -176,7 +176,7 @@
     {
       "name": "shenyu.client.mcp.props.appName",
       "type": "java.lang.String",
-      "description": "Application identity. HTTP legacy falls back to spring.application.name when blank; opt-in falls back only when appName is absent. Other built-in listeners accept appName or contextPath."
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
     },
     {
       "name": "shenyu.client.mcp.props.contextPath",

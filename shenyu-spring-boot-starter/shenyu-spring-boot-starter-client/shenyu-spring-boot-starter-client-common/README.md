@@ -91,7 +91,7 @@ The following keys are under `shenyu.client.<protocol>.props`.
 
 | Protocol | Required identity/settings in the existing listener | Advertised port |
 | --- | --- | --- |
-| `http` | Legacy: `appName`, falling back to `spring.application.name`. Legacy blank `contextPath` keeps its existing `/<spring.application.name>` fallback. Opt-in: absent `appName` falls back to the Spring name; an explicitly blank value stays blank. Preserve app-name or nonblank `contextPath` identity; opt-in absent context defaults to empty. | Optional; absent, `-1` or `0` are accepted automatic inputs. Explicit positive values must be `1..65535`. |
+| `http` | Legacy: requires `appName` or its `spring.application.name` fallback, even with an explicit `contextPath`. Legacy blank `contextPath` keeps its existing `/<spring.application.name>` fallback. Opt-in: absent `appName` falls back to the Spring name; an explicitly blank value stays blank. Opt-in accepts an application name or nonblank `contextPath`; absent context defaults to empty. | Optional; absent, `-1` or `0` are accepted automatic inputs. Explicit positive values must be `1..65535`. |
 | `websocket` | `appName` or `contextPath`; no new Spring-name fallback | Same HTTP/WebSocket automatic-input rules. |
 | `grpc` | `contextPath`, `ipAndPort` and `port`; `ipAndPort` retains its existing protocol-specific identity role | Required, `1..65535`. |
 | `dubbo` | `appName` or `contextPath`; Dubbo service/protocol configuration still owns actual exports | Optional; if supplied, `1..65535`. |

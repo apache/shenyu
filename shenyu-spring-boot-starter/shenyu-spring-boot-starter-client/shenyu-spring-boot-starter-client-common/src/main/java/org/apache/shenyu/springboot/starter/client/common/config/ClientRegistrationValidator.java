@@ -20,14 +20,11 @@ package org.apache.shenyu.springboot.starter.client.common.config;
 import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
-import org.apache.shenyu.client.core.register.ClientApiRefreshedEventListener;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
 import java.util.List;
 import java.util.Locale;
@@ -57,13 +54,11 @@ public final class ClientRegistrationValidator {
      *
      * @param register registration transport configuration
      * @param client protocol configuration
-     * @param context application context
-     * @param validators active starter declarations
+     * @param discovery bound discovery configuration, when enabled
+     * @param discoveryRegistration configured discovery registration flag
      */
-    public static void validate(final ShenyuRegisterCenterConfig register, final ShenyuClientConfig client,
-                                final ApplicationContext context, final List<ClientRegistrationValidator> validators) {
-        final Environment environment = context.getEnvironment();
-        final boolean optIn = context.getBeanNamesForType(ClientApiRefreshedEventListener.class, false, false).length > 0;
+    static void validateShared(final ShenyuRegisterCenterConfig register, final ShenyuClientConfig client,
+                               final ShenyuDiscoveryConfig discovery, final String discoveryRegistration) {
         required(register.getRegisterType(), "shenyu.register.registerType");
         if ("http".equals(register.getRegisterType())) {
             validateHttpServers(register.getServerLists(), "shenyu.register.serverLists");
@@ -71,8 +66,7 @@ public final class ClientRegistrationValidator {
         validateDelay(register.getProps(), "shutdownWaitTime");
         validateDelay(register.getProps(), "delayOtherHooksExecTime");
         validateNamespaces(client.getNamespace());
-        validateDiscovery(context.getBeanProvider(ShenyuDiscoveryConfig.class).getIfAvailable(), environment);
-        validators.forEach(validator -> validator.validateProtocol(client, environment, optIn));
+        validateDiscovery(discovery, discoveryRegistration);
     }
 
     private static void validateHttpServers(final String servers, final String property) {
@@ -107,11 +101,10 @@ public final class ClientRegistrationValidator {
         }
     }
 
-    private static void validateDiscovery(final ShenyuDiscoveryConfig discovery, final Environment environment) {
+    private static void validateDiscovery(final ShenyuDiscoveryConfig discovery, final String register) {
         if (Objects.isNull(discovery)) {
             return;
         }
-        String register = environment.getProperty("shenyu.discovery.register");
         if (Objects.nonNull(register) && !List.of("true", "false").contains(register.toLowerCase(Locale.ROOT))) {
             throw invalid("shenyu.discovery.register", "true or false");
         }
@@ -149,7 +142,7 @@ public final class ClientRegistrationValidator {
         }
     }
 
-    private void validateProtocol(final ShenyuClientConfig client, final Environment environment, final boolean optIn) {
+    void validateProtocol(final ShenyuClientConfig client, final String applicationName, final boolean optIn) {
         String prefix = "shenyu.client." + protocol.getName() + ".props.";
         if (Objects.isNull(client.getClient()) || !client.getClient().containsKey(protocol.getName())) {
             throw invalid(prefix.substring(0, prefix.length() - 1), "the property map for the enabled protocol");
@@ -159,7 +152,7 @@ public final class ClientRegistrationValidator {
             throw invalid(prefix.substring(0, prefix.length() - 1), "the property map for the enabled protocol");
         }
         Properties props = entry.getProps();
-        validateIdentity(props, prefix, environment, optIn);
+        validateIdentity(props, prefix, applicationName, optIn);
         validatePort(props, prefix);
         validateRpcSettings(props, prefix);
     }
@@ -184,16 +177,17 @@ public final class ClientRegistrationValidator {
         }
     }
 
-    private void validateIdentity(final Properties props, final String prefix, final Environment environment, final boolean optIn) {
+    private void validateIdentity(final Properties props, final String prefix, final String applicationName, final boolean optIn) {
         String appName = props.getProperty(ShenyuClientConstants.APP_NAME);
         if (protocol == RpcTypeEnum.HTTP) {
             if (!optIn) {
-                appName = StringUtils.defaultIfBlank(appName, environment.getProperty("spring.application.name"));
+                // The legacy MVC starter checks the application name before constructing its listener.
+                appName = StringUtils.defaultIfBlank(appName, applicationName);
                 required(appName, prefix + ShenyuClientConstants.APP_NAME + " or spring.application.name");
                 return;
             }
             if (Objects.isNull(appName)) {
-                appName = environment.getProperty("spring.application.name");
+                appName = applicationName;
             }
         }
         if (StringUtils.isBlank(appName) && StringUtils.isBlank(props.getProperty(ShenyuClientConstants.CONTEXT_PATH))) {
