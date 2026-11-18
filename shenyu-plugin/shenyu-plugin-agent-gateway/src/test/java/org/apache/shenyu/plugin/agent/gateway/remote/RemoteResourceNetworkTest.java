@@ -116,6 +116,7 @@ class RemoteResourceNetworkTest {
                 assertTrue(fixture.started.await(5, TimeUnit.SECONDS));
                 assertEquals("orders:test://status", client.readResource("test://status").block(WAIT).path("contents").get(0).path("text").asText());
                 assertTrue(first.cancel(true));
+                // block() can return before the peer's terminal doFinally cleanup has finished.
                 await().atMost(WAIT).untilAsserted(() -> assertEquals(0, client.pending()));
                 fixture.release.countDown();
                 assertEquals("orders:test://status/next", client.readResource("test://status/next").block(WAIT).path("contents").get(0).path("text").asText());

@@ -26,7 +26,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
-import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpExecutionContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
@@ -120,12 +119,12 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
         SpringBeanUtils.getInstance().setApplicationContext(application);
         keyData = registerPlugin(keyPlugin.named());
         configureKeys();
-        gateway = new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(
-                List.of(tool("read-a"), tool("read-b"), tool("blocked"), tool("outside"))), "test", "1"),
+        gateway = new AgentGatewayPlugin(new AgentMcpHttpHandler(ResourceMcpTestFixture.dispatcher(new AgentToolRegistry(
+                List.of(tool("read-a"), tool("read-b"), tool("blocked"), tool("outside")))),
                 java.util.Objects.isNull(resolver) ? new KeyAuthMcpSecurityResolver(properties) : resolver));
         registerPlugin(gateway.named());
         gatewayRule = rule(selector(gateway.named(), "gateway-selector", true), "gateway-rule",
-                "{\"trafficType\":\"mcp\",\"mcp\":{\"responseMode\":\"" + mode + "\",\"allowedTools\":[\"read-a\",\"read-b\",\"blocked\"]}}");
+                "{\"trafficType\":\"mcp\",\"mcp\":{\"responseMode\":\"" + mode + "\",\"allowedResources\":" + ResourceMcpTestFixture.RULE + ",\"allowedTools\":[\"read-a\",\"read-b\",\"blocked\"]}}");
         gatewayHandler.handlerRule(gatewayRule);
         BaseDataCache.getInstance().cacheRuleData(gatewayRule);
         WebHttpHandlerBuilder builder = WebHttpHandlerBuilder.webHandler(exchange -> execute(principal
@@ -175,6 +174,7 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
     }
 
     void mutateBinding() {
+        properties.getBindings().get(0).setResourceGrants(Set.of("hidden"));
         properties.getBindings().get(0).setTenant("mutated");
         properties.getBindings().get(0).setToolGrants(Set.of("read-b"));
     }
@@ -216,9 +216,12 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
         JsonObject params = JsonParser.parseString("{\"_meta\":{\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\","
                 + "\"io.modelcontextprotocol/clientCapabilities\":{}}}").getAsJsonObject();
         if (!tool.isEmpty()) {
-            params.addProperty("name", tool);
-            params.add("arguments", new JsonObject());
+            params.addProperty("resources/read".equals(method) ? "uri" : "name", tool);
+            if (!"resources/read".equals(method)) {
+                params.add("arguments", new JsonObject());
+            }
         }
+        params.getAsJsonObject("_meta").addProperty("resource_grants", "hidden");
         request.add("params", params);
         return request.toString();
     }
@@ -234,6 +237,7 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
         if (!key.isEmpty()) {
             headers.set("X-Api-Key", key);
         }
+        headers.set("resource_grants", "hidden");
         headers.set("X-Tenant-Id", "forged");
         headers.set("X-Subject", "forged");
     }
@@ -260,6 +264,7 @@ final class KeyAuthMcpTestFixture implements AutoCloseable {
                 binding.setSubject("service");
                 binding.setToolGrants(Set.of("read-" + tenant, "blocked", "outside"));
                 binding.setToolDenials(Set.of("blocked"));
+                binding.setResourceGrants("a".equals(tenant) ? Set.copyOf(ResourceMcpTestFixture.GRANTS) : Set.of());
                 bindings.add(binding);
             }
         }
