@@ -23,15 +23,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
+import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,6 +44,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
+import java.util.Objects;
 
 /**
  * The type Netty http client plugin.
@@ -48,6 +54,8 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
     private static final Logger LOG = LoggerFactory.getLogger(NettyHttpClientPlugin.class);
 
     private final HttpClient httpClient;
+
+    private final UpstreamPoolGroupRegistry poolGroups;
 
     /**
      * Instantiates a new Netty http client plugin.
@@ -67,8 +75,36 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
      * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
      */
     public NettyHttpClientPlugin(final HttpClient httpClient, final long maxInMemorySize) {
+        this(httpClient, maxInMemorySize, UpstreamPoolGroupRegistry.empty());
+    }
+
+    /**
+     * Instantiates a new Netty http client plugin.
+     *
+     * @param httpClient the http client
+     * @param maxInMemorySize max request body size in bytes that may be cached for retry replay
+     * @param poolGroups the upstream pool group registry
+     */
+    public NettyHttpClientPlugin(final HttpClient httpClient, final long maxInMemorySize,
+                                 final UpstreamPoolGroupRegistry poolGroups) {
         super(maxInMemorySize);
         this.httpClient = httpClient;
+        this.poolGroups = poolGroups;
+    }
+
+    /**
+     * Resolve the client for this request: the group client when the divide rule handle
+     * selected a configured pool group, the shared default client otherwise.
+     *
+     * @param exchange the current exchange
+     * @return the client to use
+     */
+    private HttpClient resolveClient(final ServerWebExchange exchange) {
+        String group = exchange.getAttribute(Constants.HTTP_POOL_GROUP);
+        if (StringUtils.isBlank(group)) {
+            return httpClient;
+        }
+        return poolGroups.httpClientFor(group);
     }
 
     @Override
@@ -80,7 +116,14 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         if (LOG.isDebugEnabled()) {
             LOG.debug("NettyHttpClient request: method={}, uri={}", httpMethod, uri);
         }
-        return Mono.from(httpClient.headers(headers -> {
+        final HttpClient client;
+        try {
+            client = resolveClient(exchange);
+        } catch (IllegalStateException ex) {
+            return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), ex));
+        }
+        HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
+        return Mono.from(client.headers(headers -> {
             httpHeaders.forEach(headers::set);
             headers.remove(HttpHeaders.HOST);
             Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
@@ -106,8 +149,15 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("NettyHttpClient response: status={}", res.status().code());
                     }
+                    if (Objects.nonNull(attempt)) {
+                        attempt.onAbandon(connection::dispose);
+                    }
                     if (shouldFailover(exchange, res.status().code())) {
-                        return connection.inbound().receive().then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
+                        return connection.inbound().receive().doOnComplete(() -> {
+                            if (Objects.nonNull(attempt)) {
+                                attempt.received();
+                            }
+                        }).then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
                     }
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
@@ -119,15 +169,17 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
-                    response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
-                    try {
-                        response.getHeaders().putAll(headers);
-                    } catch (UnsupportedOperationException ex) {
-                        LOG.warn("Failed to set response headers because they are read-only. "
-                                + "This may indicate unexpected response decorator usage. "
-                                + "responseClass={}, statusCode={}, message={}",
-                                response.getClass().getName(), res.status().code(), ex.getMessage());
-                    }
+                    HttpRouteResponseHeaders.apply(exchange, () -> {
+                        response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
+                        try {
+                            response.getHeaders().putAll(headers);
+                        } catch (UnsupportedOperationException ex) {
+                            LOG.warn("Failed to set response headers because they are read-only. "
+                                    + "This may indicate unexpected response decorator usage. "
+                                    + "responseClass={}, statusCode={}, message={}",
+                                    response.getClass().getName(), res.status().code(), ex.getMessage());
+                        }
+                    });
                     return Mono.just(res);
                 }));
     }

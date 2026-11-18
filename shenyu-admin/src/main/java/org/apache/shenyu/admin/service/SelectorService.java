@@ -134,6 +134,18 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     int deleteByNamespaceId(List<String> ids, String namespaceId);
 
     /**
+     * delete selectors for the registration flow.
+     *
+     * <p>Registration runs without a login user, so this path skips the plugin data permission
+     * check applied by {@link #deleteByNamespaceId(List, String)}. Only use it from registration.</p>
+     *
+     * @param ids         primary key.
+     * @param namespaceId namespaceId.
+     * @return rows int
+     */
+    int deleteForRegistration(List<String> ids, String namespaceId);
+
+    /**
      * find selector by id and namespaceId.
      *
      * @param id          primary key.

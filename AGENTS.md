@@ -48,6 +48,38 @@ make build-all-image VERSION="$SHENYU_VERSION"
 - **Surgical changes.** Follow surrounding style, remove code made unused by your change and leave unrelated cleanup out. Preserve public SPI, plugin names, configuration defaults and supported legacy behavior unless the task changes them. Trace affected plugin/selector/rule contracts through shared DTOs, Admin persistence/validation/events, sync, gateway consumers and starters; coordinate necessary changes and tests. Check maintained SQL dialects and upgrade paths when persistence or seed metadata changes.
 - **Goal-driven execution.** Define observable success; prefer a reproducing regression test for bugs and preserve externally observable behavior in refactors. Start with Maven-wrapper checks of affected modules/dependencies, then broaden according to risk and repository/CI requirements. Distinguish behavior tests from compilation or `-DskipTests` builds. For reactive changes, check affected subscription, completion/error/cancellation/backpressure and buffer/resource lifetimes. Verify cancellation follows resource ownership, including the original upstream call where applicable; headers, body completion and WebSocket session termination are distinct boundaries. Use factual/link/configuration checks for documentation changes. Report checks, results and material checks not run; existing Checkstyle, RAT/license and contribution requirements still apply.
 
+## Code quality rules
+
+These rules apply to production code (`src/main`) added or changed by a PR. Rule IDs are shared by authors, reviewers and the `new-code-quality` CI job. Follow existing module style first; do not rewrite unrelated code to satisfy them.
+
+Checked on added lines by `script/shenyu_checkstyle_new_code.xml` (advisory in CI):
+
+- **Q1 Magic numbers.** Apart from `-1`, `0`, `1` and `2`, do not write bare numeric literals in logic or in local variables. Reuse an existing constant (for example in `Constants` or the module's `*Constants`) or declare a `private static final` constant whose name states meaning and unit, such as `DEFAULT_TIMEOUT_MILLIS`.
+- **Q2 Repeated strings.** Extract a string literal used more than twice in a file, such as a header name or configuration key, into a constant.
+- **Q3 Method size.** New methods: at most 50 non-blank lines, cyclomatic complexity at most 10, NPath complexity at most 200.
+- **Q4 Control flow.** At most 3 levels of nested `if` in new code (the build-wide limit is 4) and at most 3 boolean operators in one expression. Prefer early returns and named conditions.
+- **Q5 Parameters.** At most 5 parameters on new methods (overrides excepted). Group related values into a value object.
+- **Q6 TODOs.** `TODO` and `FIXME` must reference an issue, for example `TODO(#1234)`.
+
+Not machine-checked; reviewers judge them:
+
+- **Q7 Reuse.** Use existing utilities and abstractions (`GsonUtils`, `UriUtils`, `MapUtils`, plugin base classes, SPI) instead of re-implementing them.
+- **Q8 Dead code.** No commented-out code, unused members or parameters, or speculative extension points.
+- **Q9 Naming and focus.** Names describe intent; one method does one thing; comments explain why, not what.
+
+Run the gate locally before opening a PR (needs Java 17 and the Checkstyle all-in-one jar pinned in `.github/workflows/new-code-quality.yml`):
+
+```bash
+python3 .github/scripts/check-new-code-quality.py --base origin/master --checkstyle-jar /path/to/checkstyle-9.3-all.jar
+```
+
+## IssueSpec and pull requests
+
+- Follow [the IssueSpec policy](issue-spec/project/workflow.md). New capabilities and changes to public SPI, configuration semantics, authorization or Admin-to-gateway contracts need a Proposal, Design, confirmed SPECs and implementation TASKs. Read the complete current Design and applicable decisions before implementing. Use the lightweight path for documentation, tests and behavior-preserving fixes; production fixes need the documented maintainer classification.
+- Read `issue-spec/config.yaml` and the guidance for the current phase. Keep durable behavior contracts in `issue-spec/specs/<capability>/spec.md` with their implementation. Record genuine unresolved decisions as blocking QUESTIONs; do not invent approval steps, require multiple agents or create PROCESSes for ordinary sequential work.
+- Use the checked-in PR template. Write a concrete title and lead the description with the problem and resulting behavior. Explain material choices, compatibility and remaining limitations; identify unmerged dependencies. Use `Fixes #...` only for issues fully resolved, and `Related to #...` for partial work. Keep one coherent change per PR, including the necessary cross-module changes.
+- Fill the IssueSpec metadata and verification description truthfully. Report commands, executed tests, results and important unrun checks; compilation and `-DskipTests` are not test execution. Keep the title, description and evidence aligned with the final diff. The advisory policy check validates planning metadata, not correctness, review approval or merge readiness.
+
 ## Architecture
 
 ShenYu is split into a **control plane** and a **data plane** that communicate only through data-sync channels — the gateway never reads the database.

@@ -1,4 +1,48 @@
-## Unreleased
+## 2.7.2
+
+### Dependency Upgrade Notes
+
+- Spring Cloud moves to the 2025.0.3 release train (4.3.3 for Commons,
+  OpenFeign and Netflix) to match Spring Boot 3.5. OkHttp and its logging
+  interceptor are managed together at 4.12.0; Lettuce moves to 6.6.0.RELEASE
+  to match Spring Data Redis in the Boot dependency baseline.
+- MyBatis Spring Boot Starter moves to 3.0.5 and Springdoc OpenAPI moves to
+  2.8.17 with Swagger Models 2.2.47, aligning their integrations with Boot 3.5.
+- Transitive dependency fixes include Log4j 2.25.5, Commons Compress 1.28.0,
+  HttpClient 4.5.14, Vert.x 4.5.27, Rhino 1.7.15.1, Bouncy Castle 1.85,
+  Snappy 1.1.10.9 and Fastjson 2.0.66 (the Fastjson 1 API compatibility module).
+  LZ4 moves from the archived `org.lz4` implementation to the maintained
+  `at.yawk.lz4:lz4-java` 1.11.4; legacy transitive coordinates are relocated.
+- Spring Framework remains on 6.2.19. This upgrade does not resolve
+  CVE-2026-47884 (XsltView with implicit view names and wildcard mappings) or
+  CVE-2026-47890 (SSE view fragments), or CVE-2026-47892 (WebFlux functional
+  header predicates deployed with DispatcherServlet). Their public fixes start
+  at Spring 7.0.9;
+  the Spring 6.2.20 fixes require enterprise support. Deployments using these
+  features must review the corresponding Spring security advisories.
+- MCP SDK moves to 0.18.3 with Spring AI 1.1.8. The DNS rebinding
+  advisory CVE-2026-35568 is fixed in SDK 1.0.0, whose Spring transports moved
+  to Spring AI 2.0. Deployments must validate Host and Origin headers as described
+  in the SDK advisory; this dependency upgrade does not resolve that advisory.
+- Existing OpenTelemetry API dependencies are aligned at 1.67.0 to include
+  upstream security fixes. This update adds no telemetry instrumentation.
+- The release dependency baseline moves to Spring Boot 3.5.16 and Shiro 2.2.1.
+  Custom authentication realms and integrations must be validated against these
+  versions before deployment. Patched Jackson and Tomcat versions are managed
+  explicitly ahead of the imported Boot dependency management.
+- Admin explicitly disables Shiro RememberMe and authenticates stateless tokens.
+  This prevents use of the cookie functionality affected by CVE-2026-56130
+  (GHSA-m8g6-vrr2-x7ff). Shiro 2.2.1 still matches the dependency advisory;
+  its library fix requires Shiro 3.0.0. Custom security managers must keep
+  RememberMe disabled or migrate to a fixed version before enabling it.
+- H2 moves from 1.4.200 to 2.3.232. An existing persistent H2 database requires
+  migration: stop Admin writers, back up the original database, export it with
+  `SCRIPT` using H2 1.4.200, then import the export into a fresh H2 2.3.232 database
+  with `RUNSCRIPT FROM 'backup.sql' FROM_1X`. Verify the migrated database before
+  switching Admin to it. Do not open a 1.4 database file directly with the new
+  driver. Rollback restores the old Admin binaries and the original database
+  backup together. The default in-memory H2 database has no persistent file to
+  migrate. See the [H2 migration guide](https://www.h2database.com/html/migration-to-v2.html).
 
 ### API Changes
 
@@ -49,6 +93,14 @@
   Deployments that previously relied on the later `mcpServer` handling an overlapping
   path must review their selectors and explicit plugin orders; the migration changes
   only old Agent Gateway sort values and does not rewrite custom orders.
+- **Breaking change:** HTTP `ELASTIC` pools now honor the configured connection count, acquisition
+  queue and timeout instead of forcing unlimited capacity. `FIXED` remains the
+  default with the same effective default limits. Configure
+  `shenyu.httpclient.pool.maxPendingAcquires` for an explicit queue bound;
+  `-1` removes the queue bound only; it does not remove the connection-count limit.
+  Existing ELASTIC deployments must review saturation behavior before upgrading. See the
+  [capacity and migration guide](docs/performance/http-connection-pools.md). (#7644)
+
 - The `leastActive` load balancer now sees outstanding requests for the websocket
   plugin and for apache dubbo gray routing, not only for the divide plugin. A
   proxied websocket session is counted for as long as it runs, and a gray routed
@@ -115,6 +167,16 @@
   the previous behavior with `shenyu.httpclient.keepAlive=false`.
   For a fixed pool, set `shenyu.httpclient.pool.maxConnections` explicitly to
   size the connection limit for the deployment; the default follows Reactor Netty.
+- Opt-in named upstream connection-pool groups are available through
+  `shenyu.httpclient.pool-groups`. Groups must use the `FIXED` type, have an
+  explicit unique name other than `shenyu-proxy`, and configure a positive
+  `maxConnections` plus an omitted-or-positive `maxPendingAcquires` (at most 16
+  groups). A divide rule selects one with `poolGroup`; an unknown group returns
+  HTTP 503 instead of falling back. Definitions are read at startup only, and
+  deployments without `pool-groups` keep the existing shared pool unchanged.
+  Group metrics use Reactor Netty Micrometer meters when `metrics: true` and
+  `micrometer-core` is present; they are not exported by the ShenYu Prometheus
+  metrics endpoint in this release. See `docs/upstream-pool-groups.md`.
 - CORS origin patterns are compiled when the gateway starts. An invalid
   `shenyu.cross.allowed-origin.origin-regex` now fails startup with
   `PatternSyntaxException`, rather than failing the first matching request.
@@ -216,6 +278,32 @@
   users of the compatibility starter are unaffected; Apollo was never part of that
   aggregate and remains an explicit choice. See `shenyu-registry/README.md` for the
   provider table and migration steps. (#7578)
+- Admin now enforces the plugin-specific selector and rule grants
+  (`plugin:<name><Selector|Rule>:<add|edit|delete>`) on selector and rule writes.
+  The server previously checked only the global `system:plugin:*` grants and the
+  dashboard used the plugin-specific ones to show buttons. Global grants keep their
+  meaning on the selector and rule endpoints and no SQL migration is required. A
+  role that holds a plugin-specific grant without the matching global grant can now
+  write to that plugin, where its requests were rejected before. Review such roles
+  when upgrading; `db/upgrade/upgrade-guide.md` has a query that lists them. Two
+  requests are stricter than before: deleting an API (`DELETE /api/batch`) also
+  needs the delete grant for the selectors and rules it cleans up, and an update
+  can no longer change the plugin of a selector or move a rule to a selector of
+  another plugin. (#8174)
+
+- The admin now validates the `sticky` section of a divide rule handle when a rule is
+  saved: `onUnavailable` must be exactly `REBIND` or `STRICT`, `maxAgeSeconds` must be
+  positive, `cookieName` must be a non-blank string (an explicit `null` is not accepted
+  as a substitute for omitting it), an enabled configuration needs at least one non-blank
+  `secrets` entry, and a configured deterministic `key` needs a non-blank `name` and,
+  when `type` is present, `HEADER` or `COOKIE`. JSON structure is checked before Gson can
+  coerce values, so a non-object `sticky`, a non-integer lifetime, a non-array secret
+  list or a non-string field is rejected with a `sticky.…` field error. A disabled
+  (`enabled=false`) sticky section is exempt from value validation, because the gateway
+  activation checks ignore it and its values cannot affect a request, so an unrelated
+  field of an already stored rule stays editable; structural type checks still apply.
+  The gateway runtime stays tolerant for values: a configuration persisted before this
+  validation still degrades to plain load balancing instead of failing requests. (#8037)
 
 ## [v2.7.0]- 2024-12-23
 

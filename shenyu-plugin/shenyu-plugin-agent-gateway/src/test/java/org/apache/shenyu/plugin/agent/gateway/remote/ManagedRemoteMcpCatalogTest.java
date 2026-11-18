@@ -28,6 +28,7 @@ import reactor.test.StepVerifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -48,6 +49,38 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ManagedRemoteMcpCatalogTest {
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("configurationFixtures")
+    void validatesSharedContractBeforeCandidatePreparation(final String name, final boolean accepted, final String source) {
+        ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(), Set.of(), reference -> {
+            throw new IllegalStateException("Local-only fixtures must not resolve credentials");
+        });
+        try {
+            long current = catalog.diagnosticsState().lifecycle().currentVersion();
+            if (accepted) {
+                StepVerifier.create(catalog.reload(source)).expectNextCount(1).verifyComplete();
+            } else {
+                StepVerifier.create(catalog.reload(source)).expectError(IllegalArgumentException.class).verify();
+                assertEquals(current, catalog.diagnosticsState().lifecycle().currentVersion());
+            }
+        } finally {
+            catalog.closeAsync().block(Duration.ofSeconds(5));
+        }
+    }
+
+    private static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> configurationFixtures() throws java.io.IOException {
+        try (var input = java.util.Objects.requireNonNull(ManagedRemoteMcpCatalogTest.class.getResourceAsStream(
+                "/META-INF/shenyu/config-contract-fixtures/agentGateway-plugin-v1.tsv"));
+             var reader = new java.io.BufferedReader(new java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8))) {
+            return reader.lines().filter(line -> !line.isBlank() && !line.startsWith("#")).map(line -> {
+                String[] fields = line.split("\\t", 3);
+                String source = "@missing".equals(fields[2]) ? null : "@blank".equals(fields[2]) ? "" : fields[2];
+                return org.junit.jupiter.params.provider.Arguments.of(fields[0], Boolean.parseBoolean(fields[1]), source);
+            }).toList().stream();
+        }
+    }
+
 
     @Test
     void catalogMetricsDescribeAcquisitionNotBusinessOutcome() {

@@ -31,6 +31,14 @@ import java.util.List;
  * this is Resource Service.
  */
 public interface ResourceService {
+
+    /**
+     * Create missing resources for an existing plugin, preserving its current resources.
+     *
+     * @param pluginId plugin primary key
+     */
+    void createPluginResource(String pluginId);
+
     
     /**
      * create Resources.
