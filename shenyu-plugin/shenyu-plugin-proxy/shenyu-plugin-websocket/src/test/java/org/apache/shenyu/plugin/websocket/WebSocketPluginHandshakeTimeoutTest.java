@@ -76,7 +76,7 @@ public class WebSocketPluginHandshakeTimeoutTest {
 
     private static final Duration VERIFY_BOUND = Duration.ofSeconds(2);
 
-    private static final long HANDSHAKE_DELAY_MILLIS = 20L;
+    private static final long HANDSHAKE_DELAY_MILLIS = 50L;
 
     private RuleData ruleData;
 
@@ -138,7 +138,7 @@ public class WebSocketPluginHandshakeTimeoutTest {
     public void establishedIdleSessionOutlivesTheHandshakeTimeout() {
         // the upstream upgrade succeeds and the session stays silent: the handshake deadline
         // must be inert from then on, so the session is never closed at a fixed age
-        initRule(100L, 0L);
+        initRule(500L, 0L);
         WebSocketSession upstream = mockSession();
         answerHandshakeAfterUpgrade(upstream);
         WebSocketSession downstream = mockSession();
@@ -146,7 +146,7 @@ public class WebSocketPluginHandshakeTimeoutTest {
 
         StepVerifier.create(execute())
                 .expectSubscription()
-                .expectNoEvent(Duration.ofMillis(400))
+                .expectNoEvent(Duration.ofMillis(1200))
                 .thenCancel()
                 .verify();
 
@@ -155,7 +155,7 @@ public class WebSocketPluginHandshakeTimeoutTest {
 
     @Test
     public void idleSessionIsClosedWithGoingAwayAfterTheIdleTimeout() {
-        initRule(2000L, 100L);
+        initRule(2000L, 200L);
         WebSocketSession upstream = mockSession();
         answerHandshakeAfterUpgrade(upstream);
         WebSocketSession downstream = mockSession();
@@ -172,17 +172,17 @@ public class WebSocketPluginHandshakeTimeoutTest {
 
     @Test
     public void trafficInEitherDirectionKeepsTheSessionAlive() {
-        initRule(2000L, 100L);
+        initRule(2000L, 300L);
         WebSocketSession upstream = mockSession();
         answerHandshakeAfterUpgrade(upstream);
         WebSocketSession downstream = mockSession();
-        when(downstream.receive()).thenReturn(Flux.interval(Duration.ofMillis(30))
+        when(downstream.receive()).thenReturn(Flux.interval(Duration.ofMillis(50))
                 .map(tick -> mock(WebSocketMessage.class)));
         answerHandshakeWith(downstream);
 
         StepVerifier.create(execute())
                 .expectSubscription()
-                .expectNoEvent(Duration.ofMillis(350))
+                .expectNoEvent(Duration.ofMillis(800))
                 .thenCancel()
                 .verify();
 

@@ -332,8 +332,8 @@ public class WebSocketPluginTest {
 
     @Test
     public void getSubProtocolsTest() {
-        WebSocketPlugin.ShenyuWebSocketHandler handler =
-                new WebSocketPlugin.ShenyuWebSocketHandler(null, null, null, null, null);
+        WebSocketPlugin.ShenyuWebSocketHandler handler = new WebSocketPlugin.ShenyuWebSocketHandler(
+                null, null, null, null, WebSocketPlugin.Timeouts.ofMillis(0L, 0L));
         assertTrue(handler.getSubProtocols().isEmpty());
     }
 
