@@ -59,6 +59,8 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
 
     private final Map<String, Set<String>> promptDenials;
 
+    private final Map<String, Set<String>> resourceGrants;
+
     public PrincipalMcpSecurityResolver(final PrincipalMcpSecurityProperties properties, final Class<T> type,
                                         final Function<T, Map<String, Object>> attributes, final Predicate<T> authority,
                                         final Function<ServerWebExchange, Mono<Boolean>> conflict) {
@@ -71,6 +73,7 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
         Map<String, Set<String>> denied = new HashMap<>();
         Map<String, Set<String>> promptsAllowed = new HashMap<>();
         Map<String, Set<String>> promptsDenied = new HashMap<>();
+        Map<String, Set<String>> resources = new HashMap<>();
         if (properties.getScopeMappings().size() > 1024) {
             throw new IllegalArgumentException("Too many scope mappings");
         }
@@ -82,9 +85,11 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
             denied.put(scope, names(mapping.getToolDenials(), true));
             promptsAllowed.put(scope, promptNames(mapping.getPromptGrants()));
             promptsDenied.put(scope, promptNames(mapping.getPromptDenials()));
+            resources.put(scope, AgentMcpResourceGrants.parse(mapping.getResourceGrants()));
         }
         grants = Map.copyOf(allowed);
         denials = Map.copyOf(denied);
+        resourceGrants = Map.copyOf(resources);
         promptGrants = Map.copyOf(promptsAllowed);
         promptDenials = Map.copyOf(promptsDenied);
     }
@@ -107,13 +112,16 @@ public final class PrincipalMcpSecurityResolver<T extends Authentication> implem
                         Set<String> denied = new HashSet<>(names(claims.getOrDefault("tool_denies", Set.of()), true));
                         Set<String> promptsAllowed = new HashSet<>(promptNames(claims.getOrDefault("prompt_grants", Set.of())));
                         Set<String> promptsDenied = new HashSet<>(promptNames(claims.getOrDefault("prompt_denies", Set.of())));
+                        Set<String> resources = new HashSet<>(AgentMcpResourceGrants.parse(claims.getOrDefault("resource_grants", Set.of())));
                         for (String scope : scopes(claims)) {
                             allowed.addAll(grants.getOrDefault(scope, Set.of()));
+                            resources.addAll(resourceGrants.getOrDefault(scope, Set.of()));
                             denied.addAll(denials.getOrDefault(scope, Set.of()));
                             promptsAllowed.addAll(promptGrants.getOrDefault(scope, Set.of()));
                             promptsDenied.addAll(promptDenials.getOrDefault(scope, Set.of()));
                         }
-                        return Mono.just(new AgentMcpIdentity(tenant, subject, allowed, denied).withPromptPermissions(promptsAllowed, promptsDenied));
+                        return Mono.just(new AgentMcpIdentity(tenant, subject, allowed, denied, AgentMcpResourceGrants.parse(resources))
+                                .withPromptPermissions(promptsAllowed, promptsDenied));
                     } catch (IllegalArgumentException error) {
                         // Invalid trusted attributes fail closed; do not log claims or credentials.
                         return Mono.empty();

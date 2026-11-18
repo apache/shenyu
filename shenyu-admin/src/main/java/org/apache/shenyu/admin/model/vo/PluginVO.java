@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.vo;
 import com.google.common.collect.Lists;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.common.utils.DateUtils;
-import org.apache.shiro.codec.Base64;
+import org.apache.shiro.lang.codec.Base64;
 
 import java.io.Serializable;
 import java.util.List;

@@ -1,0 +1,1 @@
+function u(r){if(r==null||r==="")return{value:void 0};let n=r;if(typeof r=="string")try{n=JSON.parse(r)}catch(e){return{error:e.message}}return n===null||typeof n!="object"||Array.isArray(n)?{error:"not a JSON object"}:{value:n}}function o(r){const{value:n,error:e}=u(r);return e?String(r):JSON.stringify(n||{},null,4)}export{o as f,u as p};

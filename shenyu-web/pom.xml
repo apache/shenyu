@@ -87,10 +87,18 @@
                         </goals>
                         <configuration>
                             <includes>
+                                <include>org/apache/shenyu/web/contract/ContractProbe*.class</include>
                                 <include>org/apache/shenyu/web/contract/LegacyPluginRuntime.class</include>
+                                <include>org/apache/shenyu/web/contract/PluginContractAssertions*.class</include>
+                                <include>org/apache/shenyu/web/contract/PluginContractMetadata.class</include>
+                                <include>org/apache/shenyu/web/contract/PluginContractProfile.class</include>
                                 <include>org/apache/shenyu/web/contract/RecordingPlugin*.class</include>
-                                <include>org/apache/shenyu/web/contract/PluginContractAssertions.class</include>
+                                <include>org/apache/shenyu/web/contract/SelectorRuleFixture.class</include>
+                                <include>org/apache/shenyu/web/contract/SelectorRulePlugin.class</include>
                             </includes>
+                            <excludes>
+                                <exclude>org/apache/shenyu/web/contract/*Test*.class</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>

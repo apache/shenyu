@@ -113,6 +113,8 @@ public class PrincipalMcpSecurityProperties {
 
         private Set<String> promptDenials = Set.of();
 
+        private Set<String> resourceGrants = Set.of();
+
         public Set<String> getPromptGrants() {
             return promptGrants;
         }
@@ -143,6 +145,14 @@ public class PrincipalMcpSecurityProperties {
 
         public void setToolGrants(final Set<String> toolGrants) {
             this.toolGrants = toolGrants;
+        }
+
+        public Set<String> getResourceGrants() {
+            return resourceGrants;
+        }
+
+        public void setResourceGrants(final Set<String> resourceGrants) {
+            this.resourceGrants = resourceGrants;
         }
 
         public Set<String> getToolDenials() {
