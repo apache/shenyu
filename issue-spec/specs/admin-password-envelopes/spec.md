@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define the long-lived Admin password transport behavior.
+Define the long-lived behavior contract for this capability.
 
 Proposal Issues:
 - https://github.com/apache/shenyu/issues/8519
