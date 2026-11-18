@@ -19,6 +19,9 @@ package org.apache.shenyu.plugin.logging.common.config;
 
 import org.apache.shenyu.plugin.logging.common.sampler.Sampler;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * generic global config.
  */
@@ -33,6 +36,10 @@ public class GenericGlobalConfig {
      * Default request body limit in bytes (512 KiB).
      */
     public static final int DEFAULT_MAX_REQUEST_BODY = 524288;
+
+    private boolean maskCredentialHeaders = true;
+
+    private Set<String> maskedHeaders = Collections.emptySet();
 
     private String sampleRate = "1";
 
@@ -52,6 +59,42 @@ public class GenericGlobalConfig {
      * default 50000.
      */
     private int bufferQueueSize = 50000;
+
+    /**
+     * Whether credential headers are masked in logs.
+     *
+     * @return masking enabled
+     */
+    public boolean isMaskCredentialHeaders() {
+        return maskCredentialHeaders;
+    }
+
+    /**
+     * Enable or disable credential header masking.
+     *
+     * @param maskCredentialHeaders masking enabled
+     */
+    public void setMaskCredentialHeaders(final boolean maskCredentialHeaders) {
+        this.maskCredentialHeaders = maskCredentialHeaders;
+    }
+
+    /**
+     * Get additional header names to mask, in addition to the built-in credentials.
+     *
+     * @return additional header names
+     */
+    public Set<String> getMaskedHeaders() {
+        return maskedHeaders;
+    }
+
+    /**
+     * Set additional header names to mask.
+     *
+     * @param maskedHeaders additional header names
+     */
+    public void setMaskedHeaders(final Set<String> maskedHeaders) {
+        this.maskedHeaders = maskedHeaders;
+    }
 
     /**
      * get sampler.

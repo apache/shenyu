@@ -169,9 +169,51 @@ class PrincipalMcpSecurityResolverTest {
         List<AgentMcpIdentity> identities = Flux.range(0, 32).flatMap(index -> {
             Map<String, Object> claims = claims();
             claims.put("tenant_id", "tenant-" + index);
+            claims.put("resource_grants", List.of("resource-" + index));
             return resolver.resolve(exchange(authentication(source, claims))).subscribeOn(Schedulers.parallel());
         }).collectList().block();
         assertEquals(32, identities.stream().map(identity -> identity.getTenant().orElseThrow()).distinct().count());
+        assertEquals(32, identities.stream().map(AgentMcpIdentity::getResourceGrants).distinct().count());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"jwt", "opaque-token", "oauth2-login"})
+    void resourceGrantsUseOnlyExplicitClaimsAndMappings(final String source) {
+        PrincipalMcpSecurityProperties properties = policy(source);
+        PrincipalMcpSecurityProperties.ScopeMapping mapping = mapping("inventory:read");
+        Set<String> mutable = new java.util.HashSet<>(Set.of("orders.status"));
+        mapping.setResourceGrants(mutable);
+        properties.setScopeMappings(List.of(mapping));
+        final AgentMcpSecurityResolver adapter = resolver(properties);
+        mutable.clear();
+        Map<String, Object> claims = claims();
+        claims.put("scope", "inventory:read unrelated");
+        claims.put("resource_grants", List.of("local_status"));
+        AgentMcpIdentity identity = resolve(adapter, authentication(source, claims));
+        assertEquals(Set.of("local_status", "orders.status"), identity.getResourceGrants());
+        assertEquals("tenant-a", identity.getTenant().orElseThrow());
+        assertEquals("service", identity.getSubject());
+        assertThrows(UnsupportedOperationException.class, () -> identity.getResourceGrants().clear());
+        claims.remove("scope");
+        claims.remove("resource_grants");
+        assertTrue(resolve(adapter, authentication(source, claims)).getResourceGrants().isEmpty());
+        for (Object invalid : List.of("local_status", List.of("*"), List.of(42), List.of(" bad"),
+                List.of("bad\nname"), List.of("x".repeat(257)), java.util.Collections.nCopies(1025, "local_status"))) {
+            claims.put("resource_grants", invalid);
+            assertNull(resolve(adapter, authentication(source, claims)));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"jwt", "opaque-token", "oauth2-login"})
+    void repeatedSubscriptionsNeverShareMutableResourceGrants(final String source) {
+        Map<String, Object> claims = claims();
+        claims.put("resource_grants", List.of("local_status"));
+        Mono<AgentMcpIdentity> identity = resolver(policy(source)).resolve(exchange(authentication(source, claims)));
+        AgentMcpIdentity first = identity.block();
+        AgentMcpIdentity second = identity.block();
+        assertThrows(UnsupportedOperationException.class, () -> first.getResourceGrants().clear());
+        assertEquals(Set.of("local_status"), second.getResourceGrants());
     }
 
     private static PrincipalMcpSecurityProperties policy(final String source) {

@@ -86,12 +86,40 @@ Plugin updates replace the defaults rather than retaining omitted fields.
 Blank, `null` or `{}` configuration clears the previous connection/model values;
 disabling or deleting the plugin also clears its defaults. Each request receives
 a copy, so request-specific proxy credentials do not alter later requests.
-Malformed plugin configuration clears the defaults and logs a warning without
-interrupting configuration synchronization. A later valid update restores them.
+Malformed or invalid plugin configuration is rejected without replacing the
+last valid defaults. The handler logs known rejections at WARN with a fixed
+reason and plugin/namespace IDs. Unexpected runtime failures during candidate
+validation are rejected at ERROR with a fixed reason and the exception class,
+without logging the configuration, exception message or stack trace. This also
+applies during initial synchronization: these validation failures are handled
+locally and do not fail the synchronization callback.
+
+Optional maxTokens must be positive and temperature must be finite and non-negative.
+A nonblank baseUrl must be a syntactically valid HTTP(S) URI with a host, without
+userinfo, query or fragment, and with either no port or a port from 1 to 65535.
+This common address constraint also applies to custom providers. Blank or omitted
+defaults are still allowed; required fields are checked when preparing requests
+after merging defaults and selector configuration. Provider profile query
+parameters and authentication are assembled separately and remain supported.
+
+Rejecting defaults does not roll back the Admin configuration or stop the shared
+`BaseDataCache` from receiving the raw plugin data. The saved configuration, raw
+cache and handler's accepted defaults may therefore differ after a rejection.
+Use the handler's `action=rejected` log and IDs to diagnose this difference;
+there is no Admin rejection acknowledgement in this change. The log guarantees
+above cover the handler's rejection logs, not other subscribers' existing logs.
+
 Defaults belong to the handler/resolver instance wired by the starter; separate
 application contexts do not share plugin configuration through a process-wide
 `Singleton`. Programmatic construction must pass the same `AiProxyPluginHandler`
 to `new AiProxyConfigService(handler)` and the plugin.
+The starter passes the runtime Provider and Protocol factories to the handler,
+so unregistered nonblank names are also rejected before publishing defaults.
+The no-argument constructor remains available for programmatic compatibility.
+It logs one WARN per instance to indicate that runtime registries are unavailable:
+it validates parsing and the common field constraints, while names are checked
+when requests are prepared. Programmatic callers can pass both runtime factories
+to enable name validation at update time as well.
 
 ## Exact response caching
 

@@ -94,7 +94,8 @@ public final class JwtAgentMcpSecurityResolver implements AgentMcpSecurityResolv
                             throw new IllegalStateException("Tenant identity policy is not configured");
                         }
                         return Mono.just(new AgentMcpIdentity(tenant, subject,
-                                names(claims.getOrDefault("tool_grants", Set.of()), true), names(claims.getOrDefault("tool_denies", Set.of()), true)));
+                                names(claims.getOrDefault("tool_grants", Set.of()), true), names(claims.getOrDefault("tool_denies", Set.of()), true),
+                                AgentMcpResourceGrants.parse(claims.getOrDefault("resource_grants", Set.of()))));
                     } catch (IllegalArgumentException error) {
                         // Reject malformed claims and diagnose without logging JWT or claim values.
                         LOG.debug("Rejected authenticated JWT with invalid Agent Gateway identity claims");

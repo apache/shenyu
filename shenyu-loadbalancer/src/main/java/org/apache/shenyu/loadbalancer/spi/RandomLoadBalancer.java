@@ -22,7 +22,9 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * random algorithm impl.
@@ -37,10 +39,10 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         int length = upstreamList.size();
         // every upstream has the same weight?
         boolean sameWeight = true;
-        // the weight of every upstream
-        int[] weights = new int[length];
+        // the weight of every upstream, allocated only when a differing weight
+        // shows up — until then every entry would equal the first weight (#8424)
+        int[] weights = null;
         int firstUpstreamWeight = getWeight(upstreamList.get(0));
-        weights[0] = firstUpstreamWeight;
         // init the totalWeight
         long totalWeight = firstUpstreamWeight;
         long halfLengthTotalWeight = 0;
@@ -49,12 +51,16 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
             if (i <= (length + 1) / 2) {
                 halfLengthTotalWeight = totalWeight;
             }
-            weights[i] = currentUpstreamWeight;
-            totalWeight += currentUpstreamWeight;
-            if (sameWeight && currentUpstreamWeight != firstUpstreamWeight) {
+            if (Objects.isNull(weights) && currentUpstreamWeight != firstUpstreamWeight) {
                 // Calculate whether the weight of ownership is the same.
                 sameWeight = false;
+                weights = new int[length];
+                Arrays.fill(weights, 0, i, firstUpstreamWeight);
             }
+            if (Objects.nonNull(weights)) {
+                weights[i] = currentUpstreamWeight;
+            }
+            totalWeight += currentUpstreamWeight;
         }
         if (totalWeight > 0 && !sameWeight) {
             return random(totalWeight, halfLengthTotalWeight, weights, upstreamList);

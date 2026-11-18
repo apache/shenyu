@@ -68,6 +68,21 @@ class PrincipalMcpHttpTest {
 
     @ParameterizedTest
     @CsvSource({"jwt,json", "jwt,sse", "opaque-token,json", "opaque-token,sse"})
+    void authenticatedResourcesRemainSeparateFromToolsAndMetadata(final String source, final String mode) {
+        try (Fixture fixture = new Fixture(source, mode)) {
+            String token = fixture.token(Map.of("resource_grants", ResourceMcpTestFixture.GRANTS));
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.request(token, method, uri).exchange(), true);
+            String missing = fixture.token(Map.of("tool_grants", ResourceMcpTestFixture.GRANTS, "scope", "local_status"));
+            ResourceMcpTestFixture.assertResources((method, uri) -> fixture.request(missing, method, uri).exchange(), false);
+            for (Object invalid : List.of("local_status", List.of("*"), List.of(42))) {
+                String malformed = fixture.token(Map.of("resource_grants", invalid));
+                fixture.request(malformed, "resources/list", "").exchange().expectStatus().isUnauthorized();
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"jwt,json", "jwt,sse", "opaque-token,json", "opaque-token,sse"})
     void authenticatedScopeControlsListAndCallWithRuleIntersection(final String source, final String mode) {
         try (Fixture fixture = new Fixture(source, mode)) {
             String token = fixture.token(Map.of("scope", "inventory:read", "tool_grants", List.of("blocked", "outside")));
