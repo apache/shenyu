@@ -86,7 +86,7 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         return Mono.defer(() -> {
             final AgentGatewayRuleHandle handle = resolveHandle(rule);
             if (!handle.isValid()) {
-                return reject(exchange, handle.getErrorMessage());
+                return reject(exchange, handle.getErrorMessage(), selector, rule);
             }
             final AgentTrafficContext context = new AgentTrafficContext(
                     UUID.randomUUID().toString(), handle.getTrafficType(), selector.getId(), rule.getId());
@@ -165,11 +165,26 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         });
     }
 
-    private Mono<Void> reject(final ServerWebExchange exchange, final String reason) {
+    private Mono<Void> reject(final ServerWebExchange exchange, final String reason, final SelectorData selector, final RuleData rule) {
         exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         final Object error = ShenyuResultWrap.error(exchange, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 AgentGatewayConstants.CONFIG_INVALID_CODE + ": " + reason, null);
-        return WebFluxResultUtils.result(exchange, error);
+        long started = System.nanoTime();
+        String requestId = UUID.randomUUID().toString();
+        return WebFluxResultUtils.result(exchange, error).doFinally(signal -> {
+            Object callback = exchange.getAttribute(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE);
+            if (callback instanceof org.apache.shenyu.common.audit.AgentInvocationAuditObserver audit) {
+                try {
+                    audit.record(org.apache.shenyu.common.audit.AgentInvocationAuditEvent.logical().requestId(requestId)
+                            .selectorId(selector.getId()).ruleId(rule.getId()).configurationVersion("unknown").policyVersion("agent-rule-admission-v1")
+                            .decision(org.apache.shenyu.common.audit.AgentInvocationAuditEvent.Decision.REJECTED)
+                            .outcome(signal == reactor.core.publisher.SignalType.CANCEL ? "CANCELLED" : "SERVER_ERROR").reason("INVALID_CONFIGURATION")
+                            .httpStatus(500).elapsedMillis(java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(Math.max(0, System.nanoTime() - started))).build());
+                } catch (RuntimeException ignored) {
+                    // Do not expose the rejected configuration or alter its response.
+                }
+            }
+        });
     }
 
     @Override
