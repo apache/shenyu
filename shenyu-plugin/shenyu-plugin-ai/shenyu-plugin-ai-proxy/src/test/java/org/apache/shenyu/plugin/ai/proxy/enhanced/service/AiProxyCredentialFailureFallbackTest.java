@@ -110,7 +110,6 @@ class AiProxyCredentialFailureFallbackTest {
         assertEquals(List.of("Bearer fixture-fallback-secret"), requests.get(1).getHeaders().get("Authorization"));
     }
 
-
     @ParameterizedTest
     @CsvSource({"code,credential_revoked,true", "type,authentication_failed,true", "code,credential_expired,true",
         "type,credential_revoked,false", "code,authentication_failed,false", "type,unknown,false", "both,unused,true"})
