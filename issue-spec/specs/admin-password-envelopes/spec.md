@@ -53,5 +53,15 @@ The Admin MUST expose only public encryption metadata at /platform/secretInfo an
 - **WHEN** Admin instances use the same configured PKCS8 key
 - **THEN** they advertise the same key ID and accept matching envelopes; invalid or undersized configured keys fail safely
 
+#### Scenario: Coordinated key rotation
+
+- **WHEN** operators replace the single active private key
+- **THEN** they pause metadata and credential traffic, drain accepted requests and the configured age window plus skew allowance, restart all instances with the same new key, verify matching key IDs and resume traffic; seamless mixed-key rolling rotation is not supported
+
+#### Scenario: Compatible rollback order
+
+- **WHEN** operators revert an envelope dashboard, Admin or transport key
+- **THEN** they first restore required=false across Admin instances before a legacy dashboard, remove envelope-only clients or pause their credential traffic before a legacy Admin, and use a coordinated pause/drain/restart for key rollback without resetting stored credentials or business data
+
 Source SPEC comments:
 - https://github.com/apache/shenyu/issues/8519#issuecomment-6968319733

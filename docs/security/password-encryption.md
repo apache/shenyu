@@ -112,6 +112,69 @@ a downloaded public key or JavaScript over HTTP. AAD and timestamps bind a reque
 to an operation and limit its age; this is **not full replay prevention** within the
 accepted window. Existing session and authorization checks remain necessary.
 
+### Version combinations and rollout order
+
+| Admin | Dashboard or API client | `required` | Credential requests |
+| --- | --- | --- | --- |
+| Without envelope support | Legacy client | Not applicable | Existing contract |
+| Without envelope support | Envelope dashboard | Not applicable | Unsupported; submission stops when public capability is missing |
+| With envelope support | Legacy client | `false` | Existing legacy contract remains available |
+| With envelope support | Legacy client | `true` | Legacy credential requests are rejected |
+| With envelope support | Envelope dashboard | `false` or `true` | Envelopes are accepted, subject to the original credential checks |
+
+1. Deploy the envelope-capable Admin to every instance that can receive metadata
+   or credential requests, using the same persistent private key and production
+   HTTPS. Keep `required=false` during migration and verify each instance advertises
+   the same `keyId`; a mixed legacy/envelope Admin pool is not supported by the new UI.
+2. Deploy the envelope dashboard, then verify login and self-service password changes.
+   Migrate other legacy credential clients before requiring envelopes.
+3. Enable `required=true` on every Admin only after migration is complete. Apply
+   configuration changes with the necessary instance restarts and verify the policy
+   on every instance before treating legacy requests as disabled.
+
+### Coordinated key rotation
+
+This implementation loads one private key at startup and accepts only its current
+`keyId`. It has no key ring, previous-key grace window or live secret-file reload.
+Do not expose old-key and new-key instances to the same credential traffic during
+a rolling key change. If uninterrupted rotation is required, a separate design for
+overlapping keys is needed; the following procedure uses a maintenance window.
+
+1. At the ingress, pause new `/platform/secretInfo`, `/platform/login` and
+   `/dashboardUser/modify-password/{id}` traffic to all Admin instances. Stop issuing
+   old-key metadata before beginning the drain.
+2. Drain requests already accepted. With synchronized clocks, wait at least the
+   largest configured `max-age-seconds` plus the 30-second future-skew allowance
+   after the last old-key metadata response; add any known clock uncertainty.
+   This drains ordinary issued envelopes, not every client-side queued request.
+   An old envelope arriving after cutover is rejected and must be replaced with a
+   new submission using fresh metadata, rather than replayed unchanged.
+3. Retain the previous private key in the protected secret store for the rollback
+   window. Install the same new PKCS8 private key on every Admin and restart every
+   instance while credential traffic remains paused. Replacing the mounted file
+   alone does not reload the key.
+4. Verify instance health and query public capability on each instance directly.
+   Every instance must advertise the same expected new `keyId`. Keep credential
+   traffic paused if any instance still uses a different key.
+5. Resume metadata and credential traffic. Clients must fetch fresh metadata and
+   generate new envelopes. Retire the previous key under the secret-store retention
+   policy after the rollback window; never copy either private key into logs or Git.
+
+### Rollback order
+
+- To revert to a legacy dashboard, first set `required=false` on every Admin, apply
+  the configuration with the necessary restarts, and verify legacy compatibility
+  across the pool. Then deploy the legacy dashboard and have clients reload it.
+- To remove envelope support from Admin, first revert the dashboard as above and
+  migrate any other envelope-only clients, or keep credential traffic paused.
+  A still-open or cached envelope dashboard cannot submit credentials to a legacy
+  Admin and does not downgrade to plaintext.
+- To revert a key change after traffic resumed, repeat the pause and drain for the
+  currently active key, restore the previous shared key on all instances, restart,
+  verify matching `keyId` values, then resume traffic. Never mix keys while rolling
+  back. Do not reset accounts, password hashes, token versions or business data as
+  part of transport-key or application rollback.
+
 ## Validation
 
 Run the focused protocol and MVC adapter tests, including required-mode legacy
