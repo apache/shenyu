@@ -259,7 +259,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         final Map<Pair<String, String>, Boolean> resourceEnabled = existing.stream()
                 .collect(Collectors.toMap(path -> Pair.of(path.getPath(), path.getAppName()),
                         path -> Boolean.TRUE.equals(path.getEnabled()), Boolean::logicalOr));
-        // A renamed label is ambiguous: do not enable it when any previous grant for that path was disabled.
+        // For a label without an exact resource match, preserve the conservative state of the existing path.
         final Map<String, Boolean> pathEnabled = existing.stream()
                 .collect(Collectors.toMap(AuthPathDO::getPath,
                         path -> Boolean.TRUE.equals(path.getEnabled()), Boolean::logicalAnd));

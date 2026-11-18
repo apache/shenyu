@@ -55,6 +55,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
@@ -269,6 +270,19 @@ public final class AppAuthServiceTest {
 
         assertEquals(List.of(false, true), saved.stream().map(AuthPathDO::getEnabled).collect(Collectors.toList()));
         assertEquals(List.of("payments", "billing"), saved.stream().map(AuthPathDO::getAppName).collect(Collectors.toList()));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"path, false", "path,", "detail, false", "detail,"})
+    public void testReplacementKeepsExactResourceWhenSharedApplicationIsRemoved(final String endpoint, final Boolean requestedEnabled) {
+        List<AuthPathDO> saved = replacePaths(endpoint,
+                List.of(storedPath("/shared", "orders", false), storedPath("/shared", "billing", true)),
+                List.of(requestedPath("/shared", "billing", requestedEnabled)));
+
+        assertEquals(1, saved.size());
+        assertEquals("/shared", saved.get(0).getPath());
+        assertEquals("billing", saved.get(0).getAppName());
+        assertEquals(Boolean.TRUE, saved.get(0).getEnabled());
     }
 
     @Test
