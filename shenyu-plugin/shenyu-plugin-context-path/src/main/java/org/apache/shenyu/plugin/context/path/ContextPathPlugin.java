@@ -105,7 +105,8 @@ public class ContextPathPlugin extends AbstractShenyuPlugin {
         }
         String addPrefix = handle.getAddPrefix();
         if (StringUtils.isNoneBlank(addPrefix)) {
-            if (StringUtils.isNotBlank(realURI)) {
+            // An exact context-path match leaves an empty suffix that must not restore the original path.
+            if (StringUtils.isNotBlank(contextPath)) {
                 realURI = addPrefix + realURI;
             } else {
                 realURI = addPrefix + context.getPath();

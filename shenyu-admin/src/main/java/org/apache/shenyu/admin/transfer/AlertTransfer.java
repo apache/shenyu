@@ -86,6 +86,7 @@ public enum AlertTransfer {
                 .map(v -> {
                     AlertReceiverDTO alertReceiverDTO = new AlertReceiverDTO();
                     alertReceiverDTO.setId(alertReceiverDO.getId());
+                    alertReceiverDTO.setNamespaceId(alertReceiverDO.getNamespaceId());
                     alertReceiverDTO.setName(alertReceiverDO.getName());
                     alertReceiverDTO.setAccessToken(alertReceiverDO.getAccessToken());
                     alertReceiverDTO.setAgentId(alertReceiverDO.getAgentId());

@@ -98,7 +98,8 @@ jobs:
           file: ./shenyu-dist/shenyu-admin-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-admin-bin
           platforms: linux/amd64,linux/arm64
-          push: true
+          # Candidate tags still build images, but must not publish an unvoted release as latest.
+          push: ${{ github.ref_type != 'tag' || !contains(github.ref_name, '-') }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:latest
             ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/admin:${{ env.TAG }}
@@ -110,7 +111,7 @@ jobs:
           file: ./shenyu-dist/shenyu-bootstrap-dist/docker/Dockerfile
           build-args: APP_NAME=apache-shenyu-*-bootstrap-bin
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ github.ref_type != 'tag' || !contains(github.ref_name, '-') }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:latest
             ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/bootstrap:${{ env.TAG }}

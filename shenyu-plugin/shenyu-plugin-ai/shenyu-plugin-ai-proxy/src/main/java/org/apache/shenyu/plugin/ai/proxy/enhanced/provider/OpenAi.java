@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigValidator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -171,11 +172,7 @@ public final class OpenAi implements AiProxyProvider {
     }
 
     private URI resolveEndpoint(final AiCommonConfig config, final String configuredPath) {
-        URI base = URI.create(config.getBaseUrl());
-        if (!("http".equalsIgnoreCase(base.getScheme()) || "https".equalsIgnoreCase(base.getScheme()))
-                || Objects.isNull(base.getHost()) || Objects.nonNull(base.getRawQuery()) || Objects.nonNull(base.getRawFragment()) || Objects.nonNull(base.getRawUserInfo())) {
-            throw new IllegalArgumentException("AI baseUrl must be an HTTP(S) endpoint without credentials, query or fragment");
-        }
+        URI base = AiProxyConfigValidator.parseBaseUrl(config.getBaseUrl());
         String path = configuredPath.startsWith("/") ? configuredPath.substring(1) : configuredPath;
         String basePath = base.getPath().endsWith("/") ? base.getPath().substring(0, base.getPath().length() - 1) : base.getPath();
         URI endpoint;
