@@ -108,6 +108,21 @@ class AiProxyCredentialFailureClassifierTest {
     }
 
     @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void reportsFirstInvalidDeclarationWithoutLeakingItsCause(final boolean invalidProtocol) {
+        AiProxyRetryProperties.CredentialFailureDeclaration invalid = declaration();
+        if (invalidProtocol) {
+            invalid.setProtocol("unsupported-secret");
+        } else {
+            invalid.setEndpoint(ENDPOINT + "?key=secret");
+        }
+        properties.setDeclarations(List.of(declaration(), invalid, declaration()));
+        IllegalArgumentException failure = assertThrows(IllegalArgumentException.class, this::classifier);
+        assertEquals("credentialFailureFallback.invalidDeclaration[1]", failure.getMessage());
+        assertNull(failure.getCause());
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"", " ", "code", "type", "error.message", "error.CODE", "$.error.code", "error.code.extra"})
     void rejectsUnsupportedFieldPaths(final String type) {
         invalid(rule -> rule.setType(type));

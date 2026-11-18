@@ -56,14 +56,14 @@ final class AiProxyCredentialFailureClassifier {
                                       final AiProxyProtocolFactory protocols) {
         final Map<Scope, List<Rule>> compiled = new LinkedHashMap<>();
         int index = 0;
-        for (AiProxyRetryProperties.CredentialFailureDeclaration declaration : properties.getDeclarations()) {
-            try {
+        try {
+            for (AiProxyRetryProperties.CredentialFailureDeclaration declaration : properties.getDeclarations()) {
                 addDeclaration(compiled, declaration, protocols);
-            } catch (IllegalArgumentException | ShenyuException e) {
-                // Neither the rejected configuration nor a nested exception may leak into startup logs.
-                throw new IllegalArgumentException("credentialFailureFallback.invalidDeclaration[" + index + "]");
+                index++;
             }
-            index++;
+        } catch (IllegalArgumentException | ShenyuException e) {
+            // Neither the rejected configuration nor a nested exception may leak into startup logs.
+            throw new IllegalArgumentException("credentialFailureFallback.invalidDeclaration[" + index + "]");
         }
         if (properties.isEnabled() && compiled.isEmpty()) {
             throw new IllegalArgumentException("credentialFailureFallback.declarationsRequired");
