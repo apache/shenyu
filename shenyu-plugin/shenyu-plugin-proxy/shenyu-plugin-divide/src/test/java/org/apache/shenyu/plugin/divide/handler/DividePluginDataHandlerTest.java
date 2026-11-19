@@ -54,6 +54,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * The type divide plugin data handler test.
@@ -117,7 +119,34 @@ public final class DividePluginDataHandlerTest {
      */
     @Test
     public void removeRuleTest() {
+        when(ruleData.getId()).thenReturn("removed-rule");
+        when(ruleData.getSelectorId()).thenReturn("removed-selector");
         dividePluginDataHandler.removeRule(ruleData);
+    }
+
+    @Test
+    public void testLabelSubsetRegistrationLifecycle() {
+        RuleData rule = new RuleData();
+        rule.setId("subset-rule");
+        rule.setSelectorId("subset-selector");
+        rule.setHandle("{\"canary\":{\"enabled\":false,\"stableLabels\":{\"release\":\"stable\"},\"canaryLabels\":{\"release\":\"canary\"}}}");
+        UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
+        try (MockedStatic<UpstreamCacheManager> cache = mockStatic(UpstreamCacheManager.class)) {
+            cache.when(UpstreamCacheManager::getInstance).thenReturn(manager);
+            dividePluginDataHandler.handlerRule(rule);
+            verify(manager).registerLabelSubsets(rule.getSelectorId(), CacheKeyUtils.INST.getKey(rule),
+                    List.of(Map.of("release", "stable"), Map.of("release", "canary")));
+            rule.setHandle("{\"canary\":{\"percentage\":101}}");
+            assertThrows(IllegalArgumentException.class, () -> dividePluginDataHandler.handlerRule(rule));
+            verifyNoMoreInteractions(manager);
+            rule.setHandle(null);
+            dividePluginDataHandler.removeRule(rule);
+            verify(manager).unregisterLabelSubsets(rule.getSelectorId(), CacheKeyUtils.INST.getKey(rule));
+            assertNull(DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule)));
+            dividePluginDataHandler.removeSelector(selectorData);
+            verify(manager).removeLabelSubsets(selectorData.getId());
+            verify(manager).removeByKey(selectorData.getId());
+        }
     }
 
     @ParameterizedTest
