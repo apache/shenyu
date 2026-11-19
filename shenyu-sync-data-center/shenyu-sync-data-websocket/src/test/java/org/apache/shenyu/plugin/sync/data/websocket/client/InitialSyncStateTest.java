@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.client;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.shenyu.common.dto.WebsocketSyncFrame;
+import org.apache.shenyu.common.dto.WebsocketSyncFrameV2;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -250,6 +255,54 @@ class InitialSyncStateTest {
         state.invalidate();
         state.accept(new WebsocketSyncFrame(id, 0, null), value -> { });
         assertFalse(ready.get());
+    }
+
+    @Test
+    void testStructuredFrameAppliesParsedPayloadWithoutReEncoding() {
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready);
+        String id = state.begin();
+        JsonObject payload = JsonParser.parseString("{\"groupType\":\"PLUGIN\",\"data\":[]}").getAsJsonObject();
+        StringBuilder applied = new StringBuilder();
+        state.accept(new WebsocketSyncFrameV2(id, 0, payload),
+                value -> applied.append(value.getAsJsonObject().get("groupType").getAsString()));
+        assertEquals("PLUGIN", applied.toString());
+        assertFalse(ready.get());
+        state.accept(new WebsocketSyncFrameV2(id, 1, null), value -> { });
+        assertTrue(ready.get());
+        assertTrue(state.isComplete());
+    }
+
+    @Test
+    void testStructuredFrameKeepsSequenceAndRequestValidation() {
+        AtomicBoolean ready = new AtomicBoolean();
+        InitialSyncState state = new InitialSyncState(ready);
+        String id = state.begin();
+        JsonObject payload = JsonParser.parseString("{\"groupType\":\"PLUGIN\"}").getAsJsonObject();
+        state.accept(new WebsocketSyncFrameV2(id, 1, payload), value -> { });
+        state.accept(new WebsocketSyncFrameV2(id, 0, null), value -> { });
+        assertFalse(ready.get());
+        assertTrue(state.needsReconnect());
+        String retry = state.begin();
+        state.accept(new WebsocketSyncFrameV2(retry, 0, null), value -> { });
+        assertTrue(ready.get());
+    }
+
+    @Test
+    void testStructuredFrameSerializationRoundTrip() {
+        JsonObject payload = JsonParser.parseString("{\"groupType\":\"PLUGIN\",\"data\":[]}").getAsJsonObject();
+        String wire = GsonUtils.getInstance().toJson(new WebsocketSyncFrameV2("request", 0, payload));
+        assertFalse(wire.contains("\\\"groupType\\\""));
+        WebsocketSyncFrameV2 parsed = GsonUtils.getInstance().fromJson(wire, WebsocketSyncFrameV2.class);
+        assertEquals(WebsocketSyncFrameV2.EVENT_TYPE, GsonUtils.getInstance().fromJson(wire, com.google.gson.JsonObject.class)
+                .get("eventType").getAsString());
+        assertEquals("request", parsed.getRequestId());
+        assertEquals(0, parsed.getSequence());
+        assertEquals("PLUGIN", parsed.getPayload().getAsJsonObject().get("groupType").getAsString());
+        WebsocketSyncFrameV2 end = GsonUtils.getInstance().fromJson(
+                GsonUtils.getInstance().toJson(new WebsocketSyncFrameV2("request", 1, null)),
+                WebsocketSyncFrameV2.class);
+        assertNull(end.getPayload());
     }
 
     @Test
