@@ -1114,6 +1114,16 @@ public interface Constants {
     String OUTPUT_TOKENS = "output_tokens";
 
     /**
+     * The usage object of the Gemini generateContent protocol.
+     */
+    String USAGE_METADATA = "usageMetadata";
+
+    /**
+     * The output tokens reported by the Gemini generateContent protocol.
+     */
+    String CANDIDATES_TOKEN_COUNT = "candidatesTokenCount";
+
+    /**
      * The constant AI_MODEL.
      */
     String AI_MODEL = "ai_model";

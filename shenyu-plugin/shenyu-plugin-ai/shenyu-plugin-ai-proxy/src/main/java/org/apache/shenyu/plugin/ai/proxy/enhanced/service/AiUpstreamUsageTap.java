@@ -52,6 +52,21 @@ final class AiUpstreamUsageTap {
 
     private final boolean inspectCompletion;
 
+    /**
+     * Anthropic splits its usage across stream events — input tokens in
+     * {@code message_start.message.usage}, cumulative output tokens in
+     * {@code message_delta.usage} — so its snapshot merges per field, while
+     * openai-chat and Gemini carry a complete usage object per event and
+     * replace it wholesale. Counters are still never summed (#8458).
+     */
+    private final boolean mergeUsageFields;
+
+    private Long mergedPrompt;
+
+    private Long mergedCompletion;
+
+    private Long mergedTotal;
+
     private final ByteArrayOutputStream line = new ByteArrayOutputStream();
 
     private final StringBuilder event = new StringBuilder();
@@ -63,14 +78,18 @@ final class AiUpstreamUsageTap {
     private int eventBytes;
 
     AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream) {
-        this(observation, headers, stream, true);
+        this(observation, headers, stream, "openai-chat");
     }
 
-    AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final boolean nativeChat) {
+    AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final String targetProtocol) {
         this.observation = observation;
         String contentType = header(headers, "Content-Type").toLowerCase(Locale.ROOT).split(";", 2)[0].trim();
         streaming = contentType.isEmpty() ? stream : "text/event-stream".equals(contentType);
-        inspectCompletion = nativeChat && streaming;
+        // openai-chat carries choices[].finish_reason evidence; Anthropic Messages
+        // streams end with a message_stop event instead of a [DONE] sentinel
+        inspectCompletion = streaming
+                && ("openai-chat".equals(targetProtocol) || "anthropic-messages".equals(targetProtocol));
+        mergeUsageFields = "anthropic-messages".equals(targetProtocol);
         if (inspectCompletion) {
             observation.streamEvidence(AiStreamCompletion.Evidence.PENDING);
         }
@@ -152,9 +171,15 @@ final class AiUpstreamUsageTap {
         if ("[DONE]".equals(payload)) {
             evidence(AiStreamCompletion.Evidence.UPSTREAM_MARKER);
             stopped = true;
-        } else {
-            capture(MAPPER.readTree(payload));
+            return;
         }
+        JsonNode node = MAPPER.readTree(payload);
+        if (inspectCompletion && "message_stop".equals(node.path("type").asText())) {
+            evidence(AiStreamCompletion.Evidence.UPSTREAM_MARKER);
+            stopped = true;
+            return;
+        }
+        capture(node);
     }
 
     synchronized void complete() {
@@ -193,21 +218,84 @@ final class AiUpstreamUsageTap {
                 }
             }
         }
-        JsonNode usage = root.get("usage");
-        if (Objects.isNull(usage) || usage.isNull()) {
+        JsonNode usage = resolveUsageObject(root);
+        if (Objects.isNull(usage)) {
             return;
         }
         if (!usage.isObject()) {
             observation.usage(new AiUsage(null, null, null, AiUsage.Status.INVALID));
             return;
         }
-        Long prompt = count(usage.get("prompt_tokens"));
-        Long completion = count(usage.get("completion_tokens"));
-        Long total = count(usage.get("total_tokens"));
-        AiUsage.Status quality = invalid(usage.get("prompt_tokens")) || invalid(usage.get("completion_tokens")) || invalid(usage.get("total_tokens"))
-                ? AiUsage.Status.INVALID : Objects.isNull(prompt) && Objects.isNull(completion) && Objects.isNull(total) ? AiUsage.Status.UNKNOWN : AiUsage.Status.REPORTED;
-        // Replace the snapshot, never sum cumulative SSE counters or fill fields from an older event.
-        observation.usage(quality == AiUsage.Status.INVALID ? new AiUsage(null, null, null, quality) : new AiUsage(prompt, completion, total, quality));
+        // field-shape chain, the naming families are mutually exclusive:
+        // openai-chat {prompt_tokens, completion_tokens, total_tokens},
+        // anthropic-messages {input_tokens, output_tokens} — no total is ever invented,
+        // gemini-generate-content usageMetadata {promptTokenCount, candidatesTokenCount, totalTokenCount}
+        Long prompt = count(firstOf(usage, "prompt_tokens", "input_tokens", "promptTokenCount"));
+        Long completion = count(firstOf(usage, "completion_tokens", "output_tokens", "candidatesTokenCount"));
+        Long total = count(firstOf(usage, "total_tokens", "totalTokenCount"));
+        if (invalid(firstOf(usage, "prompt_tokens", "input_tokens", "promptTokenCount"))
+                || invalid(firstOf(usage, "completion_tokens", "output_tokens", "candidatesTokenCount"))
+                || invalid(firstOf(usage, "total_tokens", "totalTokenCount"))) {
+            mergedPrompt = null;
+            mergedCompletion = null;
+            mergedTotal = null;
+            observation.usage(new AiUsage(null, null, null, AiUsage.Status.INVALID));
+            return;
+        }
+        // Replace the snapshot, never sum cumulative SSE counters. Anthropic's
+        // split message_start/message_delta usage merges per field; every other
+        // protocol reports a complete usage object per event.
+        if (mergeUsageFields) {
+            mergedPrompt = Objects.nonNull(prompt) ? prompt : mergedPrompt;
+            mergedCompletion = Objects.nonNull(completion) ? completion : mergedCompletion;
+            mergedTotal = Objects.nonNull(total) ? total : mergedTotal;
+            boolean reported = Objects.nonNull(mergedPrompt) || Objects.nonNull(mergedCompletion) || Objects.nonNull(mergedTotal);
+            observation.usage(reported ? new AiUsage(mergedPrompt, mergedCompletion, mergedTotal, AiUsage.Status.REPORTED)
+                    : new AiUsage(null, null, null, AiUsage.Status.UNKNOWN));
+            return;
+        }
+        AiUsage.Status quality = Objects.isNull(prompt) && Objects.isNull(completion) && Objects.isNull(total)
+                ? AiUsage.Status.UNKNOWN : AiUsage.Status.REPORTED;
+        observation.usage(new AiUsage(prompt, completion, total, quality));
+    }
+
+    /**
+     * Locate the usage object across the supported protocols: the openai chat
+     * and Anthropic Messages {@code usage} member (the latter also surfaces as a
+     * root member of {@code message_delta} stream events), the Gemini
+     * {@code usageMetadata} member, and the Anthropic stream
+     * {@code message_start.message.usage}.
+     *
+     * @param root the parsed event or body
+     * @return the usage object node, or {@code null} when the payload carries none
+     */
+    private JsonNode resolveUsageObject(final JsonNode root) {
+        JsonNode usage = root.get("usage");
+        if (Objects.nonNull(usage) && !usage.isNull()) {
+            return usage;
+        }
+        JsonNode metadata = root.get("usageMetadata");
+        if (Objects.nonNull(metadata) && !metadata.isNull()) {
+            return metadata;
+        }
+        JsonNode message = root.get("message");
+        if (Objects.nonNull(message) && message.isObject()) {
+            JsonNode messageUsage = message.get("usage");
+            if (Objects.nonNull(messageUsage) && !messageUsage.isNull()) {
+                return messageUsage;
+            }
+        }
+        return null;
+    }
+
+    private JsonNode firstOf(final JsonNode usage, final String... names) {
+        for (String name : names) {
+            JsonNode node = usage.get(name);
+            if (Objects.nonNull(node) && !node.isNull()) {
+                return node;
+            }
+        }
+        return null;
     }
 
     private Long count(final JsonNode node) {
