@@ -1,0 +1,111 @@
+{
+  "format_version": 1,
+  "basis": "Authored expectations for this controlled fixture; not inferred by reading the ChangeProof reports.",
+  "set_definitions": {
+    "I_old": "JSON arguments accepted by the baseline inputSchema",
+    "I_new": "JSON arguments accepted by the candidate inputSchema",
+    "O_old": "JSON structured output accepted by the baseline outputSchema",
+    "O_new": "JSON structured output accepted by the candidate outputSchema"
+  },
+  "combined": {
+    "inputs": {
+      "old_clients_to_new_tool": {
+        "relation": "I_old subset_of I_new",
+        "holds": false,
+        "classification": "BREAKING_CANDIDATE",
+        "counterexample": "old_input_missing_workspace"
+      },
+      "new_clients_to_old_tool": {
+        "relation": "I_new subset_of I_old",
+        "holds": true,
+        "basis": "The existing workspace_id property changes only from optional to required; all other input constraints are identical."
+      }
+    },
+    "outputs": {
+      "new_tool_to_strict_old_consumer": {
+        "relation": "O_new subset_of O_old",
+        "holds": false,
+        "classification": "BREAKING_CANDIDATE",
+        "counterexample": "new_output_paused"
+      },
+      "old_tool_to_new_consumer": {
+        "relation": "O_old subset_of O_new",
+        "holds": true,
+        "basis": "Only the status enum is expanded; all other output constraints are identical."
+      }
+    },
+    "annotations": {
+      "classification": "REVIEW",
+      "input_or_output_validation_rule": false,
+      "reason": "readOnlyHint is advisory metadata. Its change may affect client policy but does not establish actual tool behavior or authorization."
+    },
+    "qualification": "Output risk applies to consumers that validate or exhaustively handle the old enum. This package does not claim every client will fail."
+  },
+  "annotation_only": {
+    "input_schema_unchanged": true,
+    "output_schema_unchanged": true,
+    "schema_validation_sets_unchanged": true,
+    "metadata_review_required": true
+  },
+  "unsupported": {
+    "compatibility_direction": "REQUIRES_REVIEW",
+    "input_set_inclusion": null,
+    "output_set_inclusion": null,
+    "comparison_complete": false,
+    "reason": "The existing ChangeProof version does not establish semantic compatibility for the changed allOf/not composition. No fallback compatible verdict is allowed."
+  },
+  "key_order_only": {
+    "structural_changes": false,
+    "parsed_json_equal": true,
+    "raw_file_hash_equal": false,
+    "fixture_sorted_json_digest_equal": true,
+    "semantic_equivalence_proof": false
+  },
+  "witnesses": [
+    {
+      "id": "old_input_missing_workspace",
+      "case": "combined",
+      "schema": "inputSchema",
+      "instance": {
+        "query": "alpha"
+      },
+      "valid_before": true,
+      "valid_after": false,
+      "after_error_keyword": "required"
+    },
+    {
+      "id": "new_input_with_workspace",
+      "case": "combined",
+      "schema": "inputSchema",
+      "instance": {
+        "query": "alpha",
+        "workspace_id": "demo"
+      },
+      "valid_before": true,
+      "valid_after": true
+    },
+    {
+      "id": "old_output_ready",
+      "case": "combined",
+      "schema": "outputSchema",
+      "instance": {
+        "status": "ready",
+        "count": 1
+      },
+      "valid_before": true,
+      "valid_after": true
+    },
+    {
+      "id": "new_output_paused",
+      "case": "combined",
+      "schema": "outputSchema",
+      "instance": {
+        "status": "paused",
+        "count": 0
+      },
+      "valid_before": false,
+      "valid_after": true,
+      "before_error_keyword": "enum"
+    }
+  ]
+}
