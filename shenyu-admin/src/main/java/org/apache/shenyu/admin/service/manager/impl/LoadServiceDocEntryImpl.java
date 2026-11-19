@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
+import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.model.bean.UpstreamInstance;
 import org.apache.shenyu.admin.model.entity.PluginDO;
@@ -49,6 +51,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.PluginNameAdapter;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -153,12 +156,14 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             allInstances = new ArrayList<>();
             try {
                 allInstances = discoveryUpstreamDataList.stream().map(discoveryUpstreamData -> {
-                    String[] upstreamUrlArr = discoveryUpstreamData.getUrl().split(":");
+                    String scheme = StringUtils.removeEnd(StringUtils.defaultIfBlank(discoveryUpstreamData.getProtocol(), "http"), "://");
+                    URI uri = URI.create(UriUtils.appendScheme(discoveryUpstreamData.getUrl(), scheme));
                     UpstreamInstance instance = new UpstreamInstance();
                     instance.setContextPath(contextPath);
                     instance.setEnabled(true);
-                    instance.setIp(upstreamUrlArr[0]);
-                    instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
+                    instance.setScheme(uri.getScheme());
+                    instance.setIp(uri.getHost());
+                    instance.setPort(UriUtils.getActualPort(uri.getScheme(), uri.getPort()));
                     instance.setHealthy(true);
                     Long startupTime = Optional.ofNullable(discoveryUpstreamData.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis());
                     instance.setStartupTime(startupTime);
@@ -238,12 +243,14 @@ public class LoadServiceDocEntryImpl implements LoadServiceDocEntry {
             allInstances = new ArrayList<>();
             try {
                 allInstances = discoveryUpstreamDataList.stream().map(discoveryUpstreamData -> {
-                    String[] upstreamUrlArr = discoveryUpstreamData.getUrl().split(":");
+                    String scheme = StringUtils.removeEnd(StringUtils.defaultIfBlank(discoveryUpstreamData.getProtocol(), "http"), "://");
+                    URI uri = URI.create(UriUtils.appendScheme(discoveryUpstreamData.getUrl(), scheme));
                     UpstreamInstance instance = new UpstreamInstance();
                     instance.setContextPath(contextPath);
                     instance.setEnabled(enabled);
-                    instance.setIp(upstreamUrlArr[0]);
-                    instance.setPort(upstreamUrlArr.length == 1 ? 80 : Integer.parseInt(upstreamUrlArr[1]));
+                    instance.setScheme(uri.getScheme());
+                    instance.setIp(uri.getHost());
+                    instance.setPort(UriUtils.getActualPort(uri.getScheme(), uri.getPort()));
                     instance.setHealthy(true);
                     Long startupTime = Optional.ofNullable(discoveryUpstreamData.getDateCreated()).map(Timestamp::getTime).orElse(System.currentTimeMillis());
                     instance.setStartupTime(startupTime);
