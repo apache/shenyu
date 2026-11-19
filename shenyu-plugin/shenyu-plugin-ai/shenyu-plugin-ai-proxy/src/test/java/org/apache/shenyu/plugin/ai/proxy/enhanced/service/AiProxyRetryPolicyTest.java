@@ -149,8 +149,8 @@ class AiProxyRetryPolicyTest {
     void shouldApplyConfiguredReplayPoliciesByStageOperationAndProviderDeclaration() {
         AiProxyRetryProperties properties = new AiProxyRetryProperties();
         properties.getReplay().setAmbiguousTransport(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED);
-        assertEquals(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED, properties.getReplay()
-                .mode(ShenyuAiRequest.Operation.CHAT_COMPLETION, true, true));
+        assertEquals(AiProxyRetryProperties.ReplayMode.PROVIDER_DECLARED, new AiRetrySettings(properties)
+                .replayMode(ShenyuAiRequest.Operation.CHAT_COMPLETION, true, true));
         AiProxyRetryPolicy.FailureContext providerDeclared = context(
                 AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT, properties, true);
         AiProxyRetryPolicy.FailureContext providerNotDeclared = context(
@@ -167,7 +167,7 @@ class AiProxyRetryPolicyTest {
         assertEquals(AiProxyRetryPolicy.Decision.PROPAGATE_ERROR, policy.decideTransport(
                 new AiProxyRetryPolicy.FailureContext(AiTransportException.Kind.IO_FAILURE, null, Map.of(),
                         2, false, false, ShenyuAiRequest.Operation.CHAT_COMPLETION,
-                        toolProperties.getReplay(), true, false)),
+                        new AiRetrySettings(toolProperties), true, false)),
                 "provider declaration must not override tool-bearing replay risk");
 
         properties.getReplay().setOperations(Map.of(
@@ -191,47 +191,47 @@ class AiProxyRetryPolicyTest {
                 java.time.Duration.ofSeconds(2), java.time.Duration.ofMinutes(1));
 
         assertEquals(java.time.Duration.ofSeconds(1),
-                AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", "1"), properties));
+                AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", "1"), new AiRetrySettings(properties)));
         assertEquals(java.time.Duration.ofSeconds(1),
-                AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", List.of("1")), properties));
-        assertNull(AiProxyRetryPolicy.retryAfter(Map.of("retry-after", "999"), properties));
+                AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", List.of("1")), new AiRetrySettings(properties)));
+        assertNull(AiProxyRetryPolicy.retryAfter(Map.of("retry-after", "999"), new AiRetrySettings(properties)));
         assertEquals(java.time.Duration.ofSeconds(1),
-                AiProxyRetryPolicy.retryAfter(Map.of("RETRY-AFTER", "1"), properties));
-        assertNull(AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", "-1"), properties));
-        assertNull(AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", "invalid"), properties));
+                AiProxyRetryPolicy.retryAfter(Map.of("RETRY-AFTER", "1"), new AiRetrySettings(properties)));
+        assertNull(AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", "-1"), new AiRetrySettings(properties)));
+        assertNull(AiProxyRetryPolicy.retryAfter(Map.of("Retry-After", "invalid"), new AiRetrySettings(properties)));
     }
 
     private AiProxyRetryPolicy.FailureContext status(final int status, final int retries,
                                                      final boolean fallback, final boolean replaySafe) {
         return new AiProxyRetryPolicy.FailureContext(null, status, Map.of(), retries, fallback,
                 replaySafe, ShenyuAiRequest.Operation.CHAT_COMPLETION,
-                new AiProxyRetryProperties().getReplay(), false, false);
+                new AiRetrySettings(new AiProxyRetryProperties()), false, false);
     }
 
     private AiProxyRetryPolicy.FailureContext transport(final AiTransportException.Kind kind, final int retries,
                                                         final boolean fallback, final boolean replaySafe) {
         return new AiProxyRetryPolicy.FailureContext(kind, null, Map.of(), retries, fallback,
                 replaySafe, ShenyuAiRequest.Operation.CHAT_COMPLETION,
-                new AiProxyRetryProperties().getReplay(), false, false);
+                new AiRetrySettings(new AiProxyRetryProperties()), false, false);
     }
 
     private AiProxyRetryPolicy.FailureContext context(final AiTransportException.Kind kind,
                                                       final AiProxyRetryProperties properties,
                                                       final boolean providerDeclared) {
         return new AiProxyRetryPolicy.FailureContext(kind, null, Map.of(), 1, false, true,
-                ShenyuAiRequest.Operation.CHAT_COMPLETION, properties.getReplay(), providerDeclared, false);
+                ShenyuAiRequest.Operation.CHAT_COMPLETION, new AiRetrySettings(properties), providerDeclared, false);
     }
 
     private AiProxyRetryPolicy.FailureContext fallbackContext(final AiTransportException.Kind kind,
                                                               final AiProxyRetryProperties properties) {
         return new AiProxyRetryPolicy.FailureContext(kind, null, Map.of(), 1, true, true,
-                ShenyuAiRequest.Operation.CHAT_COMPLETION, properties.getReplay(), true, true);
+                ShenyuAiRequest.Operation.CHAT_COMPLETION, new AiRetrySettings(properties), true, true);
     }
 
     private AiProxyRetryPolicy.FailureContext contextStatus(final int status,
                                                             final AiProxyRetryProperties properties,
                                                             final boolean providerDeclared) {
         return new AiProxyRetryPolicy.FailureContext(null, status, Map.of(), 1, false, true,
-                ShenyuAiRequest.Operation.CHAT_COMPLETION, properties.getReplay(), providerDeclared, false);
+                ShenyuAiRequest.Operation.CHAT_COMPLETION, new AiRetrySettings(properties), providerDeclared, false);
     }
 }

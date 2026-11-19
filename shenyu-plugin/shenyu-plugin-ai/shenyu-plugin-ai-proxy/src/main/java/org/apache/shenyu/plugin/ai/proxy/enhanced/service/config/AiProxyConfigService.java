@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.config;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,6 +28,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigValidator;
 
 import java.net.URI;
 import java.util.Locale;

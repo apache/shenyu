@@ -36,7 +36,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +44,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -56,15 +55,15 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class AiProxyPluginHandlerTest {
 
