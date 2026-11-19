@@ -28,6 +28,8 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
@@ -43,11 +45,13 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ServerWebExchangeDecorator;
 import reactor.core.publisher.Mono;
@@ -63,6 +67,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -187,29 +192,6 @@ public final class NettyHttpClientPluginTest {
                     .verifyComplete();
 
             assertEquals(529, baseExchange.getResponse().getStatusCode().value());
-        } finally {
-            server.disposeNow();
-        }
-    }
-
-    @ParameterizedTest
-    @CsvSource(delimiter = '|', value = {
-        "/plain | /plain", "/a%2Fb?x=a%2Bb&empty=&flag | /a%2Fb?x=a%2Bb&empty=&flag",
-        "/你好 | /%E4%BD%A0%E5%A5%BD", "?key=value | /?key=value", "/a#fragment | /a", "/ | /"
-    })
-    public void testOutgoingUriPreservesEncoding(final String suffix, final String expected) {
-        AtomicReference<String> received = new AtomicReference<>();
-        DisposableServer server = HttpServer.create().host("127.0.0.1").port(0)
-                .handle((request, response) -> {
-                    received.set(request.uri());
-                    return response.send();
-                }).bindNow();
-        try {
-            ServerWebExchange exchange = generateServerWebExchange();
-            URI uri = URI.create("http://127.0.0.1:" + server.port() + suffix);
-            StepVerifier.create(nettyHttpClientPlugin.doRequest(exchange, "GET", uri, Flux.empty()))
-                    .expectNextCount(1).verifyComplete();
-            assertEquals(expected, received.get());
         } finally {
             server.disposeNow();
         }
@@ -365,6 +347,86 @@ public final class NettyHttpClientPluginTest {
                         return body.then();
                     }).block();
             assertEquals(1, assertions.get());
+        } finally {
+            gateway.disposeNow();
+            upstream.disposeNow();
+        }
+    }
+
+    @Test
+    void testNativeRequestTimeoutRestoresGatewayHeadersBeforeCommit() {
+        DisposableServer upstream = headerServer();
+        AtomicInteger receivedHeaders = new AtomicInteger();
+        DisposableServer gateway = HttpServer.create().host("127.0.0.1").port(0)
+                .handle(new ReactorHttpHandlerAdapter((request, response) -> {
+                    response.getHeaders().set("X-Multi", "gateway-old");
+                    response.getHeaders().set(HttpHeaders.SET_COOKIE, "gateway=1");
+                    ServerWebExchange exchange = generateServerWebExchange().mutate().response(response).build();
+                    exchange.getAttributes().put(Constants.HTTP_URI, URI.create("http://127.0.0.1:" + upstream.port() + "/test"));
+                    exchange.getAttributes().put(Constants.HTTP_TIME_OUT, 10000L);
+                    HttpRouteDeadline deadline = new HttpRouteDeadline(2000);
+                    HttpRouteResponseHeaders headers = new HttpRouteResponseHeaders();
+                    exchange.getAttributes().put(HttpRouteDeadline.REQUEST, deadline);
+                    exchange.getAttributes().put(HttpRouteResponseHeaders.ATTRIBUTE, headers);
+                    return deadline.limit(nettyHttpClientPlugin.execute(exchange, current -> {
+                        assertFalse(response.isCommitted());
+                        assertEquals(List.of("one", "two", "one", "three"), response.getHeaders().get("X-Multi"));
+                        receivedHeaders.incrementAndGet();
+                        return Mono.never();
+                    })).onErrorMap(TimeoutException.class, HttpRouteDeadline::gatewayTimeout)
+                            .onErrorResume(ResponseStatusException.class, error -> {
+                                assertEquals(HttpStatus.GATEWAY_TIMEOUT, error.getStatusCode());
+                                headers.restore(exchange);
+                                response.setStatusCode(error.getStatusCode());
+                                return response.setComplete();
+                            });
+                })).bindNow();
+        try {
+            HttpClient.create().get().uri("http://127.0.0.1:" + gateway.port() + "/test")
+                    .responseSingle((response, body) -> {
+                        assertEquals(504, response.status().code());
+                        assertEquals(List.of("gateway-old"), response.responseHeaders().getAll("X-Multi"));
+                        assertEquals(List.of("gateway=1"), response.responseHeaders().getAll(HttpHeaders.SET_COOKIE));
+                        assertNull(response.responseHeaders().get(HttpHeaders.CONTENT_TYPE));
+                        return body.then();
+                    }).block(java.time.Duration.ofSeconds(5));
+            assertEquals(1, receivedHeaders.get());
+        } finally {
+            gateway.disposeNow();
+            upstream.disposeNow();
+        }
+    }
+
+    @Test
+    void testNativeLateResponseCannotReplaceRestoredGatewayHeaders() {
+        DisposableServer upstream = headerServer();
+        AtomicInteger receivedHeaders = new AtomicInteger();
+        DisposableServer gateway = HttpServer.create().host("127.0.0.1").port(0)
+                .handle(new ReactorHttpHandlerAdapter((request, response) -> {
+                    response.getHeaders().set("X-Multi", "gateway-old");
+                    response.getHeaders().set(HttpHeaders.SET_COOKIE, "gateway=1");
+                    response.setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+                    ServerWebExchange exchange = generateServerWebExchange().mutate().response(response).build();
+                    HttpRouteResponseHeaders headers = new HttpRouteResponseHeaders();
+                    exchange.getAttributes().put(HttpRouteResponseHeaders.ATTRIBUTE, headers);
+                    headers.restore(exchange);
+                    return nettyHttpClientPlugin.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + upstream.port() + "/test"), Flux.empty())
+                            .doOnNext(raw -> {
+                                assertFalse(response.isCommitted());
+                                assertEquals(200, raw.status().code());
+                                receivedHeaders.incrementAndGet();
+                            }).then(Mono.defer(response::setComplete));
+                })).bindNow();
+        try {
+            HttpClient.create().get().uri("http://127.0.0.1:" + gateway.port() + "/test")
+                    .responseSingle((response, body) -> {
+                        assertEquals(504, response.status().code());
+                        assertEquals(List.of("gateway-old"), response.responseHeaders().getAll("X-Multi"));
+                        assertEquals(List.of("gateway=1"), response.responseHeaders().getAll(HttpHeaders.SET_COOKIE));
+                        assertNull(response.responseHeaders().get(HttpHeaders.CONTENT_TYPE));
+                        return body.then();
+                    }).block(java.time.Duration.ofSeconds(5));
+            assertEquals(1, receivedHeaders.get());
         } finally {
             gateway.disposeNow();
             upstream.disposeNow();

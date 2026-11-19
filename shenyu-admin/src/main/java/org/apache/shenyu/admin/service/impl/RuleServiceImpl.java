@@ -52,6 +52,7 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.DataPermissionChecker;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
@@ -107,13 +108,16 @@ public class RuleServiceImpl implements RuleService {
 
     private final DataPermissionChecker dataPermissionChecker;
 
+    private final PluginDataPermissionChecker pluginDataPermissionChecker;
+
     public RuleServiceImpl(final RuleMapper ruleMapper,
                            final RuleConditionMapper ruleConditionMapper,
                            final SelectorMapper selectorMapper,
                            final PluginMapper pluginMapper,
                            final RuleEventPublisher ruleEventPublisher,
                            final ShenyuDictMapper shenyuDictMapper,
-                           final DataPermissionChecker dataPermissionChecker) {
+                           final DataPermissionChecker dataPermissionChecker,
+                           final PluginDataPermissionChecker pluginDataPermissionChecker) {
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.selectorMapper = selectorMapper;
@@ -121,6 +125,7 @@ public class RuleServiceImpl implements RuleService {
         this.ruleEventPublisher = ruleEventPublisher;
         this.shenyuDictMapper = shenyuDictMapper;
         this.dataPermissionChecker = dataPermissionChecker;
+        this.pluginDataPermissionChecker = pluginDataPermissionChecker;
     }
 
     @Override
@@ -191,6 +196,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final RuleDTO ruleDTO) {
+        pluginDataPermissionChecker.checkCreateRule(ruleDTO);
         return RuleService.super.createOrUpdate(ruleDTO);
     }
 
@@ -212,9 +218,16 @@ public class RuleServiceImpl implements RuleService {
         validateRuleHandle(ruleDTO);
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
-        validateCanaryAndStickyConfig(StringUtils.defaultIfBlank(ruleDTO.getSelectorId(), before.getSelectorId()), ruleDTO.getHandle());
+        validateRulePluginUnchanged(before, ruleDTO.getSelectorId());
+        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
+        if (ruleCount <= 0) {
+            // the id matches but the stored namespace differs: the update intentionally
+            // matched no rows, so the conditions and change event of this (foreign)
+            // rule must be left untouched
+            return 0;
+        }
 
         // need old data for cleaning
         List<RuleConditionDO> beforeRuleCondition = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
@@ -269,6 +282,23 @@ public class RuleServiceImpl implements RuleService {
             StickySessionConfigValidator.validate(divide.getSticky());
         } catch (IllegalArgumentException ex) {
             throw new ShenyuAdminException(ex.getMessage(), ex);
+        }
+    }
+
+    private void validateRulePluginUnchanged(final RuleDO before, final String targetSelectorId) {
+        if (Objects.equals(before.getSelectorId(), targetSelectorId)) {
+            return;
+        }
+        final SelectorDO currentSelector = selectorMapper.selectById(before.getSelectorId());
+        if (Objects.isNull(currentSelector)) {
+            throw new ShenyuAdminException("rule selector is not found");
+        }
+        final SelectorDO targetSelector = selectorMapper.selectById(targetSelectorId);
+        if (Objects.isNull(targetSelector)) {
+            throw new ShenyuAdminException("the target selector of the rule is not found");
+        }
+        if (!Objects.equals(currentSelector.getPluginId(), targetSelector.getPluginId())) {
+            throw new ShenyuAdminException("a rule cannot be moved to a selector of another plugin");
         }
     }
 
@@ -487,6 +517,7 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean enabledByIdsAndNamespaceId(final List<String> ids, final Boolean enabled, final String namespaceId) {
+        pluginDataPermissionChecker.checkEnableRules(ids);
         ids.forEach(id -> {
             RuleDO ruleDO = ruleMapper.selectById(id);
             if (Objects.isNull(ruleDO) || !Objects.equals(ruleDO.getNamespaceId(), namespaceId)) {
@@ -522,11 +553,25 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteByIdsAndNamespaceId(final List<String> ids, final String namespaceId) {
+        return deleteRules(ids, namespaceId, true);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteForRegistration(final List<String> ids, final String namespaceId) {
+        return deleteRules(ids, namespaceId, false);
+    }
+
+    private int deleteRules(final List<String> ids, final String namespaceId, final boolean checkPermission) {
         List<RuleDO> rules = ruleMapper.selectByIdsAndNamespaceId(ids, namespaceId);
         if (CollectionUtils.isEmpty(rules)) {
             return 0;
         }
         final List<String> ruleIds = map(rules, RuleDO::getId);
+        if (checkPermission) {
+            // authorize the rules of the namespace that are actually deleted, not every requested id
+            pluginDataPermissionChecker.checkDeleteRules(ruleIds);
+        }
         final int deleteCount = ruleMapper.deleteByIdsAndNamespaceId(ruleIds, namespaceId);
         if (deleteCount > 0) {
             ruleEventPublisher.onDeleted(rules);

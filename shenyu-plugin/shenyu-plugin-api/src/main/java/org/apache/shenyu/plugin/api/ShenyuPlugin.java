@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -99,7 +98,13 @@ public interface ShenyuPlugin {
         }
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
-        return Arrays.stream(rpcTypes).anyMatch(type -> Objects.equals(shenyuContext.getRpcType(), type.getName()));
+        // plain loop: this runs for several plugins on every request (#8424)
+        for (RpcTypeEnum rpcType : rpcTypes) {
+            if (Objects.equals(shenyuContext.getRpcType(), rpcType.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -158,9 +163,10 @@ public interface ShenyuPlugin {
      */
     default void after(ServerWebExchange exchange) {
         long currentTimeMillis = System.currentTimeMillis();
-        long startTime = (long) exchange.getAttributes().get(Constants.PLUGIN_START_TIME + named());
+        String startTimeKey = Constants.PLUGIN_START_TIME + named();
+        long startTime = (long) exchange.getAttributes().get(startTimeKey);
         LOG.debug("shenyu traceId:{}, plugin named:{}, cost:{}", TraceIdUtils.traceId(exchange), named(), currentTimeMillis - startTime);
-        exchange.getAttributes().remove(Constants.PLUGIN_START_TIME + named());
+        exchange.getAttributes().remove(startTimeKey);
     }
 }
 
