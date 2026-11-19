@@ -21,73 +21,101 @@ import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublishe
 import org.apache.shenyu.client.core.register.ApiBean;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
 import org.apache.shenyu.client.core.utils.ApiBeanUtil;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * UriApiRegistrarImplImpl.
- *
- * <p>Like the full-mode branches of the client event listeners, URI publication must
- * only happen in local discovery mode. This registrar is not wired by any starter yet;
- * when it becomes reachable, gate {@link #doRegisterApi} / {@link #doRegisterBean} on
- * the discovery mode (see
- * {@code AbstractContextRefreshedEventListener#isDiscoveryLocalMode}) to avoid dual
- * upstream registration for the same selector.
+ * Publishes local instance membership once per namespace and instance identity.
+ * Repository failback owns transport retries after a URI has been enqueued.
  *
  * @see URIRegisterDTO
  */
 public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {
-    
+
+    private static final Logger LOG = LoggerFactory.getLogger(UriApiRegistrarImplImpl.class);
+
+    private static final int MAX_PORT = 65535;
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final ClientRegisterConfig clientRegisterConfig;
-    
+
+    private final Set<UriIdentity> publishedIdentities = new HashSet<>();
+
+    private boolean awaitingPort;
+
     public UriApiRegistrarImplImpl(final ClientRegisterConfig clientRegisterConfig) {
         this.clientRegisterConfig = clientRegisterConfig;
     }
-    
+
+    @Override
+    public Class<?> registerDataType() {
+        return URIRegisterDTO.class;
+    }
+
     @Override
     protected void doRegisterApi(final ApiBean.ApiDefinition api) {
-        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerApi(api, namespaceId));
+        registerUri(ApiBeanUtil.getRpcType(api));
     }
 
-    private void registerApi(final ApiBean.ApiDefinition api, final String namespaceId) {
-        final URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
-                .namespaceId(namespaceId)
-                .contextPath(clientRegisterConfig.getContextPath())
-                .appName(clientRegisterConfig.getAppName())
-                .eventType(EventType.REGISTER)
-                .host(clientRegisterConfig.getHost())
-                .port(clientRegisterConfig.getPort())
-                .rpcType(getRpcType(api))
-                .build();
-        publisher.publishEvent(uriRegisterDTO);
-    }
-    
     @Override
     protected void doRegisterBean(final ApiBean apiBean) {
-        clientRegisterConfig.getNamespace().forEach(namespaceId -> registerBean(apiBean, namespaceId));
+        registerUri(ApiBeanUtil.getRpcType(apiBean));
     }
 
-    private void registerBean(final ApiBean apiBean, final String namespaceId) {
-        final URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder()
-                .namespaceId(namespaceId)
-                .contextPath(clientRegisterConfig.getContextPath())
-                .appName(clientRegisterConfig.getAppName())
-                .eventType(EventType.REGISTER)
-                .host(clientRegisterConfig.getHost())
-                .port(clientRegisterConfig.getPort())
-                .rpcType(getRpcType(apiBean))
-                .build();
-        publisher.publishEvent(uriRegisterDTO);
+    private synchronized void registerUri(final String rpcType) {
+        int port = clientRegisterConfig.getPort();
+        if (isPendingPort(rpcType, port)) {
+            if (!awaitingPort) {
+                LOG.warn("Skipping local URI registration until the advertised port is available");
+                awaitingPort = true;
+            }
+            return;
+        }
+        if (port <= 0 || port > MAX_PORT) {
+            throw new IllegalArgumentException("Local URI registration requires a port between 1 and " + MAX_PORT);
+        }
+        awaitingPort = false;
+        for (String namespaceId : clientRegisterConfig.getNamespace()) {
+            URIRegisterDTO uri = URIRegisterDTO.builder()
+                    .namespaceId(namespaceId)
+                    .contextPath(clientRegisterConfig.getContextPath())
+                    .appName(clientRegisterConfig.getAppName())
+                    .eventType(EventType.REGISTER)
+                    .host(clientRegisterConfig.getHost())
+                    .port(port)
+                    .rpcType(rpcType)
+                    .protocol(clientRegisterConfig.getProtocol())
+                    .build();
+            publish(uri);
+        }
     }
-    
-    private static String getRpcType(final ApiBean.ApiDefinition api) {
-        return ApiBeanUtil.getRpcType(api);
+
+    private static boolean isPendingPort(final String rpcType, final int port) {
+        boolean supportsAutoPort = RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.WEB_SOCKET.getName().equals(rpcType);
+        return supportsAutoPort && (port == 0 || port == -1);
     }
-    
-    private static String getRpcType(final ApiBean api) {
-        return ApiBeanUtil.getRpcType(api);
+
+    private void publish(final URIRegisterDTO uri) {
+        // The enqueue key is a snapshot since the subscriber can mutate the DTO.
+        UriIdentity identity = new UriIdentity(uri.getNamespaceId(), uri.getRpcType(), uri.getAppName(), uri.getContextPath(), uri.getHost(), uri.getPort());
+        if (publishedIdentities.contains(identity)) {
+            return;
+        }
+        try {
+            publisher.publishEvent(uri);
+            publishedIdentities.add(identity);
+        } catch (RuntimeException ex) {
+            LOG.warn("Could not enqueue local URI registration; it can be retried on rediscovery");
+        }
     }
-    
+
+    private record UriIdentity(String namespaceId, String rpcType, String appName, String contextPath, String host, int port) {
+    }
 }

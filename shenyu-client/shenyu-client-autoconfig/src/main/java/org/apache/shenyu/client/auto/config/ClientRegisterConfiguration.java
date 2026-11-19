@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.auto.config;
 
+import org.apache.shenyu.client.core.constant.ShenyuClientConstants;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.core.register.ClientApiRefreshedEventListener;
 import org.apache.shenyu.client.core.register.ClientRegisterConfig;
@@ -27,10 +28,15 @@ import org.apache.shenyu.client.core.register.matcher.ApiRegisterProcessor;
 import org.apache.shenyu.client.core.register.registrar.ApiDocRegistrarImpl;
 import org.apache.shenyu.client.core.register.registrar.ApiRegistrar;
 import org.apache.shenyu.client.core.register.registrar.MateDataApiRegistrarImpl;
+import org.apache.shenyu.client.core.register.registrar.UriApiRegistrarImplImpl;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 import java.util.List;
 
@@ -62,6 +68,21 @@ public class ClientRegisterConfiguration {
         final MateDataApiRegistrarImpl apiRegistrarImpl = new MateDataApiRegistrarImpl(clientRegisterConfig);
         processor.forEach(apiRegistrarImpl::addApiProcessor);
         return apiRegistrarImpl;
+    }
+
+    /**
+     * URI registrar for local instance membership.
+     *
+     * @param clientRegisterConfig client registration configuration
+     * @param processors registration processors
+     * @return URI registrar
+     */
+    @Bean
+    @Conditional(LocalDiscoveryCondition.class)
+    public UriApiRegistrarImplImpl uriApiRegistrar(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processors) {
+        UriApiRegistrarImplImpl registrar = new UriApiRegistrarImplImpl(clientRegisterConfig);
+        processors.forEach(registrar::addApiProcessor);
+        return registrar;
     }
 
     /**
@@ -101,5 +122,14 @@ public class ClientRegisterConfiguration {
         ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
         publisher.start(shenyuClientRegisterRepository);
         return publisher;
+    }
+
+    static final class LocalDiscoveryCondition implements Condition {
+
+        @Override
+        public boolean matches(final ConditionContext context, final AnnotatedTypeMetadata metadata) {
+            return ShenyuClientConstants.DISCOVERY_LOCAL_MODE.equals(
+                    context.getEnvironment().getProperty("shenyu.discovery.type", ShenyuClientConstants.DISCOVERY_LOCAL_MODE));
+        }
     }
 }
