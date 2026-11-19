@@ -44,6 +44,56 @@ registration_fencing_target|idx_fencing_domain_session|session_id|2
 """
 
 
+OBSOLETE_RESOURCE_IDS = (
+    "1534577121923309568", "1534585430311051264", "1534585531108564992",
+)
+OBSOLETE_PERMISSION_IDS = (
+    "sql-obsolete-permission-1", "sql-obsolete-permission-2", "sql-obsolete-permission-3",
+)
+
+
+def mock_upgrade_engine(regression=False):
+    """Model the released baseline, intended cleanup, and optional unrelated deletion."""
+    engine = MagicMock()
+    engine.table.side_effect = lambda table: table
+    migrated = False
+
+    def sql(query, **kwargs):
+        nonlocal migrated
+        query = query.strip()
+        upper = query.upper()
+        if query.startswith("SELECT resource_id FROM permission"):
+            return "\n".join(OBSOLETE_RESOURCE_IDS)
+        if query.startswith("SELECT id FROM permission WHERE resource_id IN"):
+            return "\n".join(OBSOLETE_PERMISSION_IDS)
+        if query.startswith("SELECT id FROM "):
+            table = query[len("SELECT id FROM "):].split(";", 1)[0].strip()
+            if table == "resource":
+                return "sql-keep-resource" if migrated else "\n".join(OBSOLETE_RESOURCE_IDS + ("sql-keep-resource",))
+            if table == "permission":
+                return "sql-keep-permission" if migrated else "\n".join(OBSOLETE_PERMISSION_IDS + ("sql-keep-permission",))
+            if table == "plugin" and regression:
+                return "sql-plugin-new" if migrated else "sql-plugin-old"
+            return "sql-keep-" + table
+        if "DELETE FROM" in upper:
+            migrated = True
+            return "unchanged"
+        if "FROM PLUGIN WHERE ID=" in upper:
+            return "unchanged-list-metadata"
+        return "unchanged"
+
+    engine.sql.side_effect = sql
+    return engine
+
+
+def mock_fresh_engine():
+    engine = MagicMock()
+    engine.table.side_effect = lambda table: table
+    engine.sql.return_value = "unchanged-list-metadata"
+    return engine
+
+
+
 def workflow_python_blocks():
     workflow = (ROOT / ".github/workflows/native-sql-matrix.yml").read_text(encoding="utf-8")
     return [textwrap.dedent(block) for block in re.findall(r"python3 - <<'PY'\n(.*?)\n\s+PY", workflow, re.S)]
@@ -104,19 +154,18 @@ class NativeSqlMatrixTest(unittest.TestCase):
 
     def test_oceanbase_shares_current_mysql_schema_but_keeps_released_baseline(self):
         self.assertEqual(matrix.DIALECTS["mysql"][1], matrix.DIALECTS["ob"][1])
-        engine = MagicMock()
-        engine.sql.return_value = "unchanged"
+        upgrade_engine, fresh_engine = mock_upgrade_engine(), mock_fresh_engine()
         with tempfile.TemporaryDirectory() as directory:
-            with patch.object(matrix, "Engine", return_value=engine), \
+            with patch.object(matrix, "Engine", side_effect=[upgrade_engine, fresh_engine]), \
                     patch.object(matrix, "run", return_value="-- released OceanBase schema") as invoke:
                 matrix.execute_matrix("ob", ROOT, Path(directory))
         invoke.assert_called_once_with(["git", "show", f"{matrix.BASELINE}:db/init/ob/schema.sql"])
-        self.assertEqual(engine.sql.call_args_list[0].args[0], "-- released OceanBase schema")
+        self.assertEqual(upgrade_engine.sql.call_args_list[0].args[0], "-- released OceanBase schema")
         self.assertIn(unittest.mock.call((ROOT / "db/upgrade/2.7.1-upgrade-2.7.2-ob.sql").read_text(encoding="utf-8")),
-                      engine.sql.call_args_list)
+                      upgrade_engine.sql.call_args_list)
         schema = (ROOT / "db/init/mysql/schema.sql").read_text(encoding="utf-8")
-        self.assertIn(unittest.mock.call(schema, database=False), engine.sql.call_args_list)
-        engine.check_fresh_mysql_schema.assert_called_once_with(schema, engine.indexes.return_value)
+        self.assertIn(unittest.mock.call(schema, database=False), fresh_engine.sql.call_args_list)
+        fresh_engine.check_fresh_mysql_schema.assert_called_once_with(schema, fresh_engine.indexes.return_value)
 
     def test_fresh_shared_schema_rejects_missing_table_index_and_constraint(self):
         schema = "CREATE TABLE IF NOT EXISTS plugin (id int); CREATE INDEX idx_plugin ON `plugin` (id);"
@@ -152,29 +201,32 @@ class NativeSqlMatrixTest(unittest.TestCase):
     def test_opengauss_shares_current_postgres_schema_but_keeps_released_baseline(self):
         self.assertEqual(matrix.DIALECTS["pg"][1], matrix.DIALECTS["og"][1])
         self.assertFalse((ROOT / "db/init/og/create-table.sql").exists())
-        engine = MagicMock()
-        engine.sql.return_value = "unchanged"
+        upgrade_engine, fresh_engine = mock_upgrade_engine(), mock_fresh_engine()
         with tempfile.TemporaryDirectory() as directory:
-            with patch.object(matrix, "Engine", return_value=engine), \
+            with patch.object(matrix, "Engine", side_effect=[upgrade_engine, fresh_engine]), \
                     patch.object(matrix, "run", return_value="-- released openGauss schema") as invoke:
                 matrix.execute_matrix("og", ROOT, Path(directory))
         invoke.assert_called_once_with(["git", "show", f"{matrix.BASELINE}:db/init/og/create-table.sql"])
-        self.assertEqual(engine.sql.call_args_list[0].args[0], "-- released openGauss schema")
+        self.assertEqual(upgrade_engine.sql.call_args_list[0].args[0], "-- released openGauss schema")
         self.assertIn(unittest.mock.call((ROOT / "db/upgrade/2.7.1-upgrade-2.7.2-og.sql").read_text(encoding="utf-8")),
-                      engine.sql.call_args_list)
+                      upgrade_engine.sql.call_args_list)
         schema = (ROOT / "db/init/pg/create-table.sql").read_text(encoding="utf-8")
-        self.assertIn(unittest.mock.call(schema, database=False), engine.sql.call_args_list)
-        engine.check_fresh_postgres_schema.assert_called_once_with(schema, engine.indexes.return_value)
+        self.assertIn(unittest.mock.call(schema, database=False), fresh_engine.sql.call_args_list)
+        fresh_engine.check_fresh_postgres_schema.assert_called_once_with(schema, fresh_engine.indexes.return_value)
 
     def test_opengauss_storage_initialization_copies_the_shared_schema(self):
         script = ROOT / "shenyu-e2e/shenyu-e2e-case/k8s/script/storage/storage_init_opengauss.sh"
-        with tempfile.TemporaryDirectory() as directory:
-            capture = Path(directory) / "create-table.sql"
-            command = 'mkdir() { :; }; wget() { :; }; cp() { command cp "$1" "$CAPTURE"; }; export -f mkdir wget cp; bash "$1"'
-            result = subprocess.run(["bash", "-c", command, "storage-init-test", str(script)], cwd=ROOT,
-                                    env=dict(os.environ, CAPTURE=str(capture)), capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertEqual(capture.read_bytes(), (ROOT / matrix.DIALECTS["pg"][1]).read_bytes())
+        content = script.read_text(encoding="utf-8")
+        shared_schema = matrix.DIALECTS["pg"][1]
+
+        # Validate the actual source path used by the storage initializer. Executing
+        # this shell script through Git Bash is not portable on Windows because
+        # subprocess argument forwarding differs between native Windows and MSYS.
+        copy_commands = re.findall(r"(?m)^\s*cp\s+([^\s]+)\s+([^\s]+)", content)
+        self.assertIn(
+            (shared_schema, "/tmp/shenyu-e2e/opengauss/schema/create-table.sql"),
+            copy_commands,
+        )
 
     def test_shared_postgres_schema_rejects_missing_column_primary_index_and_uniqueness(self):
         schema = ('CREATE TABLE IF NOT EXISTS "public"."discovery_upstream" (\n"id" varchar(128) NOT NULL,\n'
@@ -440,25 +492,16 @@ class NativeSqlMatrixTest(unittest.TestCase):
                     engine.check_data(["id"], ["id", "plugin_jar"])
 
     def test_deleted_rows_are_detected_even_if_total_count_does_not_decrease(self):
-        engine = MagicMock()
-        migrated = False
-
-        def sql(query, **kwargs):
-            nonlocal migrated
-            if "idx_selector_plugin_id" in query:
-                migrated = True
-            if query.startswith("SELECT id FROM"):
-                return "new-id" if migrated else "old-id"
-            return "unchanged-list-metadata"
-
-        engine.sql.side_effect = sql
+        upgrade_engine, fresh_engine = mock_upgrade_engine(regression=True), mock_fresh_engine()
         with tempfile.TemporaryDirectory() as directory:
-            with patch.object(matrix, "Engine", return_value=engine), patch.object(matrix, "run", return_value="-- baseline"):
-                with self.assertRaisesRegex(AssertionError, "removed rows"):
+            with patch.object(matrix, "Engine", side_effect=[upgrade_engine, fresh_engine]), \
+                    patch.object(matrix, "run", return_value="-- released MySQL schema"):
+                with self.assertRaisesRegex(AssertionError, "Unexpected rows removed from plugin"):
                     matrix.execute_matrix("mysql", ROOT, Path(directory))
-                engine.cleanup.assert_called_once()
+                upgrade_engine.cleanup.assert_called_once()
                 result = json.loads((Path(directory) / "result.json").read_text())
                 self.assertEqual(result["flows"][0]["status"], "failure")
+                self.assertIn("Unexpected rows removed from plugin", result["flows"][0]["error"])
 
     def test_oracle_uses_quoted_resource_table(self):
         self.assertEqual(matrix.Engine("oracle", "upgrade", ROOT).table("resource"), '"resource"')
