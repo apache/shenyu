@@ -20,11 +20,13 @@ package org.apache.shenyu.plugin.base.cache;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.DtoSnapshots;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,24 +43,45 @@ import java.util.stream.Collectors;
  */
 public final class BaseDataCache {
 
-    private static final BaseDataCache INSTANCE = new BaseDataCache();
+    private static final BaseDataCache INSTANCE = new BaseDataCache(false);
+
+    private static final BaseDataCache PUBLISHED = new BaseDataCache(true);
+
+    private static final ReadOnly READ_ONLY = new ReadOnly();
+
+    private final boolean published;
 
     /**
      * pluginName -> PluginData.
      */
-    private static volatile ConcurrentMap<String, PluginData> pluginMap = Maps.newConcurrentMap();
+    private volatile ConcurrentMap<String, PluginData> pluginMap = Maps.newConcurrentMap();
 
     /**
      * pluginName -> SelectorData.
      */
-    private static volatile ConcurrentMap<String, List<SelectorData>> selectorMap = Maps.newConcurrentMap();
+    private volatile ConcurrentMap<String, List<SelectorData>> selectorMap = Maps.newConcurrentMap();
 
     /**
      * selectorId -> RuleData.
      */
-    private static volatile ConcurrentMap<String, List<RuleData>> ruleMap = Maps.newConcurrentMap();
+    private volatile ConcurrentMap<String, List<RuleData>> ruleMap = Maps.newConcurrentMap();
 
-    private BaseDataCache() {
+    private volatile Map<String, PluginData> pluginView = Collections.unmodifiableMap(pluginMap);
+
+    private volatile Map<String, List<SelectorData>> selectorView = Collections.unmodifiableMap(selectorMap);
+
+    private volatile Map<String, List<RuleData>> ruleView = Collections.unmodifiableMap(ruleMap);
+
+    private BaseDataCache(final boolean published) {
+        this.published = published;
+    }
+
+    /**
+     * Explicit publication-only read contract. Legacy map writes do not reach this view.
+     * @return shared read-only access, without copying on reads
+     */
+    public ReadOnly readOnly() {
+        return READ_ONLY;
     }
     
     /**
@@ -75,8 +98,11 @@ public final class BaseDataCache {
      *
      * @param pluginData the plugin data
      */
-    public void cachePluginData(final PluginData pluginData) {
-        Optional.ofNullable(pluginData).ifPresent(data -> pluginMap.put(data.getName(), data));
+    public synchronized void cachePluginData(final PluginData pluginData) {
+        if (!published) {
+            PUBLISHED.cachePluginData(pluginData);
+        }
+        Optional.ofNullable(pluginData).ifPresent(data -> pluginMap.put(data.getName(), published ? DtoSnapshots.freeze(data) : data));
     }
     
     /**
@@ -84,8 +110,11 @@ public final class BaseDataCache {
      *
      * @param pluginData the plugin data
      */
-    public void removePluginData(final PluginData pluginData) {
+    public synchronized void removePluginData(final PluginData pluginData) {
         Optional.ofNullable(pluginData).ifPresent(data -> pluginMap.remove(data.getName()));
+        if (!published) {
+            PUBLISHED.removePluginData(pluginData);
+        }
     }
     
     /**
@@ -93,15 +122,21 @@ public final class BaseDataCache {
      *
      * @param pluginName the plugin name
      */
-    public void removePluginDataByPluginName(final String pluginName) {
+    public synchronized void removePluginDataByPluginName(final String pluginName) {
         pluginMap.remove(pluginName);
+        if (!published) {
+            PUBLISHED.removePluginDataByPluginName(pluginName);
+        }
     }
     
     /**
      * Clean plugin data.
      */
-    public void cleanPluginData() {
+    public synchronized void cleanPluginData() {
         pluginMap.clear();
+        if (!published) {
+            PUBLISHED.cleanPluginData();
+        }
     }
     
     /**
@@ -109,7 +144,7 @@ public final class BaseDataCache {
      *
      * @param pluginDataList the plugin data list
      */
-    public void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
+    public synchronized void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
         pluginDataList.forEach(this::removePluginData);
     }
     
@@ -128,8 +163,11 @@ public final class BaseDataCache {
      *
      * @param selectorData the selector data
      */
-    public void cacheSelectData(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData).ifPresent(this::selectorAccept);
+    public synchronized void cacheSelectData(final SelectorData selectorData) {
+        if (!published) {
+            PUBLISHED.cacheSelectData(selectorData);
+        }
+        Optional.ofNullable(selectorData).ifPresent(data -> selectorAccept(published ? DtoSnapshots.freeze(data) : data));
     }
     
     /**
@@ -137,7 +175,7 @@ public final class BaseDataCache {
      *
      * @param selectorData the selector data
      */
-    public void removeSelectData(final SelectorData selectorData) {
+    public synchronized void removeSelectData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData).ifPresent(data -> {
             if (StringUtils.isBlank(data.getPluginName())) {
                 // a dangling selector carries no plugin name, so its entry may live under any plugin bucket
@@ -146,6 +184,9 @@ public final class BaseDataCache {
                 removeSelectData(data.getPluginName(), data.getId());
             }
         });
+        if (!published) {
+            PUBLISHED.removeSelectData(selectorData);
+        }
     }
 
     private void removeSelectData(final String pluginName, final String selectorId) {
@@ -162,15 +203,21 @@ public final class BaseDataCache {
      *
      * @param pluginName the plugin name
      */
-    public void removeSelectDataByPluginName(final String pluginName) {
+    public synchronized void removeSelectDataByPluginName(final String pluginName) {
         selectorMap.remove(pluginName);
+        if (!published) {
+            PUBLISHED.removeSelectDataByPluginName(pluginName);
+        }
     }
     
     /**
      * Clean selector data.
      */
-    public void cleanSelectorData() {
+    public synchronized void cleanSelectorData() {
         selectorMap.clear();
+        if (!published) {
+            PUBLISHED.cleanSelectorData();
+        }
     }
     
     /**
@@ -178,7 +225,7 @@ public final class BaseDataCache {
      *
      * @param selectorDataList the selector data list
      */
-    public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
+    public synchronized void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
         selectorDataList.forEach(this::removeSelectData);
     }
 
@@ -189,7 +236,7 @@ public final class BaseDataCache {
      *
      * @param selectorDataList the selectors to remove
      */
-    void removeSelectDataBatch(final List<SelectorData> selectorDataList) {
+    synchronized void removeSelectDataBatch(final List<SelectorData> selectorDataList) {
         if (selectorDataList.isEmpty()) {
             return;
         }
@@ -209,6 +256,9 @@ public final class BaseDataCache {
             selectorMap.keySet().forEach(pluginName -> removeSelectDataByIds(pluginName, danglingIds));
         }
         idsByPlugin.forEach(this::removeSelectDataByIds);
+        if (!published) {
+            PUBLISHED.removeSelectDataBatch(selectorDataList);
+        }
     }
 
     private void removeSelectDataByIds(final String pluginName, final Set<String> selectorIds) {
@@ -235,8 +285,11 @@ public final class BaseDataCache {
      *
      * @param ruleData the rule data
      */
-    public void cacheRuleData(final RuleData ruleData) {
-        Optional.ofNullable(ruleData).ifPresent(this::ruleAccept);
+    public synchronized void cacheRuleData(final RuleData ruleData) {
+        if (!published) {
+            PUBLISHED.cacheRuleData(ruleData);
+        }
+        Optional.ofNullable(ruleData).ifPresent(data -> ruleAccept(published ? DtoSnapshots.freeze(data) : data));
     }
     
     /**
@@ -244,7 +297,7 @@ public final class BaseDataCache {
      *
      * @param ruleData the rule data
      */
-    public void removeRuleData(final RuleData ruleData) {
+    public synchronized void removeRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(data -> {
             ruleMap.computeIfPresent(data.getSelectorId(), (key, value) -> {
                 final List<RuleData> result = value.stream()
@@ -253,6 +306,9 @@ public final class BaseDataCache {
                 return result.isEmpty() ? null : List.copyOf(result);
             });
         });
+        if (!published) {
+            PUBLISHED.removeRuleData(ruleData);
+        }
     }
     
     /**
@@ -260,15 +316,21 @@ public final class BaseDataCache {
      *
      * @param selectorId the selector id
      */
-    public void removeRuleDataBySelectorId(final String selectorId) {
+    public synchronized void removeRuleDataBySelectorId(final String selectorId) {
         ruleMap.remove(selectorId);
+        if (!published) {
+            PUBLISHED.removeRuleDataBySelectorId(selectorId);
+        }
     }
     
     /**
      * Clean rule data.
      */
-    public void cleanRuleData() {
+    public synchronized void cleanRuleData() {
         ruleMap.clear();
+        if (!published) {
+            PUBLISHED.cleanRuleData();
+        }
     }
     
     /**
@@ -276,7 +338,7 @@ public final class BaseDataCache {
      *
      * @param ruleDataList the rule data list
      */
-    public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
+    public synchronized void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
         ruleDataList.forEach(this::removeRuleData);
     }
 
@@ -285,7 +347,7 @@ public final class BaseDataCache {
      *
      * @param ruleDataList the rules to remove
      */
-    void removeRuleDataBatch(final List<RuleData> ruleDataList) {
+    synchronized void removeRuleDataBatch(final List<RuleData> ruleDataList) {
         if (ruleDataList.isEmpty()) {
             return;
         }
@@ -302,6 +364,9 @@ public final class BaseDataCache {
                     .collect(Collectors.toList());
             return result.isEmpty() ? null : List.copyOf(result);
         }));
+        if (!published) {
+            PUBLISHED.removeRuleDataBatch(ruleDataList);
+        }
     }
     
     /**
@@ -391,14 +456,18 @@ public final class BaseDataCache {
      *
      * @param dataList the received data
      */
-    void refreshPluginData(final List<PluginData> dataList) {
+    synchronized void refreshPluginData(final List<PluginData> dataList) {
         if (dataList.isEmpty()) {
             return;
         }
         ConcurrentMap<String, PluginData> next = Maps.newConcurrentMap();
         next.putAll(pluginMap);
-        dataList.forEach(data -> next.put(data.getName(), data));
+        dataList.forEach(data -> next.put(data.getName(), published ? DtoSnapshots.freeze(data) : data));
+        if (!published) {
+            PUBLISHED.refreshPluginData(dataList);
+        }
         pluginMap = next;
+        pluginView = Collections.unmodifiableMap(next);
     }
 
     /**
@@ -408,7 +477,7 @@ public final class BaseDataCache {
      *
      * @param dataList the received data
      */
-    void refreshSelectorData(final List<SelectorData> dataList) {
+    synchronized void refreshSelectorData(final List<SelectorData> dataList) {
         if (dataList.isEmpty()) {
             return;
         }
@@ -416,10 +485,15 @@ public final class BaseDataCache {
         next.putAll(selectorMap);
         Map<String, List<SelectorData>> grouped = dataList.stream()
                 .filter(Objects::nonNull)
+                .map(data -> published ? DtoSnapshots.freeze(data) : data)
                 .collect(Collectors.groupingBy(SelectorData::getPluginName));
         grouped.forEach((pluginName, batch) -> next.compute(pluginName, (key, value) ->
                 upsertSorted(value, batch, SelectorData::getId, SelectorData::getSort)));
+        if (!published) {
+            PUBLISHED.refreshSelectorData(dataList);
+        }
         selectorMap = next;
+        selectorView = Collections.unmodifiableMap(next);
     }
 
     /**
@@ -429,7 +503,7 @@ public final class BaseDataCache {
      *
      * @param dataList the received data
      */
-    void refreshRuleData(final List<RuleData> dataList) {
+    synchronized void refreshRuleData(final List<RuleData> dataList) {
         if (dataList.isEmpty()) {
             return;
         }
@@ -437,9 +511,75 @@ public final class BaseDataCache {
         next.putAll(ruleMap);
         Map<String, List<RuleData>> grouped = dataList.stream()
                 .filter(Objects::nonNull)
+                .map(data -> published ? DtoSnapshots.freeze(data) : data)
                 .collect(Collectors.groupingBy(RuleData::getSelectorId));
         grouped.forEach((selectorId, batch) -> next.compute(selectorId, (key, value) ->
                 upsertSorted(value, batch, RuleData::getId, RuleData::getSort)));
+        if (!published) {
+            PUBLISHED.refreshRuleData(dataList);
+        }
         ruleMap = next;
+        ruleView = Collections.unmodifiableMap(next);
+    }
+
+    /**
+     * Frozen configuration access. Updates must use the owning cache's publication methods.
+     * Individual buckets are immutable snapshots; this is not a multi-object transaction.
+     */
+    public static final class ReadOnly {
+
+        private ReadOnly() {
+        }
+
+        /**
+         * Get published plugin data.
+         * @param pluginName plugin name
+         * @return frozen data or null
+         */
+        public PluginData obtainPluginData(final String pluginName) {
+            return PUBLISHED.obtainPluginData(pluginName);
+        }
+
+        /**
+         * Get a published selector bucket.
+         * @param pluginName plugin name
+         * @return frozen list and elements, or null
+         */
+        public List<SelectorData> obtainSelectorData(final String pluginName) {
+            return PUBLISHED.obtainSelectorData(pluginName);
+        }
+
+        /**
+         * Get a published rule bucket.
+         * @param selectorId selector id
+         * @return frozen list and elements, or null
+         */
+        public List<RuleData> obtainRuleData(final String selectorId) {
+            return PUBLISHED.obtainRuleData(selectorId);
+        }
+
+        /**
+         * Read published plugins without exposing a writable backing map.
+         * @return unmodifiable live view of the current map generation
+         */
+        public Map<String, PluginData> getPluginMap() {
+            return PUBLISHED.pluginView;
+        }
+
+        /**
+         * Read published selector buckets.
+         * @return unmodifiable live view of the current map generation
+         */
+        public Map<String, List<SelectorData>> getSelectorMap() {
+            return PUBLISHED.selectorView;
+        }
+
+        /**
+         * Read published rule buckets.
+         * @return unmodifiable live view of the current map generation
+         */
+        public Map<String, List<RuleData>> getRuleMap() {
+            return PUBLISHED.ruleView;
+        }
     }
 }

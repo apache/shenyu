@@ -21,18 +21,22 @@ import com.google.gson.Gson;
 import com.sun.management.ThreadMXBean;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.divide.DividePlugin;
@@ -45,9 +49,12 @@ import org.apache.shenyu.plugin.uri.URIPlugin;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.resources.ConnectionProvider;
@@ -92,7 +99,12 @@ public final class DivideGatewayBenchmark {
     public static void main(final String[] args) throws Exception {
         switch (args[0]) {
             case "upstream" -> upstream(Path.of(args[1]));
-            case "gateway" -> gateway(Path.of(args[1]), Path.of(args[2]));
+            case "gateway" -> gateway(Path.of(args[1]), Path.of(args[2]), args.length > 3 && args[3].equals("config-views"));
+            case "load-config" -> {
+                load(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Path.of(args[4]),
+                        args[5], Integer.parseInt(args[6]), Integer.parseInt(args[7]));
+                System.exit(0);
+            }
             case "load" -> {
                 load(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Path.of(args[4]));
                 System.exit(0);
@@ -101,7 +113,7 @@ public final class DivideGatewayBenchmark {
                 verify(Integer.parseInt(args[1]), Path.of(args[2]), Path.of(args[3]));
                 System.exit(0);
             }
-            default -> throw new IllegalArgumentException("mode: upstream, gateway, load or verify");
+            default -> throw new IllegalArgumentException("mode: upstream, gateway [config-views], load, load-config or verify");
         }
     }
 
@@ -145,7 +157,7 @@ public final class DivideGatewayBenchmark {
         new CountDownLatch(1).await();
     }
 
-    private static void gateway(final Path upstreamFile, final Path ready) throws Exception {
+    private static void gateway(final Path upstreamFile, final Path ready, final boolean configViews) throws Exception {
         int[] ports = GSON.fromJson(Files.readString(upstreamFile), int[].class);
         ShenyuConfig config = new ShenyuConfig();
         config.getUpstreamCheck().setEnabled(false);
@@ -179,6 +191,7 @@ public final class DivideGatewayBenchmark {
         ConnectionProvider pool = ConnectionProvider.builder("gateway-upstreams").maxConnections(128).pendingAcquireMaxCount(2048).build();
         reactor.netty.http.client.HttpClient netty = reactor.netty.http.client.HttpClient.create(pool)
                 .runOn(LoopResources.create("gateway-client", 4, true)).disableRetry(true);
+        ConfigViews views = configViews ? new ConfigViews(config, ports[0]) : null;
         List<ShenyuPlugin> plugins = List.of(new GlobalPlugin(exchange -> {
             ShenyuContext value = new ShenyuContext();
             value.setRpcType("http");
@@ -186,10 +199,14 @@ public final class DivideGatewayBenchmark {
             value.setRealUrl(exchange.getRequest().getURI().getRawPath());
             value.setHttpMethod(exchange.getRequest().getMethod().name());
             return value;
-        }), new DividePlugin(), new URIPlugin(), new NettyHttpClientPlugin(netty, 1024 * 1024),
+        }), configViews ? new ConfigDividePlugin() : new DividePlugin(), new URIPlugin(), new NettyHttpClientPlugin(netty, 1024 * 1024),
                 new ResponsePlugin(Map.of("http", new NettyClientMessageWriter())));
         ShenyuWebHandler handler = new ShenyuWebHandler(plugins, null, config);
         ReactorHttpHandlerAdapter adapter = new ReactorHttpHandlerAdapter(WebHttpHandlerBuilder.webHandler(exchange -> {
+            if (views != null && exchange.getRequest().getPath().value().startsWith("/_bench/")) {
+                return Mono.fromCallable(() -> views.control(exchange)).subscribeOn(views.controlWorker)
+                        .flatMap(data -> text(exchange, GSON.toJson(data)));
+            }
             if (exchange.getRequest().getPath().value().startsWith("/_bench/")) {
                 String action = exchange.getRequest().getPath().value().substring("/_bench/".length());
                 Map<String, Long> data;
@@ -251,6 +268,237 @@ public final class DivideGatewayBenchmark {
         DividePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR, Constants.DEFAULT_RULE), rule);
     }
 
+    private static Mono<Void> text(final ServerWebExchange exchange, final String value) {
+        byte[] bytes = value.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
+    }
+
+    // Only observation and explicit miss responses are fixture-specific; matching and forwarding
+    // use the variant's actual DividePlugin/AbstractShenyuPlugin, with no new read-only API linkage.
+    private static final class ConfigDividePlugin extends DividePlugin {
+        @Override
+        protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                       final SelectorData selector, final RuleData rule) {
+            exchange.getResponse().getHeaders().set("X-Bench-Version", rule.getName());
+            exchange.getResponse().getHeaders().set("X-Bench-Observed-Ns", Long.toString(System.nanoTime()));
+            return super.doExecute(exchange, chain, selector, rule);
+        }
+
+        @Override
+        protected Mono<Void> handleSelectorIfNull(final String plugin, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+            return miss(exchange);
+        }
+
+        @Override
+        protected Mono<Void> handleRuleIfNull(final String plugin, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+            return miss(exchange);
+        }
+
+        private Mono<Void> miss(final ServerWebExchange exchange) {
+            exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.NOT_FOUND);
+            return text(exchange, "config-no-match");
+        }
+    }
+
+    private static String selectorId(final int index) {
+        return SELECTOR + "-config-" + index;
+    }
+
+    private static String matchedPath(final int size) {
+        return "/config/" + (size - 1) + "/r" + (size - 1) + "/test";
+    }
+
+    private static List<ConditionData> conditions(final String prefix, final int count) {
+        List<ConditionData> result = new ArrayList<>();
+        for (int index = 0; index < count; index++) {
+            ConditionData condition = new ConditionData();
+            condition.setParamType("uri");
+            condition.setParamName("/");
+            condition.setOperator("startsWith");
+            // All predicates are path-only and true for the sole matching candidate.
+            condition.setParamValue(index == 0 ? prefix : "/config/");
+            result.add(condition);
+        }
+        return result;
+    }
+
+    private static RuleData configRule(final int selector, final int index, final int count, final long version) {
+        RuleData rule = new RuleData();
+        rule.setId(selectorId(selector) + "-r" + index);
+        rule.setSelectorId(selectorId(selector));
+        rule.setPluginName("divide");
+        rule.setName("v" + version);
+        rule.setEnabled(true);
+        rule.setLogged(false);
+        rule.setSort(index);
+        rule.setMatchMode(0);
+        rule.setMatchRestful(false);
+        rule.setConditionDataList(conditions("/config/" + selector + "/r" + index + "/", count));
+        return rule;
+    }
+
+    private static final class ConfigViews {
+        private final ShenyuConfig config;
+        private final int upstreamPort;
+        private final Scheduler controlWorker = Schedulers.newBoundedElastic(1, 16, "config-control");
+        private final java.util.concurrent.ScheduledExecutorService sampler = Executors.newSingleThreadScheduledExecutor();
+        private final AtomicLong peakHeap = new AtomicLong();
+        private volatile boolean sampling;
+        private Map<String, Long> before;
+        private Map<String, Object> retainedBefore;
+        private int size;
+        private int conditionCount;
+        private long version;
+
+        private ConfigViews(final ShenyuConfig config, final int upstreamPort) {
+            this.config = config;
+            this.upstreamPort = upstreamPort;
+            sampler.scheduleAtFixedRate(() -> {
+                if (sampling) {
+                    peakHeap.accumulateAndGet(heap(), Math::max);
+                }
+            }, 0, 10, java.util.concurrent.TimeUnit.MILLISECONDS);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                sampler.shutdownNow();
+                controlWorker.dispose();
+            }));
+        }
+
+        private Map<String, Object> control(final ServerWebExchange exchange) throws Exception {
+            String action = exchange.getRequest().getPath().value();
+            var query = exchange.getRequest().getQueryParams();
+            if (action.equals("/_bench/config-view")) {
+                int nextSize = Integer.parseInt(query.getFirst("size"));
+                int nextConditions = Integer.parseInt(query.getFirst("conditions"));
+                String state = query.getFirst("state");
+                if ((nextSize != 1 && nextSize != 128) || nextConditions < 1 || nextConditions > 128
+                        || !List.of("matched", "no-match", "cache-hit").contains(state)) {
+                    throw new IllegalArgumentException("size=1|128; conditions=1..128; state=matched|no-match|cache-hit");
+                }
+                Map<String, Long> setupBefore = metrics();
+                long heapBefore = heap();
+                long begin = System.nanoTime();
+                install(nextSize, nextConditions, state.equals("cache-hit"));
+                long elapsed = System.nanoTime() - begin;
+                Map<String, Long> setup = metrics();
+                setup.replaceAll((key, value) -> value - setupBefore.get(key));
+                setup.put("elapsed_ns", elapsed);
+                setup.put("heap_before_bytes", heapBefore);
+                setup.put("heap_after_bytes", heap());
+                return Map.of("selectors", size, "rulesPerSelector", size, "conditionsPerEntry", conditionCount,
+                        "state", state, "version", "v" + version, "setup", setup);
+            }
+            if (action.equals("/_bench/config-burst")) {
+                int updates = Integer.parseInt(query.getFirst("count"));
+                if (size == 0 || updates < 1 || updates > 128) {
+                    throw new IllegalArgumentException("configure first; burst count=1..128");
+                }
+                long total = 0;
+                long max = 0;
+                long published = 0;
+                long started = System.nanoTime();
+                for (int index = 0; index < updates; index++) {
+                    RuleData rule = configRule(size - 1, size - 1, conditionCount, ++version);
+                    long begin = System.nanoTime();
+                    // Publication + derived-cache invalidation, NOT Admin/network synchronization.
+                    BaseDataCache.getInstance().cacheRuleData(rule);
+                    MatchDataCache.getInstance().removeRuleData("divide");
+                    published = System.nanoTime();
+                    long elapsed = published - begin;
+                    total += elapsed;
+                    max = Math.max(max, elapsed);
+                }
+                return Map.of("updates", updates, "updateNs", total, "maxUpdateNs", max,
+                        "burstNs", System.nanoTime() - started, "publishedAtNs", Long.toString(published), "version", "v" + version);
+            }
+            if (action.equals("/_bench/start")) {
+                retainedBefore = retained();
+                peakHeap.set(heap());
+                sampling = true;
+                before = metrics();
+                return Map.of("started", 1);
+            }
+            if (action.equals("/_bench/metrics")) {
+                Map<String, Long> delta = metrics();
+                if (before == null) {
+                    throw new IllegalStateException("start measurement first");
+                }
+                delta.replaceAll((key, value) -> value - before.get(key));
+                sampling = false;
+                peakHeap.accumulateAndGet(heap(), Math::max);
+                Map<String, Object> result = new LinkedHashMap<>(delta);
+                result.put("sampled_peak_heap_bytes", peakHeap.get());
+                result.put("heap_sample_interval_ms", 10);
+                result.put("retained_before", retainedBefore);
+                return result;
+            }
+            if (action.equals("/_bench/retained")) {
+                return retained();
+            }
+            throw new IllegalArgumentException("unknown config-view control action");
+        }
+
+        private void install(final int nextSize, final int nextConditions, final boolean cacheHit) {
+            BaseDataCache cache = BaseDataCache.getInstance();
+            cache.cleanSelectorData();
+            cache.cleanRuleData();
+            MatchDataCache.getInstance().cleanSelectorData();
+            MatchDataCache.getInstance().cleanRuleDataData();
+            for (int index = 0; index < size; index++) {
+                UpstreamCacheManager.getInstance().removeByKey(selectorId(index));
+            }
+            DividePluginDataHandler.CACHED_HANDLE.get().getAllCache().clear();
+            size = nextSize;
+            conditionCount = nextConditions;
+            version = 0;
+            for (ShenyuConfig.MatchCacheConfig match : List.of(config.getSelectorMatchCache().getCache(), config.getRuleMatchCache().getCache())) {
+                match.setEnabled(cacheHit);
+                match.setInitialCapacity(256);
+                match.setMaximumSize(1024);
+                match.setTtl(600000);
+            }
+            for (int index = 0; index < size; index++) {
+                SelectorData selector = new SelectorData();
+                selector.setId(selectorId(index));
+                selector.setName(selectorId(index));
+                selector.setPluginName("divide");
+                selector.setEnabled(true);
+                selector.setType(1);
+                selector.setSort(index);
+                selector.setLogged(false);
+                selector.setContinued(true);
+                selector.setMatchMode(0);
+                selector.setMatchRestful(false);
+                selector.setConditionList(conditions("/config/" + index + "/", conditionCount));
+                cache.cacheSelectData(selector);
+                UpstreamCacheManager.getInstance().submit(selector.getId(), List.of(Upstream.builder().protocol("http://")
+                        .url("127.0.0.1:" + upstreamPort).weight(50).healthCheckEnabled(false).build()));
+                for (int ruleIndex = 0; ruleIndex < size; ruleIndex++) {
+                    RuleData rule = configRule(index, ruleIndex, conditionCount, version);
+                    DivideRuleHandle handle = new DivideRuleHandle();
+                    handle.setRetry(0);
+                    handle.setTimeout(60000);
+                    DividePluginDataHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(rule), handle);
+                    cache.cacheRuleData(rule);
+                }
+            }
+        }
+
+        private static long heap() {
+            return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
+        }
+
+        private static Map<String, Object> retained() throws InterruptedException {
+            long beforeGc = metrics().get("gc_count");
+            System.gc(); // Control worker only; explicit GC lies outside the measurement window.
+            long deadline = System.nanoTime() + Duration.ofSeconds(5).toNanos();
+            while (metrics().get("gc_count") <= beforeGc && System.nanoTime() < deadline) {
+                Thread.sleep(20);
+            }
+            return Map.of("heap_bytes", heap(), "gc_observed", metrics().get("gc_count") > beforeGc);
+        }
+    }
+
     private static Map<String, Long> metrics() {
         Map<String, Long> result = new LinkedHashMap<>();
         long allocated = 0;
@@ -265,11 +513,32 @@ public final class DivideGatewayBenchmark {
     }
 
     private static void load(final int port, final int count, final int rate, final Path output) throws Exception {
+        load(port, count, rate, output, null, 0, 0);
+    }
+
+    private static void load(final int port, final int count, final int rate, final Path output,
+                             final String state, final int size, final int burst) throws Exception {
+        boolean configViews = state != null;
+        if (count < 2 || rate < 1) {
+            throw new IllegalArgumentException("count >= 2 and rate >= 1 required");
+        }
+        String path = configViews ? state.equals("no-match") ? "/config/no-match/test" : matchedPath(size) : "/test";
+        boolean miss = configViews && state.equals("no-match");
         // Warm the load-generator JVM's connection and JIT before measuring.
         for (int index = 0; index < 100; index++) {
-            get(port, "/test");
+            HttpResponse<String> warm = CLIENT.send(request(port, path), HttpResponse.BodyHandlers.ofString());
+            if (configViews) {
+                check(expected(warm, miss), "config-view warmup response", null);
+            }
+        }
+        if (configViews) {
+            // Exercise both selector-miss and rule-miss paths; neither may fall through to URIPlugin.
+            check(expected(CLIENT.send(request(port, "/config/no-match/test"), HttpResponse.BodyHandlers.ofString()), true), "selector miss", null);
+            check(expected(CLIENT.send(request(port, "/config/" + (size - 1) + "/no-rule"), HttpResponse.BodyHandlers.ofString()), true), "rule miss", null);
+            checkVersion(port, matchedPath(size), "v0");
         }
         get(port, "/_bench/start");
+        CompletableFuture<Map<String, Object>> update = null;
         Semaphore concurrent = new Semaphore(128);
         CountDownLatch completed = new CountDownLatch(count);
         AtomicInteger successes = new AtomicInteger();
@@ -284,13 +553,29 @@ public final class DivideGatewayBenchmark {
             if (wait > 0) {
                 LockSupport.parkNanos(wait);
             }
+            if (configViews && burst > 0 && index == count / 2) {
+                update = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        Map<String, Object> data = GSON.fromJson(get(port, "/_bench/config-burst?count=" + burst), Map.class);
+                        String version = (String) data.get("version");
+                        long published = Long.parseLong((String) data.get("publishedAtNs"));
+                        HttpResponse<String> visible = checkVersion(port, matchedPath(size), version);
+                        long observed = Long.parseLong(visible.headers().firstValue("X-Bench-Observed-Ns").orElseThrow());
+                        data.put("firstVisibleNs", observed - published);
+                        data.put("firstRequestVisible", true);
+                        return data;
+                    } catch (Exception error) {
+                        throw new java.util.concurrent.CompletionException(error);
+                    }
+                });
+            }
             concurrent.acquire();
             long sent = System.nanoTime();
-            CLIENT.sendAsync(request(port, "/test"), HttpResponse.BodyHandlers.ofString()).whenComplete((response, error) -> {
+            CLIENT.sendAsync(request(port, path), HttpResponse.BodyHandlers.ofString()).whenComplete((response, error) -> {
                 long finished = System.nanoTime();
                 latency[sample] = finished - sent;
                 scheduledLatency[sample] = finished - due;
-                if (error == null && response.statusCode() == 200 && response.body().equals(BODY)) {
+                if (error == null && expected(response, miss)) {
                     successes.incrementAndGet();
                 } else {
                     errors.incrementAndGet();
@@ -303,17 +588,40 @@ public final class DivideGatewayBenchmark {
             throw new IllegalStateException("load did not finish");
         }
         long elapsed = System.nanoTime() - started;
+        Map<String, Object> updateResult = update == null ? Map.of() : update.get(30, java.util.concurrent.TimeUnit.SECONDS);
         Map<String, Object> result = GSON.fromJson(get(port, "/_bench/metrics"), Map.class);
+        if (configViews) {
+            result.put("update", updateResult);
+            result.put("state", state);
+            result.put("upstream_successes", miss ? 0 : successes.get());
+            result.put("retained_after", GSON.fromJson(get(port, "/_bench/retained"), Map.class));
+            if (burst > 0) {
+                checkVersion(port, matchedPath(size), (String) updateResult.get("version"));
+            }
+        }
         Arrays.sort(latency);
         Arrays.sort(scheduledLatency);
         result.put("requests", count);
         result.put("successes", successes.get());
         result.put("errors", errors.get());
         result.put("elapsed_ns", elapsed);
+        result.put("p95_ns", latency[count * 95 / 100]);
+        result.put("scheduled_p95_ns", scheduledLatency[count * 95 / 100]);
         result.put("p99_ns", latency[count * 99 / 100]);
         result.put("scheduled_p99_ns", scheduledLatency[count * 99 / 100]);
         result.put("rate", rate);
         Files.writeString(output, GSON.toJson(result));
+    }
+
+    private static boolean expected(final HttpResponse<String> response, final boolean miss) {
+        return response.statusCode() == (miss ? 404 : 200) && response.body().equals(miss ? "config-no-match" : BODY);
+    }
+
+    private static HttpResponse<String> checkVersion(final int port, final String path, final String version) throws Exception {
+        HttpResponse<String> response = CLIENT.send(request(port, path), HttpResponse.BodyHandlers.ofString());
+        check(expected(response, false) && version.equals(response.headers().firstValue("X-Bench-Version").orElse(null)),
+                "first post-publication request must see " + version, null);
+        return response;
     }
 
     private static HttpRequest request(final int port, final String path) {

@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Base class for common data transfer objects.
  * Contains common fields shared across SelectorData, RuleData, and PluginData.
@@ -49,6 +51,53 @@ public class BaseData {
      */
     private String namespaceId;
 
+    @JsonIgnore
+    private transient boolean frozen;
+
+    /**
+     * No args constructor.
+     */
+    public BaseData() {
+    }
+
+    /**
+     * Copy the base values without copying the frozen state.
+     *
+     * @param source source data
+     */
+    BaseData(final BaseData source) {
+        this.id = source.id;
+        this.name = source.name;
+        this.enabled = source.enabled;
+        this.sort = source.sort;
+        this.namespaceId = source.namespaceId;
+    }
+
+    /**
+     * Whether this data is a read-only snapshot.
+     *
+     * @return whether mutations are rejected
+     */
+    public final boolean frozen() {
+        return frozen;
+    }
+
+    /**
+     * Seal a fully initialized snapshot for publication.
+     */
+    final void markFrozen() {
+        frozen = true;
+    }
+
+    /**
+     * Reject mutations of a published snapshot.
+     */
+    final void checkMutable() {
+        if (frozen) {
+            throw new UnsupportedOperationException("DTO snapshot is read-only");
+        }
+    }
+
     /**
      * get id.
      *
@@ -65,6 +114,7 @@ public class BaseData {
      * @return this
      */
     public BaseData setId(final String id) {
+        checkMutable();
         this.id = id;
         return this;
     }
@@ -85,6 +135,7 @@ public class BaseData {
      * @return this
      */
     public BaseData setName(final String name) {
+        checkMutable();
         this.name = name;
         return this;
     }
@@ -105,6 +156,7 @@ public class BaseData {
      * @return this
      */
     public BaseData setEnabled(final Boolean enabled) {
+        checkMutable();
         this.enabled = enabled;
         return this;
     }
@@ -125,6 +177,7 @@ public class BaseData {
      * @return this
      */
     public BaseData setSort(final Integer sort) {
+        checkMutable();
         this.sort = sort;
         return this;
     }
@@ -145,6 +198,7 @@ public class BaseData {
      * @return this
      */
     public BaseData setNamespaceId(final String namespaceId) {
+        checkMutable();
         this.namespaceId = namespaceId;
         return this;
     }

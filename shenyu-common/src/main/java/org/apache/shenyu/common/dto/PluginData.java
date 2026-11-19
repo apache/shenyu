@@ -99,6 +99,18 @@ public class PluginData extends BaseData {
     }
 
     /**
+     * Copy the values without changing the source.
+     *
+     * @param source source data
+     */
+    PluginData(final PluginData source) {
+        super(source);
+        this.config = source.config;
+        this.role = source.role;
+        this.pluginJar = source.pluginJar;
+    }
+
+    /**
      * class builder.
      *
      * @return Builder
@@ -122,6 +134,7 @@ public class PluginData extends BaseData {
      * @param config config
      */
     public void setConfig(final String config) {
+        checkMutable();
         this.config = config;
     }
 
@@ -140,6 +153,7 @@ public class PluginData extends BaseData {
      * @param role role
      */
     public void setRole(final String role) {
+        checkMutable();
         this.role = role;
     }
 
@@ -158,6 +172,7 @@ public class PluginData extends BaseData {
      * @param pluginJar pluginJar
      */
     public void setPluginJar(final String pluginJar) {
+        checkMutable();
         this.pluginJar = pluginJar;
     }
 

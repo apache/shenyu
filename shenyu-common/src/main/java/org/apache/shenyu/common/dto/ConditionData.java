@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Objects;
 
 /**
@@ -46,6 +48,52 @@ public class ConditionData {
      */
     private String paramValue;
 
+    @JsonIgnore
+    private transient boolean frozen;
+
+    /**
+     * No args constructor.
+     */
+    public ConditionData() {
+    }
+
+    /**
+     * Copy the values without copying the frozen state.
+     *
+     * @param source source data
+     */
+    ConditionData(final ConditionData source) {
+        this.paramType = source.paramType;
+        this.operator = source.operator;
+        this.paramName = source.paramName;
+        this.paramValue = source.paramValue;
+    }
+
+    /**
+     * Whether this data is a read-only snapshot.
+     *
+     * @return whether mutations are rejected
+     */
+    public final boolean frozen() {
+        return frozen;
+    }
+
+    /**
+     * Seal a fully initialized snapshot for publication.
+     */
+    final void markFrozen() {
+        frozen = true;
+    }
+
+    /**
+     * Reject mutations of a published snapshot.
+     */
+    final void checkMutable() {
+        if (frozen) {
+            throw new UnsupportedOperationException("DTO snapshot is read-only");
+        }
+    }
+
     /**
      * get paramType.
      *
@@ -61,6 +109,7 @@ public class ConditionData {
      * @param paramType paramType
      */
     public void setParamType(final String paramType) {
+        checkMutable();
         this.paramType = paramType;
     }
 
@@ -79,6 +128,7 @@ public class ConditionData {
      * @param operator operator
      */
     public void setOperator(final String operator) {
+        checkMutable();
         this.operator = operator;
     }
 
@@ -97,6 +147,7 @@ public class ConditionData {
      * @param paramName paramName
      */
     public void setParamName(final String paramName) {
+        checkMutable();
         this.paramName = paramName;
     }
 
@@ -115,6 +166,7 @@ public class ConditionData {
      * @param paramValue paramValue
      */
     public void setParamValue(final String paramValue) {
+        checkMutable();
         this.paramValue = paramValue;
     }
 

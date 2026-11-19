@@ -83,6 +83,23 @@ public class RuleData extends BaseData {
     }
 
     /**
+     * Copy the values and take snapshots of both condition lists.
+     *
+     * @param source source data
+     */
+    RuleData(final RuleData source) {
+        super(source);
+        this.pluginName = source.pluginName;
+        this.selectorId = source.selectorId;
+        this.matchMode = source.matchMode;
+        this.logged = source.logged;
+        this.handle = source.handle;
+        this.conditionDataList = DtoSnapshots.freezeConditions(source.conditionDataList);
+        this.beforeConditionDataList = DtoSnapshots.freezeConditions(source.beforeConditionDataList);
+        this.matchRestful = source.matchRestful;
+    }
+
+    /**
      * class builder.
      *
      * @return Builder
@@ -107,6 +124,7 @@ public class RuleData extends BaseData {
      * @return this
      */
     public RuleData setPluginName(final String pluginName) {
+        checkMutable();
         this.pluginName = pluginName;
         return this;
     }
@@ -182,6 +200,7 @@ public class RuleData extends BaseData {
      * @return this
      */
     public RuleData setSelectorId(final String selectorId) {
+        checkMutable();
         this.selectorId = selectorId;
         return this;
     }
@@ -202,6 +221,7 @@ public class RuleData extends BaseData {
      * @return this
      */
     public RuleData setMatchMode(final Integer matchMode) {
+        checkMutable();
         this.matchMode = matchMode;
         return this;
     }
@@ -222,6 +242,7 @@ public class RuleData extends BaseData {
      * @return this
      */
     public RuleData setLogged(final Boolean logged) {
+        checkMutable();
         this.logged = logged;
         return this;
     }
@@ -242,6 +263,7 @@ public class RuleData extends BaseData {
      * @return this
      */
     public RuleData setHandle(final String handle) {
+        checkMutable();
         this.handle = handle;
         return this;
     }
@@ -262,6 +284,7 @@ public class RuleData extends BaseData {
      * @return this
      */
     public RuleData setConditionDataList(final List<ConditionData> conditionDataList) {
+        checkMutable();
         this.conditionDataList = conditionDataList;
         return this;
     }
@@ -281,6 +304,7 @@ public class RuleData extends BaseData {
      * @param beforeConditionDataList beforeConditionDataList
      */
     public void setBeforeConditionDataList(final List<ConditionData> beforeConditionDataList) {
+        checkMutable();
         this.beforeConditionDataList = beforeConditionDataList;
     }
     
@@ -299,6 +323,7 @@ public class RuleData extends BaseData {
      * @param matchRestful matchRestful
      */
     public void setMatchRestful(final Boolean matchRestful) {
+        checkMutable();
         this.matchRestful = matchRestful;
     }
     
