@@ -1,0 +1,1 @@
+{"tools":[{"description":"Synthetic fixture: look up an invoice by id.","inputSchema":{"properties":{"include_lines":{"type":"boolean"},"invoice_id":{"maxLength":64,"type":"string"}},"required":["invoice_id"],"type":"object"},"name":"invoice_lookup"}]}

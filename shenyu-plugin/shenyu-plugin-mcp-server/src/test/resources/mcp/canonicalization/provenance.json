@@ -1,0 +1,144 @@
+{
+  "origin": "synthetic",
+  "summary": "Every fixture under this directory was written for this test. No file is copied from another repository. Each document is a tools/list result with one tool (name, description, inputSchema), the client-visible fields of ShenyuToolDefinition; requestConfig is server-side and is not part of the client-visible contract, so it is not included.",
+  "rfc8785": "https://www.rfc-editor.org/rfc/rfc8785",
+  "sections": [
+    {
+      "files": "rfc8785/numbers/*",
+      "rfc8785": [
+        "3.2.2.3"
+      ],
+      "note": "The number spelling differs, the value does not. The 4.50, 1E30 and 2e-3 cases are the section 3.2.2 sample literals; 1.0 and -0 follow from section 3.2.2.3, which defers to ECMA-262 Number::toString. appendix-b carries the 24 rows of Appendix B that have a canonical form."
+    },
+    {
+      "files": "rfc8785/numbers/two-pow-53-plus-one.*",
+      "rfc8785": [
+        "3.2.2.3"
+      ],
+      "note": "JSON numbers are IEEE 754 doubles here; 9007199254740993 (2^53 + 1) is not representable and is held as 9007199254740992. The expected canonical literal is pinned to 9007199254740992; a parser that keeps arbitrary precision would write 9007199254740993 and fail this case on purpose."
+    },
+    {
+      "files": "rfc8785/strings/*",
+      "rfc8785": [
+        "3.2.2.2"
+      ],
+      "note": "The 32 control characters U+0000..U+001F (short escapes for U+0008, U+0009, U+000A, U+000C, U+000D, lowercase \\u00hh otherwise), quotation mark, reverse solidus, U+007F, U+20AC and U+1F600 as raw UTF-8, and the solidus unescaped (from the section 3.2.2 sample)."
+    },
+    {
+      "files": "rfc8785/key-order/unicode-seven-keys.*",
+      "rfc8785": [
+        "3.2.3"
+      ],
+      "note": "The section 3.2.3 sorting test data as property names; members sort by UTF-16 code units."
+    },
+    {
+      "files": "rfc8785/key-order/empty-and-prefix.*",
+      "rfc8785": [
+        "3.2.3"
+      ],
+      "note": "The empty key, \"a\", \"aa\" and \"ab\"."
+    },
+    {
+      "files": "rfc8785/key-order/ascii-descriptor.*",
+      "rfc8785": [
+        "3.2.3"
+      ],
+      "note": "An ASCII tools/list descriptor whose members are reordered at three levels: different raw bytes, the same canonical bytes (no canonical descriptor drift)."
+    },
+    {
+      "files": "rfc8785/negative-control/required-added.*",
+      "rfc8785": [],
+      "note": "A real schema change (include_lines becomes required). The canonical bytes differ, which shows the canonicalizer does not hide drift."
+    }
+  ],
+  "expected_bytes_source": {
+    "description": "The expected canonical literals are taken from the text of RFC 8785 and written into the fixtures as text; they are not produced by the test-scoped canonicalizer. The fixtures were independently cross-checked against a separate JavaScript JCS implementation.",
+    "rfc8785_sections": [
+      {
+        "section": "3.2.2 (sample input) and 3.2.3 (its canonical form)",
+        "literals": "4.50 -> 4.5, 1E30 -> 1e+30, 2e-3 -> 0.002; the unescaped solidus"
+      },
+      {
+        "section": "3.2.2.2",
+        "literals": "string escaping: \\b \\t \\n \\f \\r, lowercase \\u00hh for the other control characters, quotation mark and reverse solidus escaped, everything else (U+007F, U+20AC, U+1F600) as is"
+      },
+      {
+        "section": "3.2.2.3",
+        "literals": "number serialization as ECMA-262 Number::toString of the IEEE 754 double: 1.0 -> 1, -0 -> 0, 1e-7, and 2^53+1 held as 9007199254740992"
+      },
+      {
+        "section": "3.2.3",
+        "literals": "member sorting by UTF-16 code units: the seven-key sorting test data, and the empty key before \"a\", \"aa\", \"ab\""
+      },
+      {
+        "section": "Appendix B",
+        "literals": "the 24 rows of the IEEE 754 number table that have a canonical form"
+      }
+    ]
+  },
+  "sidecars": "Each fixture pair has one sidecar, named after the canonical file's stem as in shenyu-admin/src/test/resources/app-auth (canonical-request.json, canonical-request.sha256): <stem>.canonical.sha256 holds the SHA-256 of <stem>.canonical.json, the canonical bytes with no trailing newline. The negative control, whose after document has a canonical form of its own, also has <stem>.after.canonical.sha256. The before/after files have no sidecar of their own: their canonical bytes are compared with the canonical file directly. Every sidecar is referenced from expected/canonical-equivalence.json, and the test fails on any .sha256 file that is not.",
+  "issue": {
+    "url": "https://github.com/apache/shenyu/issues/7935",
+    "comments": [
+      "https://github.com/apache/shenyu/issues/7935#issuecomment-6397172510",
+      "https://github.com/apache/shenyu/issues/7935#issuecomment-6552136791",
+      "https://github.com/apache/shenyu/issues/7935#issuecomment-6559753392",
+      "https://github.com/apache/shenyu/issues/7935#issuecomment-6623039493",
+      "https://github.com/apache/shenyu/issues/7935#issuecomment-6623267476",
+      "https://github.com/apache/shenyu/issues/7935#issuecomment-6623270033",
+      "https://github.com/apache/shenyu/issues/7935#issuecomment-6873885523"
+    ]
+  },
+  "acceptance_criteria": {
+    "source": "https://github.com/apache/shenyu/issues/7935 (Acceptance criteria)",
+    "rows": [
+      {
+        "criterion": "AC-1: tests cover additive/required/type/enum/removal changes and unsupported schema features, with explicit backward-compatibility direction",
+        "status": "deferred",
+        "note": "The only schema change here is the required-added negative control, and it shows only that the canonical bytes change; there is no diff classifier and no compatibility direction in this set."
+      },
+      {
+        "criterion": "AC-2: canonically equivalent schemas do not generate spurious versions; snapshot history and per-tool/example sizes have retention limits",
+        "status": "covered here",
+        "note": "Covered for the canonical bytes only: number spelling, string escaping and member order give identical RFC 8785 bytes, so a digest over them stays stable; versioning itself and the retention limits are not part of this set."
+      },
+      {
+        "criterion": "AC-3: concurrent refresh/pin/unpin does not mix tool metadata and validators from different generations",
+        "status": "deferred",
+        "note": "Needs the snapshot and generation code in the plugin; these fixtures are static files."
+      },
+      {
+        "criterion": "AC-4: a pinned snapshot does not pretend to restore an old remote implementation, and an unavailable pinned contract fails with a documented result",
+        "status": "deferred",
+        "note": "There is no pinning in this set, so there is no call behavior to test."
+      },
+      {
+        "criterion": "AC-5: tenant/namespace permissions apply to history, pinning and examples; credentials and private source metadata are redacted",
+        "status": "deferred",
+        "note": "The fixtures are synthetic and carry no credentials or source metadata; permissions and redaction belong to the storage and admin work."
+      },
+      {
+        "criterion": "AC-6: existing unpinned behavior remains compatible; legacy tools without output schemas are represented accurately",
+        "status": "deferred",
+        "note": "No production code changes, so unpinned behavior is untouched, but no fixture represents a legacy tool without an output schema."
+      }
+    ]
+  },
+  "production_use": "No production code (src/main) consumes this fixture set today: shenyu-plugin-mcp-server/src/main has no canonicalizer, and the canonicalizer these tests run, Rfc8785TestCanonicalizer, is test-scoped. The suite guards the fixture bytes and that test helper only.",
+  "not_included": [
+    {
+      "case": "lone surrogate (for example U+DEAD)",
+      "reason": "RFC 8785 section 3.2.2.2 requires an error, not a canonical form; it is a rejection case, not a before/after pair, and Java JSON parsers differ on whether they accept it at parse time."
+    },
+    {
+      "case": "duplicate member names",
+      "reason": "A parse-time rejection (I-JSON), not a canonicalization rule; there is no canonical form to compare. The test parser rejects duplicates."
+    },
+    {
+      "case": "NaN and Infinity",
+      "reason": "Not JSON numbers; RFC 8785 Appendix B lists them as errors, with no canonical form."
+    }
+  ],
+  "scope": "Canonical equality shows identical canonical bytes only. It is not schema-semantic equivalence, it is not a compatibility verdict, and it says nothing about runtime pinning, generation consistency or authorization scope.",
+  "license": "Apache License 2.0, as the rest of this repository."
+}

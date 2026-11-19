@@ -1,0 +1,20 @@
+{
+  "tools": [
+    {
+      "name": "rfc8785_numbers_small_exponent",
+      "description": "Synthetic fixture: only the number spelling differs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "minimum": 2e-3
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      }
+    }
+  ]
+}

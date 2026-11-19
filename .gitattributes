@@ -19,3 +19,7 @@
 shenyu-dist/**/docker/Dockerfile text eol=lf
 shenyu-dist/**/docker/*.sh text eol=lf
 script/*.sh text eol=lf
+
+# Canonicalization fixtures are compared byte for byte (RFC 8785 canonical bytes and their SHA-256
+# sidecars): no end-of-line conversion on checkout.
+shenyu-plugin/shenyu-plugin-mcp-server/src/test/resources/mcp/canonicalization/** -text
