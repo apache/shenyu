@@ -1024,6 +1024,7 @@ INSERT INTO `plugin_handle` VALUES ('1529402613204172829', '26', 'status', 'stat
 INSERT INTO `plugin_handle` VALUES ('1529402613204172830', '26', 'loadBalance', 'loadStrategy', 3, 2, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172831', '26', 'retry', 'retryCount', 1, 2, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172832', '26', 'timeout', 'timeout', 1, 2, 2, '{\"defaultValue\":\"3000\",\"rule\":\"\"}', '2022-05-25 18:02:53', '2022-05-25 18:02:53');
+INSERT INTO `plugin_handle` VALUES ('1890000000000000004', '26', 'idleTimeout', 'idleTimeout', 1, 2, 3, '{\"required\":\"0\",\"defaultValue\":\"0\",\"rule\":\"\"}', '2026-11-18 00:00:00', '2026-11-18 00:00:00');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172833', '26', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172839', '28', 'port', 'port', 1, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');
 INSERT INTO `plugin_handle` VALUES ('1529402613204172840', '28', 'bossGroupThreadCount', 'bossGroupThreadCount', 1, 3, 1, NULL, '2022-05-25 18:02:53', '2022-05-25 18:02:53');

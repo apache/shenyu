@@ -109,3 +109,7 @@ INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`,
 VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1, '2026-10-30 00:00:00', '2026-10-30 00:00:00');
 INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`)
 VALUES ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1, '2026-10-30 00:00:00', '2026-10-30 00:00:00');
+
+-- Add the opt-in websocket session idle timeout selector.
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
+VALUES ('1890000000000000004', '26', 'idleTimeout', 'idleTimeout', 1, 2, 3, '{"required":"0","defaultValue":"0","rule":""}', '2026-11-18 00:00:00', '2026-11-18 00:00:00');

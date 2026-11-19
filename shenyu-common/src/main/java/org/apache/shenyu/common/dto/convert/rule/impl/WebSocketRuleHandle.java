@@ -43,6 +43,12 @@ public class WebSocketRuleHandle implements RuleHandle {
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
+
+    /**
+     * Optional limit on how long an established session may stay idle, in milliseconds.
+     * Zero disables idle expiry; the default keeps long-lived idle sessions working.
+     */
+    private long idleTimeout;
     
     /**
      * New default instance web socket rule handle.
@@ -106,6 +112,24 @@ public class WebSocketRuleHandle implements RuleHandle {
     public void setTimeout(final long timeout) {
         this.timeout = timeout;
     }
+
+    /**
+     * get idleTimeout.
+     *
+     * @return idleTimeout idle timeout in milliseconds
+     */
+    public long getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    /**
+     * set idleTimeout.
+     *
+     * @param idleTimeout idle timeout in milliseconds
+     */
+    public void setIdleTimeout(final long idleTimeout) {
+        this.idleTimeout = idleTimeout;
+    }
     
     @Override
     public boolean equals(final Object o) {
@@ -116,17 +140,18 @@ public class WebSocketRuleHandle implements RuleHandle {
             return false;
         }
         WebSocketRuleHandle that = (WebSocketRuleHandle) o;
-        return retry == that.retry && timeout == that.timeout && Objects.equals(loadBalance, that.loadBalance);
+        return retry == that.retry && timeout == that.timeout && idleTimeout == that.idleTimeout
+                && Objects.equals(loadBalance, that.loadBalance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retry, timeout);
+        return Objects.hash(loadBalance, retry, timeout, idleTimeout);
     }
 
     @Override
     public String toString() {
-        return "DivideRuleHandle{"
+        return "WebSocketRuleHandle{"
                 + "loadBalance='"
                 + loadBalance
                 + '\''
@@ -134,6 +159,8 @@ public class WebSocketRuleHandle implements RuleHandle {
                 + retry
                 + ", timeout="
                 + timeout
+                + ", idleTimeout="
+                + idleTimeout
                 + '}';
     }
 }
