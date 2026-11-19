@@ -64,6 +64,13 @@ import java.util.stream.Collectors;
 public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryStrategy.class);
 
+    // RetryBackoffSpec is copy-on-write; request-specific limits and callbacks are derived below.
+    private static final RetryBackoffSpec CURRENT_RETRY_TEMPLATE = Retry.backoff(1, Duration.ofMillis(20L))
+            .maxBackoff(Duration.ofSeconds(20L))
+            .transientErrors(true)
+            .jitter(0.5d)
+            .filter(DefaultRetryStrategy::isRetryable);
+
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
     public DefaultRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
@@ -75,13 +82,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(() -> "current");
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
-            RetryBackoffSpec retryBackoffSpec = Retry.backoff(retryTimes, Duration.ofMillis(20L))
-                    .maxBackoff(Duration.ofSeconds(20L))
-                    .transientErrors(true)
-                    .jitter(0.5d)
-                    .filter(t -> (t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
-                            || t instanceof io.netty.handler.timeout.ReadTimeoutException || t instanceof IllegalStateException)
-                            && !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException))
+            RetryBackoffSpec retryBackoffSpec = CURRENT_RETRY_TEMPLATE.maxAttempts(retryTimes)
                     .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
                         if (exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST) && retrySignal.failure() instanceof TimeoutException) {
                             return retrySignal.failure();
@@ -93,6 +94,12 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                     .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         }
         return executeFailover(clientResponse, exchange, duration, retryTimes, Duration.ZERO, th -> true);
+    }
+
+    private static boolean isRetryable(final Throwable error) {
+        return (error instanceof TimeoutException || error instanceof io.netty.channel.ConnectTimeoutException
+                || error instanceof io.netty.handler.timeout.ReadTimeoutException || error instanceof IllegalStateException)
+                && !(error instanceof org.springframework.core.io.buffer.DataBufferLimitException);
     }
 
     /**
