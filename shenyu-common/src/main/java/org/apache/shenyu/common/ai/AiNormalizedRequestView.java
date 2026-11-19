@@ -37,8 +37,9 @@ import java.util.List;
  * increasing generation, so consumers can state which generation they inspected and
  * a stale interpretation is observable instead of silent.</p>
  *
- * @param protocol best-effort structural protocol hint, e.g. {@code openai-chat};
- *                  {@code null} only when the view is {@code unsupported}
+ * @param protocol the protocol identity resolved for the request; {@code null} when
+ *                 the identity stayed unresolved, in which case the body shape is
+ *                 not reinterpreted as one
  * @param operation structural operation hint, e.g. {@code CHAT_COMPLETION};
  *                   {@code null} when unknown
  * @param model candidate model name from the body, or {@code null} when absent;

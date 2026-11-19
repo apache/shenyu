@@ -38,20 +38,27 @@ public final class PiiProtocolProfiles {
     }
 
     /**
-     * Select the profile of a request payload by its validated extraction shape.
+     * Select the profile of a request payload by the protocol identifier
+     * resolved from the request evidence, then validated against the
+     * extraction shape.
      *
      * @param root the parsed payload
-     * @return the matching profile, or null for unknown or malformed shapes
+     * @param protocolId the resolved protocol identifier
+     * @return the matching profile, or null for a null or unknown identifier
+     *         and for malformed shapes
      */
-    public static PiiProtocolProfile select(final JsonObject root) {
+    public static PiiProtocolProfile select(final JsonObject root, final String protocolId) {
         if (Objects.isNull(root)) {
             return null;
         }
-        if (root.has("messages")) {
+        if (OpenAiChatProfile.ID.equals(protocolId)) {
             return validMessages(root.get("messages")) ? CHAT : null;
         }
-        JsonElement input = root.get("input");
-        return isString(input) || validItems(input) ? RESPONSES : null;
+        if (OpenAiResponsesProfile.ID.equals(protocolId)) {
+            JsonElement input = root.get("input");
+            return isString(input) || validItems(input) ? RESPONSES : null;
+        }
+        return null;
     }
 
     /**

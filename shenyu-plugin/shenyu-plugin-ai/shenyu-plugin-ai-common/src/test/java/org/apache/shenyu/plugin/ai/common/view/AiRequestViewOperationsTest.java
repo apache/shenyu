@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.common.view;
 
 import org.apache.shenyu.common.ai.AiNormalizedRequestView;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocols;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -73,6 +74,18 @@ class AiRequestViewOperationsTest {
 
         assertSame(first, second);
         assertEquals(1L, AiRequestViewOperations.currentGeneration(exchange));
+    }
+
+    @Test
+    void theSameBodyWithADifferentProtocolStartsANewGeneration() {
+        MockServerWebExchange exchange = exchange();
+        AiRequestViewOperations.ensurePublished(exchange, CHAT_BODY, null, AiProtocols.OPENAI_RESPONSES);
+
+        AiNormalizedRequestView view = AiRequestViewOperations.ensurePublished(exchange, CHAT_BODY, "aiProxy",
+                AiProtocols.OPENAI_CHAT);
+
+        assertEquals(2L, view.generation());
+        assertEquals(AiProtocols.OPENAI_CHAT, view.protocol());
     }
 
     @Test
@@ -176,6 +189,30 @@ class AiRequestViewOperationsTest {
         assertEquals(expectedReason, view.unsupportedReason());
         assertNull(view.protocol());
         assertEquals(1L, view.generation());
+    }
+
+    @Test
+    void anExplicitProtocolIdentityOverridesTheBodyShapeHint() {
+        MockServerWebExchange exchange = exchange();
+
+        AiNormalizedRequestView view = AiRequestViewOperations.ensurePublished(exchange, CHAT_BODY, null,
+                AiProtocols.OPENAI_RESPONSES);
+
+        assertEquals(AiProtocols.OPENAI_RESPONSES, view.protocol());
+        assertFalse(view.supported());
+        assertEquals("request body does not match the resolved AI protocol", view.unsupportedReason());
+    }
+
+    @Test
+    void theUnknownSentinelDoesNotFallBackToTheBodyShapeHint() {
+        MockServerWebExchange exchange = exchange();
+
+        AiNormalizedRequestView view = AiRequestViewOperations.ensurePublished(exchange, CHAT_BODY, null,
+                AiProtocols.UNKNOWN);
+
+        assertNull(view.protocol());
+        assertFalse(view.supported());
+        assertEquals("no known AI protocol fields", view.unsupportedReason());
     }
 
     @Test

@@ -23,6 +23,7 @@ import com.google.gson.JsonParser;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.ai.protocol.AiProtocolDetector;
 import org.apache.shenyu.plugin.ai.pii.audit.PiiAuditSink;
 import org.apache.shenyu.plugin.ai.pii.audit.LoggingPiiAuditSink;
 import org.apache.shenyu.plugin.ai.pii.detector.PiiDetectorTimeoutException;
@@ -299,7 +300,8 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
             LOG.warn("pii detection: a streaming request under a response scope is not scanned on the response side");
             exchange.getAttributes().put(SKIP_RESPONSE_ATTRIBUTE, Boolean.TRUE);
         }
-        PiiProtocolProfile profile = PiiProtocolProfiles.select(root);
+        String protocolId = AiProtocolDetector.resolve(exchange, body).orElse(null);
+        PiiProtocolProfile profile = PiiProtocolProfiles.select(root, protocolId);
         if (Objects.isNull(profile)) {
             return unsupportedBody(exchange, body, rule, "no supported protocol profile matches the payload");
         }
