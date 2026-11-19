@@ -107,6 +107,7 @@ services:
       - "31195:9195"
     environment:
       - TZ=Asia/Beijing
+      - shenyu.endpoint.raw-data.enabled=true
       - shenyu.sync.etcd.url=http://shenyu-etcd:2379
       - spring.cloud.discovery.enabled=true
       - eureka.client.enabled=true

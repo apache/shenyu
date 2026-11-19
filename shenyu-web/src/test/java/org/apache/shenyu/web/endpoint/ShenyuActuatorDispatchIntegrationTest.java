@@ -81,6 +81,20 @@ public final class ShenyuActuatorDispatchIntegrationTest {
         final MockServerWebExchange exchange = perform(context, "/actuator/pluginData");
         assertEquals(HttpStatus.NOT_FOUND.value(), statusCode(exchange),
                 "the raw cache mappings must not exist under shipped defaults");
+        final MockServerWebExchange digest = perform(context, "/actuator/pluginDigest");
+        assertEquals(HttpStatus.OK.value(), statusCode(digest),
+                "the digest view is always available and does not need the opt-in");
+    }
+
+    @Test
+    public void managementBasePathDoesNotMoveThePlainMappings() {
+        final AnnotationConfigApplicationContext context = buildContext(Map.of("management.server.base-path", "/manage"));
+        final MockServerWebExchange exchange = perform(context, "/actuator/plugins");
+        assertEquals(HttpStatus.OK.value(), statusCode(exchange),
+                "these are plain MVC mappings under /actuator; management.server.base-path has no effect on them");
+        final MockServerWebExchange moved = perform(context, "/manage/actuator/plugins");
+        assertEquals(HttpStatus.NOT_FOUND.value(), statusCode(moved),
+                "nothing is registered under the management base path");
     }
 
     @Test
@@ -92,7 +106,7 @@ public final class ShenyuActuatorDispatchIntegrationTest {
     }
 
     @Test
-    public void requestPluginIsBypassedButRawInspectionIsDigestOnlyWhenEnabled() {
+    public void requestPluginIsBypassedAndOptInServesTheRawDump() {
         BaseDataCache.getInstance().cachePluginData(PluginData.builder()
                 .id("p1").name("divide").config(FAKE_SECRET).role("1").enabled(true).build());
         final AnnotationConfigApplicationContext context = buildContext(Map.of("shenyu.endpoint.raw-data.enabled", "true"));
@@ -103,16 +117,16 @@ public final class ShenyuActuatorDispatchIntegrationTest {
         final MockServerWebExchange endpoint = perform(context, "/actuator/pluginData");
         assertEquals(HttpStatus.OK.value(), statusCode(endpoint));
         final String body = endpoint.getResponse().getBodyAsString().block(Duration.ofSeconds(5));
-        assertFalse(body.contains("my-super-secret-key-12345"), "raw config must never be published");
-        assertTrue(body.matches("(?s).*[0-9a-f]{64}.*"), "expected a SHA-256 digest representation, got: " + body);
+        assertTrue(body.contains(FAKE_SECRET),
+                "an explicit opt-in serves the raw dump the e2e client deserializes, got: " + body);
     }
 
     @Test
-    public void enabledMappingServesDigestInsteadOfRawCacheDump() {
+    public void digestMappingIsAlwaysAvailableAndBounded() {
         BaseDataCache.getInstance().cachePluginData(PluginData.builder()
                 .id("p1").name("divide").config(FAKE_SECRET).role("1").enabled(true).build());
-        final AnnotationConfigApplicationContext context = buildContext(Map.of("shenyu.endpoint.raw-data.enabled", "true"));
-        final MockServerWebExchange exchange = perform(context, "/actuator/pluginData");
+        final AnnotationConfigApplicationContext context = buildContext(Map.of());
+        final MockServerWebExchange exchange = perform(context, "/actuator/pluginDigest");
         assertEquals(HttpStatus.OK.value(), statusCode(exchange));
         final String body = exchange.getResponse().getBodyAsString().block(Duration.ofSeconds(5));
         assertFalse(body.contains("my-super-secret-key-12345"), "raw config must never be published");
@@ -175,7 +189,7 @@ public final class ShenyuActuatorDispatchIntegrationTest {
 
     @Configuration
     @EnableWebFlux
-    @Import({HealthStubController.class, ShenyuControllerEndpoint.class})
+    @Import({HealthStubController.class, ShenyuControllerEndpoint.class, ShenyuRawDataEndpoint.class})
     static class GatewayConfig {
 
         @Bean

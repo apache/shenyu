@@ -45,9 +45,10 @@ import static org.mockito.Mockito.mock;
 /**
  * Test cases for {@link ShenyuControllerEndpoint}.
  *
- * <p>The endpoints are opt-in and publish only bounded digest representations; these tests
- * seed the caches with clearly marked fake secrets and assert the raw material never leaves
- * the process.</p>
+ * <p>The digest view is always available and publishes non-secret identity fields plus
+ * SHA-256 digests of the sensitive payload fields; these tests seed the caches with clearly
+ * marked fake secrets and assert the raw material never leaves the process while the
+ * identity fields the digest view exists for do.</p>
  */
 public final class ShenyuControllerEndpointTest {
 
@@ -65,7 +66,7 @@ public final class ShenyuControllerEndpointTest {
         baseDataCache.cachePluginData(PluginData.builder().id("p1").name("divide").config(FAKE_SECRET).role("1").enabled(true).build());
         baseDataCache.cacheSelectData(SelectorData.builder().id("s1").name("sel").pluginName("divide").handle(FAKE_SECRET).enabled(true).build());
         baseDataCache.cacheRuleData(RuleData.builder().id("r1").name("rule").pluginName("divide").selectorId("s1").handle(FAKE_SECRET).build());
-        MetaDataCache.getInstance().cache(MetaData.builder().id("m1").path("/rpc/demo").rpcType("dubbo")
+        MetaDataCache.getInstance().cache(MetaData.builder().id("m1").path("/rpc/demo").rpcType("dubbo").methodName("demoMethod")
                 .rpcExt("{\"timeout\":3000,\"password\":\"plain-secret\"}").build());
         MatchDataCache.getInstance().cacheSelectorData("/api/demo", SelectorData.builder().id("sm1").name("selMatch")
                 .pluginName("divide").handle(FAKE_SECRET).enabled(true).build(), 16, 16);
@@ -90,52 +91,63 @@ public final class ShenyuControllerEndpointTest {
     }
 
     @Test
-    public void pluginDatas() throws Exception {
-        final MockHttpServletResponse response = performGet("/actuator/pluginData");
+    public void pluginDigest() throws Exception {
+        final MockHttpServletResponse response = performGet("/actuator/pluginDigest");
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertDigestOnly(response.getContentAsString());
     }
 
     @Test
-    public void selectorData() throws Exception {
-        final MockHttpServletResponse response = performGet("/actuator/selectorData");
+    public void selectorDigest() throws Exception {
+        final MockHttpServletResponse response = performGet("/actuator/selectorDigest");
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertDigestOnly(response.getContentAsString());
     }
 
     @Test
-    public void ruleData() throws Exception {
-        final MockHttpServletResponse response = performGet("/actuator/ruleData");
+    public void ruleDigest() throws Exception {
+        final MockHttpServletResponse response = performGet("/actuator/ruleDigest");
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertDigestOnly(response.getContentAsString());
     }
 
     @Test
-    public void getSelectorMatchCache() throws Exception {
-        final MockHttpServletResponse response = performGet("/actuator/selectorMatchCache");
+    public void getSelectorMatchDigest() throws Exception {
+        final MockHttpServletResponse response = performGet("/actuator/selectorMatchDigest");
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertDigestOnly(response.getContentAsString());
     }
 
     @Test
-    public void getRuleMatchCache() throws Exception {
-        final MockHttpServletResponse response = performGet("/actuator/ruleMatchCache");
+    public void getRuleMatchDigest() throws Exception {
+        final MockHttpServletResponse response = performGet("/actuator/ruleMatchDigest");
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertDigestOnly(response.getContentAsString());
     }
 
     @Test
-    public void getMetadata() throws Exception {
-        final MockHttpServletResponse response = performGet("/actuator/metadata");
+    public void getMetadataDigest() throws Exception {
+        final MockHttpServletResponse response = performGet("/actuator/metadataDigest");
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertDigestOnly(response.getContentAsString());
     }
 
     @Test
-    public void getMetaDataCache() throws Exception {
-        final MockHttpServletResponse response = performGet("/actuator/metadataCache");
+    public void getMetaDataCacheDigest() throws Exception {
+        final MockHttpServletResponse response = performGet("/actuator/metadataCacheDigest");
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertDigestOnly(response.getContentAsString());
+    }
+
+    @Test
+    public void digestKeepsNonSecretIdentityFields() throws Exception {
+        final String selector = performGet("/actuator/selectorDigest").getContentAsString();
+        assertTrue(selector.contains("\"name\":\"sel\""), "selector name is identity, not a credential: " + selector);
+        final String rule = performGet("/actuator/ruleDigest").getContentAsString();
+        assertTrue(rule.contains("\"name\":\"rule\""), "rule name is identity, not a credential: " + rule);
+        final String metadata = performGet("/actuator/metadataDigest").getContentAsString();
+        assertTrue(metadata.contains("\"path\":\"/rpc/demo\""), "metadata path is identity, not a credential: " + metadata);
+        assertTrue(metadata.contains("\"rpcType\":\"dubbo\""), "rpcType is identity, not a credential: " + metadata);
     }
 
     // Fluent Flux bodies stream through the async dispatch; collect the final content
@@ -145,13 +157,13 @@ public final class ShenyuControllerEndpointTest {
     }
 
     /**
-     * The body must carry the bounded digest structure (a 64-hex config digest) and none of
+     * The body must carry the bounded digest structure (a 64-hex digest) and none of
      * the raw sensitive payloads seeded in the cache.
      */
     private void assertDigestOnly(final String body) {
         assertFalse(body.contains("my-super-secret-key-12345"), "raw config must not be published");
         assertFalse(body.contains("plain-secret"), "raw metadata extensions must not be published");
-        assertTrue(body.contains("Digest") || body.matches(".*[0-9a-f]{64}.*"),
+        assertTrue(body.matches("(?s).*[0-9a-f]{64}.*"),
                 "expected SHA-256 digest representation, got: " + body);
     }
 }

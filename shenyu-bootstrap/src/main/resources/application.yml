@@ -86,6 +86,14 @@ management:
           - 'info'
 shenyu:
   namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
+  ## Raw runtime configuration inspection (/actuator/pluginData, selectorData, ruleData,
+  ## metadata, ...). Disabled by default: the raw caches carry credentials and these
+  ## mappings bypass the plugin chain. The digest view (/actuator/pluginDigest,
+  ## selectorDigest, ruleDigest, metadataDigest, ...) is always available. See
+  ## docs/actuator-raw-data.md before enabling.
+  #  endpoint:
+  #    raw-data:
+  #      enabled: true
   selectorMatchCache:
     ## selector match cache
     cache:

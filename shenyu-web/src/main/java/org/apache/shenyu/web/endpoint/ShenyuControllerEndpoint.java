@@ -27,7 +27,6 @@ import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.web.diagnostics.DiagnosticRedactor;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,30 +38,32 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * The type Shenyu controller endpoint.
  *
- * <p>These mappings bypass the gateway plugin chain (the {@code HealthFilter} dispatches
- * {@code /actuator/*} straight to the {@code DispatcherHandler}), so the raw configuration
- * caches must never be serialized here: plugin configs, selector and rule handles and RPC
- * metadata routinely carry credentials. The whole controller is therefore
- * <b>disabled by default</b> ({@code shenyu.endpoint.raw-data.enabled}, default {@code false});
- * a request that finds no mapping is rejected before any cache traversal. Even when explicitly
- * enabled, the endpoints only publish a bounded, non-reversible representation: SHA-256
- * digests of the sensitive payloads plus non-secret structural counters, reusing the shared
- * {@link DiagnosticRedactor#digest(String)} policy from the diagnostics subsystem. Full raw
- * inspection belongs to the management plane (shenyu-admin), not to a listener that anonymous
- * callers can reach.</p>
+ * <p>This controller publishes the <b>always-available digest view</b> of the runtime
+ * configuration caches. These mappings bypass the gateway plugin chain (the {@code HealthFilter}
+ * dispatches {@code /actuator/*} straight to the {@code DispatcherHandler}), so a secret-bearing
+ * payload must never be serialized here: plugin configs, selector and rule handles and RPC
+ * metadata routinely carry credentials. The digest endpoints publish non-secret identity fields
+ * (plugin, selector and rule names, metadata paths, RPC types) plus SHA-256 digests of the
+ * sensitive payload fields only ({@code config}, {@code handle}, {@code rpcExt}), reusing the
+ * shared {@link DiagnosticRedactor#digest(String)} policy from the diagnostics subsystem. The
+ * raw caches live behind the opt-in {@code shenyu.endpoint.raw-data.enabled} switch served by
+ * {@link ShenyuRawDataEndpoint}; see {@code docs/actuator-raw-data.md} for the compatibility
+ * and migration behavior.</p>
+ *
+ * <p>Only the {@code /actuator/plugins} listing (plugin name and order, no configuration at
+ * all) is exposed without a counterpart; it stays visible by design.</p>
  *
  * <p>Note these are plain MVC mappings under a hard-coded {@code /actuator} prefix; they are
  * not Spring Boot Actuator endpoints, so {@code management.endpoints.web.exposure.include}
- * and {@code management.server} base-path/port settings have no effect on them. Use the
- * {@code shenyu.endpoint.raw-data.enabled} switch instead.</p>
+ * and {@code management.server} base-path/port settings have no effect on them.</p>
  */
 @RestController
-@ConditionalOnProperty(name = "shenyu.endpoint.raw-data.enabled", havingValue = "true", matchIfMissing = false)
 @RequestMapping(value = "/actuator", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class ShenyuControllerEndpoint {
 
@@ -95,8 +96,8 @@ public class ShenyuControllerEndpoint {
      *
      * @return the flux
      */
-    @GetMapping("/pluginData")
-    public Flux<Map<String, Map<String, Object>>> pluginDatas() {
+    @GetMapping("/pluginDigest")
+    public Flux<Map<String, Map<String, Object>>> pluginDigest() {
         return Flux.just(BaseDataCache.getInstance().getPluginMap().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> summarizePlugin(entry.getValue()), (a, b) -> a, LinkedHashMap::new)));
     }
@@ -106,9 +107,9 @@ public class ShenyuControllerEndpoint {
      *
      * @return the flux
      */
-    @GetMapping("/selectorData")
-    public Flux<Map<String, List<Map<String, Object>>>> selectorData() {
-        return Flux.just(summarizeSelectors(BaseDataCache.getInstance().getSelectorMap()));
+    @GetMapping("/selectorDigest")
+    public Flux<Map<String, List<Map<String, Object>>>> selectorDigest() {
+        return Flux.just(summarizeListGroups(BaseDataCache.getInstance().getSelectorMap(), this::summarizeSelector));
     }
 
     /**
@@ -116,9 +117,9 @@ public class ShenyuControllerEndpoint {
      *
      * @return the flux
      */
-    @GetMapping("/ruleData")
-    public Flux<Map<String, List<Map<String, Object>>>> ruleData() {
-        return Flux.just(summarizeRules(BaseDataCache.getInstance().getRuleMap()));
+    @GetMapping("/ruleDigest")
+    public Flux<Map<String, List<Map<String, Object>>>> ruleDigest() {
+        return Flux.just(summarizeListGroups(BaseDataCache.getInstance().getRuleMap(), this::summarizeRule));
     }
 
     /**
@@ -126,9 +127,9 @@ public class ShenyuControllerEndpoint {
      *
      * @return the flux
      */
-    @GetMapping("/selectorMatchCache")
-    public Flux<Map<String, List<Map<String, Object>>>> getSelectorMatchCache() {
-        return Flux.just(summarizeSelectorMatch(MatchDataCache.getInstance().getSelectorMatchCache()));
+    @GetMapping("/selectorMatchDigest")
+    public Flux<Map<String, List<Map<String, Object>>>> getSelectorMatchDigest() {
+        return Flux.just(summarizeMapGroups(MatchDataCache.getInstance().getSelectorMatchCache(), this::summarizeSelector));
     }
 
     /**
@@ -136,9 +137,9 @@ public class ShenyuControllerEndpoint {
      *
      * @return the flux
      */
-    @GetMapping("/ruleMatchCache")
-    public Flux<Map<String, List<Map<String, Object>>>> getRuleMatchCache() {
-        return Flux.just(summarizeRuleMatch(MatchDataCache.getInstance().getRuleMatchCache()));
+    @GetMapping("/ruleMatchDigest")
+    public Flux<Map<String, List<Map<String, Object>>>> getRuleMatchDigest() {
+        return Flux.just(summarizeMapGroups(MatchDataCache.getInstance().getRuleMatchCache(), this::summarizeRule));
     }
 
     /**
@@ -146,8 +147,8 @@ public class ShenyuControllerEndpoint {
      *
      * @return metadata digest map
      */
-    @GetMapping("/metadata")
-    public Flux<Map<String, Map<String, Object>>> getMetadata() {
+    @GetMapping("/metadataDigest")
+    public Flux<Map<String, Map<String, Object>>> getMetadataDigest() {
         return Flux.just(summarizeMetadata(MetaDataCache.getInstance().getMetaDataMap()));
     }
 
@@ -156,78 +157,56 @@ public class ShenyuControllerEndpoint {
      *
      * @return metadata digest map
      */
-    @GetMapping("/metadataCache")
-    public Flux<Map<String, Map<String, Object>>> getMetaDataCache() {
+    @GetMapping("/metadataCacheDigest")
+    public Flux<Map<String, Map<String, Object>>> getMetaDataCacheDigest() {
         return Flux.just(summarizeMetadata(MetaDataCache.getInstance().getMetaDataCache()));
     }
 
     private Map<String, Object> summarizePlugin(final PluginData data) {
         Map<String, Object> item = new LinkedHashMap<>();
+        item.put("enabled", data.getEnabled());
         item.put("role", data.getRole());
         item.put("configDigest", redactor.digest(data.getConfig()));
         return item;
     }
 
-    private Map<String, List<Map<String, Object>>> summarizeSelectors(final Map<String, List<SelectorData>> selectors) {
+    private Map<String, Object> summarizeSelector(final SelectorData data) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("name", data.getName());
+        item.put("selectorId", data.getId());
+        item.put("handleDigest", redactor.digest(data.getHandle()));
+        item.put("conditionCount", size(data.getConditionList()));
+        return item;
+    }
+
+    private Map<String, Object> summarizeRule(final RuleData data) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("name", data.getName());
+        item.put("ruleId", data.getId());
+        item.put("pluginName", data.getPluginName());
+        item.put("handleDigest", redactor.digest(data.getHandle()));
+        item.put("conditionCount", size(data.getConditionDataList()));
+        return item;
+    }
+
+    private <T> Map<String, List<Map<String, Object>>> summarizeListGroups(final Map<String, List<T>> groups, final Function<T, Map<String, Object>> mapper) {
         Map<String, List<Map<String, Object>>> root = new LinkedHashMap<>();
-        for (Map.Entry<String, List<SelectorData>> entry : selectors.entrySet()) {
+        for (Map.Entry<String, List<T>> entry : groups.entrySet()) {
             List<Map<String, Object>> list = new ArrayList<>(entry.getValue().size());
-            for (SelectorData data : entry.getValue()) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("selectorId", data.getId());
-                item.put("handleDigest", redactor.digest(data.getHandle()));
-                item.put("conditionCount", size(data.getConditionList()));
-                list.add(item);
+            for (T item : entry.getValue()) {
+                list.add(mapper.apply(item));
             }
             root.put(entry.getKey(), list);
         }
         return root;
     }
 
-    private Map<String, List<Map<String, Object>>> summarizeRules(final Map<String, List<RuleData>> rules) {
+    private <T> Map<String, List<Map<String, Object>>> summarizeMapGroups(final Map<String, Map<String, T>> groups, final Function<T, Map<String, Object>> mapper) {
         Map<String, List<Map<String, Object>>> root = new LinkedHashMap<>();
-        for (Map.Entry<String, List<RuleData>> entry : rules.entrySet()) {
+        for (Map.Entry<String, Map<String, T>> entry : groups.entrySet()) {
             List<Map<String, Object>> list = new ArrayList<>(entry.getValue().size());
-            for (RuleData data : entry.getValue()) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("ruleId", data.getId());
-                item.put("pluginName", data.getPluginName());
-                item.put("handleDigest", redactor.digest(data.getHandle()));
-                item.put("conditionCount", size(data.getConditionDataList()));
-                list.add(item);
-            }
-            root.put(entry.getKey(), list);
-        }
-        return root;
-    }
-
-    private Map<String, List<Map<String, Object>>> summarizeSelectorMatch(final Map<String, Map<String, SelectorData>> selectors) {
-        Map<String, List<Map<String, Object>>> root = new LinkedHashMap<>();
-        for (Map.Entry<String, Map<String, SelectorData>> entry : selectors.entrySet()) {
-            List<Map<String, Object>> list = new ArrayList<>(entry.getValue().size());
-            for (SelectorData data : entry.getValue().values()) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("selectorId", data.getId());
-                item.put("handleDigest", redactor.digest(data.getHandle()));
-                item.put("conditionCount", size(data.getConditionList()));
-                list.add(item);
-            }
-            root.put(entry.getKey(), list);
-        }
-        return root;
-    }
-
-    private Map<String, List<Map<String, Object>>> summarizeRuleMatch(final Map<String, Map<String, RuleData>> rules) {
-        Map<String, List<Map<String, Object>>> root = new LinkedHashMap<>();
-        for (Map.Entry<String, Map<String, RuleData>> entry : rules.entrySet()) {
-            List<Map<String, Object>> list = new ArrayList<>(entry.getValue().size());
-            for (RuleData data : entry.getValue().values()) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("ruleId", data.getId());
-                item.put("pluginName", data.getPluginName());
-                item.put("handleDigest", redactor.digest(data.getHandle()));
-                item.put("conditionCount", size(data.getConditionDataList()));
-                list.add(item);
+            for (T item : entry.getValue().values()) {
+                list.add(mapper.apply(item));
             }
             root.put(entry.getKey(), list);
         }
@@ -239,8 +218,9 @@ public class ShenyuControllerEndpoint {
         for (Map.Entry<String, MetaData> entry : metadata.entrySet()) {
             MetaData data = entry.getValue();
             Map<String, Object> item = new LinkedHashMap<>();
+            item.put("path", data.getPath());
             item.put("rpcType", data.getRpcType());
-            item.put("pathDigest", redactor.digest(data.getPath()));
+            item.put("method", data.getMethodName());
             item.put("rpcExtDigest", redactor.digest(data.getRpcExt()));
             root.put(entry.getKey(), item);
         }
