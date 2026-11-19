@@ -601,15 +601,20 @@ class ShenyuStreamableHttpServerTransportProviderTest {
     }
 
     @Test
-    void testGracefulShutdownCancelsPendingRequest() throws Exception {
+    void testGracefulShutdownWaitsForPendingRequest() throws Exception {
         final AtomicBoolean cancelled = new AtomicBoolean();
+        final Sinks.One<Map<String, Object>> response = Sinks.one();
         final ShenyuStreamableHttpServerTransportProvider provider = providerWithHandler((exchange, params) ->
-                Mono.<Map<String, Object>>never().doOnCancel(() -> cancelled.set(true)));
+                response.asMono().doOnCancel(() -> cancelled.set(true)));
         final String sessionId = initialize(provider);
         final Disposable pending = provider.handleUnifiedEndpoint(createRequest(postRequest(TOOLS_LIST_REQUEST_BODY, sessionId))).subscribe();
         try {
-            StepVerifier.create(provider.closeGracefully()).verifyComplete();
-            assertTrue(cancelled.get());
+            final CompletableFuture<Void> closing = provider.closeGracefully().toFuture();
+            assertTrue(!closing.isDone());
+            assertTrue(!cancelled.get());
+            response.tryEmitValue(Map.of("tools", List.of()));
+            closing.get(5, TimeUnit.SECONDS);
+            assertTrue(!cancelled.get());
             assertTrue(readMap(provider, "sessions").isEmpty());
             assertTrue(readMap(provider, "sessionTransports").isEmpty());
             assertNull(ShenyuMcpExchangeHolder.get(sessionId));
