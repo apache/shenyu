@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.client.spring.websocket;
 
+import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
 import org.apache.shenyu.client.spring.websocket.init.SpringWebSocketClientEventListener;
 import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -69,4 +71,17 @@ public class ShenyuSpringWebSocketClientConfigurationTest {
         });
         registerUtilsMockedStatic.close();
     }
+
+    @Test
+    public void testInvalidConfigurationPrecedesRepositoryCreation() {
+        try (MockedStatic<ShenyuClientRegisterRepositoryFactory> factory = mockStatic(ShenyuClientRegisterRepositoryFactory.class)) {
+            factory.when(() -> ShenyuClientRegisterRepositoryFactory.newInstance(any())).thenThrow(new AssertionError("repository reached before validation"));
+            applicationContextRunner.withPropertyValues("shenyu.client.websocket.props[port]=65536").run(context -> {
+                assertThat(context).hasFailed();
+                assertThat(context.getStartupFailure()).hasStackTraceContaining("shenyu.client.websocket.props.port");
+                factory.verifyNoInteractions();
+            });
+        }
+    }
+
 }
