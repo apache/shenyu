@@ -63,12 +63,17 @@
         WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
-    <select id="selectDiscoveryMatches" resultMap="BaseResultMap">
+    <select id="selectByPluginNameAndLevelAndNamespaceId" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM discovery
         WHERE plugin_name = #{pluginName, jdbcType=VARCHAR} AND discovery_level = #{level, jdbcType=VARCHAR} AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+        <if test="discoveryType != null">
+            AND discovery_type = #{discoveryType, jdbcType=VARCHAR}
+        </if>
         <if test="selectorId != null">
+            <!-- Related traversal: SelectorMapper.selectByDiscoveryId and DiscoveryHandlerMapper.selectBySelectorId.
+                 This API also binds the selector namespace and relation plugin to the requested discovery. -->
             AND EXISTS (
                 SELECT 1
                 FROM discovery_handler h
@@ -80,6 +85,10 @@
                 AND r.plugin_name = discovery.plugin_name
             )
         </if>
+        <choose>
+            <when test="_databaseId == 'oracle'">AND ROWNUM &lt;= 2</when>
+            <otherwise>LIMIT 2</otherwise>
+        </choose>
     </select>
 
     <select id="selectByPluginNameAndLevelAndNamespaceIdAndType" parameterType="java.lang.String" resultMap="BaseResultMap">

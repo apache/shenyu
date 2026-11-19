@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
@@ -41,7 +42,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,7 +97,7 @@ public final class DiscoveryControllerTest {
     public void testDiscoveryShouldDelegateToService() throws Exception {
         DiscoveryVO discoveryVO = new DiscoveryVO();
         discoveryVO.setPluginName("divide");
-        when(discoveryService.discovery("divide", "proxy", NAMESPACE_ID, null)).thenReturn(discoveryVO);
+        when(discoveryService.discovery("divide", "proxy", NAMESPACE_ID)).thenReturn(discoveryVO);
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/discovery")
                         .param("pluginName", "divide")
@@ -101,6 +106,18 @@ public final class DiscoveryControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.pluginName").value("divide"));
+    }
+
+    @Test
+    public void testLegacyServiceImplementationUsesOriginalLookupForUnscopedRequests() {
+        DiscoveryService legacyService = mock(DiscoveryService.class, CALLS_REAL_METHODS);
+        DiscoveryVO discovery = new DiscoveryVO();
+        doReturn(discovery).when(legacyService).discovery("divide", "1", NAMESPACE_ID);
+
+        assertSame(discovery, legacyService.discovery("divide", "1", NAMESPACE_ID, null, null));
+        assertThrows(ValidFailException.class, () -> legacyService.discovery("divide", "0", NAMESPACE_ID, "selector-a", null));
+        assertThrows(ValidFailException.class, () -> legacyService.discovery("divide", "1", NAMESPACE_ID, null, "local"));
+        verify(legacyService).discovery("divide", "1", NAMESPACE_ID);
     }
 
     @Test

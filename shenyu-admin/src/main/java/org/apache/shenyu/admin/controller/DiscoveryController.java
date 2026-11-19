@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.model.vo.DiscoveryVO;
 import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
@@ -35,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
+
+import java.util.Objects;
 
 /**
  * this is discovery controller.
@@ -59,19 +62,24 @@ public class DiscoveryController {
     }
 
     /**
-     * Query discovery by plugin, level and namespace, optionally scoped to a regular selector.
+     * Query discovery by plugin, level and namespace, optionally narrowing the lookup.
      *
      * @param pluginName plugin name
      * @param level      level
      * @param namespaceId namespaceId
      * @param selectorId optional regular selector ID for level 0
+     * @param discoveryType optional discovery type for level 1
      * @return {@link org.apache.shenyu.admin.model.vo.DiscoveryVO}
      */
     @GetMapping
     public ShenyuAdminResult discovery(final String pluginName, final String level, final String namespaceId,
-                                       @RequestParam(value = "selectorId", required = false) final String selectorId) {
+                                       @RequestParam(value = "selectorId", required = false) final String selectorId,
+                                       @RequestParam(value = "discoveryType", required = false) final String discoveryType) {
         try {
-            return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.discovery(pluginName, level, namespaceId, selectorId));
+            DiscoveryVO discovery = Objects.isNull(selectorId) && Objects.isNull(discoveryType)
+                    ? discoveryService.discovery(pluginName, level, namespaceId)
+                    : discoveryService.discovery(pluginName, level, namespaceId, selectorId, discoveryType);
+            return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discovery);
         } catch (ValidFailException ex) {
             return ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         }

@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.session.RowBounds;
 import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
@@ -80,8 +79,6 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiscoveryServiceImpl.class);
 
-    private static final RowBounds DISCOVERY_LOOKUP_LIMIT = new RowBounds(RowBounds.NO_ROW_OFFSET, 2);
-
     private final DiscoveryMapper discoveryMapper;
 
     private final ProxySelectorMapper proxySelectorMapper;
@@ -127,20 +124,43 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId, final String selectorId) {
-        boolean selectorLevel = DiscoveryLevel.SELECTOR.getCode().equals(level);
-        if (Objects.nonNull(selectorId) && (!selectorLevel || StringUtils.isBlank(selectorId))) {
-            throw new ValidFailException("selectorId must be nonblank and is only supported for selector-level discovery (level=0).");
-        }
-        List<DiscoveryDO> matches = discoveryMapper.selectDiscoveryMatches(pluginName, level, namespaceId, selectorId, DISCOVERY_LOOKUP_LIMIT);
+    @Transactional(rollbackFor = Exception.class)
+    public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId) {
+        return discovery(pluginName, level, namespaceId, null, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId, final String selectorId, final String discoveryType) {
+        validateDiscriminator(selectorId, "selectorId", level, DiscoveryLevel.SELECTOR);
+        validateDiscriminator(discoveryType, "discoveryType", level, DiscoveryLevel.PLUGIN);
+        List<DiscoveryDO> matches = discoveryMapper.selectByPluginNameAndLevelAndNamespaceId(pluginName, level, namespaceId, selectorId, discoveryType);
         if (matches.size() > 1) {
-            if (selectorLevel && Objects.isNull(selectorId)) {
-                throw new ValidFailException("Multiple discovery records match. Specify selectorId to look up one selector.");
-            }
-            throw new ValidFailException("Multiple discovery records match the requested scope.");
+            throw new ValidFailException(ambiguousDiscoveryMessage(level, selectorId, discoveryType));
         }
         return matches.isEmpty() ? null : DiscoveryTransfer.INSTANCE.mapToVo(matches.get(0));
+    }
+
+    private static void validateDiscriminator(final String value, final String name, final String level, final DiscoveryLevel supportedLevel) {
+        if (Objects.isNull(value)) {
+            return;
+        }
+        if (StringUtils.isBlank(value)) {
+            throw new ValidFailException(name + " must be nonblank.");
+        }
+        if (!supportedLevel.getCode().equals(level)) {
+            throw new ValidFailException(name + " is only supported for level=" + supportedLevel.getCode() + ".");
+        }
+    }
+
+    private static String ambiguousDiscoveryMessage(final String level, final String selectorId, final String discoveryType) {
+        if (DiscoveryLevel.SELECTOR.getCode().equals(level) && Objects.isNull(selectorId)) {
+            return "Multiple discovery records match. Specify selectorId to look up one selector.";
+        }
+        if (DiscoveryLevel.PLUGIN.getCode().equals(level) && Objects.isNull(discoveryType)) {
+            return "Multiple discovery records match. Specify discoveryType to look up one plugin discovery type.";
+        }
+        return "Multiple discovery records match the requested scope. Resolve the duplicate definitions before retrying.";
     }
 
     @Override
