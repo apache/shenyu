@@ -19,19 +19,84 @@ package org.apache.shenyu.client.core.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * get the port number exposed by the current tomcat.
  */
 public class PortUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PortUtils.class);
+
+    /**
+     * Guard against malformed context parent chains when walking up to the
+     * application context that owns the running web server.
+     */
+    private static final int MAX_CONTEXT_DEPTH = 8;
+
+    /**
+     * Short, actionable diagnostic for a failed port discovery.
+     */
+    private static final String PORT_NOT_FOUND_MESSAGE =
+            "can not find port automatically, please configure the advertised port (shenyu.client.http.props.port)";
+
+    /**
+     * Referenced reflectively so this module keeps no compile-time spring-boot dependency.
+     */
+    private static final String WEB_SERVER_APPLICATION_CONTEXT_CLASS_NAME =
+            "org.springframework.boot.web.context.WebServerApplicationContext";
+
+    /**
+     * Referenced reflectively so this module keeps no compile-time spring-boot dependency.
+     */
+    private static final String WEB_SERVER_CLASS_NAME =
+            "org.springframework.boot.web.server.WebServer";
+
+    /**
+     * Find the port the application's own embedded web server actually bound.
+     * Note: preferred over {@link #findPort(BeanFactory)} whenever an
+     * {@link ApplicationContext} is at hand: the factory-reflective variant
+     * reports the <em>configured</em> port, which is {@code 0} when the server
+     * was started on a random port ({@code server.port=0}). This variant asks
+     * the running {@code WebServer} for its bound port, walking up the context
+     * parent chain so classic child contexts resolve to their owning server
+     * context; a management context is never in that chain and is therefore
+     * never selected. When no bound port can be observed (no embedded server,
+     * external deployment), discovery falls back to the legacy chain and a
+     * non-positive resolution fails loudly instead of registering an unusable
+     * address.
+     *
+     * @param applicationContext the application context the client is registering from
+     * @return the positive port the owned web server bound
+     * @throws ShenyuException when no usable port can be discovered
+     */
+    public static int findPort(final ApplicationContext applicationContext) {
+        final Integer bound = findBoundWebServerPort(applicationContext);
+        if (Objects.nonNull(bound) && bound > 0) {
+            return bound;
+        }
+        final int legacy;
+        try {
+            legacy = findPort(applicationContext.getAutowireCapableBeanFactory());
+        } catch (ShenyuException e) {
+            throw new ShenyuException(PORT_NOT_FOUND_MESSAGE, e);
+        }
+        if (legacy <= 0) {
+            throw new ShenyuException(PORT_NOT_FOUND_MESSAGE + ", resolved port: " + legacy);
+        }
+        return legacy;
+    }
 
     /**
      * Note: springboot 1.x version has been made compatible.
@@ -106,6 +171,41 @@ public class PortUtils {
             return Integer.parseInt(port);
         }
         throw new IllegalStateException("failed to get the HTTP port of the current tomcat");
+    }
+
+    /**
+     * Read the port the running web server bound from the application context
+     * owning it, walking up the parent chain so classic child contexts resolve
+     * to their owning server context. Both spring-boot types are resolved
+     * reflectively because this module has no compile-time spring-boot
+     * dependency.
+     *
+     * @param applicationContext starting context of the walk
+     * @return the bound port, or {@code null} when it cannot be observed
+     */
+    private static Integer findBoundWebServerPort(final ApplicationContext applicationContext) {
+        try {
+            final Class<?> webServerApplicationContextClass = Class.forName(WEB_SERVER_APPLICATION_CONTEXT_CLASS_NAME);
+            final Class<?> webServerClass = Class.forName(WEB_SERVER_CLASS_NAME);
+            ApplicationContext current = applicationContext;
+            for (int depth = 0; Objects.nonNull(current) && depth < MAX_CONTEXT_DEPTH; depth++) {
+                if (webServerApplicationContextClass.isInstance(current)) {
+                    final Object webServer = webServerApplicationContextClass
+                            .getMethod("getWebServer").invoke(current);
+                    if (Objects.nonNull(webServer)) {
+                        return (Integer) webServerClass.getMethod("getPort").invoke(webServer);
+                    }
+                }
+                current = current.getParent();
+            }
+            return null;
+        } catch (ClassNotFoundException e) {
+            LOG.debug("spring-boot web server classes are absent, falling back to legacy port discovery", e);
+            return null;
+        } catch (ReflectiveOperationException e) {
+            LOG.warn("can not read the port bound by the embedded web server, falling back to legacy port discovery", e);
+            return null;
+        }
     }
 
 }
