@@ -25,3 +25,6 @@ unknown-field	false	{"unknown":"fixture-secret"}
 missing-servers	false	{"aggregation":{"revision":"v1"}}
 wrong-servers-type	false	{"aggregation":{"revision":"v1","servers":{}}}
 unknown-nested-field	false	{"aggregation":{"revision":"v1","servers":[],"bearerToken":"fixture-secret"}}
+remote-budget-above-maximum	false	{"aggregation":{"revision":"v1","servers":[{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1","remoteResponseBytes":1048577}]}}
+remote-budget-below-minimum	false	{"aggregation":{"revision":"v1","servers":[{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1","remoteRequestBytes":512}]}}
+remote-budget-not-integer	false	{"aggregation":{"revision":"v1","servers":[{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1","remoteResponseBytes":"32768"}]}}
