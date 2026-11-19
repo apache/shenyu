@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
@@ -25,6 +26,7 @@ import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.register.common.dto.DiscoveryConfigRegisterDTO;
 
 import java.util.List;
+import java.util.Objects;
 
 public interface DiscoveryService {
 
@@ -44,6 +46,24 @@ public interface DiscoveryService {
      * @return the discovery
      */
     DiscoveryVO discovery(String pluginName, String level, String namespaceId);
+
+    /**
+     * Look up a discovery definition with an optional selector or type scope.
+     *
+     * @param pluginName plugin name
+     * @param level discovery level
+     * @param namespaceId namespace ID
+     * @param selectorId optional selector ID for selector-level lookup
+     * @param discoveryType optional type for plugin-level lookup
+     * @return the matching discovery or null
+     */
+    default DiscoveryVO discovery(final String pluginName, final String level, final String namespaceId,
+                                  final String selectorId, final String discoveryType) {
+        if (Objects.nonNull(selectorId) || Objects.nonNull(discoveryType)) {
+            throw new ValidFailException("The configured discovery service does not support selectorId or discoveryType.");
+        }
+        return discovery(pluginName, level, namespaceId);
+    }
 
     /**
      * Create or update string.
