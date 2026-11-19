@@ -51,6 +51,8 @@ public class ShiroConfiguration {
     @Bean("shiroSecurityManager")
     public DefaultWebSecurityManager securityManager(@Lazy @Qualifier("shiroRealm") final AuthorizingRealm shiroRealm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        // Admin authenticates stateless tokens; never restore identities from RememberMe cookies.
+        securityManager.setRememberMeManager(null);
         securityManager.setRealm(shiroRealm);
         return securityManager;
     }

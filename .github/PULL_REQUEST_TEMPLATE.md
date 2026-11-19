@@ -28,4 +28,5 @@ Make sure that:
 
 - [ ] You have read the [contribution guidelines](https://shenyu.apache.org/community/contributor-guide).
 - [ ] You submit test cases (unit or integration tests) that back your changes.
+- [ ] New production code follows the code quality rules Q1-Q9 in `AGENTS.md` (no magic numbers, focused methods, reuse of existing utilities).
 - [ ] Your local test passed `./mvnw clean install -Dmaven.javadoc.skip=true`.

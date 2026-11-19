@@ -23,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.slf4j.Logger;
@@ -42,6 +44,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 import java.net.URI;
+import java.util.Objects;
 
 /**
  * The type Netty http client plugin.
@@ -119,6 +122,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         } catch (IllegalStateException ex) {
             return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), ex));
         }
+        HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
         return Mono.from(client.headers(headers -> {
             httpHeaders.forEach(headers::set);
             headers.remove(HttpHeaders.HOST);
@@ -145,8 +149,15 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("NettyHttpClient response: status={}", res.status().code());
                     }
+                    if (Objects.nonNull(attempt)) {
+                        attempt.onAbandon(connection::dispose);
+                    }
                     if (shouldFailover(exchange, res.status().code())) {
-                        return connection.inbound().receive().then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
+                        return connection.inbound().receive().doOnComplete(() -> {
+                            if (Objects.nonNull(attempt)) {
+                                attempt.received();
+                            }
+                        }).then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
                     }
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
@@ -158,15 +169,17 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
-                    response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
-                    try {
-                        response.getHeaders().putAll(headers);
-                    } catch (UnsupportedOperationException ex) {
-                        LOG.warn("Failed to set response headers because they are read-only. "
-                                + "This may indicate unexpected response decorator usage. "
-                                + "responseClass={}, statusCode={}, message={}",
-                                response.getClass().getName(), res.status().code(), ex.getMessage());
-                    }
+                    HttpRouteResponseHeaders.apply(exchange, () -> {
+                        response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
+                        try {
+                            response.getHeaders().putAll(headers);
+                        } catch (UnsupportedOperationException ex) {
+                            LOG.warn("Failed to set response headers because they are read-only. "
+                                    + "This may indicate unexpected response decorator usage. "
+                                    + "responseClass={}, statusCode={}, message={}",
+                                    response.getClass().getName(), res.status().code(), ex.getMessage());
+                        }
+                    });
                     return Mono.just(res);
                 }));
     }

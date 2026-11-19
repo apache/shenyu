@@ -58,6 +58,6 @@ public record AiAttemptEvent(AgentRequestContext context, int attemptNumber, Kin
      * How this actual network attempt was selected.
      */
     public enum Kind {
-        PRIMARY, RETRY, FALLBACK
+        PRIMARY, RETRY, FALLBACK, REPAIR
     }
 }

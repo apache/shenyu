@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.httpclient;
 
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.httpclient.exception.ShenyuTimeoutException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -40,6 +42,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -112,7 +116,7 @@ class DefaultRetryTemplateTest {
     }
 
     @Test
-    void parallelAssemblyKeepsRetryLimitsAndContextsIndependent() {
+    void parallelAssemblyKeepsRoutedAndLegacyRequestsIndependent() {
         DefaultRetryStrategy<String> strategy = new DefaultRetryStrategy<>(mock(AbstractHttpClientPlugin.class));
         int[] limits = {0, 1, 3, 5};
         AtomicInteger[] attempts = {new AtomicInteger(), new AtomicInteger(), new AtomicInteger(), new AtomicInteger()};
@@ -122,15 +126,25 @@ class DefaultRetryTemplateTest {
             for (int i = 0; i < limits.length; i++) {
                 final int index = i;
                 responses.add(CompletableFuture.supplyAsync(() -> {
+                    boolean routed = index % 2 == 0;
+                    MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/parallel"));
+                    if (routed) {
+                        exchange.getAttributes().put(HttpRouteDeadline.REQUEST, new HttpRouteDeadline(0));
+                    }
+                    TimeoutException failure = new TimeoutException("upstream timeout " + index);
                     Mono<String> source = Mono.deferContextual(context -> {
                         assertEquals(index, context.<Integer>get("request"));
                         attempts[index].incrementAndGet();
-                        return Mono.error(new TimeoutException("upstream timeout"));
+                        return Mono.error(failure);
                     });
-                    return strategy.execute(source, MockServerWebExchange.from(MockServerHttpRequest.get("/parallel")),
-                                    Duration.ofSeconds(5), limits[index])
+                    return strategy.execute(source, exchange, Duration.ofSeconds(5), limits[index])
                             .onErrorResume(ResponseStatusException.class, error -> {
-                                assertEquals(HttpStatus.REQUEST_TIMEOUT, error.getStatusCode());
+                                assertEquals(routed ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.REQUEST_TIMEOUT, error.getStatusCode());
+                                if (routed) {
+                                    assertSame(failure, error.getCause());
+                                } else {
+                                    assertInstanceOf(ShenyuTimeoutException.class, error.getCause());
+                                }
                                 return Mono.just("exhausted-" + index);
                             }).contextWrite(Context.of("request", index));
                 }, assembly));
@@ -174,7 +188,47 @@ class DefaultRetryTemplateTest {
         StepVerifier.create(strategy.execute(source, MockServerWebExchange.from(MockServerHttpRequest.get("/limit")),
                         Duration.ofSeconds(5), limit))
                 .expectErrorSatisfies(error -> assertEquals(HttpStatus.REQUEST_TIMEOUT, ((ResponseStatusException) error).getStatusCode()))
-                .verify();
+                .verify(Duration.ofSeconds(5));
         assertEquals(1, attempts.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void exhaustedTimeoutKeepsRequestSpecificStatusAndCause(final boolean routed) {
+        DefaultRetryStrategy<String> strategy = new DefaultRetryStrategy<>(mock(AbstractHttpClientPlugin.class));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/exhausted"));
+        if (routed) {
+            exchange.getAttributes().put(HttpRouteDeadline.REQUEST, new HttpRouteDeadline(0));
+        }
+        TimeoutException failure = new TimeoutException("backend deadline exceeded");
+        AtomicInteger attempts = new AtomicInteger();
+        StepVerifier.withVirtualTime(() -> strategy.execute(Mono.defer(() -> {
+            attempts.incrementAndGet();
+            return Mono.error(failure);
+        }), exchange, Duration.ofSeconds(5), 2))
+                .thenAwait(Duration.ofSeconds(1))
+                .expectErrorSatisfies(error -> {
+                    ResponseStatusException status = assertInstanceOf(ResponseStatusException.class, error);
+                    assertEquals(routed ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.REQUEST_TIMEOUT, status.getStatusCode());
+                    if (routed) {
+                        assertSame(failure, status.getCause());
+                    } else {
+                        assertInstanceOf(ShenyuTimeoutException.class, status.getCause());
+                    }
+                })
+                .verify(Duration.ofSeconds(5));
+        assertEquals(3, attempts.get());
+    }
+
+    @Test
+    void routedRequestKeepsItsExistingSequenceDeadline() {
+        DefaultRetryStrategy<String> strategy = new DefaultRetryStrategy<>(mock(AbstractHttpClientPlugin.class));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/deadline"));
+        exchange.getAttributes().put(HttpRouteDeadline.REQUEST, new HttpRouteDeadline(0));
+        StepVerifier.withVirtualTime(() -> strategy.execute(Mono.never(), exchange, Duration.ofMillis(100), 0))
+                .expectSubscription()
+                .expectNoEvent(Duration.ofSeconds(1))
+                .thenCancel()
+                .verify(Duration.ofSeconds(5));
     }
 }

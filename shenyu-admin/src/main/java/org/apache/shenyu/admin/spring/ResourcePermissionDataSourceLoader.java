@@ -26,6 +26,7 @@ import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.service.ShenyuDictService;
+import org.apache.shenyu.admin.utils.ResourceUtil;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.AdminResourceEnum;
@@ -194,7 +195,7 @@ public class ResourcePermissionDataSourceLoader implements ApplicationRunner {
                         .icon(StringUtils.EMPTY)
                         .isLeaf(true)
                         .isRoute(ROUTE)
-                        .perms("plugin:" + pluginName + simpleEntry.getValue())
+                        .perms(ResourceUtil.buildPluginPermission(pluginName, simpleEntry.getValue()))
                         .status(STATUS)
                         .build())).collect(Collectors.toList());
 
