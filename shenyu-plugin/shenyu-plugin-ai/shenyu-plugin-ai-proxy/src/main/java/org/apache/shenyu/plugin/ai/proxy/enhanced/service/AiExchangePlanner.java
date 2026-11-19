@@ -73,6 +73,7 @@ final class AiExchangePlanner {
         AiProtocolRoute route = resolveUpstreamRoute(clientRequest, provider, stream);
         ShenyuAiRequest providerRequest = route.conversion().request();
         validateProviderRequest(provider, providerRequest, stream);
+        validateConfig(config);
         AiProxyProtocol targetProtocol = protocolFactory.getProtocol(route.targetProtocol());
         prepareOutgoingPayload(providerRequest, targetProtocol, provider, config, stream);
         return createPreparedExchange(
@@ -140,6 +141,14 @@ final class AiExchangePlanner {
                     + providerRequest.getProtocol() + " -> " + provider.name());
         }
         provider.capabilities().validate(providerRequest, stream);
+    }
+
+    private void validateConfig(final AiCommonConfig config) {
+        try {
+            AiProxyConfigValidator.validate(config);
+        } catch (IllegalArgumentException error) {
+            throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
+        }
     }
 
     private void prepareOutgoingPayload(final ShenyuAiRequest providerRequest,

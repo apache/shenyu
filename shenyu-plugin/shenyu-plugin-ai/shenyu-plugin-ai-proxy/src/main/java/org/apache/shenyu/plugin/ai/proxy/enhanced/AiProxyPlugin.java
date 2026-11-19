@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
@@ -118,7 +119,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiRequestObservation observation = Objects.nonNull(inherited) ? inherited
                     : new AiRequestObservation(observer, AiObservationSupport.context(view, selector.getId(), rule.getId()),
                             callback instanceof AgentRuntimeMetrics metrics ? metrics : AgentRuntimeMetrics.NOOP);
-            return executeRequest(exchange, selector, rule)
+            return executeRequest(exchange, selector, rule, observation)
                     .doOnError(error -> observation.failure(AiObservationSupport.outcome(error)))
                     .onErrorResume(error -> handleFailure(exchange.getResponse(), error))
                     .doFinally(signal -> {
@@ -131,7 +132,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule, final AiRequestObservation observation) {
         return Mono.defer(() -> {
             AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
                     .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
@@ -150,6 +151,11 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
             if (Objects.nonNull(realApiKey)) {
                 config.setApiKey(realApiKey);
+                ProxyApiKeyData mapping = AiProxyApiKeyCache.getInstance()
+                        .getValidatedMapping(selector.getId(), exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY));
+                if (Objects.nonNull(mapping)) {
+                    observation.updateContext(observation.getContext().withApiKeyId(mapping.getId()));
+                }
             }
             return DataBufferUtils.join(exchange.getRequest().getBody(), MAX_REQUEST_BODY_SIZE_BYTES)
                     .switchIfEmpty(Mono.error(new ShenyuException("AI request body must not be empty")))
@@ -166,7 +172,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                         Optional<AiCommonConfig> fallback = aiProxyConfigService.resolveDynamicFallbackConfig(config, handle, body)
                                 .or(() -> aiProxyConfigService.resolveAdminFallbackConfig(config, handle));
                         return cacheScope(exchange, selector, rule).flatMap(scope ->
-                                aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response))
+                                aiProxyEngine.execute(body, config, fallback, response -> writeResponse(exchange.getResponse(), response, observation))
                                         .contextWrite(context -> scope.map(value -> context.put(AiResponseCacheScope.REACTOR_KEY, value))
                                                 .orElseGet(() -> context.delete(AiResponseCacheScope.REACTOR_KEY))));
                     });
@@ -186,7 +192,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
                 .defaultIfEmpty(Optional.empty());
     }
 
-    private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream) {
+    private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream, final AiRequestObservation observation) {
         response.setStatusCode(HttpStatusCode.valueOf(upstream.getStatusCode()));
         Set<String> excluded = new HashSet<>(HOP_HEADERS);
         upstream.getHeaders().forEach((name, values) -> {
@@ -204,8 +210,14 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             }
         });
         Flux<DataBuffer> body = upstream.getBody().map(bytes -> response.bufferFactory().wrap(bytes))
-                .doOnDiscard(DataBuffer.class, DataBufferUtils::release);
-        return response.writeAndFlushWith(body.map(buffer -> Mono.just(buffer).doOnDiscard(DataBuffer.class, DataBufferUtils::release)));
+                .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                .doOnCancel(observation::downstreamDisconnected);
+        // the body subscription and the outer writing publisher terminate independently: the first
+        // one observes a peer that stopped consuming, the second one reports how the write ended,
+        // so an aborted or failed write is never inferred from a normal outer completion alone
+        return response.writeAndFlushWith(body.map(buffer -> Mono.just(buffer).doOnDiscard(DataBuffer.class, DataBufferUtils::release)))
+                .doOnCancel(observation::downstreamDisconnected)
+                .doOnError(ignored -> observation.downstreamWriteFailed());
     }
 
     private Mono<Void> handleFailure(final ServerHttpResponse response, final Throwable error) {

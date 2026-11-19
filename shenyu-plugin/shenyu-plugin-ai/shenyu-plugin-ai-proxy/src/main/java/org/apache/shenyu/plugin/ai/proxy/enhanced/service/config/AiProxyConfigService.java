@@ -28,6 +28,7 @@ import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.handler.AiProxyPluginHandler;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigValidator;
 
 import java.net.URI;
 import java.util.Locale;
@@ -180,13 +181,8 @@ public class AiProxyConfigService {
         }
         final URI uri;
         try {
-            uri = URI.create(config.getBaseUrl());
+            uri = AiProxyConfigValidator.parseBaseUrl(config.getBaseUrl());
         } catch (IllegalArgumentException e) {
-            throw new ShenyuException("AI fallback requires a valid HTTP(S) endpoint");
-        }
-        if (!("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
-                || Objects.isNull(uri.getHost()) || Objects.nonNull(uri.getRawUserInfo())
-                || Objects.nonNull(uri.getRawQuery()) || Objects.nonNull(uri.getRawFragment()) || uri.getPort() == 0 || uri.getPort() > 65535) {
             throw new ShenyuException("AI fallback requires a valid HTTP(S) endpoint");
         }
         int port = uri.getPort() < 0 ? ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80) : uri.getPort();
