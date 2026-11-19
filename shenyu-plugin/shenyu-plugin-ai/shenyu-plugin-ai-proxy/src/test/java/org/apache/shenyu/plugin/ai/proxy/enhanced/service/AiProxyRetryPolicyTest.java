@@ -39,6 +39,28 @@ class AiProxyRetryPolicyTest {
     private final AiProxyRetryPolicy policy = new AiProxyRetryPolicy();
 
     @ParameterizedTest
+    @CsvSource({"401,3,true,FALLBACK", "403,3,true,FALLBACK", "401,3,false,FORWARD_RESPONSE",
+        "403,0,false,FORWARD_RESPONSE", "429,3,true,RETRY", "503,3,true,RETRY", "400,3,true,FORWARD_RESPONSE"})
+    void classifiedCredentialsSkipRetriesWithoutExpandingOtherStatuses(final int status, final int retries,
+                                                                      final boolean fallback, final AiProxyRetryPolicy.Decision expected) {
+        assertEquals(expected, policy.decideStatus(status(status, retries, fallback, true).withCredentialFailure(true)));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"NEVER,true,true,FORWARD_RESPONSE", "CONSERVATIVE,false,true,FALLBACK",
+        "PROVIDER_DECLARED,false,true,FORWARD_RESPONSE", "PROVIDER_DECLARED,true,false,FORWARD_RESPONSE",
+        "PROVIDER_DECLARED,true,true,FALLBACK"})
+    void classifiedCredentialsStillHonorFallbackReplayPolicy(final AiProxyRetryProperties.ReplayMode mode,
+                                                              final boolean fallbackDeclared, final boolean replaySafe,
+                                                              final AiProxyRetryPolicy.Decision expected) {
+        final AiProxyRetryProperties properties = new AiProxyRetryProperties();
+        properties.getReplay().setResponseStatus(mode);
+        final AiProxyRetryPolicy.FailureContext context = new AiProxyRetryPolicy.FailureContext(null, 401, Map.of(),
+                3, true, replaySafe, ShenyuAiRequest.Operation.CHAT_COMPLETION, properties.getReplay(), true, fallbackDeclared, true);
+        assertEquals(expected, policy.decideStatus(context));
+    }
+
+    @ParameterizedTest
     @CsvSource({
         "400, FORWARD_RESPONSE",
         "401, FORWARD_RESPONSE",

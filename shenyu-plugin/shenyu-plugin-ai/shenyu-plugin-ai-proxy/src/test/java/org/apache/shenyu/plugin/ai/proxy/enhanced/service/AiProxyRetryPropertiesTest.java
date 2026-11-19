@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,6 +53,15 @@ class AiProxyRetryPropertiesTest {
         assertEquals(0.2d, properties.getJitterFraction());
         assertEquals(Duration.ofSeconds(60), properties.getMaxRetryAfter());
         assertEquals(Duration.ofMinutes(5), properties.getRequestDeadline());
+        assertFalse(properties.getCredentialFailureFallback().isEnabled());
+        assertTrue(properties.getCredentialFailureFallback().getDeclarations().isEmpty());
+    }
+
+    @Test
+    void shouldRejectNullCredentialFailureSettings() {
+        final AiProxyRetryProperties properties = new AiProxyRetryProperties();
+        assertThrows(NullPointerException.class, () -> properties.setCredentialFailureFallback(null));
+        assertThrows(NullPointerException.class, () -> properties.getCredentialFailureFallback().setDeclarations(null));
     }
 
     @ParameterizedTest
