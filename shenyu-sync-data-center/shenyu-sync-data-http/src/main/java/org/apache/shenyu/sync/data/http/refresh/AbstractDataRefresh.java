@@ -113,11 +113,10 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
                 LOG.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
                 return oldVal;
             }
-            // must compare the last update time
-            if (oldVal.getLastModifyTime() >= newVal.getLastModifyTime()) {
-                LOG.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
-                return oldVal;
-            }
+            // the md5 already differs, so the content changed; the last-modify timestamp
+            // comes from the admin's own clock and cannot be compared against the gateway
+            // clock — with admin/gateway clock skew a genuine update would carry an older
+            // timestamp and be rejected here forever, keeping stale gateway config
             LOG.info("update {} config: {}", groupEnum, newVal);
             holder.result = true;
             return newVal;

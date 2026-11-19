@@ -84,17 +84,20 @@ public final class AbstractDataRefreshTest {
     }
 
     @Test
-    public void refreshShouldIgnoreNewerMd5WhenModifyTimeIsNotNewer() {
+    public void refreshShouldApplyNewMd5EvenWhenModifyTimeIsNotNewer() {
+        // #8445: the last-modify time is the admin's own clock; with admin/gateway clock
+        // skew a genuine update carries an older timestamp, so a differing md5 must apply
         StubDataRefresh dataRefresh = new StubDataRefresh();
         ConfigData<PluginData> original = config("md5-old", 200L);
         dataRefresh.parsed = original;
         assertTrue(dataRefresh.refresh(new JsonObject()));
 
         dataRefresh.refreshed = false;
-        dataRefresh.parsed = config("md5-new", 100L);
-        assertFalse(dataRefresh.refresh(new JsonObject()));
-        assertFalse(dataRefresh.refreshed);
-        assertSame(original, AbstractDataRefresh.GROUP_CACHE.get(GROUP));
+        final ConfigData<PluginData> latest = config("md5-new", 100L);
+        dataRefresh.parsed = latest;
+        assertTrue(dataRefresh.refresh(new JsonObject()));
+        assertTrue(dataRefresh.refreshed);
+        assertSame(latest, AbstractDataRefresh.GROUP_CACHE.get(GROUP));
     }
 
     @Test
@@ -109,6 +112,24 @@ public final class AbstractDataRefreshTest {
         dataRefresh.parsed = latest;
         assertTrue(dataRefresh.refresh(new JsonObject()));
         assertTrue(dataRefresh.refreshed);
+        assertSame(latest, AbstractDataRefresh.GROUP_CACHE.get(GROUP));
+    }
+
+
+    @Test
+    public void updateCacheIfNeedAcceptsNewMd5WithOlderAdminTimestamp() {
+        final StubDataRefresh dataRefresh = new StubDataRefresh();
+        // seed the cache with a "newer" clock reading than the admin's
+        final ConfigData<PluginData> cached = config("md5-old", 5000L);
+        AbstractDataRefresh.GROUP_CACHE.put(GROUP, cached);
+
+        // admin clock is behind the gateway: new md5, older timestamp
+        final ConfigData<PluginData> latest = config("md5-new", 4000L);
+        dataRefresh.parsed = latest;
+        dataRefresh.refreshed = false;
+
+        assertTrue(dataRefresh.refresh(new JsonObject()),
+                "a different md5 must update the cache even when the admin timestamp is older (clock skew)");
         assertSame(latest, AbstractDataRefresh.GROUP_CACHE.get(GROUP));
     }
 
