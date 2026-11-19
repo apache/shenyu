@@ -41,7 +41,7 @@ public class McpToolsRegisterDTOGenerator {
         JsonObject method = path.getAsJsonObject(shenyuMcpTool.getMethod());
         JsonArray parameters = method.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
 
-        JsonObject requestConfig = McpRequestConfigGenerator.generateRequestConfig(openApiJsonObject, shenyuMcpTool.getRequestConfig());
+        JsonObject requestConfig = McpRequestConfigGenerator.generateRequestConfig(url, shenyuMcpTool.getMethod(), method, shenyuMcpTool.getRequestConfig());
         root.addProperty(ShenyuToolConfigConstants.REQUEST_CONFIG_KEY, requestConfig.toString());
 
         root.addProperty(ShenyuToolConfigConstants.NAME_KEY, shenyuMcpTool.getToolName());
@@ -57,7 +57,8 @@ public class McpToolsRegisterDTOGenerator {
 
     public static JsonArray parameterFormatting(final JsonArray parameters) {
 
-        parameters.forEach(parameter -> {
+        JsonArray formattedParameters = parameters.deepCopy();
+        formattedParameters.forEach(parameter -> {
             JsonObject paramObj = parameter.getAsJsonObject();
 
             JsonElement schema = paramObj.remove(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_SCHEMA_KEY);
@@ -76,7 +77,7 @@ public class McpToolsRegisterDTOGenerator {
             }
             paramObj.remove(OpenApiConstants.OPEN_API_OPERATION_PATH_METHOD_PARAMETERS_IN_KEY);
         });
-        return parameters;
+        return formattedParameters;
 
     }
 }

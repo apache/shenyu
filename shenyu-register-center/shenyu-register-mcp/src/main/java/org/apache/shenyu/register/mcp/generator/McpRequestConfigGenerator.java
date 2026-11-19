@@ -34,35 +34,41 @@ public class McpRequestConfigGenerator {
 
     public static JsonObject generateRequestConfig(final JsonObject openApiJson, final ShenyuMcpRequestConfig shenyuMcpRequestConfig) {
 
-        // requestConfig
-        JsonObject root = new JsonObject();
-
-        // requestTemplate
-        JsonObject requestTemplate = new JsonObject();
-        root.add(RequestTemplateConstants.REQUEST_TEMPLATE_KEY, requestTemplate);
-
-        // url
         JsonObject paths = openApiJson.get(OpenApiConstants.OPEN_API_PATH_KEY).getAsJsonObject();
         String path = null;
         for (String methodKey : paths.keySet()) {
             path = methodKey;
             break;
         }
-        requestTemplate.addProperty(RequestTemplateConstants.URL_KEY, path);
-
-        // method
         JsonObject method = paths.get(path).getAsJsonObject();
         String methodType = null;
         for (String methodKey : method.keySet()) {
             methodType = methodKey;
             break;
         }
-        requestTemplate.addProperty(RequestTemplateConstants.METHOD_KEY, methodType);
+        return generateRequestConfig(path, methodType, method.getAsJsonObject(methodType), shenyuMcpRequestConfig);
+    }
+
+    /**
+     * Generate a request template for the selected operation without consulting other document entries.
+     *
+     * @param path the operation path
+     * @param method the HTTP method
+     * @param operation the selected OpenAPI operation
+     * @param shenyuMcpRequestConfig the configured request options
+     * @return the request configuration
+     */
+    static JsonObject generateRequestConfig(final String path, final String method, final JsonObject operation,
+                                           final ShenyuMcpRequestConfig shenyuMcpRequestConfig) {
+        JsonObject root = new JsonObject();
+        JsonObject requestTemplate = new JsonObject();
+        root.add(RequestTemplateConstants.REQUEST_TEMPLATE_KEY, requestTemplate);
+        requestTemplate.addProperty(RequestTemplateConstants.URL_KEY, path);
+        requestTemplate.addProperty(RequestTemplateConstants.METHOD_KEY, method);
 
         // argsPosition
         JsonObject argsPosition = new JsonObject();
-        JsonObject methodTypeJson = method.getAsJsonObject(methodType);
-        JsonArray parameters = methodTypeJson.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
+        JsonArray parameters = operation.getAsJsonArray(OpenApiConstants.OPEN_API_PATH_OPERATION_METHOD_PARAMETERS_KEY);
         if (Objects.nonNull(parameters)) {
             for (JsonElement parameter : parameters) {
                 JsonObject paramObj = parameter.getAsJsonObject();
