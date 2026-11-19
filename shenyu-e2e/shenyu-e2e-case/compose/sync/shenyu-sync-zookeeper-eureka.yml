@@ -105,6 +105,7 @@ services:
       - "31195:9195"
     environment:
       - TZ=Asia/Beijing
+      - shenyu.endpoint.raw-data.enabled=true
       - shenyu.sync.zookeeper.url=shenyu-zookeeper-sync:2181
       - shenyu.sync.zookeeper.sessionTimeoutMilliseconds=5000
       - shenyu.sync.zookeeper.connectionTimeoutMilliseconds=2000

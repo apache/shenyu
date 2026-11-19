@@ -191,6 +191,8 @@ spec:
           args:
             - -Xmx768m -Xms768m
           env:
+            - name: shenyu.endpoint.raw-data.enabled
+              value: "true"
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin-master:9095/websocket,ws://shenyu-admin-slave:9096/websocket
             - name: shenyu.sync.websocket.token

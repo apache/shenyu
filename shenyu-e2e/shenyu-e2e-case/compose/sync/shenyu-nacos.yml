@@ -129,6 +129,7 @@ services:
       - "9195:9195"
     environment:
       - TZ=Asia/Beijing
+      - shenyu.endpoint.raw-data.enabled=true
       - shenyu.sync.nacos.url=http://shenyu-nacos:8848
       - shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c
     healthcheck:
