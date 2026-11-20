@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.disruptor.RegisterClientServerDisruptorPublisher;
 import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.register.ClientRegisterProvisioner;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -51,14 +52,17 @@ public class RegisterCenterConfiguration {
      * Shenyu client server register repository server register repository.
      *
      * @param shenyuClientRegisterService the shenyu client register service
+     * @param clientRegisterProvisioners the client register provisioners invoked after registrations, may be empty
      * @param discoveryService the discovery service
      * @return the shenyu server register repository
      */
     @Bean
-    public RegisterClientServerDisruptorPublisher registerClientServerDisruptorPublisher(final List<ShenyuClientRegisterService> shenyuClientRegisterService, final DiscoveryService discoveryService) {
+    public RegisterClientServerDisruptorPublisher registerClientServerDisruptorPublisher(final List<ShenyuClientRegisterService> shenyuClientRegisterService,
+                                                                                         final List<ClientRegisterProvisioner> clientRegisterProvisioners,
+                                                                                         final DiscoveryService discoveryService) {
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
         Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType, Function.identity()));
-        publisher.start(registerServiceMap, discoveryService);
+        publisher.start(registerServiceMap, discoveryService, clientRegisterProvisioners);
         return publisher;
     }
     

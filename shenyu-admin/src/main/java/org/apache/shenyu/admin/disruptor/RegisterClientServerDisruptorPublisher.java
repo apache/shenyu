@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
 import org.apache.shenyu.admin.register.ShenyuClientServerRegisterPublisher;
 import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.register.ClientRegisterProvisioner;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
@@ -32,6 +33,7 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -60,9 +62,21 @@ public class RegisterClientServerDisruptorPublisher implements ShenyuClientServe
      * @param discoveryService the discovery service
      */
     public void start(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService, final DiscoveryService discoveryService) {
+        start(shenyuClientRegisterService, discoveryService, Collections.emptyList());
+    }
+
+    /**
+     * start.
+     *
+     * @param shenyuClientRegisterService the shenyu client register service
+     * @param discoveryService the discovery service
+     * @param clientRegisterProvisioners the client register provisioners invoked after registrations, may be empty
+     */
+    public void start(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService, final DiscoveryService discoveryService,
+                      final List<ClientRegisterProvisioner> clientRegisterProvisioners) {
         RegisterServerExecutorFactory factory = new RegisterServerExecutorFactory();
         factory.addSubscribers(new URIRegisterExecutorSubscriber(shenyuClientRegisterService));
-        factory.addSubscribers(new MetadataExecutorSubscriber(shenyuClientRegisterService));
+        factory.addSubscribers(new MetadataExecutorSubscriber(shenyuClientRegisterService, clientRegisterProvisioners));
         factory.addSubscribers(new ApiDocExecutorSubscriber(shenyuClientRegisterService));
         factory.addSubscribers(new DiscoveryConfigRegisterExecutorSubscriber(discoveryService));
         factory.addSubscribers(new McpToolsRegisterExecutorSubscriber(shenyuClientRegisterService));
