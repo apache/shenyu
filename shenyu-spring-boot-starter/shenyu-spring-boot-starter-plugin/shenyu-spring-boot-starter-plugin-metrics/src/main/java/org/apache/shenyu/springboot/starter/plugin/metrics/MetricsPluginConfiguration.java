@@ -18,10 +18,13 @@
 package org.apache.shenyu.springboot.starter.plugin.metrics;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.metrics.PluginObservationSink;
+import org.apache.shenyu.plugin.metrics.reporter.PluginLifecycleMetricsSink;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.metrics.MetricsPlugin;
 import org.apache.shenyu.springboot.starter.plugin.metrics.boot.MetricsRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,5 +54,15 @@ public class MetricsPluginConfiguration {
     @Bean
     public MetricsRunner metricsRunner(final ShenyuConfig shenyuConfig) {
         return new MetricsRunner(shenyuConfig.getMetrics());
+    }
+
+    /**
+     * Export optional sampled boundaries through the existing MetricsReporter registry.
+     * @return non-request-thread adapter; no additional server spans or telemetry backend
+     */
+    @Bean
+    @ConditionalOnMissingBean(PluginObservationSink.class)
+    public PluginObservationSink pluginObservationSink() {
+        return new PluginLifecycleMetricsSink();
     }
 }

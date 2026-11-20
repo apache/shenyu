@@ -40,10 +40,12 @@ import org.apache.shenyu.web.filter.HealthFilter;
 import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.forward.ForwardedRemoteAddressResolver;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
+import org.apache.shenyu.web.observation.PluginObservationManager;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -61,6 +63,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.WebFilter;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -79,6 +82,9 @@ public class ShenyuConfiguration {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuConfiguration.class);
+
+    @Autowired
+    private ObjectProvider<PluginObservationManager> observationManagers;
     
     /**
      * Init ShenyuWebHandler.
@@ -90,11 +96,13 @@ public class ShenyuConfiguration {
      */
     @Bean("webHandler")
     public ShenyuWebHandler shenyuWebHandler(final ObjectProvider<List<ShenyuPlugin>> plugins, final ShenyuConfig config, @Lazy final ShenyuLoaderService shenyuLoaderService) {
+        final PluginObservationManager observations = Objects.isNull(observationManagers) ? PluginObservationManager.disabled()
+                : observationManagers.getIfAvailable(PluginObservationManager::disabled);
         List<ShenyuPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         List<ShenyuPlugin> shenyuPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(ShenyuPlugin::getOrder)).collect(Collectors.toList());
         shenyuPlugins.forEach(shenyuPlugin -> LOG.info("load plugin:[{}] [{}]", shenyuPlugin.named(), shenyuPlugin.getClass().getName()));
-        return new ShenyuWebHandler(shenyuPlugins, shenyuLoaderService, config);
+        return new ShenyuWebHandler(shenyuPlugins, shenyuLoaderService, config, observations);
     }
     
     /**
