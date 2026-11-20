@@ -1049,14 +1049,14 @@ W3.org documents
 
 ========================================================================
 Bundled resources:
-  joda-time-2.3.jar / META-INF/NOTICE.txt
+  joda-time-2.10.5.jar / META-INF/NOTICE.txt
 ========================================================================
 
 =============================================================================
 = NOTICE file corresponding to section 4d of the Apache License Version 2.0 =
 =============================================================================
 This product includes software developed by
-Joda.org (http://www.joda.org/).
+Joda.org (https://www.joda.org/).
 
 ========================================================================
 Bundled resources:

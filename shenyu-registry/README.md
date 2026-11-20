@@ -41,7 +41,7 @@ runtime classpath, using the same ShenYu version as the application:
 | `etcd` | `shenyu-registry-etcd` |
 | `nacos` | `shenyu-registry-nacos` |
 | `apollo` | `shenyu-registry-apollo`; in-tree deprecation and planned external ownership: [migration guide](../docs/plugin-store-apollo.md) |
-| `eureka` | `shenyu-registry-eureka` |
+| `eureka` | External `shenyu-registry-eureka`; see [migration guide](../docs/plugin-store-eureka.md) |
 | `kubernetes` | `shenyu-registry-kubernetes` |
 
 Multiple implementation dependencies may coexist. The configured key selects the
@@ -59,9 +59,9 @@ example selects Eureka, and the gRPC example selects no registry implementation.
 
 ## Compatibility and migration
 
-For the 2.7.2 transition, `shenyu-spring-boot-starter-registry` retains the five providers
-previously supplied by core: ZooKeeper, etcd, Nacos, Eureka and Kubernetes. Existing users
-of that starter keep the same classpath and configuration keys. Apollo was not part of
+For the 2.7.2 transition, `shenyu-spring-boot-starter-registry` retains four providers
+previously supplied by core: ZooKeeper, etcd, Nacos and Kubernetes. Existing users
+of that starter retain these providers; Eureka requires the external starter/provider. Configuration keys remain unchanged. Apollo was not part of
 the previous aggregate and remains an explicit choice. Removing the compatibility
 aggregate is deferred to a separately announced change.
 
@@ -98,17 +98,16 @@ without any built-in provider dependency.
 | Consumer | Registry implementation inventory |
 | --- | --- |
 | Registry API/core, SDK libraries and SDK starters | None |
-| Compatibility registry starter | ZooKeeper, etcd, Nacos, Eureka, Kubernetes |
-| Admin distribution | ZooKeeper, etcd, Nacos, Eureka, Kubernetes, explicitly declared |
+| Compatibility registry starter | ZooKeeper, etcd, Nacos, Kubernetes |
+| Admin distribution | ZooKeeper, etcd, Nacos, Kubernetes, explicitly declared |
 | Bootstrap distribution | Registry API only; client libraries also arrive through sync/register/plugin modules |
 | SDK HTTP/Dubbo integration gateways | ZooKeeper |
 | Upload-plugin integration gateway | None; registry registration is not enabled |
 
 The packaged Admin client inventory includes Curator 5.7.0, ZooKeeper 3.9.5, jetcd
-0.7.3, Nacos 2.2.4, Eureka 2.0.2, and Kubernetes Java client 17.0.2. Bootstrap still
+0.7.3, Nacos 2.2.4 and Kubernetes Java client 17.0.2. Bootstrap still
 packages Curator, ZooKeeper, jetcd and Nacos through its other selected modules. Both
-release archives include their LICENSE/NOTICE files. No registry client license entry
-is removed by this change.
+release archives include their LICENSE/NOTICE files. Eureka client licensing follows the external runtime closure; review the release inventory at cutover.
 
 Admin retains the same client libraries, so its existing distribution LICENSE/NOTICE
 entries still apply. Bootstrap distribution client libraries also come from selected
