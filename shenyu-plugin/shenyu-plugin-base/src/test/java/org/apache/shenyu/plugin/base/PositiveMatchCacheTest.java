@@ -115,7 +115,7 @@ class PositiveMatchCacheTest {
         assertSame(generic, plugin.rule);
         execute(true);
         assertSame(special, plugin.rule);
-        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        assertNull(MatchDataCache.getInstance().obtainRuleData(PLUGIN, "selector", "/x"));
         MatchDataCache.getInstance().cleanRuleDataData();
         execute(true);
         assertSame(special, plugin.rule);
@@ -146,7 +146,7 @@ class PositiveMatchCacheTest {
         }
         execute(false);
         assertSame(generic, MatchDataCache.getInstance().obtainSelectorData(PLUGIN, "/x"));
-        assertSame(genericRule, MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x"));
+        assertSame(genericRule, MatchDataCache.getInstance().obtainRuleData(PLUGIN, generic.getId(), "/x"));
         execute(true);
         assertSame(generic, plugin.selector);
         assertSame(genericRule, plugin.rule);
