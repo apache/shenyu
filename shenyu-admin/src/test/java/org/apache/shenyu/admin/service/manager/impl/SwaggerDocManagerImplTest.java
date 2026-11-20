@@ -210,6 +210,28 @@ public class SwaggerDocManagerImplTest {
     }
 
     @Test
+    public void testPullApiDocumentPrefersPrefixedSwaggerWhenBothUrlsSucceed() throws IOException {
+        final UpstreamInstance instance = newInstance("/mcp");
+        final TagVO tagVO = stubTag(instance);
+        final List<AtomicBoolean> closed = new ArrayList<>();
+        final List<String> urls = stubSwagger(url -> {
+            if (ROOT_SWAGGER_URL.equals(url)) {
+                return httpResponse(url, HttpStatus.SC_OK, ROOT_DOC, closed);
+            }
+            return httpResponse(url, HttpStatus.SC_OK, PREFIXED_DOC, closed);
+        });
+
+        serviceDocManager.pullApiDocument(instance);
+
+        assertEquals(Collections.singletonList(PREFIXED_SWAGGER_URL), urls);
+        verify(docManager).addDocInfo(eq(instance), eq(PREFIXED_DOC), isNull(), any());
+        verify(docManager, never()).addDocInfo(any(), eq(ROOT_DOC), any(), any());
+        assertTrue(tagVO.getTagExt().getRefreshTime() > 1000L);
+        assertNull(tagVO.getTagExt().getDocLock());
+        assertAllClosed(closed);
+    }
+
+    @Test
     public void testPullApiDocumentRetriesRootSwaggerWhenPrefixedPathIsNotFound() throws IOException {
         final UpstreamInstance instance = newInstance("/mcp");
         final TagVO tagVO = stubTag(instance);

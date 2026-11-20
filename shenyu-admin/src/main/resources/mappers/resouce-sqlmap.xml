@@ -61,6 +61,23 @@
          WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE name = #{name, jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByPerms" resultMap="BaseResultMap">
+        SELECT
+                <include refid="Base_Column_List"/>
+          FROM resource
+         WHERE perms IN
+        <foreach item="perm" collection="perms" open="(" separator="," close=")">
+            #{perm, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
     <select id="selectByIdsBatch" resultMap="BaseResultMap">
         SELECT
                 <include refid="Base_Column_List"/>
