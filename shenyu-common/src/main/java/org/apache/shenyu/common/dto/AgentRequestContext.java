@@ -53,6 +53,8 @@ public final class AgentRequestContext {
 
     private final String sessionId;
 
+    private final String apiKeyId;
+
     public AgentRequestContext(final String requestId, final String trafficType, final String selectorId, final String ruleId) {
         this(requestId, trafficType, selectorId, ruleId, null, null, null, null, null, null, null);
     }
@@ -60,6 +62,12 @@ public final class AgentRequestContext {
     public AgentRequestContext(final String requestId, final String trafficType, final String selectorId, final String ruleId,
                                final Long configurationVersion, final String tenant, final String subject, final String target,
                                final String operation, final String protocolVersion, final String sessionId) {
+        this(requestId, trafficType, selectorId, ruleId, configurationVersion, tenant, subject, target, operation, protocolVersion, sessionId, null);
+    }
+
+    private AgentRequestContext(final String requestId, final String trafficType, final String selectorId, final String ruleId,
+                                final Long configurationVersion, final String tenant, final String subject, final String target,
+                                final String operation, final String protocolVersion, final String sessionId, final String apiKeyId) {
         this.requestId = Objects.requireNonNull(requestId, "requestId");
         this.trafficType = Objects.requireNonNull(trafficType, "trafficType");
         this.selectorId = selectorId;
@@ -71,20 +79,30 @@ public final class AgentRequestContext {
         this.operation = operation;
         this.protocolVersion = protocolVersion;
         this.sessionId = sessionId;
+        this.apiKeyId = apiKeyId;
     }
 
     public AgentRequestContext withIdentity(final String trustedTenant, final String trustedSubject) {
         return new AgentRequestContext(requestId, trafficType, selectorId, ruleId, configurationVersion, trustedTenant, trustedSubject,
-                target, operation, protocolVersion, sessionId);
+                target, operation, protocolVersion, sessionId, apiKeyId);
     }
 
     public AgentRequestContext withTarget(final String resolvedTarget, final String resolvedOperation, final String resolvedProtocolVersion) {
         return new AgentRequestContext(requestId, trafficType, selectorId, ruleId, configurationVersion, tenant, subject,
-                resolvedTarget, resolvedOperation, resolvedProtocolVersion, sessionId);
+                resolvedTarget, resolvedOperation, resolvedProtocolVersion, sessionId, apiKeyId);
     }
 
     public AgentRequestContext withConfigurationVersion(final long version) {
-        return new AgentRequestContext(requestId, trafficType, selectorId, ruleId, version, tenant, subject, target, operation, protocolVersion, sessionId);
+        return new AgentRequestContext(requestId, trafficType, selectorId, ruleId, version, tenant, subject, target, operation, protocolVersion, sessionId, apiKeyId);
+    }
+
+    public AgentRequestContext withApiKeyId(final String internalId) {
+        return new AgentRequestContext(requestId, trafficType, selectorId, ruleId, configurationVersion, tenant, subject,
+                target, operation, protocolVersion, sessionId, internalId);
+    }
+
+    public String getApiKeyId() {
+        return apiKeyId;
     }
 
     public String getRequestId() {

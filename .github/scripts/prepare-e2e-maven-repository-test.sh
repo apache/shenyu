@@ -93,6 +93,14 @@ fi
 mkdir -p "${repository}/fixture/fixture/1.0"
 printf 'fixture' > "${repository}/fixture/fixture/1.0/fixture-1.0.jar"
 printf 'metadata' > "${repository}/fixture/fixture/1.0/_remote.repositories"
+if [[ "$*" == *org.apache.maven.plugins:maven-surefire-plugin:test* ]]; then
+  if [[ " $* " != *" -N "* || " $* " != *" -Dmaven.test.skip=true "* ]]; then
+    echo 'Plugin dependency preparation must not compile or execute scenarios' >&2
+    exit 1
+  fi
+  mkdir -p "${repository}/fixture/surefire-runtime/1.0"
+  printf 'plugin runtime' > "${repository}/fixture/surefire-runtime/1.0/surefire-runtime-1.0.jar"
+fi
 WRAPPER
 chmod +x "${test_dir}/project/mvnw"
 cd "${test_dir}/project"
@@ -140,6 +148,8 @@ DEPENDENCIES
 python3 "${script_dir}/e2e-maven-repository.py" restore "${test_dir}/artifact" "${test_dir}/restored"
 cmp "${test_dir}/artifact/repository/fixture/fixture/1.0/_remote.repositories" \
   "${test_dir}/restored/repository/fixture/fixture/1.0/_remote.repositories"
+cmp "${test_dir}/artifact/repository/fixture/surefire-runtime/1.0/surefire-runtime-1.0.jar" \
+  "${test_dir}/restored/repository/fixture/surefire-runtime/1.0/surefire-runtime-1.0.jar"
 cmp "${test_dir}/project/.mvn/wrapper/maven-wrapper.jar" "${test_dir}/restored/wrapper/maven-wrapper.jar"
 cmp "${MAVEN_USER_HOME}/wrapper/dists/maven-bin/hash/maven-bin.zip" \
   "${test_dir}/restored/maven-user-home/wrapper/dists/maven-bin/hash/maven-bin.zip"

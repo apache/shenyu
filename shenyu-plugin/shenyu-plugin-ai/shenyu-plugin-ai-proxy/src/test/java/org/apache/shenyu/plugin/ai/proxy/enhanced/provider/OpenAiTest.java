@@ -27,11 +27,14 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -89,6 +92,26 @@ class OpenAiTest {
         assertFalse(payload.has("messages"));
         assertFalse(payload.has("max_completion_tokens"));
         assertFalse(payload.has("stream_options"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"relative", "ftp://example.org", "https:///v1", "https://test-secret@example.org",
+            "https://example.org?token=test-secret", "https://example.org#test-secret", "https://example.org:0", "https://example.org:65536"})
+    void testDirectBuildRejectsInvalidEndpoints(final String endpoint) throws Exception {
+        final ShenyuAiRequest request = decode("{\"messages\":[{\"role\":\"user\"}]}");
+        config.setBaseUrl(endpoint);
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> provider.buildRequest(request, config));
+        assertEquals("baseUrl.invalidEndpoint", error.getMessage());
+        assertNull(error.getCause());
+    }
+
+    @Test
+    void testDirectBuildRejectsMalformedUriWithoutExposingInput() throws Exception {
+        final ShenyuAiRequest request = decode("{\"messages\":[{\"role\":\"user\"}]}");
+        config.setBaseUrl("https://example.org/test-secret/%ZZ");
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> provider.buildRequest(request, config));
+        assertEquals("baseUrl.invalidSyntax", error.getMessage());
+        assertNull(error.getCause());
     }
 
     private ShenyuAiRequest decode(final String body) throws Exception {

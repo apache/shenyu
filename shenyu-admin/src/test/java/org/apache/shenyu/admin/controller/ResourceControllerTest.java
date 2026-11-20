@@ -148,13 +148,13 @@ public class ResourceControllerTest {
     }
 
     @Test
-    public void testGetButtonResultFailed() throws Exception {
+    public void testGetButtonReturnsEmptyList() throws Exception {
         final String mockId = "mock id";
         given(resourceService.findByParentId(mockId)).willReturn(newArrayList());
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/resource/button")
                 .queryParam("id", mockId))
-                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED))))
+                .andExpect(content().json(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, Collections.emptyList()))))
                 .andReturn();
     }
 

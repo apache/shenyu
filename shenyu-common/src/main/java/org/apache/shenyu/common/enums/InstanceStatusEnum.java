@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.common.enums;
 
+/**
+ * Persisted instance liveness states. Code zero means an expired/deleted instance, not an unknown state.
+ */
 public enum InstanceStatusEnum {
 
     /**
@@ -56,6 +59,6 @@ public enum InstanceStatusEnum {
                 return status.getName();
             }
         }
-        return DELETED.name;
+        return "UNKNOWN";
     }
 }

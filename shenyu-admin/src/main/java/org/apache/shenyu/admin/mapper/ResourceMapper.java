@@ -49,6 +49,22 @@ public interface ResourceMapper extends ExistProvider {
      * @return {@linkplain ResourceDO}
      */
     ResourceDO selectById(String id);
+
+    /**
+     * Find resources by name, including disabled resources.
+     *
+     * @param name resource name
+     * @return matching resources
+     */
+    List<ResourceDO> selectByName(String name);
+
+    /**
+     * Find resources by permissions, including disabled resources.
+     *
+     * @param perms permission values
+     * @return matching resources
+     */
+    List<ResourceDO> selectByPerms(@Param("perms") List<String> perms);
     
     /**
      * select resource by user name.<br>

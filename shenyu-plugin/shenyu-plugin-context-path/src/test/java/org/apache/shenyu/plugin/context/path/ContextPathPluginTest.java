@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.context.path;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
@@ -29,12 +31,15 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.cache.MetaDataCache;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -44,7 +49,9 @@ import reactor.core.publisher.Mono;
 import static org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler.CACHED_HANDLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,6 +110,62 @@ public final class ContextPathPluginTest {
         shenyuContext.setPath(null);
         contextMappingRuleHandle.setContextPath(null);
         Assertions.assertDoesNotThrow(() -> contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "/api, /api, /v2, /v2",
+        "/api/, /api/, /v2, /v2",
+        "/api, /api, /v2/, /v2/",
+        "/api/, /api, /v2, /v2/",
+        "/api/orders, /api, /v2, /v2/orders",
+        "/api/a%2Fb, /api, /v2, /v2/a%2Fb",
+        "/api/orders, , /v2, /v2/api/orders",
+        "/api/orders, '', /v2, /v2/api/orders"
+    })
+    public void testAddPrefixAfterRemovingContextPath(final String path, final String contextPath,
+                                                     final String addPrefix, final String expectedPath) {
+        shenyuContext.setPath(path);
+        ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+        handle.setContextPath(contextPath);
+        handle.setAddPrefix(addPrefix);
+        when(ruleData.getId()).thenReturn("addPrefix");
+        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+
+        contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData).block();
+
+        assertEquals(expectedPath, shenyuContext.getRealUrl());
+        assertEquals(StringUtils.isBlank(contextPath) ? null : contextPath, exchange.getAttribute(Constants.CONTEXT_PATH));
+        verify(chain).execute(exchange);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testExactContextPathWithPrefixAndMetadataRewrite(final boolean metadataExists) {
+        shenyuContext.setPath("/api");
+        MetaData original = new MetaData();
+        MetaData rewritten = new MetaData();
+        exchange.getAttributes().put(Constants.META_DATA, original);
+        ContextMappingRuleHandle handle = new ContextMappingRuleHandle();
+        handle.setContextPath("/api");
+        handle.setAddPrefix("/v2");
+        handle.setRewriteContextPath("/rewritten");
+        when(ruleData.getId()).thenReturn("addPrefixWithMetadata");
+        CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), handle);
+        MetaDataCache cache = mock(MetaDataCache.class);
+        try (MockedStatic<MetaDataCache> mocked = mockStatic(MetaDataCache.class)) {
+            mocked.when(MetaDataCache::getInstance).thenReturn(cache);
+            when(cache.obtain("/rewritten")).thenReturn(metadataExists ? rewritten : null);
+
+            contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData).block();
+
+            assertEquals("/v2", shenyuContext.getRealUrl());
+            assertEquals("/rewritten", exchange.getAttribute(Constants.REWRITE_CONTEXT_PATH));
+            assertSame(original, exchange.getAttribute(Constants.OLD_CONTEXT_PATH_META_DATA));
+            assertSame(metadataExists ? rewritten : original, exchange.getAttribute(Constants.META_DATA));
+            verify(cache).obtain("/rewritten");
+            verify(chain).execute(exchange);
+        }
     }
 
     @ParameterizedTest
