@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.exception;
 
+import org.apache.shenyu.admin.utils.AdminSecurityAudit;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
@@ -69,7 +70,7 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(UnauthorizedException.class)
     protected ShenyuAdminResult handleUnauthorizedException(final UnauthorizedException exception) {
-        LOG.error("unauthorized exception", exception);
+        AdminSecurityAudit.denied(AdminSecurityAudit.Reason.ACTION_DENIED, null, null, null);
         return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
     
@@ -124,10 +125,12 @@ public class ExceptionHandlers {
     @ExceptionHandler(ShenyuException.class)
     protected ShenyuAdminResult handleShenyuException(final ShenyuException exception) {
         if (exception.getCause() instanceof UnauthorizedException) {
-            LOG.error("unauthorized exception", exception.getCause());
+            AdminSecurityAudit.denied(AdminSecurityAudit.Reason.ACTION_DENIED, null, null, null);
             return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
         }
-        LOG.error(exception.getMessage(), exception);
+        if (!AdminSecurityAudit.isDenialRecorded(exception)) {
+            LOG.error(exception.getMessage(), exception);
+        }
         String message = Objects.isNull(exception.getCause()) ? null : exception.getCause().getMessage();
         if (!StringUtils.hasText(message)) {
             message = exception.getMessage();
@@ -137,7 +140,9 @@ public class ExceptionHandlers {
     
     @ExceptionHandler(Exception.class)
     protected ShenyuAdminResult handleExceptionHandler(final Exception exception) {
-        LOG.error(exception.getMessage(), exception);
+        if (!AdminSecurityAudit.isDenialRecorded(exception)) {
+            LOG.error(exception.getMessage(), exception);
+        }
         String message = "The system is busy, please try again later";
         return ShenyuAdminResult.error(message);
     }
