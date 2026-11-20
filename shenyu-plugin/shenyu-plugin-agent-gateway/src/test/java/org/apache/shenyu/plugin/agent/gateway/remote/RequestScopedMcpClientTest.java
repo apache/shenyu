@@ -121,6 +121,38 @@ class RequestScopedMcpClientTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void transientRecoveryFailureDoesNotPoisonLaterCalls(final boolean notificationFailure) throws Exception {
+        try (Fixture fixture = new Fixture(false)) {
+            fixture.uniqueSessions = true;
+            RequestScopedMcpClient client = fixture.client();
+            try {
+                client.initialize().block(WAIT);
+                fixture.expireSessions();
+                StepVerifier.create(call(client, "expired", 0, "a")).expectError(RemoteSessionExpiredException.class).verify(WAIT);
+                fixture.acceptSessions();
+                fixture.initializeStatus = notificationFailure ? 200 : 503;
+                fixture.initializedStatus = notificationFailure ? 503 : 202;
+                StepVerifier.create(call(client, "not-forwarded", 0, "b")).expectError(IllegalStateException.class).verify(WAIT);
+                assertFalse(client.handshakeReadyForTest());
+                fixture.initializeStatus = 200;
+                fixture.initializedStatus = 202;
+                assertEquals(4, Flux.range(0, 4).flatMap(index -> call(client, "recovered", 0, "peer-" + index))
+                        .collectList().block(WAIT).size());
+                assertTrue(client.handshakeReadyForTest());
+                assertEquals(notificationFailure ? 2 : 3,
+                        fixture.requests.stream().filter(request -> "initialize".equals(request.get("method"))).count());
+                assertEquals(notificationFailure ? 3 : 2,
+                        fixture.requests.stream().filter(request -> "notifications/initialized".equals(request.get("method"))).count());
+                assertEquals(0, fixture.requests.stream().filter(request -> "not-forwarded".equals(request.get("token"))).count());
+                assertEquals(1, fixture.requests.stream().filter(request -> "expired".equals(request.get("token"))).count());
+            } finally {
+                client.closeGracefully().block(WAIT);
+            }
+        }
+    }
+
     private void assertRejectedAcknowledgement(final Fixture fixture) throws InterruptedException {
         RequestScopedMcpClient client = fixture.client();
         try {
@@ -824,6 +856,8 @@ class RequestScopedMcpClientTest {
 
         private volatile int initializedStatus = 202;
 
+        private volatile int initializeStatus = 200;
+
         private volatile byte[] initializedBody = new byte[0];
 
         private volatile int deletes;
@@ -901,6 +935,10 @@ class RequestScopedMcpClientTest {
                     }
                     ObjectNode result = json.createObjectNode();
                     if ("initialize".equals(method)) {
+                        if (initializeStatus != 200) {
+                            exchange.sendResponseHeaders(initializeStatus, -1);
+                            return;
+                        }
                         if (!stateless) {
                             exchange.getResponseHeaders().set("MCP-Session-Id",
                                     uniqueSessions ? "unit-session-" + sessionCounter.incrementAndGet() : "unit-session");

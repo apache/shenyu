@@ -31,6 +31,7 @@ import reactor.core.publisher.SignalType;
 import reactor.core.publisher.Sinks;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -75,6 +76,8 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     private static final Duration DEFAULT_SESSION_IDLE_TTL = Duration.ofMinutes(5);
 
     private static final int MAX_CLEANUP_ATTEMPTS = 2;
+
+    private static final Duration CACHE_FOREVER = Duration.ofMillis(Long.MAX_VALUE);
 
     private final HttpClient http;
 
@@ -155,11 +158,12 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         this.authorization = binding.authorization();
         this.observer = observer;
         this.sessionIdleTtl = sessionIdleTtl;
-        handshake.set(createHandshake().cache());
+        handshake.set(createHandshake());
     }
 
     private Mono<McpSchema.InitializeResult> createHandshake() {
-        return Mono.defer(() -> recoveryAllowed.getAsBoolean() ? request("initialize", Map.of("protocolVersion", VERSION, "capabilities", Map.of(),
+        Mono<McpSchema.InitializeResult> initialized = cacheHandshakeStage(Mono.defer(() -> recoveryAllowed.getAsBoolean()
+                ? request("initialize", Map.of("protocolVersion", VERSION, "capabilities", Map.of(),
                 "clientInfo", Map.of("name", "shenyu-agent-gateway", "version", "2.7.2-SNAPSHOT")), false)
                 : Mono.error(new AgentMcpRemoteCatalog.CatalogUnavailableException()))
             .map(result -> {
@@ -167,14 +171,24 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                     throw new IllegalArgumentException("Unsupported negotiated version");
                 }
                 return JSON.convertValue(result, McpSchema.InitializeResult.class);
-            })
+            }));
+        // A failed acknowledgement retries only that stage, retaining the allocated session.
+        return cacheHandshakeStage(initialized
             .flatMap(result -> request("notifications/initialized", Map.of(), true).thenReturn(result))
             // Session handshake uses fixed service configuration, never the first Agent's context.
             .contextWrite(context -> context.delete(McpTransportContext.KEY).delete(AgentTraceContext.HEADERS_KEY))
             .doOnSuccess(ignored -> {
                 handshakeReady = true;
                 lastUse = Instant.now();
-            });
+            }));
+    }
+
+    private static <T> Mono<T> cacheHandshakeStage(final Mono<T> source) {
+        // Only a later subscription retries a transient failure; never replay a business call.
+        return source.cache(ignored -> CACHE_FOREVER,
+                error -> error instanceof IOException || error instanceof TimeoutException
+                        || error instanceof RetryableHandshakeHttpException ? Duration.ZERO : CACHE_FOREVER,
+                () -> CACHE_FOREVER);
     }
 
     @Override
@@ -188,7 +202,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 if (Objects.nonNull(current)) {
                     return current;
                 }
-                Mono<McpSchema.InitializeResult> candidate = createHandshake().cache();
+                Mono<McpSchema.InitializeResult> candidate = createHandshake();
                 handshake.set(candidate);
                 return candidate;
             }
@@ -268,7 +282,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             }
             if (Objects.nonNull(abandoned)) {
                 return reclaimAbandonedSession(abandoned).onErrorResume(ignored -> Mono.empty())
-                        .then(Mono.defer(() -> Objects.isNull(session) ? initialize().then() : Mono.empty()));
+                        .then(Mono.defer(() -> handshakeReady ? Mono.empty() : initialize().then()));
             }
             String current = session;
             Instant used = lastUse;
@@ -291,7 +305,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                         cleanupAttempts = 0;
                     }
                     return reclaimAbandonedSession(current).onErrorResume(ignored -> Mono.empty())
-                            .then(Mono.defer(() -> Objects.isNull(session) ? initialize().then() : Mono.empty()));
+                            .then(Mono.defer(() -> handshakeReady ? Mono.empty() : initialize().then()));
                 }
             }
             return initialize().then();
@@ -374,6 +388,10 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             if (response.statusCode() == 404 && Objects.nonNull(usedSession)) {
                 invalidateSession(usedSession, usedEpoch);
                 throw new RemoteSessionExpiredException();
+            }
+            if (("initialize".equals(method) || "notifications/initialized".equals(method))
+                    && (response.statusCode() == 408 || response.statusCode() == 425 || response.statusCode() == 429 || response.statusCode() >= 500)) {
+                throw new RetryableHandshakeHttpException(response.statusCode());
             }
             throw new IllegalStateException("Upstream HTTP " + response.statusCode());
         }
@@ -626,6 +644,15 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
                 request.cancel(true);
             }
         });
+    }
+
+    private static final class RetryableHandshakeHttpException extends IllegalStateException {
+
+        private static final long serialVersionUID = 1L;
+
+        private RetryableHandshakeHttpException(final int status) {
+            super("Upstream HTTP " + status);
+        }
     }
 
     private static final class BoundedBody implements HttpResponse.BodySubscriber<byte[]> {

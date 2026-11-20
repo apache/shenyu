@@ -518,6 +518,13 @@ have happened. The next eligible operation performs a fresh initialize/initializ
 handshake; concurrent expiry observations issue their own requests only once and
 coalesce on cleanup/reinitialization work.
 
+A transient handshake transport failure, timeout, HTTP 408/425/429 or 5xx fails
+the current operation but is not cached for later operations. Concurrent later
+operations share one recovery attempt. If initialize already allocated a session,
+only its initialized notification is retried; a new session is not allocated.
+Protocol-invalid responses and other HTTP rejections remain cached until the
+client is replaced. Failed business requests are never replayed by recovery.
+
 An idle session is reclaimed before its next use after five minutes. Its bounded
 DELETE is shared by concurrent operations and retried at most twice across later
 operations. Exhaustion is observable through `exhaustedCleanupCount()`; it does not
