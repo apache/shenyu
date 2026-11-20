@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,8 @@ import java.util.stream.Stream;
  */
 @ExtendWith(MockitoExtension.class)
 public class RedisRateLimiterScriptsTest {
+
+    private static final long FIXED_NOW = 1700000000L;
 
     private static RedisServer redisServer;
 
@@ -150,14 +153,15 @@ public class RedisRateLimiterScriptsTest {
     @SuppressWarnings("unchecked")
     public void slidingWindowLuaTest() {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
-        RedisScript<?> script = rateLimiterAlgorithm.getScript();
-        List<String> keys = Stream.of("test-slidingWindow").collect(Collectors.toList());
-        List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", String.valueOf(Instant.now().getEpochSecond()), "1");
-        Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        List<String> keys = rateLimiterAlgorithm.getKeys("test-slidingWindow");
+        List<String> scriptArgs = Arrays.asList("10", "100", String.valueOf(FIXED_NOW), "1");
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        Flux<List<Long>> resultFlux = redisTemplate.execute(script, keys, scriptArgs);
         StepVerifier
                 .create(resultFlux)
                 .expectSubscription()
-                .expectNext(Arrays.asList(1L, 100L))
+                .expectNext(Arrays.asList(1L, 99L))
                 .expectComplete()
                 .verify();
     }
@@ -167,7 +171,7 @@ public class RedisRateLimiterScriptsTest {
     public void slidingWindowRemovesExpiredRequestsBeforeCounting() {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
         RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
-        String tokenKey = "test-slidingWindow-expired";
+        String tokenKey = rateLimiterAlgorithm.getKeys("test-slidingWindow-expired").get(0);
         long now = Instant.now().getEpochSecond();
         ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
         redisTemplate.opsForZSet().add(tokenKey, "expired", now - 2).block();
@@ -177,7 +181,135 @@ public class RedisRateLimiterScriptsTest {
         Flux<List<Long>> resultFlux = redisTemplate.execute(script, keys, scriptArgs);
 
         StepVerifier.create(resultFlux)
+                .expectNext(Arrays.asList(1L, 0L))
+                .verifyComplete();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowHonoursRequestedCount() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        List<String> scriptArgs = Arrays.asList("0.5", "10", String.valueOf(FIXED_NOW), "5");
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        Flux<List<Long>> resultFlux = Flux.range(0, 4)
+                .concatMap(index -> redisTemplate.execute(script,
+                        rateLimiterAlgorithm.getKeys("test-slidingWindow-request-count"), scriptArgs));
+        StepVerifier.create(resultFlux)
+                .expectNext(Arrays.asList(1L, 5L))
+                .expectNext(Arrays.asList(1L, 0L))
+                .expectNext(Arrays.asList(0L, 0L))
+                .expectNext(Arrays.asList(0L, 0L))
+                .verifyComplete();
+        Assertions.assertEquals(Long.valueOf(10L), redisTemplate.opsForZSet()
+                .size(rateLimiterAlgorithm.getKeys("test-slidingWindow-request-count").get(0)).block());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowRecordsRequestedUnits() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        List<String> keys = rateLimiterAlgorithm.getKeys("test-slidingWindow-recorded-units");
+        List<String> scriptArgs = Arrays.asList("10", "10", String.valueOf(FIXED_NOW), "3");
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        StepVerifier.create(redisTemplate.execute(script, keys, scriptArgs))
+                .expectNext(Arrays.asList(1L, 7L))
+                .verifyComplete();
+        Assertions.assertEquals(Long.valueOf(3L), redisTemplate.opsForZSet().size(keys.get(0)).block());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowUnitsAreUniquePerCall() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        List<String> firstKeys = rateLimiterAlgorithm.getKeys("test-slidingWindow-unique-units");
+        List<String> secondKeys = rateLimiterAlgorithm.getKeys("test-slidingWindow-unique-units");
+        List<String> scriptArgs = Arrays.asList("0.5", "4", String.valueOf(FIXED_NOW), "2");
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        Flux<List<Long>> resultFlux = redisTemplate.execute(script, firstKeys, scriptArgs)
+                .concatWith(redisTemplate.execute(script, secondKeys, scriptArgs));
+        StepVerifier.create(resultFlux)
+                .expectNext(Arrays.asList(1L, 2L))
+                .expectNext(Arrays.asList(1L, 0L))
+                .verifyComplete();
+        Assertions.assertEquals(Long.valueOf(4L), redisTemplate.opsForZSet().size(firstKeys.get(0)).block());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowRemainderNeverNegative() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        List<String> keys = rateLimiterAlgorithm.getKeys("test-slidingWindow-negative-remainder");
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        long now = FIXED_NOW;
+        for (int index = 0; index < 6; index++) {
+            redisTemplate.opsForZSet().add(keys.get(0), "seed-" + index, now).block();
+        }
+        List<String> scriptArgs = Arrays.asList("5", "5", String.valueOf(now), "1");
+        StepVerifier.create(redisTemplate.execute(script, keys, scriptArgs))
+                .expectNext(Arrays.asList(0L, 0L))
+                .verifyComplete();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowNormalizesNonPositiveRequestCount() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        String zeroId = "test-slidingWindow-zero-count";
+        String negativeId = "test-slidingWindow-negative-count";
+        List<String> zeroArgs = Arrays.asList("0.5", "2", String.valueOf(FIXED_NOW), "0");
+        List<String> negativeArgs = Arrays.asList("0.5", "2", String.valueOf(FIXED_NOW), "-3");
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        Flux<List<Long>> zeroFlux = Flux.range(0, 3)
+                .concatMap(index -> redisTemplate.execute(script, rateLimiterAlgorithm.getKeys(zeroId), zeroArgs));
+        Flux<List<Long>> negativeFlux = Flux.range(0, 2)
+                .concatMap(index -> redisTemplate.execute(script, rateLimiterAlgorithm.getKeys(negativeId), negativeArgs));
+        StepVerifier.create(Flux.concat(zeroFlux, negativeFlux))
                 .expectNext(Arrays.asList(1L, 1L))
+                .expectNext(Arrays.asList(1L, 0L))
+                .expectNext(Arrays.asList(0L, 0L))
+                .expectNext(Arrays.asList(1L, 1L))
+                .expectNext(Arrays.asList(1L, 0L))
+                .verifyComplete();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowRoundsFractionalRequestCountUp() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        String id = "test-slidingWindow-fractional-count";
+        List<String> scriptArgs = Arrays.asList("0.5", "6", String.valueOf(FIXED_NOW), "2.5");
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        Flux<List<Long>> resultFlux = Flux.range(0, 3)
+                .concatMap(index -> redisTemplate.execute(script, rateLimiterAlgorithm.getKeys(id), scriptArgs));
+        StepVerifier.create(resultFlux)
+                .expectNext(Arrays.asList(1L, 3L))
+                .expectNext(Arrays.asList(1L, 0L))
+                .expectNext(Arrays.asList(0L, 0L))
+                .verifyComplete();
+        Assertions.assertEquals(Long.valueOf(6L), redisTemplate.opsForZSet()
+                .size(rateLimiterAlgorithm.getKeys(id).get(0)).block());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void slidingWindowExpiresRecordedUnits() {
+        RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
+        RedisScript<List<Long>> script = (RedisScript<List<Long>>) rateLimiterAlgorithm.getScript();
+        String id = "test-slidingWindow-unit-expiry";
+        ReactiveRedisTemplate<String, String> redisTemplate = Singleton.INST.get(ReactiveRedisTemplate.class);
+        Flux<List<Long>> resultFlux = Flux.just(0L, 3L, 9L)
+                .concatMap(offset -> redisTemplate.execute(script, rateLimiterAlgorithm.getKeys(id),
+                        Arrays.asList("0.25", "2", String.valueOf(FIXED_NOW + offset), "2")));
+        StepVerifier.create(resultFlux)
+                .expectNext(Arrays.asList(1L, 0L))
+                .expectNext(Arrays.asList(0L, 0L))
+                .expectNext(Arrays.asList(1L, 0L))
                 .verifyComplete();
     }
 }
