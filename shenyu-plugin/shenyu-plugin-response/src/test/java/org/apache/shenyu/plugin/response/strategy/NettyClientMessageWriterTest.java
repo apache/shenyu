@@ -31,6 +31,7 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -52,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -142,5 +144,32 @@ public class NettyClientMessageWriterTest {
         assertEquals(0, consumed.getNativeBuffer().refCnt());
         assertEquals(0, discarded.getNativeBuffer().refCnt());
         verify(connection).dispose();
+    }
+
+    @Test
+    public void testStreamingMediaTypeRoutesToWriteAndFlushWith() {
+        final ServerWebExchange exchange = mock(ServerWebExchange.class);
+        final ServerHttpResponse response = mock(ServerHttpResponse.class);
+        final Connection connection = mock(Connection.class);
+        final NettyInbound inbound = mock(NettyInbound.class);
+        final ByteBufFlux received = mock(ByteBufFlux.class);
+        final ByteBufFlux retained = mock(ByteBufFlux.class);
+        final NettyDataBufferFactory factory = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT);
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_EVENT_STREAM);
+        when(exchange.getResponse()).thenReturn(response);
+        when(response.getHeaders()).thenReturn(headers);
+        when(response.bufferFactory()).thenReturn(factory);
+        when(exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR)).thenReturn(connection);
+        when(connection.inbound()).thenReturn(inbound);
+        when(inbound.receive()).thenReturn(received);
+        when(received.retain()).thenReturn(retained);
+        when(retained.<NettyDataBuffer>map(any())).thenReturn(Flux.empty());
+        when(response.writeAndFlushWith(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(nettyClientMessageWriter.writeWith(exchange, chain)).verifyComplete();
+
+        verify(response).writeAndFlushWith(any());
+        verify(response, never()).writeWith(any());
     }
 }

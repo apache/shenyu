@@ -22,7 +22,9 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * random algorithm impl.
@@ -37,24 +39,28 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         int length = upstreamList.size();
         // every upstream has the same weight?
         boolean sameWeight = true;
-        // the weight of every upstream
-        int[] weights = new int[length];
+        // the weight of every upstream, allocated only when a differing weight
+        // shows up — until then every entry would equal the first weight (#8424)
+        int[] weights = null;
         int firstUpstreamWeight = getWeight(upstreamList.get(0));
-        weights[0] = firstUpstreamWeight;
         // init the totalWeight
-        int totalWeight = firstUpstreamWeight;
-        int halfLengthTotalWeight = 0;
+        long totalWeight = firstUpstreamWeight;
+        long halfLengthTotalWeight = 0;
         for (int i = 1; i < length; i++) {
             int currentUpstreamWeight = getWeight(upstreamList.get(i));
             if (i <= (length + 1) / 2) {
                 halfLengthTotalWeight = totalWeight;
             }
-            weights[i] = currentUpstreamWeight;
-            totalWeight += currentUpstreamWeight;
-            if (sameWeight && currentUpstreamWeight != firstUpstreamWeight) {
+            if (Objects.isNull(weights) && currentUpstreamWeight != firstUpstreamWeight) {
                 // Calculate whether the weight of ownership is the same.
                 sameWeight = false;
+                weights = new int[length];
+                Arrays.fill(weights, 0, i, firstUpstreamWeight);
             }
+            if (Objects.nonNull(weights)) {
+                weights[i] = currentUpstreamWeight;
+            }
+            totalWeight += currentUpstreamWeight;
         }
         if (totalWeight > 0 && !sameWeight) {
             return random(totalWeight, halfLengthTotalWeight, weights, upstreamList);
@@ -62,9 +68,9 @@ public class RandomLoadBalancer extends AbstractLoadBalancer {
         return random(upstreamList);
     }
 
-    private Upstream random(final int totalWeight, final int halfLengthTotalWeight, final int[] weights, final List<Upstream> upstreamList) {
+    private Upstream random(final long totalWeight, final long halfLengthTotalWeight, final int[] weights, final List<Upstream> upstreamList) {
         // If the weights are not the same and the weights are greater than 0, then random by the total number of weights.
-        int offset = RANDOM.nextInt(totalWeight);
+        long offset = RANDOM.nextLong(totalWeight);
         int index = 0;
         int end = weights.length;
         if (offset >= halfLengthTotalWeight) {

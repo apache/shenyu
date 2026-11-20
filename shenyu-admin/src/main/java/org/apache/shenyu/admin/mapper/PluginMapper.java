@@ -53,6 +53,14 @@ public interface PluginMapper extends ExistProvider {
     PluginDO selectById(String id);
 
     /**
+     * Lock an existing plugin while repairing its resources.
+     *
+     * @param id primary key
+     * @return the plugin
+     */
+    PluginDO selectByIdForUpdate(String id);
+
+    /**
      * select plugin by id.
      *
      * @param ids primary keys.

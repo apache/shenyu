@@ -52,6 +52,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -62,6 +63,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -193,6 +195,58 @@ public class WebSocketPluginTest {
     }
 
     /**
+     * Shortest response reserves inflight when the upstream is selected. A handshake that never starts a
+     * session, whether it completes or fails, has to give that reservation back.
+     */
+    @Test
+    public void shortestResponseShouldReleaseOnCompletedAndFailedHandshakes() {
+        initMockInfo(LoadBalanceEnum.SHORTEST_RESPONSE.getName());
+        final Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        final long baseline = upstream.getInflight().get();
+        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        assertEquals(baseline, upstream.getInflight().get());
+
+        when(webSocketService.handleRequest(any(), any())).thenReturn(Mono.error(new IllegalStateException("upgrade failed")));
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyError(IllegalStateException.class);
+        assertEquals(baseline, upstream.getInflight().get());
+    }
+
+    /**
+     * A session that outlives the upgrade keeps the selection reservation until the session itself ends,
+     * including when the session fails or is cancelled.
+     */
+    @Test
+    public void shortestResponseShouldReleaseOnSessionTermination() {
+        initMockInfo(LoadBalanceEnum.SHORTEST_RESPONSE.getName());
+        final Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId("mock").get(0);
+        final long baseline = upstream.getInflight().get();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            WebSocketHandler handler = call.getArgument(1);
+            return handler.handle(mock(WebSocketSession.class));
+        });
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.never());
+
+        Disposable session = webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+        assertEquals(baseline + 1, upstream.getInflight().get());
+        session.dispose();
+        assertEquals(baseline, upstream.getInflight().get());
+
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.empty());
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        assertEquals(baseline, upstream.getInflight().get());
+
+        when(webSocketClient.execute(any(), any(), any())).thenReturn(Mono.error(new IllegalStateException("session failed")));
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData))
+                .verifyError(IllegalStateException.class);
+        assertEquals(baseline, upstream.getInflight().get());
+    }
+
+    /**
      * The other algorithms do not read the count, so they must not touch it.
      */
     @Test
@@ -213,6 +267,36 @@ public class WebSocketPluginTest {
 
         session.dispose();
         assertEquals(initial, upstream.getInflight().get());
+    }
+
+    /**
+     * The query may carry credentials, so the logged url drops it while the proxied url keeps it.
+     */
+    @Test
+    public void logUrlShouldDropQueryButProxiedUrlShouldKeepIt() throws NoSuchFieldException, IllegalAccessException {
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/ws/echo?token=secret&access_token=secret").build());
+        initMockInfo();
+        AtomicReference<WebSocketHandler> handler = new AtomicReference<>();
+        when(webSocketService.handleRequest(any(), any())).thenAnswer(call -> {
+            handler.set(call.getArgument(1));
+            return Mono.empty();
+        });
+        StepVerifier.create(webSocketPlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+
+        Field urlField = handler.get().getClass().getDeclaredField("url");
+        urlField.setAccessible(true);
+        URI proxied = (URI) urlField.get(handler.get());
+        assertEquals("token=secret&access_token=secret", proxied.getQuery());
+        assertFalse(WebSocketPlugin.toLogUrl(proxied).contains("secret"));
+    }
+
+    @Test
+    public void toLogUrlShouldKeepOnlySchemeHostPortAndPath() {
+        assertEquals("ws://127.0.0.1:8001/echo",
+                WebSocketPlugin.toLogUrl(URI.create("ws://user:pass@127.0.0.1:8001/echo?token=abc#frag")));
+        assertEquals("wss://example.com/a%20b",
+                WebSocketPlugin.toLogUrl(URI.create("wss://example.com/a%20b?access_token=abc")));
+        assertEquals("ws://[::1]:8001", WebSocketPlugin.toLogUrl(URI.create("ws://[::1]:8001?token=abc")));
     }
 
     /**

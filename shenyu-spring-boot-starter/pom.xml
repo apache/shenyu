@@ -27,6 +27,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>shenyu-spring-boot-starter-agent-audit</module>
         <module>shenyu-spring-boot-starter-gateway</module>
         <module>shenyu-spring-boot-starter-plugin</module>
         <module>shenyu-spring-boot-starter-sync-data-center</module>

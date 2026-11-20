@@ -33,6 +33,7 @@ import io.github.agenticai.connect.ResponseStreamState;
 import io.github.agenticai.connect.StreamOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyBodies;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -122,14 +122,9 @@ public final class ConnectResponsesToChatConverter implements AiProtocolConverte
             return new AiUpstreamResponse(response.getStatusCode(), responseHeaders(response, "text/event-stream"),
                     convertStream(framed.getBody(), context));
         }
-        Flux<byte[]> body = response.getBody().reduceWith(ByteArrayOutputStream::new, (buffer, bytes) -> {
-            if (bytes.length > MAX_CONVERSION_BYTES - buffer.size()) {
-                throw new AiProxyException(AiProxyException.Kind.PROTOCOL,
-                        "AI response exceeds the conversion size limit", null);
-            }
-            buffer.writeBytes(bytes);
-            return buffer;
-        }).map(buffer -> convertCompleteResponse(buffer.toString(StandardCharsets.UTF_8), context)).flux();
+        Flux<byte[]> body = AiProxyBodies.materialize(response.getBody(), () -> new AiProxyException(
+                AiProxyException.Kind.PROTOCOL, "AI response exceeds the conversion size limit", null))
+                .map(buffer -> convertCompleteResponse(buffer, context)).flux();
         return new AiUpstreamResponse(response.getStatusCode(), responseHeaders(response, "application/json"), body);
     }
 

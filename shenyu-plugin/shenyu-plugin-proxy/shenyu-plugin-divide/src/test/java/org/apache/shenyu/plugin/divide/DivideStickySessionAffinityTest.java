@@ -325,6 +325,29 @@ class DivideStickySessionAffinityTest {
     }
 
     /**
+     * A shortestResponse binding hit skips selection, which reserves inflight, while Divide still
+     * releases that reservation when the attempt ends.
+     */
+    @Test
+    public void shortestResponseBindingHitKeepsAccounting() {
+        handle.setLoadBalance("shortestResponse");
+        final Upstream bound = upstream("b:8080");
+        final Upstream other = upstream("a:8080");
+        final String cookie = boundCookie(bound);
+        final long baseline = bound.getInflight().get();
+        try (MockedStatic<UpstreamCacheManager> cache = cache(List.of(other, bound))) {
+            final ServerWebExchange exchange = exchange(null, cookie);
+            StepVerifier.create(plugin.doExecute(exchange, current -> {
+                assertEquals(baseline + 1, bound.getInflight().get(),
+                        "a shortestResponse binding hit must reserve the attempt like selection does");
+                return Mono.empty();
+            }, selector, rule)).verifyComplete();
+            assertEquals(baseline, bound.getInflight().get(),
+                    "shortestResponse inflight must return to baseline on completion");
+        }
+    }
+
+    /**
      * Broken configurations disable affinity instead of producing unusable cookies.
      */
     @Test
@@ -475,6 +498,58 @@ class DivideStickySessionAffinityTest {
         final String domain = exchange.getAttribute(Constants.HTTP_DOMAIN);
         assertNotNull(domain, "every visit must be routed");
         return domain;
+    }
+
+    @Test
+    void bindingSignedByAnotherReplicaIsHonored() {
+        final Upstream first = upstream("a:8080");
+        final Upstream second = upstream("b:8080");
+        final String cookie = boundCookie(second);
+        // another gateway replica configured with the same shared secrets verifies
+        // the binding without ever having seen it before
+        final StickySessionAffinity replica = new StickySessionAffinity();
+        final StickySessionAffinity.Resolution resolved =
+                replica.resolve(exchangeWithCookie(cookie), rule.getId(), sticky, List.of(first, second));
+        assertTrue(resolved.isBindingPresent(), "a shared-secret replica must honor the binding");
+        assertEquals("http://b:8080", resolved.getBound().buildDomain());
+    }
+
+    @Test
+    void rotatedSecretSignedByAnotherReplicaIsHonoredDuringRollout() {
+        final Upstream first = upstream("a:8080");
+        final Upstream second = upstream("b:8080");
+        // replica A still signs with the old secret while replica B already rotates:
+        // B must verify A's cookie because every configured key verifies
+        final StickySessionConfig rollingSticky = new StickySessionConfig();
+        rollingSticky.setEnabled(true);
+        rollingSticky.setSecrets(List.of("old-secret"));
+        final StickySessionAffinity replicaA = new StickySessionAffinity();
+        final ServerWebExchange writing = exchangeWithCookie(null);
+        replicaA.writeCookie(writing, rule.getId(), second, rollingSticky);
+        final String oldSignedCookie = cookieValue(writing.getResponse().getHeaders().getFirst(HttpHeaders.SET_COOKIE));
+
+        sticky.setSecrets(List.of("new-secret", "old-secret"));
+        final StickySessionAffinity replicaB = new StickySessionAffinity();
+        final StickySessionAffinity.Resolution resolved =
+                replicaB.resolve(exchangeWithCookie(oldSignedCookie), rule.getId(), sticky, List.of(first, second));
+        assertTrue(resolved.isBindingPresent(), "the rotation window must keep cross-replica bindings valid");
+        assertEquals("http://b:8080", resolved.getBound().buildDomain());
+    }
+
+    @Test
+    void replicaWithDifferentSecretsRejectsForeignBinding() {
+        final Upstream first = upstream("a:8080");
+        final Upstream second = upstream("b:8080");
+        final String cookie = boundCookie(second);
+        // a replica that does not share the secrets cannot verify the binding and must
+        // not honor it: affinity is only portable across gateways sharing the keys
+        final StickySessionConfig foreign = new StickySessionConfig();
+        foreign.setEnabled(true);
+        foreign.setSecrets(List.of("other-secret"));
+        final StickySessionAffinity replica = new StickySessionAffinity();
+        final StickySessionAffinity.Resolution resolved =
+                replica.resolve(exchangeWithCookie(cookie), rule.getId(), foreign, List.of(first, second));
+        assertFalse(resolved.isBindingPresent(), "a foreign-secret binding must not be honored");
     }
 
     /** The cookie name the default configuration derives for this rule. */

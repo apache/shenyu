@@ -1,10 +1,25 @@
 Licenses and source notices for the bundled ShenYu dashboard
 
-Dashboard source: apache/shenyu-dashboard@e12b29d2b1efb9c8bde55487417702aa3dbe1b4c
-The component list is based on the modules in static/index.b8226781.js.
+Dashboard source commit: 2ea489ba2865dd41629e4b99935b4a4cec8efe2a
+Baseline: apache/shenyu-dashboard@5a9e5ae0734fb3ca90b6287479af478dc7480797,
+plus the instance-state patch from dashboard PR #727 (f239397e67c970c25a769f3b41ad3aaa7aca7a72).
+The component list is based on the modules in static/index.d6934e98.js.
 It includes nested and bundled runtime components, not development-only tools.
 License texts are taken from the exact installed packages, their versioned
 upstream source, or their explicit published SPDX license declaration as noted.
+
+Baseline provenance: synchronized by apache/shenyu PR #8280 from dashboard workflow
+https://github.com/apache/shenyu-dashboard/actions/runs/41365106233.
+The earlier inventory used dashboard commit e12b29d2b1efb9c8bde55487417702aa3dbe1b4c.
+package.json and package-lock.json are byte-identical at both commits; the
+intervening changes remove API documentation views and adjust application
+logic without adding packages. The retained notices cover that dependency
+baseline, including components no longer referenced by the removed views.
+The state patch changes no package or lockfile and adds no runtime components.
+Build: Node.js 22.23.1, npm 10.9.4; npm ci --offline --no-audit --no-fund,
+then NODE_OPTIONS=--openssl-legacy-provider npm run build.
+JavaScript SHA-256: 9265d5fc61bfcd0dcafd0df4f74d39d68e041450af9bd92f37b13342d0b09b67.
+See docs/instance-state-contract.md for the bounded source and bundle verification.
 
 ========================================================================
 @ant-design/colors@3.2.2 / LICENSE

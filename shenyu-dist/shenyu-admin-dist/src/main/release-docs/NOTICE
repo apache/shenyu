@@ -8,7 +8,7 @@ Notices from the bundled third-party dependencies follow.
 
 ========================================================================
 Bundled resources:
-  angus-activation-2.0.2.jar / META-INF/NOTICE.md
+  angus-activation-2.0.3.jar / META-INF/NOTICE.md
 ========================================================================
 
 # Notices for Eclipse Angus
@@ -127,13 +127,13 @@ Bundled resources:
 ========================================================================
 
 Copyright (c) 2012-2022, The ATTOPARSER team (https://www.attoparser.org)
-
+ 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
-
+ 
        https://www.apache.org/licenses/LICENSE-2.0
-
+ 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -153,7 +153,7 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  classmate-1.7.0.jar / META-INF/NOTICE
+  classmate-1.7.3.jar / META-INF/NOTICE
 ========================================================================
 
 Java ClassMate library was originally written by Tatu Saloranta (tatu.saloranta@iki.fi)
@@ -168,22 +168,22 @@ Copyright 2007-, Tatu Saloranta (tatu.saloranta@iki.fi)
 
 ========================================================================
 Bundled resources:
-  commons-beanutils-1.9.4.jar / META-INF/NOTICE.txt
+  commons-beanutils-1.11.0.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons BeanUtils
-Copyright 2000-2019 The Apache Software Foundation
+Copyright 2000-2025 The Apache Software Foundation
 
 This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
+The Apache Software Foundation (https://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  commons-codec-1.16.1.jar / META-INF/NOTICE.txt
+  commons-codec-1.18.0.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons Codec
-Copyright 2002-2024 The Apache Software Foundation
+Copyright 2002-2025 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
@@ -212,64 +212,14 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  commons-compress-1.22.jar / META-INF/NOTICE.txt
+  commons-compress-1.28.0.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons Compress
-Copyright 2002-2022 The Apache Software Foundation
+Copyright 2002-2025 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
-
----
-
-The files in the package org.apache.commons.compress.archivers.sevenz
-were derived from the LZMA SDK, version 9.20 (C/ and CPP/7zip/),
-which has been placed in the public domain:
-
-"LZMA SDK is placed in the public domain." (http://www.7-zip.org/sdk.html)
-
----
-
-The test file lbzip2_32767.bz2 has been copied from libbzip2's source
-repository:
-
-This program, "bzip2", the associated library "libbzip2", and all
-documentation, are copyright (C) 1996-2019 Julian R Seward.  All
-rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
-2. The origin of this software must not be misrepresented; you must
-   not claim that you wrote the original software.  If you use this
-   software in a product, an acknowledgment in the product
-   documentation would be appreciated but is not required.
-
-3. Altered source versions must be plainly marked as such, and must
-   not be misrepresented as being the original software.
-
-4. The name of the author may not be used to endorse or promote
-   products derived from this software without specific prior written
-   permission.
-
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
-OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Julian Seward, jseward@acm.org
 
 ========================================================================
 Bundled resources:
@@ -284,11 +234,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  commons-io-2.11.0.jar / META-INF/NOTICE.txt
+  commons-io-2.21.0.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Apache Commons IO
-Copyright 2002-2021 The Apache Software Foundation
+Copyright 2002-2025 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (https://www.apache.org/).
@@ -455,11 +405,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  httpclient-4.5.3.jar / META-INF/NOTICE
+  httpclient-4.5.14.jar / META-INF/NOTICE
 ========================================================================
 
 Apache HttpClient
-Copyright 1999-2017 The Apache Software Foundation
+Copyright 1999-2022 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
@@ -488,8 +438,8 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  jackson-annotations-2.17.1.jar / META-INF/NOTICE
-  jackson-databind-2.17.1.jar / META-INF/NOTICE
+  jackson-annotations-2.21.jar / META-INF/NOTICE
+  jackson-databind-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -516,7 +466,7 @@ from the source code management (SCM) system project uses.
 
 ========================================================================
 Bundled resources:
-  jackson-core-2.17.1.jar / META-INF/NOTICE
+  jackson-core-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -549,57 +499,22 @@ under the following copyright.
 
 Copyright © 2023 Werner Randelshofer, Switzerland. MIT License.
 
-See FastDoubleParser-NOTICE for details of other source code included in FastDoubleParser
-and the licenses and copyrights that apply to that code.
+See FastDoubleParser-LICENSE and also FastDoubleParser-ThirdParty-LICENSE for details of other source code
+included in FastDoubleParser and the licenses and copyrights that apply to that code.
+
+## Schubfach
+
+jackson-core bundles a copy of the Schubfach number writing code <https://github.com/c4f7fcce9cb06515/Schubfach>.
+That code is available under an MIT license <https://github.com/c4f7fcce9cb06515/Schubfach/blob/master/todec/LICENSE>
+under the following copyright.
+
+Copyright 2018-2020 Raffaello Giulietti
+
+See Schubfach-LICENSE.
 
 ========================================================================
 Bundled resources:
-  jackson-core-2.17.1.jar / META-INF/FastDoubleParser-NOTICE
-========================================================================
-
-# FastDoubleParser
-
-This is a Java port of Daniel Lemire's fast_float project.
-This project provides parsers for double, float, BigDecimal and BigInteger values.
-
-## Copyright
-
-Copyright © 2023 Werner Randelshofer, Switzerland.
-
-## Licensing
-
-This code is licensed under MIT License.
-https://github.com/wrandelshofer/FastDoubleParser/blob/522be16e145f43308c43b23094e31d5efcaa580e/LICENSE
-(The file 'LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-Some portions of the code have been derived from other projects.
-All these projects require that we include a copyright notice, and some require that we also include some text of their
-license file.
-
-fast_double_parser, Copyright (c) 2022 Daniel Lemire. BSL License.
-https://github.com/lemire/fast_double_parser
-https://github.com/lemire/fast_double_parser/blob/07d9189a8fb815fe800cb15ca022e7a07093236e/LICENSE.BSL
-(The file 'thirdparty-LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-fast_float, Copyright (c) 2021 The fast_float authors. MIT License.
-https://github.com/fastfloat/fast_float
-https://github.com/fastfloat/fast_float/blob/cc1e01e9eee74128e48d51488a6b1df4a767a810/LICENSE-MIT
-(The file 'thirdparty-LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-bigint, Copyright 2020 Tim Buktu. 2-clause BSD License.
-https://github.com/tbuktu/bigint/tree/floatfft
-https://github.com/tbuktu/bigint/blob/617c8cd8a7c5e4fb4d919c6a4d11e2586107f029/LICENSE
-https://github.com/wrandelshofer/FastDoubleParser/blob/39e123b15b71f29a38a087d16a0bc620fc879aa6/bigint-LICENSE
-(We only use those portions of the bigint project that can be licensed under 2-clause BSD License.)
-(The file 'thirdparty-LICENSE' is included in the sources and classes Jar files that are released by this project
-- as is required by that license.)
-
-========================================================================
-Bundled resources:
-  jackson-dataformat-yaml-2.17.1.jar / META-INF/NOTICE
+  jackson-dataformat-yaml-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -626,9 +541,9 @@ from the source code management (SCM) system project uses.
 
 ========================================================================
 Bundled resources:
-  jackson-datatype-jdk8-2.17.1.jar / META-INF/NOTICE
-  jackson-datatype-jsr310-2.17.1.jar / META-INF/NOTICE
-  jackson-module-parameter-names-2.17.1.jar / META-INF/NOTICE
+  jackson-datatype-jdk8-2.21.7.jar / META-INF/NOTICE
+  jackson-datatype-jsr310-2.21.7.jar / META-INF/NOTICE
+  jackson-module-parameter-names-2.21.7.jar / META-INF/NOTICE
 ========================================================================
 
 # Jackson JSON processor
@@ -651,7 +566,7 @@ from the source code management (SCM) system project uses.
 
 ========================================================================
 Bundled resources:
-  jakarta.activation-api-2.1.3.jar / META-INF/NOTICE.md
+  jakarta.activation-api-2.1.4.jar / META-INF/NOTICE.md
 ========================================================================
 
 # Notices for Jakarta Activation
@@ -839,7 +754,7 @@ None
 
 ========================================================================
 Bundled resources:
-  jakarta.mail-2.0.3.jar / META-INF/NOTICE.md
+  jakarta.mail-2.0.5.jar / META-INF/NOTICE.md
 ========================================================================
 
 # Notices for Jakarta Mail
@@ -959,7 +874,7 @@ permitted.
 
 ========================================================================
 Bundled resources:
-  jakarta.xml.bind-api-4.0.2.jar / META-INF/NOTICE.md
+  jakarta.xml.bind-api-4.0.5.jar / META-INF/NOTICE.md
 ========================================================================
 
 [//]: # " Copyright (c) 2018, 2024 Oracle and/or its affiliates. All rights reserved. "
@@ -1012,10 +927,10 @@ permitted.
 
 ========================================================================
 Bundled resources:
-  jersey-apache-connector-3.1.7.jar / META-INF/NOTICE.md
-  jersey-client-3.1.7.jar / META-INF/NOTICE.md
-  jersey-common-3.1.7.jar / META-INF/NOTICE.md
-  jersey-hk2-3.1.7.jar / META-INF/NOTICE.md
+  jersey-apache-connector-3.1.11.jar / META-INF/NOTICE.md
+  jersey-client-3.1.11.jar / META-INF/NOTICE.md
+  jersey-common-3.1.11.jar / META-INF/NOTICE.md
+  jersey-hk2-3.1.11.jar / META-INF/NOTICE.md
 ========================================================================
 
 # Notice for Jersey
@@ -1067,7 +982,7 @@ Bean Validation API 3.0.2
 * Copyright: 2009, Red Hat, Inc. and/or its affiliates, and individual contributors
 * by the @authors tag.
 
-Hibernate Validator CDI, 8.0.1.Final
+Hibernate Validator CDI, 8.0.2.Final
 * License: Apache License, 2.0
 * Project: https://beanvalidation.org/
 * Repackaged in org.glassfish.jersey.server.validation.internal.hibernate
@@ -1077,25 +992,25 @@ Bootstrap v3.3.7
 * Project: http://getbootstrap.com
 * Copyright: 2011-2016 Twitter, Inc
 
-Google Guava Version 18.0
+Google Guava Version 33.3.0-jre
 * License: Apache License, 2.0
-* Copyright (C) 2009 The Guava Authors
+* Copyright (C) 2009, 2024 The Guava Authors
 
-jakarta.inject Version: 1
+jakarta.inject Version: 2.0.1
 * License: Apache License, 2.0
-* Copyright (C) 2009 The JSR-330 Expert Group
+* Copyright (C) 2009, 2021 The JSR-330 Expert Group
 
 Javassist Version 3.30.2-GA
 * License: Apache License, 2.0
 * Project: http://www.javassist.org/
 * Copyright (C) 1999- Shigeru Chiba. All Rights Reserved.
 
-Jackson JAX-RS Providers Version 2.17.0
+Jackson JAX-RS Providers Version 2.18.0
 * License: Apache License, 2.0
 * Project: https://github.com/FasterXML/jackson-jaxrs-providers
 * Copyright: (c) 2009-2024 FasterXML, LLC. All rights reserved unless otherwise indicated.
 
-jQuery v1.12.4
+jQuery v3.7.1
 * License: jquery.org/license
 * Project: jquery.org
 * Copyright: (c) jQuery Foundation
@@ -1115,7 +1030,7 @@ KineticJS, v4.7.1
 * Project: http://www.kineticjs.com, https://github.com/ericdrowell/KineticJS
 * Copyright: Eric Rowell
 
-org.objectweb.asm Version 9.7
+org.objectweb.asm Version 9.8
 * License: Modified BSD (https://asm.ow2.io/license.html)
 * Copyright (c) 2000-2011 INRIA, France Telecom. All rights reserved.
 
@@ -1134,56 +1049,6 @@ W3.org documents
 
 ========================================================================
 Bundled resources:
-  jersey-common-3.1.7.jar / META-INF/NOTICE.markdown
-========================================================================
-
-# Notice for Jersey Core Common module
-This content is produced and maintained by the Eclipse Jersey project.
-
-
-* https://projects.eclipse.org/projects/ee4j.jersey
-
-## Trademarks
-Eclipse Jersey is a trademark of the Eclipse Foundation.
-
-## Copyright
-
-All content is the property of the respective authors or their employers. For
-more information regarding authorship of content, please consult the listed
-source code repository logs.
-
-## Declared Project Licenses
-
-This program and the accompanying materials are made available under the terms
-of the Eclipse Public License v. 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0. This Source Code may also be made
-available under the following Secondary Licenses when the conditions for such
-availability set forth in the Eclipse Public License v. 2.0 are satisfied: GNU
-General Public License, version 2 with the GNU Classpath Exception which is
-available at https://www.gnu.org/software/classpath/license.html.
-
-SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
-
-## Source Code
-The project maintains the following source code repositories:
-
-* https://github.com/eclipse-ee4j/jersey
-
-## Third-party Content
-
-Google Guava Version 18.0
-* License: Apache License, 2.0
-* Copyright: (C) 2009 The Guava Authors
-
-JSR-166 Extension - JEP 266
-* License: Creative Commons 1.0 (CC0)
-* No copyright
-* Written by Doug Lea with assistance from members of JCP JSR-166
-* Expert Group and released to the public domain, as explained at
-* http://creativecommons.org/publicdomain/zero/1.0/
-
-========================================================================
-Bundled resources:
   joda-time-2.3.jar / META-INF/NOTICE.txt
 ========================================================================
 
@@ -1195,11 +1060,11 @@ Joda.org (http://www.joda.org/).
 
 ========================================================================
 Bundled resources:
-  log4j-api-2.23.1.jar / META-INF/NOTICE
+  log4j-api-2.25.5.jar / META-INF/NOTICE
 ========================================================================
 
 Apache Log4j API
-Copyright 1999-2024 The Apache Software Foundation
+Copyright 1999-2026 The Apache Software Foundation
 
 
 This product includes software developed at
@@ -1207,11 +1072,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  log4j-to-slf4j-2.23.1.jar / META-INF/NOTICE
+  log4j-to-slf4j-2.25.5.jar / META-INF/NOTICE
 ========================================================================
 
-Apache Log4j to SLF4J Adapter
-Copyright 1999-2024 The Apache Software Foundation
+Log4j API to SLF4J Adapter
+Copyright 1999-2026 The Apache Software Foundation
 
 
 This product includes software developed at
@@ -1219,11 +1084,11 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  micrometer-commons-1.13.1.jar / META-INF/NOTICE
-  micrometer-core-1.13.1.jar / META-INF/NOTICE
-  micrometer-jakarta9-1.13.1.jar / META-INF/NOTICE
-  micrometer-observation-1.13.1.jar / META-INF/NOTICE
-  micrometer-registry-prometheus-1.13.1.jar / META-INF/NOTICE
+  micrometer-commons-1.15.12.jar / META-INF/NOTICE
+  micrometer-core-1.15.12.jar / META-INF/NOTICE
+  micrometer-jakarta9-1.15.12.jar / META-INF/NOTICE
+  micrometer-observation-1.15.12.jar / META-INF/NOTICE
+  micrometer-registry-prometheus-1.15.12.jar / META-INF/NOTICE
 ========================================================================
 
 Micrometer
@@ -1274,8 +1139,14 @@ package in the Spring Framework library, distributed by VMware, Inc:
 
 ========================================================================
 Bundled resources:
-  mybatis-3.5.14.jar / META-INF/NOTICE
+  mybatis-3.5.19.jar / META-INF/NOTICE
 ========================================================================
+
+MyBatis
+Copyright 2010-2023
+
+This product includes software developed by
+The MyBatis Team (https://www.mybatis.org/).
 
 iBATIS
    This product includes software developed by
@@ -1348,7 +1219,7 @@ Refactored SqlBuilder class (SQL, AbstractSQL)
 
 ========================================================================
 Bundled resources:
-  mybatis-spring-3.0.3.jar / META-INF/NOTICE
+  mybatis-spring-3.0.5.jar / META-INF/NOTICE
 ========================================================================
 
 MyBatis Spring
@@ -1517,18 +1388,137 @@ Copyright 2006-2022 Joe Walnes, Henri Tremblay, Leonardo Mesquita
 
 ========================================================================
 Bundled resources:
-  shiro-cache-1.13.0.jar / META-INF/NOTICE
-  shiro-config-core-1.13.0.jar / META-INF/NOTICE
-  shiro-config-ogdl-1.13.0.jar / META-INF/NOTICE
-  shiro-core-1.13.0-jakarta.jar / META-INF/NOTICE
-  shiro-crypto-cipher-1.13.0.jar / META-INF/NOTICE
-  shiro-crypto-core-1.13.0.jar / META-INF/NOTICE
-  shiro-crypto-hash-1.13.0.jar / META-INF/NOTICE
-  shiro-event-1.13.0.jar / META-INF/NOTICE
-  shiro-lang-1.13.0.jar / META-INF/NOTICE
-  shiro-spring-1.13.0-jakarta.jar / META-INF/NOTICE
-  shiro-spring-boot-starter-1.13.0.jar / META-INF/NOTICE
-  shiro-web-1.13.0-jakarta.jar / META-INF/NOTICE
+  okhttp-4.12.0.jar / okhttp3/internal/publicsuffix/NOTICE
+========================================================================
+
+Note that publicsuffixes.gz is compiled from The Public Suffix List:
+https://publicsuffix.org/list/public_suffix_list.dat
+
+It is subject to the terms of the Mozilla Public License, v. 2.0:
+https://mozilla.org/MPL/2.0/
+
+========================================================================
+Bundled resources:
+  rhino-1.7.15.1.jar / META-INF/NOTICE-tools.txt
+========================================================================
+
+Rhino is licensed subject to the terms of the Mozilla Public License, v. 2.0.
+See "LICENSE.txt" for the text of the license.
+
+The files in toolsrc/org/mozilla/javascript/tools/debugger/treetable (runtime
+package org.mozilla.javascript.tools.debugger.treetable) are available under
+the following license:
+
+----
+
+Copyright 1997, 1998 Sun Microsystems, Inc.  All Rights Reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+  - Neither the name of Sun Microsystems nor the names of its
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+========================================================================
+Bundled resources:
+  rhino-1.7.15.1.jar / META-INF/NOTICE.txt
+========================================================================
+
+Rhino is licensed subject to the terms of the Mozilla Public License, v. 2.0.
+See "License.txt" for the text of the license.
+
+Rhino contains the following additional software:
+
+----
+
+Portions of the floating-point conversion code, and portions of the test suite
+come from the Google V8 JavaScript engine and are subject to the following:
+
+Copyright 2010-2015 the V8 project authors. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google Inc. nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+----
+
+Portions of the number-to-string code are subject to the following:
+
+ Copyright 2018-2020 Raffaello Giulietti
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+========================================================================
+Bundled resources:
+  shiro-cache-2.2.1.jar / META-INF/NOTICE
+  shiro-config-core-2.2.1.jar / META-INF/NOTICE
+  shiro-config-ogdl-2.2.1.jar / META-INF/NOTICE
+  shiro-core-2.2.1-jakarta.jar / META-INF/NOTICE
+  shiro-crypto-cipher-2.2.1.jar / META-INF/NOTICE
+  shiro-crypto-core-2.2.1.jar / META-INF/NOTICE
+  shiro-crypto-hash-2.2.1.jar / META-INF/NOTICE
+  shiro-event-2.2.1.jar / META-INF/NOTICE
+  shiro-lang-2.2.1.jar / META-INF/NOTICE
+  shiro-spring-2.2.1-jakarta.jar / META-INF/NOTICE
+  shiro-spring-boot-starter-2.2.1-jakarta.jar / META-INF/NOTICE
+  shiro-web-2.2.1-jakarta.jar / META-INF/NOTICE
 ========================================================================
 
 Apache Shiro
@@ -1549,11 +1539,36 @@ Project  (http://www.springframework.org).
 
 ========================================================================
 Bundled resources:
-  shiro-spring-boot-web-starter-1.13.0.jar / META-INF/NOTICE
+  shiro-hashes-argon2-2.2.1.jar / META-INF/NOTICE
+  shiro-hashes-bcrypt-2.2.1.jar / META-INF/NOTICE
+========================================================================
+
+Apache Shiro
+Copyright 2008-2020 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+The implementation for org.apache.shiro.util.SoftHashMap is based
+on initial ideas from Dr. Heinz Kabutz's publicly posted version
+available at http://www.javaspecialists.eu/archive/Issue015.html,
+with continued modifications.
+
+The implementation of Radix64 aka BcryptBase64 (OpenBSD BCrypt’s Base64) was copied
+from https://github.com/patrickfav/bcrypt.
+
+Certain parts (StringUtils, IpAddressMatcher, etc.) of the source
+code for this  product was copied for simplicity and to reduce
+dependencies  from the source code developed by the Spring Framework
+Project  (http://www.springframework.org).
+
+========================================================================
+Bundled resources:
+  shiro-spring-boot-web-starter-2.2.1-jakarta.jar / META-INF/NOTICE
 ========================================================================
 
 Apache Shiro :: Support :: Spring Boot Web
-Copyright 2004-2023 The Apache Software Foundation
+Copyright 2004-2026 The Apache Software Foundation
 
 
 This product includes software developed at
@@ -1561,23 +1576,23 @@ The Apache Software Foundation (http://www.apache.org/).
 
 ========================================================================
 Bundled resources:
-  spring-aop-6.1.10.jar / META-INF/notice.txt
-  spring-beans-6.1.10.jar / META-INF/notice.txt
-  spring-context-6.1.10.jar / META-INF/notice.txt
-  spring-context-support-6.1.10.jar / META-INF/notice.txt
-  spring-core-6.1.10.jar / META-INF/notice.txt
-  spring-expression-6.1.10.jar / META-INF/notice.txt
-  spring-jcl-6.1.10.jar / META-INF/notice.txt
-  spring-jdbc-6.1.10.jar / META-INF/notice.txt
-  spring-messaging-6.1.10.jar / META-INF/notice.txt
-  spring-tx-6.1.10.jar / META-INF/notice.txt
-  spring-web-6.1.10.jar / META-INF/notice.txt
-  spring-webmvc-6.1.10.jar / META-INF/notice.txt
-  spring-websocket-6.1.10.jar / META-INF/notice.txt
+  spring-aop-6.2.19.jar / META-INF/notice.txt
+  spring-beans-6.2.19.jar / META-INF/notice.txt
+  spring-context-6.2.19.jar / META-INF/notice.txt
+  spring-context-support-6.2.19.jar / META-INF/notice.txt
+  spring-core-6.2.19.jar / META-INF/notice.txt
+  spring-expression-6.2.19.jar / META-INF/notice.txt
+  spring-jcl-6.2.19.jar / META-INF/notice.txt
+  spring-jdbc-6.2.19.jar / META-INF/notice.txt
+  spring-messaging-6.2.19.jar / META-INF/notice.txt
+  spring-tx-6.2.19.jar / META-INF/notice.txt
+  spring-web-6.2.19.jar / META-INF/notice.txt
+  spring-webmvc-6.2.19.jar / META-INF/notice.txt
+  spring-websocket-6.2.19.jar / META-INF/notice.txt
 ========================================================================
 
-Spring Framework 6.1.10
-Copyright (c) 2002-2024 Pivotal, Inc.
+Spring Framework 6.2.19
+Copyright (c) 2002-2026 Pivotal, Inc.
 
 This product is licensed to you under the Apache License, Version 2.0
 (the "License"). You may not use this product except in compliance with
@@ -1590,27 +1605,26 @@ subcomponent's license, as noted in the license.txt file.
 
 ========================================================================
 Bundled resources:
-  spring-boot-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-actuator-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-actuator-autoconfigure-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-autoconfigure-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-actuator-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-aop-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-integration-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-jdbc-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-json-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-logging-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-mail-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-thymeleaf-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-tomcat-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-validation-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-web-3.3.1.jar / META-INF/NOTICE.txt
-  spring-boot-starter-websocket-3.3.1.jar / META-INF/NOTICE.txt
+  spring-boot-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-actuator-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-actuator-autoconfigure-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-autoconfigure-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-actuator-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-integration-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-jdbc-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-json-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-logging-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-mail-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-thymeleaf-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-tomcat-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-validation-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-web-3.5.16.jar / META-INF/NOTICE.txt
+  spring-boot-starter-websocket-3.5.16.jar / META-INF/NOTICE.txt
 ========================================================================
 
-Spring Boot 3.3.1
-Copyright (c) 2012-2024 VMware, Inc.
+Spring Boot 3.5.16
+Copyright (c) 2012-2026 VMware, Inc.
 
 This product is licensed to you under the Apache License, Version 2.0
 (the "License"). You may not use this product except in compliance with
@@ -1618,13 +1632,45 @@ the License.
 
 ========================================================================
 Bundled resources:
-  spring-integration-core-6.3.1.jar / META-INF/notice.txt
-  spring-integration-jdbc-6.3.1.jar / META-INF/notice.txt
-  spring-integration-zookeeper-6.3.1.jar / META-INF/notice.txt
+  spring-data-commons-3.5.13.jar / notice.txt
 ========================================================================
 
-Spring Integration Framework 6.3.1
-Copyright (c) 2009-2024 Pivotal, Inc.
+Spring Data Commons 3.5.13 (2025.0.13)
+Copyright (c) [2010-2021] Pivotal Software, Inc.
+
+This product is licensed to you under the Apache License, Version 2.0 (the "License").
+You may not use this product except in compliance with the License.
+
+This product may include a number of subcomponents with
+separate copyright notices and license terms. Your use of the source
+code for the these subcomponents is subject to the terms and
+conditions of the subcomponent's license, as noted in the LICENSE file.
+
+========================================================================
+Bundled resources:
+  spring-data-ldap-3.5.13.jar / notice.txt
+========================================================================
+
+Spring Data LDAP 3.5.13 (2025.0.13)
+Copyright (c) [2010-2021] Pivotal Software, Inc.
+
+This product is licensed to you under the Apache License, Version 2.0 (the "License").
+You may not use this product except in compliance with the License.
+
+This product may include a number of subcomponents with
+separate copyright notices and license terms. Your use of the source
+code for the these subcomponents is subject to the terms and
+conditions of the subcomponent's license, as noted in the LICENSE file.
+
+========================================================================
+Bundled resources:
+  spring-integration-core-6.5.10.jar / META-INF/notice.txt
+  spring-integration-jdbc-6.5.10.jar / META-INF/notice.txt
+  spring-integration-zookeeper-6.5.10.jar / META-INF/notice.txt
+========================================================================
+
+Spring Integration Framework 6.5.10
+Copyright (c) 2009-2026 Broadcom, Inc.
 
 This product is licensed to you under the Apache License, Version 2.0
 (the "License"). You may not use this product except in compliance with
@@ -1637,7 +1683,7 @@ subcomponent's license, as noted in the license.txt file.
 
 ========================================================================
 Bundled resources:
-  spring-retry-2.0.6.jar / META-INF/NOTICE.txt
+  spring-retry-2.0.13.jar / META-INF/NOTICE.txt
 ========================================================================
 
 Copyright (c) 2006-2023 the original author or authors.
@@ -1649,7 +1695,7 @@ the License.
 ========================================================================
 Bundled resources:
   swagger-annotations-2.2.34.jar / META-INF/NOTICE
-  swagger-annotations-jakarta-2.2.21.jar / META-INF/NOTICE
+  swagger-annotations-jakarta-2.2.47.jar / META-INF/NOTICE
 ========================================================================
 
 Swagger Core - swagger-annotations
@@ -1660,7 +1706,7 @@ Copy of the Apache 2.0 license can be found in `LICENSE` file.
 ========================================================================
 Bundled resources:
   swagger-core-2.2.34.jar / META-INF/NOTICE
-  swagger-core-jakarta-2.2.21.jar / META-INF/NOTICE
+  swagger-core-jakarta-2.2.47.jar / META-INF/NOTICE
 ========================================================================
 
 Swagger Core - swagger-core
@@ -1670,8 +1716,8 @@ Copy of the Apache 2.0 license can be found in `LICENSE` file.
 
 ========================================================================
 Bundled resources:
-  swagger-models-2.2.34.jar / META-INF/NOTICE
-  swagger-models-jakarta-2.2.21.jar / META-INF/NOTICE
+  swagger-models-2.2.47.jar / META-INF/NOTICE
+  swagger-models-jakarta-2.2.47.jar / META-INF/NOTICE
 ========================================================================
 
 Swagger Core - swagger-models
@@ -1681,17 +1727,17 @@ Copy of the Apache 2.0 license can be found in `LICENSE` file.
 
 ========================================================================
 Bundled resources:
-  thymeleaf-spring6-3.1.2.RELEASE.jar / META-INF/NOTICE.txt
+  thymeleaf-spring6-3.1.5.RELEASE.jar / META-INF/NOTICE.txt
 ========================================================================
 
-Copyright (c) 2011-2022, The THYMELEAF team (http://www.thymeleaf.org)
-
+Copyright (c) 2011-2026 Thymeleaf (http://www.thymeleaf.org)
+ 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
-
+ 
        http://www.apache.org/licenses/LICENSE-2.0
-
+ 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -1700,11 +1746,11 @@ Copyright (c) 2011-2022, The THYMELEAF team (http://www.thymeleaf.org)
 
 ========================================================================
 Bundled resources:
-  tomcat-embed-core-10.1.25.jar / META-INF/NOTICE
+  tomcat-embed-core-10.1.61.jar / META-INF/NOTICE
 ========================================================================
 
 Apache Tomcat
-Copyright 1999-2024 The Apache Software Foundation
+Copyright 1999-2026 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
@@ -1737,12 +1783,12 @@ http://www.oracle.com/webfolder/technetwork/jsc/xml/ns/javaee/index.html
 
 ========================================================================
 Bundled resources:
-  tomcat-embed-el-10.1.25.jar / META-INF/NOTICE
-  tomcat-embed-websocket-10.1.25.jar / META-INF/NOTICE
+  tomcat-embed-el-10.1.61.jar / META-INF/NOTICE
+  tomcat-embed-websocket-10.1.61.jar / META-INF/NOTICE
 ========================================================================
 
 Apache Tomcat
-Copyright 1999-2024 The Apache Software Foundation
+Copyright 1999-2026 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
@@ -1753,13 +1799,13 @@ Bundled resources:
 ========================================================================
 
 Copyright (c) 2014-2017, The UNBESCAPE team (http://www.unbescape.org)
-
+ 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
-
+ 
        http://www.apache.org/licenses/LICENSE-2.0
-
+ 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -1768,7 +1814,7 @@ Copyright (c) 2014-2017, The UNBESCAPE team (http://www.unbescape.org)
 
 ========================================================================
 Bundled resources:
-  xercesImpl-2.11.0.jar / META-INF/NOTICE
+  xercesImpl-2.12.2.jar / META-INF/NOTICE
 ========================================================================
 
 =========================================================================
@@ -1777,7 +1823,7 @@ Bundled resources:
    =========================================================================
 
    Apache Xerces Java
-   Copyright 1999-2010 The Apache Software Foundation
+   Copyright 1999-2022 The Apache Software Foundation
 
    This product includes software developed at
    The Apache Software Foundation (http://www.apache.org/).
@@ -1785,11 +1831,34 @@ Bundled resources:
    Portions of this software were originally based on the following:
      - software copyright (c) 1999, IBM Corporation., http://www.ibm.com.
      - software copyright (c) 1999, Sun Microsystems., http://www.sun.com.
-     - voluntary contributions made by Paul Eng on behalf of the
+     - voluntary contributions made by Paul Eng on behalf of the 
        Apache Software Foundation that were originally developed at iClick, Inc.,
        software copyright (c) 1999.
 
+========================================================================
+Bundled resources:
+  xml-apis-1.4.01.jar / license/NOTICE
+========================================================================
+
+=========================================================================
+   ==  NOTICE file corresponding to section 4(d) of the Apache License,   ==
+   ==  Version 2.0, in this case for the Apache xml-commons xml-apis      ==
+   ==  distribution.                                                      ==
+   =========================================================================
+
+   Apache XML Commons XML APIs
+   Copyright 1999-2009 The Apache Software Foundation.
+
+   This product includes software developed at
+   The Apache Software Foundation (http://www.apache.org/).
+
+   Portions of this software were originally based on the following:
+     - software copyright (c) 1999, IBM Corporation., http://www.ibm.com.
+     - software copyright (c) 1999, Sun Microsystems., http://www.sun.com.
+     - software copyright (c) 2000 World Wide Web Consortium, http://www.w3.org
+
 Additional upstream notices for bundled dependencies.
+
 
 ========================================================================
 Netty 4.1.139.Final / upstream NOTICE.txt
@@ -2087,81 +2156,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-Additional upstream dependency texts
-
 ========================================================================
-xml-apis-1.4.01.jar / license/NOTICE
-========================================================================
-
-=========================================================================
-   ==  NOTICE file corresponding to section 4(d) of the Apache License,   ==
-   ==  Version 2.0, in this case for the Apache xml-commons xml-apis      ==
-   ==  distribution.                                                      ==
-   =========================================================================
-
-   Apache XML Commons XML APIs
-   Copyright 1999-2009 The Apache Software Foundation.
-
-   This product includes software developed at
-   The Apache Software Foundation (http://www.apache.org/).
-
-   Portions of this software were originally based on the following:
-     - software copyright (c) 1999, IBM Corporation., http://www.ibm.com.
-     - software copyright (c) 1999, Sun Microsystems., http://www.sun.com.
-     - software copyright (c) 2000 World Wide Web Consortium, http://www.w3.org
-
-========================================================================
-spring-data-ldap-3.3.1.jar / notice.txt
-========================================================================
-
-Spring Data LDAP 3.3.1 (2024.0.1)
-Copyright (c) [2010-2021] Pivotal Software, Inc.
-
-This product is licensed to you under the Apache License, Version 2.0 (the "License").
-You may not use this product except in compliance with the License.
-
-This product may include a number of subcomponents with
-separate copyright notices and license terms. Your use of the source
-code for the these subcomponents is subject to the terms and
-conditions of the subcomponent's license, as noted in the LICENSE file.
-
-========================================================================
-spring-data-commons-3.3.1.jar / notice.txt
-========================================================================
-
-Spring Data Commons 3.3.1 (2024.0.1)
-Copyright (c) [2010-2021] Pivotal Software, Inc.
-
-This product is licensed to you under the Apache License, Version 2.0 (the "License").
-You may not use this product except in compliance with the License.
-
-This product may include a number of subcomponents with
-separate copyright notices and license terms. Your use of the source
-code for the these subcomponents is subject to the terms and
-conditions of the subcomponent's license, as noted in the LICENSE file.
-
-========================================================================
-okhttp-4.12.0.jar / okhttp3/internal/publicsuffix/NOTICE
-========================================================================
-
-Note that publicsuffixes.gz is compiled from The Public Suffix List:
-https://publicsuffix.org/list/public_suffix_list.dat
-
-It is subject to the terms of the Mozilla Public License, v. 2.0:
-https://mozilla.org/MPL/2.0/
-
-========================================================================
-io.swagger.core.v3:swagger-core-jakarta:2.2.21 / sources / META-INF/NOTICE
-========================================================================
-
-Swagger Core - ${pom.name}
-Copyright (c) 2015. SmartBear Software Inc.
-Swagger Core - ${pom.name}  is licensed under Apache 2.0 license.
-Copy of the Apache 2.0 license can be found in `LICENSE` file.
-
-========================================================================
-Swagger UI 5.13.0 / upstream NOTICE
+Swagger UI 5.32.2 / upstream NOTICE
 ========================================================================
 
 swagger-ui
 Copyright 2020-2021 SmartBear Software Inc.
+

@@ -135,6 +135,12 @@ public interface Constants {
     String HTTP_TIME_OUT = "httpTimeOut";
 
     /**
+     * The constant HTTP_POOL_GROUP: optional named upstream connection-pool group
+     * chosen by the divide rule handle; absent means the default shared pool.
+     */
+    String HTTP_POOL_GROUP = "httpPoolGroup";
+
+    /**
      * The constant HTTP_RETRY.
      */
     String HTTP_RETRY = "httpRetry";
