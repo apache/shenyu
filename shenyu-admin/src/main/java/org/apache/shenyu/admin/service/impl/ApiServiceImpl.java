@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
@@ -165,14 +166,16 @@ public class ApiServiceImpl implements ApiService {
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 
-    private void removeRegister(final ApiDO apiDO) {
+    private void removeRegister(final ApiDO apiDO,
+                                final BiConsumer<List<String>, String> ruleRemover,
+                                final BiConsumer<List<String>, String> selectorRemover) {
         final String path = apiDO.getApiPath();
         RuleQueryCondition condition = new RuleQueryCondition();
         condition.setKeyword(path);
         //clean rule
         final List<RuleVO> rules = ruleService.searchByCondition(condition);
         if (CollectionUtils.isNotEmpty(rules)) {
-            ruleService.deleteByIdsAndNamespaceId(rules.stream()
+            ruleRemover.accept(rules.stream()
                     .map(RuleVO::getId)
                     .distinct()
                     // todo:[To be refactored with namespace]  Temporarily  hardcode
@@ -190,7 +193,7 @@ public class ApiServiceImpl implements ApiService {
         });
         if (CollectionUtils.isNotEmpty(selectorIds)) {
             // todo:[To be refactored with namespace]  Temporarily  hardcode
-            selectorService.deleteByNamespaceId(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
+            selectorRemover.accept(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
         }
         //clean metadata
         Optional.ofNullable(metaDataService.findByPathAndNamespaceId(path, SYS_DEFAULT_NAMESPACE_ID))
@@ -240,7 +243,8 @@ public class ApiServiceImpl implements ApiService {
         final int deleteRows = this.apiMapper.deleteByIds(apiIds);
         if (deleteRows > 0) {
             tagRelationMapper.deleteByApiIds(apiIds);
-            apis.forEach(this::removeRegister);
+            // a user deletion goes through the plugin data permission checks of the selector and rule services
+            apis.forEach(api -> removeRegister(api, ruleService::deleteByIdsAndNamespaceId, selectorService::deleteByNamespaceId));
         }
         return StringUtils.EMPTY;
     }
@@ -299,7 +303,8 @@ public class ApiServiceImpl implements ApiService {
             final int deleteRows = this.apiMapper.deleteByIds(apiIds);
             if (deleteRows > 0) {
                 tagRelationMapper.deleteByApiIds(apiIds);
-                apiDOs.forEach(this::removeRegister);
+                // registration has no login user, so it uses the unchecked registration deletes
+                apiDOs.forEach(api -> removeRegister(api, ruleService::deleteForRegistration, selectorService::deleteForRegistration));
             }
             return deleteRows;
         }

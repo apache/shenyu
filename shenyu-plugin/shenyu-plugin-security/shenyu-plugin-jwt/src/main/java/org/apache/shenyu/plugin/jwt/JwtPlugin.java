@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.jwt.strategy.JwtConvertStrategyFactory;
 import org.apache.shenyu.plugin.jwt.strategy.JwtPayloadParseStrategy;
 import org.apache.shenyu.plugin.jwt.strategy.JwtPayloadParseStrategyFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -65,6 +66,14 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         String finalAuthorization = compatible(token, authorization);
         Map<String, Object> jwtBody = parseJwtPayload(finalAuthorization, jwtConfig);
         if (Objects.isNull(jwtBody)) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            if (!exchange.getResponse().getHeaders().containsKey(HttpHeaders.WWW_AUTHENTICATE)) {
+                String challenge = AUTH2_TOKEN;
+                if (Objects.nonNull(jwtConfig.getResourceMetadataUrl())) {
+                    challenge += " resource_metadata=\"" + jwtConfig.getResourceMetadataUrl() + "\"";
+                }
+                exchange.getResponse().getHeaders().set(HttpHeaders.WWW_AUTHENTICATE, challenge);
+            }
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.ERROR_TOKEN);
             return WebFluxResultUtils.result(exchange, error);
         }

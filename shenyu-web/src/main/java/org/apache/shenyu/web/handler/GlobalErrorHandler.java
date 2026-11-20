@@ -18,11 +18,13 @@
 package org.apache.shenyu.web.handler;
 
 import org.apache.shenyu.plugin.api.failure.GatewayFailure;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.alert.AlarmSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -60,6 +62,16 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
             return WebFluxResultUtils.failureResult(exchange, facts, null, 500, "Internal Server Error", throwable);
         }
         LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
+        if (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.REQUEST)) && throwable instanceof ResponseStatusException status
+                && HttpStatus.GATEWAY_TIMEOUT.equals(status.getStatusCode())) {
+            if (exchange.getResponse().isCommitted()) {
+                return Mono.error(throwable);
+            }
+            // A timeout can follow upstream headers. They describe a different body from the error response.
+            exchange.getResponse().getHeaders().remove(HttpHeaders.CONTENT_ENCODING);
+            exchange.getResponse().getHeaders().remove(HttpHeaders.CONTENT_TYPE);
+            exchange.getResponse().getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
+        }
         HttpStatusCode httpStatusCode;
         String errorMsg = "";
         if (throwable instanceof IllegalArgumentException) {

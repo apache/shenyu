@@ -22,6 +22,7 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
+import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -86,6 +87,28 @@ public class HttpClientPluginConfiguration {
 
 
     /**
+     * Registry of the named upstream pool groups built from startup configuration.
+     *
+     * @param factoryProvider the http client factory, absent when a custom HttpClient bean replaces it
+     * @param properties the http client properties
+     * @return the registry, empty when no groups are configured or no factory exists
+     */
+    @Bean(destroyMethod = "close")
+    @ConditionalOnMissingBean
+    public UpstreamPoolGroupRegistry upstreamPoolGroupRegistry(final ObjectProvider<HttpClientFactory> factoryProvider,
+                                                               final HttpClientProperties properties) {
+        HttpClientFactory factory = factoryProvider.getIfAvailable();
+        if (Objects.isNull(factory)) {
+            if (!properties.getPoolGroups().isEmpty()) {
+                throw new IllegalStateException("shenyu.httpclient.pool-groups requires the ShenYu-managed HttpClient; "
+                        + "remove the custom HttpClient bean or the pool-groups configuration");
+            }
+            return UpstreamPoolGroupRegistry.empty();
+        }
+        return factory.buildGroupRegistry();
+    }
+
+    /**
      * The type Web client configuration.
      */
     @Configuration
@@ -101,7 +124,8 @@ public class HttpClientPluginConfiguration {
         @Bean
         public ShenyuPlugin webClientPlugin(
                 final HttpClientProperties properties,
-                final ObjectProvider<HttpClient> httpClient) {
+                final ObjectProvider<HttpClient> httpClient,
+                final UpstreamPoolGroupRegistry poolGroups) {
             int maxInMemorySize =
                     properties.getMaxInMemorySize() * Constants.BYTES_PER_MB;
             WebClient webClient = WebClient.builder()
@@ -112,7 +136,7 @@ public class HttpClientPluginConfiguration {
                             .build())
                     .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
                     .build();
-            return new WebClientPlugin(webClient, (long) properties.getMaxInMemorySize() * Constants.BYTES_PER_MB);
+            return new WebClientPlugin(webClient, (long) properties.getMaxInMemorySize() * Constants.BYTES_PER_MB, poolGroups);
         }
     }
 
@@ -128,12 +152,14 @@ public class HttpClientPluginConfiguration {
          *
          * @param httpClient the http client
          * @param properties the http client properties
+         * @param poolGroups the upstream pool group registry
          * @return the shenyu plugin
          */
         @Bean
         public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient,
-                                                  final HttpClientProperties properties) {
-            return new NettyHttpClientPlugin(httpClient.getIfAvailable(), (long) properties.getMaxInMemorySize() * Constants.BYTES_PER_MB);
+                                                  final HttpClientProperties properties,
+                                                  final UpstreamPoolGroupRegistry poolGroups) {
+            return new NettyHttpClientPlugin(httpClient.getIfAvailable(), (long) properties.getMaxInMemorySize() * Constants.BYTES_PER_MB, poolGroups);
         }
     }
 }

@@ -22,6 +22,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.spi.Join;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,13 +37,24 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
 
     @Override
+    public Upstream select(final List<Upstream> upstreamList, final LoadBalanceData data) {
+        Upstream picked = super.select(upstreamList, data);
+        // A single candidate returns before doSelect, so the inflight increment there is skipped
+        // while Divide still releases it. Count the selection here. See #7980.
+        if (Objects.nonNull(picked) && upstreamList.size() == 1) {
+            picked.getInflight().incrementAndGet();
+        }
+        return picked;
+    }
+
+    @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         int length = upstreamList.size();
         long shortestResponse = Long.MAX_VALUE;
         int shortestCount = 0;
         int[] shortestIndexes = new int[length];
         int[] weights = new int[length];
-        int totalWeight = 0;
+        long totalWeight = 0;
         int firstWeight = 0;
         boolean sameWeight = true;
 
@@ -71,18 +83,23 @@ public class ShortestResponseLoadBalancer extends AbstractLoadBalancer {
         }
 
         if (shortestCount == 1) {
-            return upstreamList.get(shortestIndexes[0]);
+            return trackInflight(upstreamList.get(shortestIndexes[0]));
         }
         if (!sameWeight && totalWeight > 0) {
-            int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+            long offsetWeight = ThreadLocalRandom.current().nextLong(totalWeight);
             for (int i = 0; i < shortestCount; i++) {
                 int shortestIndex = shortestIndexes[i];
                 offsetWeight -= weights[shortestIndex];
                 if (offsetWeight < 0) {
-                    return upstreamList.get(shortestIndex);
+                    return trackInflight(upstreamList.get(shortestIndex));
                 }
             }
         }
-        return upstreamList.get(shortestIndexes[ThreadLocalRandom.current().nextInt(shortestCount)]);
+        return trackInflight(upstreamList.get(shortestIndexes[ThreadLocalRandom.current().nextInt(shortestCount)]));
+    }
+
+    private Upstream trackInflight(final Upstream upstream) {
+        upstream.getInflight().incrementAndGet();
+        return upstream;
     }
 }

@@ -38,8 +38,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -117,6 +119,17 @@ public class AbstractPathDataSyncServiceTest {
         verify(discoveryUpstreamDataSubscriber).unSubscribe(captor.capture());
         assertEquals("divide", captor.getValue().pluginName());
         assertEquals("testSelectorId", captor.getValue().selectorId());
+    }
+
+
+    @Test
+    public void testRuleDeleteWithMalformedKeyIsSkipped() {
+        // a rule leaf without the {selectorId}-{ruleId} pair must be skipped, not throw
+        // IndexOutOfBoundsException from list.get(1) inside the sync listener
+        assertDoesNotThrow(() -> pathDataSyncService.event("/default",
+                "/default/shenyu/rule/divide/onlyone", null,
+                "/default/shenyu/rule", AbstractPathDataSyncService.EventType.DELETE));
+        verify(pluginDataSubscriber, never()).unRuleSubscribe(any());
     }
 
     @Test

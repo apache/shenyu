@@ -51,6 +51,25 @@ class KeyAuthMcpSecurityConfigurationTest {
             .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true");
 
     @Test
+    void invalidResourceBindingsFailAtStartup() {
+        final KeyAuthMcpSecurityProperties properties = new KeyAuthMcpSecurityProperties();
+        KeyAuthMcpSecurityProperties.Binding binding = new KeyAuthMcpSecurityProperties.Binding();
+        binding.setNamespaceId("namespace");
+        binding.setSelectorId("selector");
+        binding.setRuleId("rule");
+        binding.setTenant("tenant");
+        binding.setSubject("subject");
+        properties.setBindings(java.util.List.of(binding));
+        for (String invalid : java.util.List.of("*", " bad", "bad\nname", "x".repeat(257))) {
+            binding.setResourceGrants(Set.of(invalid));
+            assertThrows(IllegalArgumentException.class, () -> new KeyAuthMcpSecurityResolver(properties));
+        }
+        binding.setResourceGrants(java.util.stream.IntStream.range(0, 1025).mapToObj(index -> "resource-" + index)
+                .collect(java.util.stream.Collectors.toSet()));
+        assertThrows(IllegalArgumentException.class, () -> new KeyAuthMcpSecurityResolver(properties));
+    }
+
+    @Test
     void principalAdapterIsOptionalAndRequiresExplicitSource() {
         runner.withPropertyValues("shenyu.plugins.agent.gateway.security.principal.enabled=true")
                 .run(context -> assertNotNull(context.getStartupFailure()));
@@ -97,7 +116,7 @@ class KeyAuthMcpSecurityConfigurationTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"issuer=", "audience=", "default-tenant=", "registration-id=unexpected",
-        "scope-mappings[0].tool-grants=*", "scope-mappings[0].scope=", "scope-mappings[0].tool-denys=read", "unknown=true"})
+        "scope-mappings[0].resource-grants=*", "scope-mappings[0].tool-grants=*", "scope-mappings[0].scope=", "scope-mappings[0].tool-denys=read", "unknown=true"})
     void principalRejectsInvalidPolicy(final String invalid) {
         principalConfigured().withPropertyValues("shenyu.plugins.agent.gateway.security.principal." + invalid)
                 .run(context -> assertNotNull(context.getStartupFailure()));
@@ -187,7 +206,7 @@ class KeyAuthMcpSecurityConfigurationTest {
                 .run(context -> assertNotNull(context.getStartupFailure()));
         configured().withPropertyValues(PREFIX + "bindings[0].subject=service" + (char) 9 + "other")
                 .run(context -> assertNotNull(context.getStartupFailure()));
-        KeyAuthMcpSecurityProperties properties = new KeyAuthMcpSecurityProperties();
+        final KeyAuthMcpSecurityProperties properties = new KeyAuthMcpSecurityProperties();
         properties.setBindings(java.util.Collections.nCopies(1025, new KeyAuthMcpSecurityProperties.Binding()));
         assertThrows(IllegalArgumentException.class, () -> new KeyAuthMcpSecurityResolver(properties));
     }
@@ -225,6 +244,7 @@ class KeyAuthMcpSecurityConfigurationTest {
     private ApplicationContextRunner configured() {
         return runner.withPropertyValues(PREFIX + "enabled=true", PREFIX + "bindings[0].namespace-id=namespace",
                 PREFIX + "bindings[0].selector-id=selector", PREFIX + "bindings[0].rule-id=rule", PREFIX + "bindings[0].tenant=tenant",
-                PREFIX + "bindings[0].subject=service", PREFIX + "bindings[0].tool-grants=read,denied", PREFIX + "bindings[0].tool-denials=denied");
+                PREFIX + "bindings[0].subject=service", PREFIX + "bindings[0].tool-grants=read,denied", PREFIX + "bindings[0].tool-denials=denied",
+                PREFIX + "bindings[0].resource-grants=local_status,orders.status");
     }
 }

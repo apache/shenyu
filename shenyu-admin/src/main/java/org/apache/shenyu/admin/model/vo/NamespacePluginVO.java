@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.model.vo;
 
-import org.apache.shiro.codec.Base64;
+import org.apache.shiro.lang.codec.Base64;
 
 import java.io.Serializable;
 import java.util.List;
