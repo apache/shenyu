@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.discovery.DiscoveryLevel;
 import org.apache.shenyu.admin.discovery.DiscoveryMode;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -77,6 +78,9 @@ import java.util.stream.Collectors;
 public class DiscoveryServiceImpl implements DiscoveryService {
 
     private static final Logger LOG = LoggerFactory.getLogger(DiscoveryServiceImpl.class);
+
+    private static final String UNSUPPORTED_NESTED_DISCOVERY = "Omit discoveryHandler and discoveryRel when saving discovery configuration, including when reusing a GET response. "
+            + "Use POST /proxy-selector/binding to create a selector discovery binding.";
 
     private final DiscoveryMapper discoveryMapper;
 
@@ -131,6 +135,10 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public DiscoveryVO createOrUpdate(final DiscoveryDTO discoveryDTO) {
+        if (Objects.nonNull(discoveryDTO.getDiscoveryHandler()) || Objects.nonNull(discoveryDTO.getDiscoveryRel())) {
+            LOG.warn(UNSUPPORTED_NESTED_DISCOVERY);
+            throw new ValidFailException(UNSUPPORTED_NESTED_DISCOVERY);
+        }
         return StringUtils.isBlank(discoveryDTO.getId()) ? this.create(discoveryDTO) : this.update(discoveryDTO);
     }
 
