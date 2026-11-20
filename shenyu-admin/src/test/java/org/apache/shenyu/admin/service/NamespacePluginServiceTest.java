@@ -285,6 +285,24 @@ public final class NamespacePluginServiceTest {
     }
 
     @Test
+    public void testEnabledToleratesDuplicatePluginRelationsUsingFirstRow() {
+        NamespacePluginVO first = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(first.getId()).thenReturn("rel-first");
+        Mockito.when(first.getPluginId()).thenReturn("plugin-1");
+        NamespacePluginVO duplicate = Mockito.mock(NamespacePluginVO.class);
+        Mockito.when(duplicate.getId()).thenReturn("rel-duplicate");
+        Mockito.when(duplicate.getPluginId()).thenReturn("plugin-1");
+        Mockito.when(namespacePluginRelMapper.selectByNamespaceId("namespace-a"))
+                .thenReturn(java.util.Arrays.asList(first, duplicate));
+
+        String result = namespacePluginService.enabled("namespace-a", java.util.Collections.singletonList("plugin-1"), false);
+
+        Assertions.assertEquals(org.apache.commons.lang3.StringUtils.EMPTY, result);
+        Mockito.verify(first).setEnabled(false);
+        Mockito.verify(duplicate, Mockito.never()).setEnabled(Mockito.any());
+    }
+
+    @Test
     public void testEnabledRejectsForeignNamespaceOnly() {
         NamespacePluginVO foreign = Mockito.mock(NamespacePluginVO.class);
         Mockito.when(foreign.getId()).thenReturn("rel-foreign");

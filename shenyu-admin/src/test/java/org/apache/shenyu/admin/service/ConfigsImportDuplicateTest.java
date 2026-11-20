@@ -395,6 +395,11 @@ public final class ConfigsImportDuplicateTest {
         dto.setPluginId(pluginId);
         dto.setName(name);
         dto.setType(0);
+        dto.setSort(0);
+        dto.setEnabled(true);
+        dto.setLogged(false);
+        dto.setContinued(true);
+        dto.setMatchRestful(false);
         dto.setSelectorConditions(Collections.emptyList());
         return dto;
     }
@@ -403,6 +408,11 @@ public final class ConfigsImportDuplicateTest {
         final RuleDTO dto = new RuleDTO();
         dto.setSelectorId(selectorId);
         dto.setName(name);
+        dto.setMatchMode(0);
+        dto.setSort(0);
+        dto.setEnabled(true);
+        dto.setLogged(false);
+        dto.setMatchRestful(false);
         dto.setRuleConditions(Collections.emptyList());
         return dto;
     }

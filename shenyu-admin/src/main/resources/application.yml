@@ -277,6 +277,11 @@ shenyu:
       max-entry-size: 104857600
       max-total-size: 209715200
       max-entry-count: 1000
+      preview:
+        max-outcomes: 1000
+        max-diagnostics-per-outcome: 5
+        max-ref-length: 128
+        max-concurrent: 1
 
 springdoc:
   api-docs:

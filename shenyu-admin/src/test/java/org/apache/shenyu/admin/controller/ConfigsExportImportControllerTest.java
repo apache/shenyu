@@ -18,6 +18,8 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.model.enums.PreviewTokenCheckResult;
+import org.apache.shenyu.admin.model.result.ConfigsImportPreview;
 import org.apache.shenyu.admin.model.dto.SelectorExportDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
@@ -25,8 +27,11 @@ import org.apache.shenyu.admin.service.ConfigsService;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.SelectiveConfigsExportService;
 import org.apache.shenyu.admin.service.SyncDataService;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportPreviewBusyException;
+import org.apache.shenyu.admin.service.configs.plan.ConfigsImportPreviewService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.utils.ZipUtil;
+import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.subject.Subject;
@@ -46,7 +51,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -90,6 +97,9 @@ public class ConfigsExportImportControllerTest {
 
     @Mock
     private NamespaceService namespaceService;
+
+    @Mock
+    private ConfigsImportPreviewService previewService;
 
     @Mock
     private SelectiveConfigsExportService selectiveConfigsExportService;
@@ -156,28 +166,103 @@ public class ConfigsExportImportControllerTest {
     }
 
     @Test
-    public void testImportConfigs() throws Exception {
-
-        // mock import data
+    public void testImportConfigsWithoutPreviewTokenStillImportsAndWarns() throws Exception {
         List<ZipUtil.ZipItem> zipItemList = Lists.newArrayList();
-
-        when(this.configsService.configsImport(anyString(), any())).thenReturn(
-                ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS));
+        Map<String, Object> importData = new HashMap<>();
+        when(this.configsService.configsImport(anyString(), any())).thenReturn(ShenyuAdminResult.success(importData));
         when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
 
-        // mock file
         MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE, ZipUtil.zip(zipItemList));
-        // Run the test
-        final MockHttpServletResponse response = mockMvc.perform(multipart("/configs/import")
+        mockMvc.perform(multipart("/configs/import")
                         .file(file)
                         .param("namespace", "test")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
                 .andExpect(status().isOk())
-                .andReturn().getResponse();
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING.code").value("PREVIEW_TOKEN_MISSING"))
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING.message")
+                        .value("import proceeded without a preview token; drift was not checked"));
 
-        // Verify the results
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+        verify(this.configsService).configsImport(anyString(), any());
+    }
+
+    @Test
+    public void testImportConfigsWithoutPreviewTokenAddsWarningWhenDataIsNull() throws Exception {
+        when(this.configsService.configsImport(anyString(), any())).thenReturn(ShenyuAdminResult.success());
+        when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
+
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE,
+                ZipUtil.zip(Lists.newArrayList()));
+        mockMvc.perform(multipart("/configs/import")
+                        .file(file)
+                        .param("namespace", "test")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING.code").value("PREVIEW_TOKEN_MISSING"));
+    }
+
+    @Test
+    public void testImportConfigsWithCurrentTokenDoesNotWarn() throws Exception {
+        Map<String, Object> importData = new HashMap<>();
+        when(this.configsService.configsImport(anyString(), any())).thenReturn(ShenyuAdminResult.success(importData));
+        when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
+        when(this.previewService.matchesToken(anyString(), any(), anyString())).thenReturn(PreviewTokenCheckResult.VALID);
+
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE,
+                ZipUtil.zip(Lists.newArrayList()));
+        mockMvc.perform(multipart("/configs/import")
+                        .file(file)
+                        .param("namespace", "test")
+                        .param("previewToken", "current")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING").doesNotExist());
+
+        verify(this.configsService).configsImport(anyString(), any());
+    }
+
+    @Test
+    public void testImportConfigsWithStaleTokenStillImportsAndWarns() throws Exception {
+        Map<String, Object> importData = new HashMap<>();
+        when(this.configsService.configsImport(anyString(), any())).thenReturn(ShenyuAdminResult.success(importData));
+        when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
+        when(this.previewService.matchesToken(anyString(), any(), anyString())).thenReturn(PreviewTokenCheckResult.STALE);
+
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE,
+                ZipUtil.zip(Lists.newArrayList()));
+        mockMvc.perform(multipart("/configs/import")
+                        .file(file)
+                        .param("namespace", "test")
+                        .param("previewToken", "stale")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING.code").value("PREVIEW_TOKEN_STALE"))
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING.message")
+                        .value("import proceeded because the archive or target state changed since preview; drift was not verified"));
+
+        verify(this.configsService).configsImport(anyString(), any());
+    }
+
+    @Test
+    public void testImportConfigsWithUnverifiableTokenStillImportsAndWarns() throws Exception {
+        Map<String, Object> importData = new HashMap<>();
+        when(this.configsService.configsImport(anyString(), any())).thenReturn(ShenyuAdminResult.success(importData));
+        when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
+        when(this.previewService.matchesToken(anyString(), any(), anyString()))
+                .thenReturn(PreviewTokenCheckResult.UNVERIFIABLE);
+
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE,
+                ZipUtil.zip(Lists.newArrayList()));
+        mockMvc.perform(multipart("/configs/import")
+                        .file(file)
+                        .param("namespace", "test")
+                        .param("previewToken", "busy")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING.code").value("PREVIEW_TOKEN_UNVERIFIABLE"))
+                .andExpect(jsonPath("$.data.PREVIEW_TOKEN_WARNING.message")
+                        .value("import proceeded because the preview token could not be verified; drift was not checked"));
+
+        verify(this.configsService).configsImport(anyString(), any());
     }
 
     @Test
@@ -189,10 +274,61 @@ public class ConfigsExportImportControllerTest {
                         .file(file)
                         .param("namespace", "ghost-ns")
                         .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.ERROR))
                 .andExpect(jsonPath("$.message", is("namespace is not exist")))
                 .andExpect(status().isOk());
 
         verify(this.configsService, never()).configsImport(anyString(), any());
+    }
+
+    @Test
+    public void testPreviewImportConfigs() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE,
+                ZipUtil.zip(Lists.newArrayList()));
+        ConfigsImportPreview preview = new ConfigsImportPreview("2026-11-04T00:00:00Z", "sha256:a", "sha256:b",
+                "sha256:c", "test", true, false, new ConfigsImportPreview.Summary(1, 0, 0, 0),
+                List.of(), List.of());
+        when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
+        when(this.previewService.preview(anyString(), any())).thenReturn(preview);
+
+        mockMvc.perform(multipart("/configs/import/preview")
+                        .file(file)
+                        .param("namespace", "test")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.SUCCESSFUL))
+                .andExpect(jsonPath("$.data.targetNamespace").value("test"))
+                .andExpect(jsonPath("$.data.fullyValidated").value(true));
+    }
+
+    @Test
+    public void testPreviewUnknownNamespace() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE,
+                ZipUtil.zip(Lists.newArrayList()));
+        when(this.namespaceService.findByNamespaceId("ghost-ns")).thenReturn(null);
+
+        mockMvc.perform(multipart("/configs/import/preview")
+                        .file(file)
+                        .param("namespace", "ghost-ns")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(jsonPath("$.message", is("namespace is not exist")));
+    }
+
+    @Test
+    public void testPreviewReportsBusy() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.zip", MediaType.TEXT_PLAIN_VALUE,
+                ZipUtil.zip(Lists.newArrayList()));
+        when(this.namespaceService.findByNamespaceId("test")).thenReturn(new NamespaceVO());
+        when(this.previewService.preview(anyString(), any())).thenThrow(new ConfigsImportPreviewBusyException());
+
+        mockMvc.perform(multipart("/configs/import/preview")
+                        .file(file)
+                        .param("namespace", "test")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(HttpStatus.TOO_MANY_REQUESTS.value()));
     }
 
 }
