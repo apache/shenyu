@@ -19,8 +19,9 @@ package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -102,7 +103,7 @@ public final class DateUtils {
      * @return the local date time
      */
     public static LocalDateTime formatLocalDateTimeFromTimestampBySystemTimezone(final Long timestamp) {
-        return LocalDateTime.ofEpochSecond(timestamp / 1000, 0, OffsetDateTime.now().getOffset());
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp / 1000), ZoneId.systemDefault());
     }
     
     /**
