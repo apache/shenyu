@@ -58,7 +58,10 @@ import org.apache.shenyu.admin.transfer.ConditionTransfer;
 import org.apache.shenyu.admin.utils.Assert;
 import org.apache.shenyu.admin.utils.SessionUtil;
 import org.apache.shenyu.admin.validation.validator.AgentGatewayRuleHandleValidator;
-import org.apache.shenyu.admin.validation.validator.RewriteRuleHandleValidator;
+import org.apache.shenyu.common.config.contract.ConfigurationContractRegistry;
+import org.apache.shenyu.common.config.contract.ConfigurationScope;
+import org.apache.shenyu.common.config.contract.ConfigurationValidation;
+import org.apache.shenyu.common.config.contract.ConfigurationValidationException;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -273,11 +276,16 @@ public class RuleServiceImpl implements RuleService {
         if (Objects.isNull(plugin) || !PluginEnum.DIVIDE.getName().equals(plugin.getName())) {
             return;
         }
+        validateRegisteredHandle(plugin.getName(), handle);
         try {
             DivideRuleHandle divide = CanaryConfigValidator.parseHandle(handle);
-            if (Objects.nonNull(divide.getCanary())) {
-                CanaryConfigValidator.validateExtensions(divide.getCanary(),
-                        name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
+            if (Objects.nonNull(divide) && Objects.nonNull(divide.getCanary())) {
+                try {
+                    CanaryConfigValidator.validateExtensions(divide.getCanary(),
+                            name -> validateCanaryDictionary("paramType", name), name -> validateCanaryDictionary("operator", name));
+                } catch (IllegalArgumentException error) {
+                    throw ConfigurationValidationException.bindingUnavailable("divide", ConfigurationScope.RULE, "canary");
+                }
             }
             StickySessionConfigValidator.validate(divide.getSticky());
         } catch (IllegalArgumentException ex) {
@@ -509,8 +517,14 @@ public class RuleServiceImpl implements RuleService {
         }
         if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
             AgentGatewayRuleHandleValidator.validate(handle);
-        } else if (PluginEnum.REWRITE.getName().equals(plugin.getName())) {
-            RewriteRuleHandleValidator.validate(handle);
+        }
+        validateRegisteredHandle(plugin.getName(), handle);
+    }
+
+    private void validateRegisteredHandle(final String plugin, final String handle) {
+        ConfigurationValidation validation = ConfigurationContractRegistry.shared().validate(plugin, ConfigurationScope.RULE, "1", handle);
+        if (validation.status() == ConfigurationValidation.Status.INVALID) {
+            throw new ShenyuAdminException(new ConfigurationValidationException(validation).getMessage());
         }
     }
     
