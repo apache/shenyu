@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.exception.ValidFailException;
@@ -89,12 +88,8 @@ public class DashboardUserController {
                                                  @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName,
                 new PageParameter(currentPage, pageSize)));
-        
-        if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
-        } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR);
-        }
+
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
     
     /**

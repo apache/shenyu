@@ -42,10 +42,9 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Collections;
-import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -98,8 +97,10 @@ public class OAuth2PluginTest {
     
         oAuth2Plugin.doExecute(exchange, chain, null, null).block(TIMEOUT);
     
-        assertTrue(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
-        assertTrue(Objects.requireNonNull(request.getHeaders().get(HttpHeaders.AUTHORIZATION)).contains("Bearer token"));
+        ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
+        verify(chain, times(1)).execute(captor.capture());
+        assertEquals("Bearer token", captor.getValue().getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
+        assertFalse(request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION));
     }
 
     @Test

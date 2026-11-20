@@ -33,6 +33,8 @@ import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1NamespaceList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
@@ -50,6 +52,7 @@ import org.apache.shenyu.k8s.reconciler.GatewayClassReconciler;
 import org.apache.shenyu.k8s.reconciler.GatewayReconciler;
 import org.apache.shenyu.k8s.reconciler.HTTPRouteReconciler;
 import org.apache.shenyu.k8s.reconciler.HttpRouteEndpointsHandler;
+import org.apache.shenyu.k8s.reconciler.HttpRouteNamespaceHandler;
 import org.apache.shenyu.k8s.reconciler.HttpRouteServiceHandler;
 import org.apache.shenyu.k8s.reconciler.ReferenceGrantReconciler;
 import org.apache.shenyu.k8s.repository.ShenyuCacheRepository;
@@ -121,10 +124,10 @@ public class GatewayApiControllerConfiguration {
     }
 
     /**
-     * HTTPRoute, Service and Endpoints informers; Services map backendRef ports to named targetPorts.
+     * HTTPRoute and core resource informers; Services map backendRef ports and Namespace labels control attachment.
      *
      * @param apiClient the Kubernetes API client
-     * @return the HTTPRoute, Service and Endpoints SharedInformerFactory
+     * @return the HTTPRoute, Service, Endpoints and Namespace SharedInformerFactory
      */
     @Bean("httproute-shared-informer-factory")
     public SharedInformerFactory httpRouteSharedInformerFactory(final ApiClient apiClient) {
@@ -143,6 +146,10 @@ public class GatewayApiControllerConfiguration {
         GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(V1Endpoints.class,
                 V1EndpointsList.class, "", "v1", "endpoints", apiClient);
         factory.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, RESYNC_PERIOD_MILLIS);
+
+        GenericKubernetesApi<V1Namespace, V1NamespaceList> namespaceApi = new GenericKubernetesApi<>(V1Namespace.class,
+                V1NamespaceList.class, "", "v1", "namespaces", apiClient);
+        factory.sharedIndexInformerFor(namespaceApi, V1Namespace.class, RESYNC_PERIOD_MILLIS);
         return factory;
     }
 
@@ -182,7 +189,7 @@ public class GatewayApiControllerConfiguration {
     }
 
     @Bean("httproute-controller-manager")
-    @DependsOn({"httpRouteEndpointsHandler", "httpRouteServiceHandler"})
+    @DependsOn({"httpRouteEndpointsHandler", "httpRouteServiceHandler", "httpRouteNamespaceHandler"})
     public ControllerManager httpRouteControllerManager(
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("httproute-controller") final Controller httpRouteController) {
@@ -252,8 +259,10 @@ public class GatewayApiControllerConfiguration {
     @Bean("gateway-controller")
     public Controller gatewayController(
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
+            @Qualifier("gateway-work-queue") final RateLimitingQueue<Request> gatewayWorkQueue,
             final GatewayReconciler gatewayReconciler) {
-        DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(gatewayFactory);
+        DefaultControllerBuilder builder = ControllerBuilder.defaultBuilder(gatewayFactory)
+                .withWorkQueue(gatewayWorkQueue);
         builder = builder.watch(q -> ControllerBuilder.controllerWatchBuilder(DynamicKubernetesObject.class, q)
                 .build());
         builder.withWorkerCount(2);
@@ -268,6 +277,17 @@ public class GatewayApiControllerConfiguration {
      */
     @Bean("gatewayclass-work-queue")
     public RateLimitingQueue<Request> gatewayClassWorkQueue(final ExecutorService controllerExecutorService) {
+        return new DefaultRateLimitingQueue<>(controllerExecutorService);
+    }
+
+    /**
+     * Shared with HTTPRoute reconciliation so binding changes refresh Gateway listener counts.
+     *
+     * @param controllerExecutorService the shared controller executor service
+     * @return the Gateway controller work queue
+     */
+    @Bean("gateway-work-queue")
+    public RateLimitingQueue<Request> gatewayWorkQueue(final ExecutorService controllerExecutorService) {
         return new DefaultRateLimitingQueue<>(controllerExecutorService);
     }
 
@@ -292,7 +312,7 @@ public class GatewayApiControllerConfiguration {
     /**
      * Enqueues routes whose backend Service Endpoints changed; a manager dependency so indexers register first.
      *
-     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
+     * @param httpRouteFactory the HTTPRoute, Service, Endpoints and Namespace SharedInformerFactory
      * @param httpRouteWorkQueue the HTTPRoute controller work queue
      * @return the registered Endpoints event handler
      */
@@ -312,7 +332,7 @@ public class GatewayApiControllerConfiguration {
     /**
      * Service port/targetPort edits do not touch Endpoints, so they need their own trigger.
      *
-     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
+     * @param httpRouteFactory the HTTPRoute, Service, Endpoints and Namespace SharedInformerFactory
      * @param httpRouteWorkQueue the HTTPRoute controller work queue
      * @return the registered Service event handler
      */
@@ -326,6 +346,26 @@ public class GatewayApiControllerConfiguration {
                 httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         HttpRouteServiceHandler handler = new HttpRouteServiceHandler(httpRouteInformer, httpRouteWorkQueue);
         serviceInformer.addEventHandler(handler);
+        return handler;
+    }
+
+    /**
+     * Namespace label changes must reconsider even routes with no accepted parent binding.
+     *
+     * @param httpRouteFactory the HTTPRoute and core resource SharedInformerFactory
+     * @param httpRouteWorkQueue the HTTPRoute controller work queue
+     * @return the registered Namespace event handler
+     */
+    @Bean
+    public HttpRouteNamespaceHandler httpRouteNamespaceHandler(
+            @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
+            @Qualifier("httproute-work-queue") final RateLimitingQueue<Request> httpRouteWorkQueue) {
+        SharedIndexInformer<V1Namespace> namespaceInformer =
+                httpRouteFactory.getExistingSharedIndexInformer(V1Namespace.class);
+        SharedIndexInformer<DynamicKubernetesObject> httpRouteInformer =
+                httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
+        HttpRouteNamespaceHandler handler = new HttpRouteNamespaceHandler(httpRouteInformer, httpRouteWorkQueue);
+        namespaceInformer.addEventHandler(handler);
         return handler;
     }
 
@@ -371,6 +411,7 @@ public class GatewayApiControllerConfiguration {
             @Qualifier("httproute-shared-informer-factory") final SharedInformerFactory httpRouteFactory,
             @Qualifier("gateway-shared-informer-factory") final SharedInformerFactory gatewayFactory,
             @Qualifier("gatewayclass-shared-informer-factory") final SharedInformerFactory gatewayClassFactory,
+            @Qualifier("gateway-work-queue") final RateLimitingQueue<Request> gatewayWorkQueue,
             final HttpRouteParser httpRouteParser,
             final ShenyuCacheRepository shenyuCacheRepository,
             final ApiClient apiClient,
@@ -382,8 +423,10 @@ public class GatewayApiControllerConfiguration {
         SharedIndexInformer<DynamicKubernetesObject> gatewayClassInformer =
                 gatewayClassFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class);
         int servedPort = environment.getProperty("server.port", Integer.class, DEFAULT_SERVER_PORT);
-        return new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer,
-                httpRouteParser, shenyuCacheRepository, apiClient, servedPort);
+        SharedIndexInformer<V1Namespace> namespaceInformer =
+                httpRouteFactory.getExistingSharedIndexInformer(V1Namespace.class);
+        return new HTTPRouteReconciler(httpRouteInformer, gatewayInformer, gatewayClassInformer, namespaceInformer,
+                httpRouteParser, shenyuCacheRepository, apiClient, servedPort, gatewayWorkQueue);
     }
 
     @Bean
@@ -420,7 +463,7 @@ public class GatewayApiControllerConfiguration {
      *
      * @param gatewayClassFactory the GatewayClass SharedInformerFactory
      * @param gatewayFactory the Gateway SharedInformerFactory
-     * @param httpRouteFactory the HTTPRoute, Service and Endpoints SharedInformerFactory
+     * @param httpRouteFactory the HTTPRoute, Service, Endpoints and Namespace SharedInformerFactory
      * @param referenceGrantFactory the ReferenceGrant SharedInformerFactory
      * @param gatewayClassController the GatewayClass controller (for its work queue)
      * @param gatewayController the Gateway controller (for its work queue)
@@ -444,6 +487,7 @@ public class GatewayApiControllerConfiguration {
         informers.add(httpRouteFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class));
         informers.add(httpRouteFactory.getExistingSharedIndexInformer(V1Service.class));
         informers.add(httpRouteFactory.getExistingSharedIndexInformer(V1Endpoints.class));
+        informers.add(httpRouteFactory.getExistingSharedIndexInformer(V1Namespace.class));
         informers.add(referenceGrantFactory.getExistingSharedIndexInformer(DynamicKubernetesObject.class));
         if (informers.stream().anyMatch(Objects::isNull)) {
             throw new IllegalStateException("Expected informer not registered; informer factory wiring is inconsistent");

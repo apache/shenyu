@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
@@ -36,7 +37,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,7 +52,8 @@ public class NettyClientMessageWriter implements MessageWriter {
      * Both of the above have expired.
      * latest version: {@linkplain MediaType#APPLICATION_NDJSON}
      */
-    private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_NDJSON);
+    private static final List<MediaType> STREAMING_MEDIA_TYPES =
+            List.of(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_NDJSON);
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -64,12 +65,16 @@ public class NettyClientMessageWriter implements MessageWriter {
             }
             ServerHttpResponse response = exchange.getResponse();
             NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
-            final Flux<NettyDataBuffer> body = connection
+            HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
+            Flux<NettyDataBuffer> body = connection
                     .inbound()
                     .receive()
                     .retain()
                     .map(factory::wrap)
                     .doOnDiscard(NettyDataBuffer.class, DataBufferUtils::release);
+            if (Objects.nonNull(attempt)) {
+                body = body.doOnComplete(attempt::received);
+            }
             MediaType contentType = response.getHeaders().getContentType();
 
             Mono<Void> responseMono = isStreamingMediaType(contentType)
@@ -89,6 +94,9 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
     
     private void cleanup(final ServerWebExchange exchange) {
+        if (HttpRouteDeadline.ownsResponseCleanup(exchange)) {
+            return;
+        }
         Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
         if (Objects.nonNull(connection)) {
             connection.dispose();
@@ -96,6 +104,15 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {
-        return Objects.nonNull(contentType) && this.streamingMediaTypes.stream().anyMatch(contentType::isCompatibleWith);
+        if (Objects.isNull(contentType)) {
+            return false;
+        }
+        // plain loop over the two constant media types (#8424)
+        for (MediaType mediaType : STREAMING_MEDIA_TYPES) {
+            if (mediaType.isCompatibleWith(contentType)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

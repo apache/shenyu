@@ -24,6 +24,7 @@ import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
@@ -63,6 +64,13 @@ import java.util.stream.Collectors;
 public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
     private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryStrategy.class);
 
+    // RetryBackoffSpec is copy-on-write; request-specific limits and callbacks are derived below.
+    private static final RetryBackoffSpec CURRENT_RETRY_TEMPLATE = Retry.backoff(1, Duration.ofMillis(20L))
+            .maxBackoff(Duration.ofSeconds(20L))
+            .transientErrors(true)
+            .jitter(0.5d)
+            .filter(DefaultRetryStrategy::isRetryable);
+
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
     public DefaultRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
@@ -74,23 +82,24 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(() -> "current");
         if (RetryEnum.CURRENT.getName().equals(retryStrategy)) {
             //old version of DividePlugin and SpringCloudPlugin will run on this
-            RetryBackoffSpec retryBackoffSpec = Retry.backoff(retryTimes, Duration.ofMillis(20L))
-                    .maxBackoff(Duration.ofSeconds(20L))
-                    .transientErrors(true)
-                    .jitter(0.5d)
-                    .filter(t -> (t instanceof java.util.concurrent.TimeoutException || t instanceof io.netty.channel.ConnectTimeoutException
-                            || t instanceof io.netty.handler.timeout.ReadTimeoutException || t instanceof IllegalStateException)
-                            && !(t instanceof org.springframework.core.io.buffer.DataBufferLimitException))
+            RetryBackoffSpec retryBackoffSpec = CURRENT_RETRY_TEMPLATE.maxAttempts(retryTimes)
                     .onRetryExhaustedThrow((retryBackoffSpecErr, retrySignal) -> {
+                        if (exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST) && retrySignal.failure() instanceof TimeoutException) {
+                            return retrySignal.failure();
+                        }
                         throw new ShenyuTimeoutException("Request timeout, the maximum number of retry times has been exceeded");
                     });
-            Duration totalTimeout = RetryTimeoutUtils.totalTimeout(duration, retryTimes, Duration.ofSeconds(20));
-            return clientResponse.retryWhen(retryBackoffSpec)
-                    .timeout(totalTimeout, Mono.error(() -> new TimeoutException("Retry sequence took longer than timeout: " + totalTimeout)))
+            return RetryTimeoutUtils.limitSequence(clientResponse.retryWhen(retryBackoffSpec), exchange, duration, retryTimes, Duration.ofSeconds(20))
                     .onErrorMap(ShenyuTimeoutException.class, th -> new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, th.getMessage(), th))
                     .onErrorMap(java.util.concurrent.TimeoutException.class, th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
         }
         return executeFailover(clientResponse, exchange, duration, retryTimes, Duration.ZERO, th -> true);
+    }
+
+    private static boolean isRetryable(final Throwable error) {
+        return (error instanceof TimeoutException || error instanceof io.netty.channel.ConnectTimeoutException
+                || error instanceof io.netty.handler.timeout.ReadTimeoutException || error instanceof IllegalStateException)
+                && !(error instanceof org.springframework.core.io.buffer.DataBufferLimitException);
     }
 
     /**
@@ -206,8 +215,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                 // Least active compares outstanding requests but does not reserve on select.
                 upstream.getInflight().incrementAndGet();
                 reserved = true;
-            } else if (LoadBalanceEnum.P2C.getName().equals(loadBalance)) {
-                // P2C selection already incremented the retry target.
+            } else if (LoadBalanceEnum.P2C.getName().equals(loadBalance)
+                    || LoadBalanceEnum.SHORTEST_RESPONSE.getName().equals(loadBalance)) {
+                // P2C and shortestResponse selection already incremented the retry target.
+                // Do not increment again. An owner releases that reservation with the attempt;
+                // without one, the completion callback below releases it once.
                 reserved = true;
             }
             if (ownerPresent) {
@@ -220,9 +232,8 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             // in order not to affect the next retry call, newUri needs to be excluded
             exclude.add(newUri);
             final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
-            Mono<R> retryResponse = httpClientPlugin
-                    .doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange))
-                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
+            Mono<R> retryResponse = AbstractHttpClientPlugin.withAttemptTimeout(exchange, duration,
+                    () -> httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange)))
                     .doOnError(e -> LOG.error(e.getMessage(), e));
             if (ownerPresent) {
                 retryResponse = retryResponse.doFinally(signal -> {

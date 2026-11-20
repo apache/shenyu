@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +48,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
 import org.apache.shenyu.plugin.api.tracing.TraceContextPropagator;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
@@ -114,8 +114,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Flux<DataBuffer> requestBody = cacheRequestBody
                 ? getCachedRequestBody(exchange)
                 : exchange.getRequest().getBody();
-        final Mono<R> response = doRequest(exchange, httpMethod, uri, requestBody)
-                .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)))
+        final Mono<R> response = withAttemptTimeout(exchange, duration, () -> doRequest(exchange, httpMethod, uri, requestBody))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
         final Mono<R> retriedResponse = retryTimes <= 0
                 ? response
@@ -126,11 +125,39 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 .onErrorMap(AbstractHttpClientPlugin::mapUpstreamTimeout)
                 .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
                         "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
-                .flatMap((Function<Object, Mono<? extends Void>>) o -> chain.execute(exchange));
+                .flatMap(o -> {
+                    HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
+                    return Objects.isNull(attempt) ? chain.execute(exchange)
+                            : attempt.finish(Mono.defer(() -> chain.execute(exchange)))
+                                    .onErrorMap(TimeoutException.class, HttpRouteDeadline::gatewayTimeout);
+                });
         // The aggregation subscription intentionally outlives individual retry attempts: a timed out
         // attempt must not discard the body that a later retry still needs. It is disposed when the
         // logical request terminates, which also releases the buffers accumulated so far.
-        return cacheRequestBody ? result.doFinally(signalType -> disposeCachedRequestBody(exchange)) : result;
+        Mono<Void> owned = exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST)
+                ? result.doFinally(signal -> {
+                    if (exchange.getAttributes().remove(HttpRouteDeadline.ATTEMPT) instanceof HttpRouteDeadline attempt) {
+                        attempt.abandon();
+                    }
+                }) : result;
+        return cacheRequestBody ? owned.doFinally(signalType -> disposeCachedRequestBody(exchange)) : owned;
+    }
+
+    static <T> Mono<T> withAttemptTimeout(final ServerWebExchange exchange, final Duration duration, final Supplier<Mono<T>> send) {
+        HttpRouteDeadline request = exchange.getAttribute(HttpRouteDeadline.REQUEST);
+        if (Objects.isNull(request)) {
+            return send.get()
+                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)));
+        }
+        return Mono.defer(() -> {
+            if (request.expired()) {
+                return Mono.error(HttpRouteDeadline.gatewayTimeout(null));
+            }
+            HttpRouteDeadline attempt = new HttpRouteDeadline(duration.toMillis());
+            exchange.getAttributes().put(HttpRouteDeadline.ATTEMPT, attempt);
+            return attempt.limit(send.get())
+                    .doOnError(error -> attempt.abandon()).doOnCancel(attempt::abandon);
+        });
     }
 
     private static Throwable mapUpstreamTimeout(final Throwable throwable) {
