@@ -75,6 +75,21 @@ class RequestScopedMcpTlsTest {
     }
 
     @Test
+    void acceptsControlledHostnameOnlyThroughItsApprovedAddress() throws Exception {
+        SSLContext context = certificate("dns", "SAN=DNS:mcp.invalid");
+        try (Server server = new Server(context, "127.0.0.2")) {
+            URI endpoint = URI.create("https://mcp.invalid:" + server.server.getAddress().getPort() + "/mcp");
+            RemoteServerBinding.Config config = new RemoteServerBinding.Config("orders", endpoint, "service/orders", "v1");
+            RemoteTransportRouteSet routes = RemoteTransportRouteSet.parse(Set.of(endpoint + "=127.0.0.2"));
+            RequestScopedMcpClient client = RemoteServerBinding.resolve(config, routes,
+                    ignored -> new RemoteServerBinding.Credential(config, "fake-tls-token"))
+                    .newClient(routes.route(endpoint), context);
+            assertEquals("2025-06-18", client.initialize().block(Duration.ofSeconds(5)).protocolVersion());
+            client.closeGracefully().block(Duration.ofSeconds(5));
+        }
+    }
+
+    @Test
     void rejectsUntrustedCertificateWithDefaultTrust() throws Exception {
         try (Server server = new Server(validContext)) {
             RequestScopedMcpClient client = server.client(null);
@@ -118,7 +133,11 @@ class RequestScopedMcpTlsTest {
         private final HttpsServer server;
 
         private Server(final SSLContext context) throws Exception {
-            server = HttpsServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+            this(context, "127.0.0.1");
+        }
+
+        private Server(final SSLContext context, final String address) throws Exception {
+            server = HttpsServer.create(new InetSocketAddress(address, 0), 0);
             server.setHttpsConfigurator(new HttpsConfigurator(context));
             server.createContext("/ready", exchange -> {
                 exchange.sendResponseHeaders(204, -1);
@@ -157,7 +176,8 @@ class RequestScopedMcpTlsTest {
         private RequestScopedMcpClient client(final SSLContext trustedContext) {
             URI endpoint = URI.create("https://127.0.0.1:" + server.getAddress().getPort() + "/mcp");
             RemoteServerBinding.Config config = new RemoteServerBinding.Config("orders", endpoint, "service/orders", "v1");
-            RemoteServerBinding binding = RemoteServerBinding.resolve(config, Set.of(endpoint), ignored -> new RemoteServerBinding.Credential(config, "fake-tls-token"));
+            RemoteServerBinding binding = RemoteServerBinding.resolve(config, RemoteTransportRouteSet.parse(Set.of(endpoint + "=")),
+                    ignored -> new RemoteServerBinding.Credential(config, "fake-tls-token"));
             return new RequestScopedMcpClient(binding, ignored -> { }, trustedContext);
         }
 

@@ -33,6 +33,12 @@ class AgentGatewayAggregationConfigTest {
         assertTrue(AgentGatewayAggregationConfig.parsePluginConfig(source).servers().isEmpty());
     }
 
+    @Test
+    void acceptsControlledHttpsHostnameEndpointShape() {
+        String server = "{\"name\":\"orders\",\"endpoint\":\"https://example.com:443/mcp\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
+        assertEquals("https://example.com:443/mcp", AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)).servers().get(0).endpoint().toString());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"[]", "null", "{\"unknown\":1}", "{\"aggregation\":null}",
         "{\"aggregation\":{\"revision\":\"v1\"}}", "{\"aggregation\":{\"revision\":\"v1\",\"servers\":{}}}",
@@ -54,10 +60,39 @@ class AgentGatewayAggregationConfigTest {
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server + "," + server)));
     }
 
+    @Test
+    void parsesOptionalStrictAdmissionConfiguration() {
+        String source = "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[]},"
+                + "\"admission\":{\"globalInFlight\":1,\"globalQueued\":2,\"localInFlight\":3,"
+                + "\"localQueued\":4,\"remoteInFlight\":5,\"remoteQueued\":6}}";
+        AgentGatewayAdmissionConfig admission = AgentGatewayAggregationConfig.parsePluginConfig(source).admission();
+        assertEquals(1, admission.globalInFlight());
+        assertEquals(2, admission.globalQueued());
+        assertEquals(3, admission.localInFlight());
+        assertEquals(4, admission.localQueued());
+        assertEquals(5, admission.remoteInFlight());
+        assertEquals(6, admission.remoteQueued());
+    }
+
+    @Test
+    void parsesAdmissionWithoutRemoteAggregation() {
+        String source = "{\"admission\":{\"globalInFlight\":8,\"globalQueued\":4,\"localInFlight\":1,"
+                + "\"localQueued\":0,\"remoteInFlight\":2,\"remoteQueued\":2}}";
+        AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(source);
+        assertTrue(config.servers().isEmpty());
+        assertEquals(1, config.admission().localInFlight());
+    }
+
+    @Test
+    void rejectsUnknownOrExcessiveAdmissionFields() {
+        assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(0, 0, 1, 0, 1, 0));
+        assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(129, 0, 1, 0, 1, 0));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"http://user:pass@127.0.0.1:8080/mcp", "http://127.0.0.1/mcp", "http://127.0.0.1:8080/a/../mcp",
         "http://127.0.0.1:8080/mcp?key=SECRET", "http://127.0.0.1:8080/mcp#SECRET", "http://127.0.0.1:8080/%2e/mcp",
-        "https://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp", "https://255.255.255.255:443/mcp"})
+        "http://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp", "https://255.255.255.255:443/mcp"})
     void rejectsAmbiguousEndpoints(final String endpoint) {
         String server = "{\"name\":\"orders\",\"endpoint\":\"" + endpoint + "\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)));

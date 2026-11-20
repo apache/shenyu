@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 
 /** Immutable target and independently resolved credential binding. */
@@ -42,18 +41,17 @@ public final class RemoteServerBinding {
     /**
      * resolve.
      * @param config trusted config value
-     * @param allowedEndpoints trusted allowedEndpoints value
+     * @param routes trusted approved routes
      * @param localResolver trusted localResolver value
      * @return operation result
      */
-    public static RemoteServerBinding resolve(final Config config, final Set<URI> allowedEndpoints, final Function<Config, Credential> localResolver) {
-        if (Objects.isNull(config) || Objects.isNull(allowedEndpoints) || Objects.isNull(localResolver)) {
+    public static RemoteServerBinding resolve(final Config config, final RemoteTransportRouteSet routes,
+                                              final Function<Config, Credential> localResolver) {
+        if (Objects.isNull(config) || Objects.isNull(routes) || Objects.isNull(localResolver)) {
             throw new IllegalArgumentException("Missing controlled target configuration");
         }
-        // Exact configured URI, including path/port. Never resolve an Agent-provided URL.
-        if (!Set.copyOf(allowedEndpoints).contains(config.endpoint())) {
-            throw new SecurityException("Target is not in the configured allowlist");
-        }
+        // Exact configured URI, including path/port, must also have a deployment-approved address.
+        routes.route(config.endpoint());
         Credential credential;
         try {
             credential = localResolver.apply(config);
@@ -80,16 +78,35 @@ public final class RemoteServerBinding {
     }
 
     /**
-     * new Client.
+     * new Client bound to the historical fixed-IP route.
      * @return operation result
      */
     public RequestScopedMcpClient newClient() {
-        return new RequestScopedMcpClient(this, event -> {
+        return newClient(RemoteTransportRoute.fixed(config.endpoint()));
+    }
+
+    /**
+     * new Client bound to an approved route.
+     * @param route trusted immutable route
+     * @return operation result
+     */
+    public RequestScopedMcpClient newClient(final RemoteTransportRoute route) {
+        return newClient(route, null);
+    }
+
+    /**
+     * new Client with an explicit test-only TLS context.
+     * @param route trusted immutable route
+     * @param testContext fixture TLS context
+     * @return operation result
+     */
+    RequestScopedMcpClient newClient(final RemoteTransportRoute route, final javax.net.ssl.SSLContext testContext) {
+        return new RequestScopedMcpClient(this, route, event -> {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Remote MCP response server={} method={} id={} status={} bytes={}",
                         event.get("server"), event.get("method"), event.get("id"), event.get("status"), event.get("bytes"));
             }
-        });
+        }, testContext);
     }
 
     /**
@@ -97,7 +114,26 @@ public final class RemoteServerBinding {
      * @return operation result
      */
     public RemoteCatalogLifecycle.Config lifecycleConfig() {
-        return new RemoteCatalogLifecycle.Config(config.name(), config.credentialVersion(), this::newClient);
+        return lifecycleConfig(RemoteTransportRoute.fixed(config.endpoint()));
+    }
+
+    /**
+     * lifecycle Config with deployment-approved route.
+     * @param route trusted immutable route
+     * @return operation result
+     */
+    public RemoteCatalogLifecycle.Config lifecycleConfig(final RemoteTransportRoute route) {
+        return lifecycleConfig(route, null);
+    }
+
+    /**
+     * lifecycle Config with a verification-only TLS context.
+     * @param route trusted immutable route
+     * @param verificationTlsContext fixture TLS context, never production configuration
+     * @return lifecycle configuration
+     */
+    RemoteCatalogLifecycle.Config lifecycleConfig(final RemoteTransportRoute route, final javax.net.ssl.SSLContext verificationTlsContext) {
+        return new RemoteCatalogLifecycle.Config(config.name(), config.credentialVersion(), () -> newClient(route, verificationTlsContext));
     }
 
     @Override
@@ -142,4 +178,5 @@ public final class RemoteServerBinding {
             return "ServiceCredential[REDACTED]";
         }
     }
+
 }

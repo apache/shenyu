@@ -34,18 +34,32 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class RemoteTransportPolicyTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"https://192.0.2.10:443/mcp", "https://10.1.2.3:8443/tools/mcp", "http://127.0.0.1:8080/mcp"})
+    @ValueSource(strings = {"https://192.0.2.10:443/mcp", "https://10.1.2.3:8443/tools/mcp", "http://127.0.0.1:8080/mcp", "https://example.com:443/mcp"})
     void acceptsOnlyUnambiguousFixedIpTargets(final String endpoint) {
         assertDoesNotThrow(() -> RemoteTransportPolicy.endpoint(URI.create(endpoint)));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"https://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp",
-        "https://169.254.169.254:443/mcp", "https://224.1.2.3:443/mcp", "https://255.255.255.255:443/mcp", "https://256.1.2.3:443/mcp", "https://010.1.2.3:443/mcp",
+    @ValueSource(strings = {"http://example.com:443/mcp", "http://192.0.2.10:8080/mcp", "https://0.0.0.0:443/mcp",
+        "https://169.254.169.254:443/mcp", "https://224.1.2.3:443/mcp", "https://255.255.255.255:443/mcp", "https://256.1.2.3:443/mcp",
         "https://[::1]:443/mcp", "https://127.0.0.1/mcp", "https://user@127.0.0.1:443/mcp", "https://127.0.0.1:443/mcp?x=1",
         "https://127.0.0.1:443/a/../mcp", "https://127.0.0.1:443/%2e/mcp", "https://127.0.0.1:443//mcp"})
     void rejectsDnsPlaintextRemoteAndAmbiguousAddresses(final String endpoint) {
         assertThrows(IllegalArgumentException.class, () -> RemoteTransportPolicy.endpoint(URI.create(endpoint)));
+    }
+
+    @Test
+    void controlledHostnameRequiresAnApprovedRoute() {
+        final URI endpoint = URI.create("https://example.com:443/mcp");
+        assertThrows(IllegalArgumentException.class, () -> RemoteTransportRouteSet.parse(Set.of("https://example.com:443/mcp")));
+        assertThrows(IllegalArgumentException.class, () -> RemoteTransportRouteSet.parse(Set.of("https://192.0.2.10:443/mcp=203.0.113.10")));
+        assertThrows(IllegalArgumentException.class, () -> RemoteTransportRouteSet.parse(Set.of("https://example.com:443/mcp=not-an-address")));
+        RemoteTransportRoute first = RemoteTransportRouteSet.parse(Set.of(endpoint + "=203.0.113.10")).route(endpoint);
+        RemoteTransportRoute second = RemoteTransportRouteSet.parse(Set.of(endpoint + "=203.0.113.11")).route(endpoint);
+        assertEquals(first, first);
+        org.junit.jupiter.api.Assertions.assertNotEquals(first, second);
+        assertThrows(SecurityException.class, () -> RemoteTransportRouteSet.parse(Set.of("https://example.com:443/mcp=203.0.113.10"))
+                .route(URI.create("https://other.example:443/mcp")));
     }
 
     @Test
@@ -54,9 +68,11 @@ class RemoteTransportPolicyTest {
         assertEquals(List.of(Proxy.NO_PROXY), RemoteTransportPolicy.directOnly().select(endpoint));
         RemoteServerBinding.Config config = new RemoteServerBinding.Config("orders", endpoint, "service/orders", "v1");
         RemoteServerBinding.Config other = new RemoteServerBinding.Config("orders", URI.create("https://192.0.2.10:443/other"), "service/orders", "v1");
-        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(config, Set.of(endpoint), ignored -> new RemoteServerBinding.Credential(other, "fake")));
-        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(config, Set.of(), ignored -> new RemoteServerBinding.Credential(config, "fake")));
-        SecurityException error = assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(config, Set.of(endpoint), ignored -> {
+        RemoteTransportRouteSet routes = RemoteTransportRouteSet.parse(Set.of(endpoint + "="));
+        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(config, routes, ignored -> new RemoteServerBinding.Credential(other, "fake")));
+        assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(config, RemoteTransportRouteSet.parse(Set.of("https://example.com:443/mcp=203.0.113.10")),
+                ignored -> new RemoteServerBinding.Credential(config, "fake")));
+        SecurityException error = assertThrows(SecurityException.class, () -> RemoteServerBinding.resolve(config, routes, ignored -> {
             throw new IllegalStateException("SECRET");
         }));
         assertEquals(null, error.getCause());

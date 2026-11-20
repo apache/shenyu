@@ -403,7 +403,7 @@ class RequestScopedMcpClientTest {
         };
         Hooks.onErrorDropped(dropped::add);
         try {
-            Disposable subscription = RequestScopedMcpClient.requestSignal(future).subscribe();
+            Disposable subscription = RequestScopedMcpClient.requestSignal(new ApacheRemoteMcpTransport.AsyncRequestHandle<>(future)).subscribe();
             subscription.dispose();
             assertTrue(cancelled.get());
             future.completeExceptionally(new CompletionException(new HttpConnectTimeoutException("Controlled late failure")));
@@ -416,7 +416,7 @@ class RequestScopedMcpClientTest {
     @Test
     void activeConnectFailureStillReachesSubscriber() {
         CompletableFuture<String> future = new CompletableFuture<>();
-        Mono<String> signal = RequestScopedMcpClient.requestSignal(future);
+        Mono<String> signal = RequestScopedMcpClient.requestSignal(new ApacheRemoteMcpTransport.AsyncRequestHandle<>(future));
         HttpConnectTimeoutException failure = new HttpConnectTimeoutException("Controlled active failure");
         future.completeExceptionally(new CompletionException(failure));
         StepVerifier.create(signal).expectErrorSatisfies(error -> assertSame(failure, error)).verify(WAIT);
@@ -651,7 +651,7 @@ class RequestScopedMcpClientTest {
         private RequestScopedMcpClient client(final Consumer<Map<String, Object>> observer) {
             URI uri = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/mcp");
             RemoteServerBinding.Config target = new RemoteServerBinding.Config("orders", uri, "service/orders", "v1");
-            return new RequestScopedMcpClient(RemoteServerBinding.resolve(target, Set.of(uri),
+            return new RequestScopedMcpClient(RemoteServerBinding.resolve(target, RemoteTransportRouteSet.parse(Set.of(uri + "=")),
                     ignored -> new RemoteServerBinding.Credential(target, "fixed-test-token")), observer);
         }
 
