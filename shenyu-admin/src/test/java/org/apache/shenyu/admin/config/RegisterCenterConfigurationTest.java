@@ -52,7 +52,8 @@ public class RegisterCenterConfigurationTest {
         DiscoveryService discoveryService = mock(DiscoveryService.class);
         List<ShenyuClientRegisterService> shenyuClientRegisterService = new ArrayList<>();
         RegisterClientServerDisruptorPublisher publisher = registerCenterConfiguration
-                .registerClientServerDisruptorPublisher(shenyuClientRegisterService, discoveryService);
+                .registerClientServerDisruptorPublisher(shenyuClientRegisterService,
+                        new ArrayList<>(), discoveryService);
         assertNotNull(publisher);
     }
 }

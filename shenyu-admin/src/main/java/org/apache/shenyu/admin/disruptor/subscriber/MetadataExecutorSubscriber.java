@@ -17,13 +17,19 @@
 
 package org.apache.shenyu.admin.disruptor.subscriber;
 
+import org.apache.shenyu.admin.service.register.ClientRegisterProvisioner;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -31,10 +37,21 @@ import java.util.Optional;
  */
 public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDataRegisterDTO> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MetadataExecutorSubscriber.class);
+
     private final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService;
 
+    private final List<ClientRegisterProvisioner> clientRegisterProvisioners;
+
     public MetadataExecutorSubscriber(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService) {
+        this(shenyuClientRegisterService, Collections.emptyList());
+    }
+
+    public MetadataExecutorSubscriber(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService,
+                                      final List<ClientRegisterProvisioner> clientRegisterProvisioners) {
         this.shenyuClientRegisterService = shenyuClientRegisterService;
+        this.clientRegisterProvisioners = Objects.isNull(clientRegisterProvisioners)
+                ? Collections.emptyList() : clientRegisterProvisioners;
     }
 
     @Override
@@ -49,6 +66,20 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
                     synchronized (shenyuClientRegisterService) {
                         shenyuClientRegisterService.register(meta);
                     }
+                    runProvisioners(meta);
                 }));
+    }
+
+    private void runProvisioners(final MetaDataRegisterDTO metaDataRegisterDTO) {
+        for (ClientRegisterProvisioner provisioner : clientRegisterProvisioners) {
+            try {
+                if (provisioner.supports(metaDataRegisterDTO)) {
+                    provisioner.provision(metaDataRegisterDTO);
+                }
+            } catch (Exception ex) {
+                LOG.warn("client register provisioner [{}] failed: {}",
+                        provisioner.pluginName(), ex.getMessage(), ex);
+            }
+        }
     }
 }
