@@ -35,7 +35,7 @@ Shadow reservations have a bounded TTL. Expiry only releases that reservation's 
 
 Shadow/enforce comparison is explicit: `SAME_EFFECT`, `SHADOW_STRICTER`, or `ENFORCE_STRICTER`. Comparisons require the same consumer, versions, ledger generation and correlation id, and are observations for rollout; they do not retroactively change an execution decision.
 
-`AgentGovernanceContractLabels` is the metric boundary and exposes only consumer, mode, result and reason. `AgentGovernanceAuditAdapter` maps shadow would-deny to an audit `ALLOWED` terminal with a `SHADOW_*` reason; enforce deny maps to `REJECTED` with the bounded reason.
+`AgentGovernanceContractLabels` is the metric boundary and exposes only consumer, mode, result and reason. `AgentGovernanceAuditAdapter` emits schema-version-3 `GOVERNANCE` records, not logical or attempt terminal results. Their outcome is the policy result (`ALLOW`, `WOULD_DENY`, or `DENY`), and their timestamp is the decision's effective time. Shadow would-deny retains an `ALLOWED` traffic decision with a `SHADOW_*` reason; enforce deny uses `REJECTED`. Policy allowance never asserts that tool execution succeeded. Version-1 `LOGICAL`/`ATTEMPT` records remain unchanged; version 2 is reserved for the separate usage-enrichment contract. The existing terminal owner emits the sole logical outcome. Consumers must route by schema version and record type and exclude governance observations from call counts and failure ratios.
 
 ## Non-goals
 

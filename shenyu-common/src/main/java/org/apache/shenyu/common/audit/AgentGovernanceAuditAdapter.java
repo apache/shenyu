@@ -24,7 +24,7 @@ import java.util.Objects;
 
 /**
  * Adapts a governance decision into the existing metadata-only audit contract.
- * Shadow would-deny remains an allowed invocation in the audit terminal outcome.
+ * Policy results are non-terminal observations, never execution outcomes.
  */
 public final class AgentGovernanceAuditAdapter {
 
@@ -35,7 +35,7 @@ public final class AgentGovernanceAuditAdapter {
         Objects.requireNonNull(context, "context");
         Objects.requireNonNull(decision, "decision");
         boolean denied = decision.deniesTraffic();
-        return AgentInvocationAuditEvent.logical()
+        return AgentInvocationAuditEvent.governance()
                 .requestId(context.getRequestId())
                 .tenant(context.getTenant()).subject(context.getSubject()).apiKeyId(context.getApiKeyId())
                 .selectorId(context.getSelectorId()).ruleId(context.getRuleId())
@@ -43,9 +43,10 @@ public final class AgentGovernanceAuditAdapter {
                 .policyVersion(decision.getPolicyVersion())
                 .decision(denied ? AgentInvocationAuditEvent.Decision.REJECTED : AgentInvocationAuditEvent.Decision.ALLOWED)
                 .target(context.getTarget())
-                .outcome(denied ? "REJECTED" : "SUCCESS")
-                .reason(denied || decision.getMode() != AgentGovernanceDecision.Mode.SHADOW
-                        ? decision.getReason().name() : "SHADOW_" + decision.getReason().name())
+                .outcome(decision.getResult().name())
+                .reason(decision.getMode() == AgentGovernanceDecision.Mode.SHADOW
+                        ? "SHADOW_" + decision.getReason().name() : decision.getReason().name())
+                .timestamp(decision.getEffectiveTime())
                 .build();
     }
 }
