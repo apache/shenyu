@@ -34,6 +34,7 @@ import org.apache.shenyu.admin.model.vo.PluginSnapshotVO;
 import org.apache.shenyu.admin.model.vo.PluginListVO;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.admin.service.PluginService;
+import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.service.publish.PluginEventPublisher;
 import org.apache.shenyu.admin.transfer.PluginTransfer;
@@ -80,12 +81,16 @@ public class PluginServiceImpl implements PluginService {
 
     private final NamespacePluginRelMapper namespacePluginRelMapper;
 
+    private final ResourceService resourceService;
+
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final PluginEventPublisher pluginEventPublisher,
-                             final NamespacePluginRelMapper namespacePluginRelMapper) {
+                             final NamespacePluginRelMapper namespacePluginRelMapper,
+                             final ResourceService resourceService) {
         this.pluginMapper = pluginMapper;
         this.pluginEventPublisher = pluginEventPublisher;
         this.namespacePluginRelMapper = namespacePluginRelMapper;
+        this.resourceService = resourceService;
     }
 
     @Override
@@ -114,7 +119,7 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public String createPluginResource(final PluginDTO pluginDTO) {
-        pluginEventPublisher.onCreated(PluginDO.buildPluginDO(pluginDTO));
+        resourceService.createPluginResource(pluginDTO.getId());
         return ShenyuResultMessage.CREATE_SUCCESS;
     }
 

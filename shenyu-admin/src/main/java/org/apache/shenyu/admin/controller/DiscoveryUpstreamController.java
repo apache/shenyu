@@ -23,11 +23,13 @@ import org.apache.shenyu.admin.model.dto.DiscoveryUpstreamDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.DiscoveryUpstreamService;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shenyu.common.constant.Constants;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -87,10 +89,12 @@ public class DiscoveryUpstreamController {
      * batch delete.
      *
      * @param ids id list
+     * @param namespaceId namespace to delete from; defaults to the system namespace for legacy callers
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteDiscoveryUpstream(@NotEmpty @RequestBody final List<@NotBlank String> ids) {
-        return ShenyuAdminResult.success(discoveryUpstreamService.delete(ids));
+    public ShenyuAdminResult deleteDiscoveryUpstream(@NotEmpty @RequestBody final List<@NotBlank String> ids,
+                                                     @RequestParam(value = "namespaceId", defaultValue = Constants.SYS_DEFAULT_NAMESPACE_ID) final String namespaceId) {
+        return ShenyuAdminResult.success(discoveryUpstreamService.delete(ids, namespaceId));
     }
 }

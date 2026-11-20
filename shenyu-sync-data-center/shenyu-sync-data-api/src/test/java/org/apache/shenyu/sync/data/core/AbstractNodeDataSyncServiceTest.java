@@ -37,12 +37,18 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -118,6 +124,15 @@ public class AbstractNodeDataSyncServiceTest {
         assertEquals("testPlugin", captor.getValue().getName());
     }
 
+
+    @Test
+    public void testUnCacheDiscoveryUpstreamDataIgnoresShortKeys() {
+        // a short/malformed removal key must not throw AIOOBE — sibling unCache methods
+        // all guard their key arrays before indexing
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheDiscoveryUpstreamData("namespace.discovery"));
+        verify(discoveryUpstreamDataSubscriber, never()).unSubscribe(any(DiscoveryUpstreamKey.class));
+    }
+
     @Test
     public void testUnCachePluginData() {
 
@@ -145,6 +160,39 @@ public class AbstractNodeDataSyncServiceTest {
         ArgumentCaptor<AppAuthData> captor = ArgumentCaptor.forClass(AppAuthData.class);
         verify(authDataSubscriber).unSubscribe(captor.capture());
         assertEquals("testApp", captor.getValue().getAppKey());
+    }
+
+    @Test
+    public void testUnCacheAuthDataPreservesDottedAppKeyAndPrefixSibling() {
+        Map<String, AppAuthData> cachedAuthData = new HashMap<>();
+        doAnswer(invocation -> {
+            AppAuthData data = invocation.getArgument(0);
+            cachedAuthData.put(data.getAppKey(), data);
+            return null;
+        }).when(authDataSubscriber).onSubscribe(any(AppAuthData.class));
+        doAnswer(invocation -> {
+            AppAuthData data = invocation.getArgument(0);
+            cachedAuthData.remove(data.getAppKey());
+            return null;
+        }).when(authDataSubscriber).unSubscribe(any(AppAuthData.class));
+        nodeDataSyncService.cacheAuthData("{\"appKey\":\"client\"}");
+        nodeDataSyncService.cacheAuthData("{\"appKey\":\"client.prod\"}");
+        assertTrue(cachedAuthData.containsKey("client"));
+        assertTrue(cachedAuthData.containsKey("client.prod"));
+
+        nodeDataSyncService.unCacheAuthData("namespace.auth.client.prod");
+
+        assertFalse(cachedAuthData.containsKey("client.prod"));
+        assertTrue(cachedAuthData.containsKey("client"));
+    }
+
+    @Test
+    public void testUnCacheAuthDataPreservesEmptySegmentsInAppKey() {
+        nodeDataSyncService.unCacheAuthData("namespace.auth..client..prod.");
+
+        ArgumentCaptor<AppAuthData> captor = ArgumentCaptor.forClass(AppAuthData.class);
+        verify(authDataSubscriber).unSubscribe(captor.capture());
+        assertEquals(".client..prod.", captor.getValue().getAppKey());
     }
 
     @Test
@@ -176,7 +224,11 @@ public class AbstractNodeDataSyncServiceTest {
     @Test
     public void testUnCacheDataWithInvalidKey() {
         assertDoesNotThrow(() -> nodeDataSyncService.unCachePluginData("namespace"));
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheAuthData(null));
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheAuthData("namespace"));
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheAuthData(".auth.client"));
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheAuthData("namespace..client"));
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheAuthData("namespace.auth."));
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheMetaData("namespace"));
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheProxySelectorData("namespace"));
 

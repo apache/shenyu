@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.common.dto.convert.rule.sticky;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Optional sticky session affinity configuration for HTTP proxying.
@@ -83,6 +86,20 @@ public class StickySessionConfig {
      * with binding secrets, a cookie name and a positive lifetime (#8037).
      */
     private DeterministicKeyConfig key;
+
+    /**
+     * Whether this configuration can actually take effect at runtime: enabled with a
+     * positive lifetime, a non-blank cookie name and a non-empty list of non-blank keys.
+     * This is the single owner of the activation predicate shared by the gateway affinity
+     * layer and the management-plane validator.
+     *
+     * @return true when affinity applies to the request
+     */
+    public boolean isUsable() {
+        return enabled && maxAgeSeconds > 0 && StringUtils.isNotBlank(cookieName)
+                && Objects.nonNull(secrets) && !secrets.isEmpty()
+                && secrets.stream().allMatch(StringUtils::isNotBlank);
+    }
 
     /**
      * Whether affinity is enabled.

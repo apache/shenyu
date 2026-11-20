@@ -28,6 +28,22 @@ import org.apache.shenyu.common.dto.AgentRequestContext;
  * @param elapsedMillis monotonic logical duration
  * @param attemptCount actual upstream attempts, zero for early rejections
  * @param usage last attempt's explicit snapshot, or unknown
+ * @param completion last attempt's independent completion evidence; SUCCESS alone is not model success
  */
-public record AiTerminalEvent(AgentRequestContext context, AiCallOutcome outcome, Integer httpStatus, long elapsedMillis, int attemptCount, AiUsage usage) {
+public record AiTerminalEvent(AgentRequestContext context, AiCallOutcome outcome, Integer httpStatus, long elapsedMillis,
+                              int attemptCount, AiUsage usage, AiStreamCompletion completion) {
+
+    /**
+     * Preserve the existing event constructor with explicitly uninspected evidence.
+     * @param context request identity
+     * @param outcome transport/HTTP outcome
+     * @param httpStatus downstream status
+     * @param elapsedMillis duration
+     * @param attemptCount actual attempts
+     * @param usage last explicit usage
+     */
+    public AiTerminalEvent(final AgentRequestContext context, final AiCallOutcome outcome, final Integer httpStatus, final long elapsedMillis,
+                           final int attemptCount, final AiUsage usage) {
+        this(context, outcome, httpStatus, elapsedMillis, attemptCount, usage, AiStreamCompletion.NOT_INSPECTED);
+    }
 }

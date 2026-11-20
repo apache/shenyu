@@ -1,0 +1,1 @@
+const u=n=>n==null||n==="",a=(n,s,t)=>{const e=u(n),r=u(s);return e||r?e&&r?0:e?-1:1:t(n,s)},m=(n,s)=>a(n,s,(t,e)=>{const r=Number(t),o=Number(e),i=Number.isNaN(r),c=Number.isNaN(o);return i||c?i&&c?0:i?-1:1:r-o}),N=(n,s)=>a(n,s,(t,e)=>m(new Date(t).getTime(),new Date(e).getTime())),b=n=>(s,t)=>m(s[n],t[n]),g=n=>(s,t)=>N(s[n],t[n]);export{g as a,b as s};
