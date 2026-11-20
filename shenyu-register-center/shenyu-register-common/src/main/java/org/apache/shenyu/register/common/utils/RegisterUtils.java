@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.protocol.RegistrationLeaseProtocol;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,6 +138,31 @@ public final class RegisterUtils {
             LOGGER.error("{} client unregister error: {} ", Constants.URI, json);
             throw new IOException("Admin returned a non-success response for unregistration at " + url);
         }
+    }
+
+    /**
+     * Do heartbeat with the registration lease capability and return the raw response
+     * body. Unlike {@link #doHeartBeat(String, String, String, String)}, the body is
+     * not required to equal the legacy success marker: a lease-capable Admin answers
+     * with a structured lease document, a legacy Admin with the plain-text marker, and
+     * the caller distinguishes the two shapes.
+     *
+     * @param json        the json
+     * @param url         the url
+     * @param type        the type
+     * @param accessToken the token
+     * @return the raw response body after the status check
+     * @throws IOException the io exception
+     */
+    public static String doLeaseHeartBeat(final String json, final String url, final String type, final String accessToken) throws IOException {
+        if (StringUtils.isBlank(accessToken)) {
+            LOGGER.error("{} client heartbeat error accessToken is null, please check the config : {} ", type, json);
+            return StringUtils.EMPTY;
+        }
+        Headers headers = registrationHeaders(accessToken).newBuilder()
+                .add(RegistrationProtocol.CAPABILITIES_HEADER, RegistrationLeaseProtocol.CAPABILITY)
+                .build();
+        return OkHttpTools.getInstance().postWithStatusCheck(url, json, headers);
     }
 
     private static Headers registrationHeaders(final String accessToken) {

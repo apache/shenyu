@@ -32,6 +32,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.enums.InstanceStatusEnum;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
+import org.apache.shenyu.register.common.protocol.RegistrationLeaseProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,8 @@ public class InstanceCheckService {
 
     private final RegistrationFencingGuard registrationFencingGuard;
 
+    private InstanceLeaseService instanceLeaseService;
+
     private final InstanceRetentionProperties instanceRetentionProperties;
 
     private final Map<Integer, Deque<Long>> stateHistoryMap;
@@ -119,6 +122,17 @@ public class InstanceCheckService {
         this.instanceRetentionProperties = instanceRetentionProperties;
         this.stateHistoryMap = new ConcurrentHashMap<>();
         this.namespaceStateHistoryMap = new HashMap<>();
+    }
+
+    /**
+     * Attach the optional lease service. Direct constructions (tests) that skip this
+     * setter keep the exact legacy v1 beat semantics.
+     *
+     * @param instanceLeaseService the lease service, present in a wired application
+     */
+    @Autowired(required = false)
+    public void setInstanceLeaseService(final InstanceLeaseService instanceLeaseService) {
+        this.instanceLeaseService = instanceLeaseService;
     }
 
     /**
@@ -211,8 +225,48 @@ public class InstanceCheckService {
             // Fenced business instances are observed through their boot session, not the address cache.
             return true;
         }
+        upsertBeatInfo(getInstanceKey(instanceBeatInfoDTO), instanceBeatInfoDTO, clock.millis());
+        return true;
+    }
+
+    /**
+     * Handle a lease-capable beat: grant or renew the server-issued lease and refresh
+     * the liveness map only when the lease accepted the beat. A rejected beat
+     * ({@code STALE_LEASE}, {@code EXPIRED}) never refreshes the liveness timestamp,
+     * so a client that lost its lease cannot keep its instance alive without
+     * re-registering.
+     *
+     * @param instanceBeatInfoDTO the beat payload, optionally carrying a lease id
+     * @return the structured lease response
+     */
+    public RegistrationLeaseProtocol.LeaseResponse handleLeaseBeat(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        if (Objects.isNull(instanceLeaseService) || !instanceLeaseService.isEnabled()) {
+            return RegistrationLeaseProtocol.LeaseResponse.error(RegistrationLeaseProtocol.LEASE_NOT_ENABLED,
+                    "registration lease is not enabled");
+        }
+        // every in-repo producer defaults a blank namespace, so treat it as the default namespace
+        // rather than an incomplete identity (review feedback on #7776)
+        instanceBeatInfoDTO.setNamespaceId(StringUtils.defaultIfBlank(instanceBeatInfoDTO.getNamespaceId(), SYS_DEFAULT_NAMESPACE_ID));
+        if (isBlankIdentity(instanceBeatInfoDTO)) {
+            return RegistrationLeaseProtocol.LeaseResponse.error(RegistrationLeaseProtocol.INVALID_REQUEST,
+                    "incomplete identity");
+        }
+        if (isProtectedClientObservation(instanceBeatInfoDTO.getNamespaceId(), instanceBeatInfoDTO.getInstanceIp(),
+                instanceBeatInfoDTO.getInstancePort(), instanceBeatInfoDTO.getInstanceType())) {
+            // fenced business addresses are owned by boot-session fencing, not by a lease
+            return RegistrationLeaseProtocol.LeaseResponse.error(RegistrationLeaseProtocol.LEASE_NOT_ENABLED,
+                    "instance liveness is owned by boot-session fencing");
+        }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
         long currentTime = clock.millis();
+        RegistrationLeaseProtocol.LeaseResponse response = instanceLeaseService.onBeat(instanceKey, instanceBeatInfoDTO, currentTime);
+        if (RegistrationLeaseProtocol.OK.equals(response.code())) {
+            upsertBeatInfo(instanceKey, instanceBeatInfoDTO, currentTime);
+        }
+        return response;
+    }
+
+    private void upsertBeatInfo(final String instanceKey, final InstanceBeatInfoDTO instanceBeatInfoDTO, final long currentTime) {
         if (instanceHealthBeatInfo.containsKey(instanceKey)) {
             InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
             instanceInfoVO.setLastHeartBeatTime(currentTime);
@@ -230,7 +284,6 @@ public class InstanceCheckService {
             instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
             instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
         }
-        return true;
     }
 
     private boolean isBlankIdentity(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
@@ -254,8 +307,20 @@ public class InstanceCheckService {
 
     private void doCheck() {
         long currentTime = clock.millis();
+        boolean leaseActive = Objects.nonNull(instanceLeaseService) && instanceLeaseService.isEnabled();
         instanceHealthBeatInfo.values().forEach(instance -> {
-            if (currentTime - instance.getLastHeartBeatTime() > instanceHeartBeatTimeOut) {
+            String instanceKey = getInstanceKey(instance);
+            // a leased instance dies at its lease deadline; the legacy formula is the
+            // fallback for instances without a lease, and the two coincide when the
+            // lease service is disabled
+            long offlineDeadline = leaseActive
+                    ? instanceLeaseService.offlineDeadlineMillis(instanceKey,
+                            instance.getLastHeartBeatTime() + instanceHeartBeatTimeOut)
+                    : instance.getLastHeartBeatTime() + instanceHeartBeatTimeOut;
+            long deleteDeadline = leaseActive
+                    ? offlineDeadline + (deleteTimeout - instanceHeartBeatTimeOut)
+                    : instance.getLastHeartBeatTime() + deleteTimeout;
+            if (currentTime > offlineDeadline) {
                 if (Objects.equals(InstanceStatusEnum.ONLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} offline!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
@@ -266,7 +331,7 @@ public class InstanceCheckService {
                         instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
                 instance.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
             }
-            if (currentTime - instance.getLastHeartBeatTime() > deleteTimeout) {
+            if (currentTime > deleteDeadline) {
                 if (Objects.equals(InstanceStatusEnum.OFFLINE.getCode(), instance.getInstanceState())) {
                     LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} deleted!",
                             instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
@@ -312,6 +377,9 @@ public class InstanceCheckService {
             });
             if (purged.get()) {
                 purgedCount++;
+                if (Objects.nonNull(instanceLeaseService)) {
+                    instanceLeaseService.remove(instanceKey);
+                }
                 LOG.info("[instanceHealthInfo]namespace:{},type:{},Ip:{},Port:{} purged after retention ttl!",
                         instance.getNamespaceId(), instance.getInstanceType(), instance.getInstanceIp(), instance.getInstancePort());
             }

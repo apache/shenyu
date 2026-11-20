@@ -44,6 +44,20 @@ public class InstanceBeatInfoDTO {
     private String namespaceId;
 
     /**
+     * server-issued lease identity presented on a renewal; null on a first
+     * registration or from a legacy client. Unknown fields are ignored by Admins
+     * without the lease capability, so this addition is wire-compatible with v1.
+     */
+    private String leaseId;
+
+    /**
+     * heartbeat interval the client would like to run at, in seconds; the server
+     * decides the effective interval and returns it in the lease response. Null when
+     * the client does not negotiate.
+     */
+    private Integer proposedIntervalSeconds;
+
+    /**
      * get instanceIp.
      *
      * @return instanceIp
@@ -131,6 +145,42 @@ public class InstanceBeatInfoDTO {
      */
     public void setNamespaceId(final String namespaceId) {
         this.namespaceId = namespaceId;
+    }
+
+    /**
+     * get leaseId.
+     *
+     * @return leaseId
+     */
+    public String getLeaseId() {
+        return leaseId;
+    }
+
+    /**
+     * set leaseId.
+     *
+     * @param leaseId leaseId
+     */
+    public void setLeaseId(final String leaseId) {
+        this.leaseId = leaseId;
+    }
+
+    /**
+     * get proposedIntervalSeconds.
+     *
+     * @return proposedIntervalSeconds
+     */
+    public Integer getProposedIntervalSeconds() {
+        return proposedIntervalSeconds;
+    }
+
+    /**
+     * set proposedIntervalSeconds.
+     *
+     * @param proposedIntervalSeconds proposedIntervalSeconds
+     */
+    public void setProposedIntervalSeconds(final Integer proposedIntervalSeconds) {
+        this.proposedIntervalSeconds = proposedIntervalSeconds;
     }
 
 }
