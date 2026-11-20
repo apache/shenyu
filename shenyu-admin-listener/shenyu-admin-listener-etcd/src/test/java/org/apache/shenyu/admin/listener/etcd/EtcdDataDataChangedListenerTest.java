@@ -118,7 +118,9 @@ public class EtcdDataDataChangedListenerTest {
         SelectorData selectorData = SelectorData.builder().id(MOCK_ID).name(MOCK_NAME).pluginName(MOCK_PLUGIN_NAME)
                 .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).build();
         String pluginPath = DefaultPathConstants.buildSelectorParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME) + "/";
+        String selectorRootPrefix = "/" + Constants.SYS_DEFAULT_NAMESPACE_ID + DefaultPathConstants.SELECTOR_PARENT + "/";
         String stalePath = DefaultPathConstants.buildSelectorRealPath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME, "STALE");
+        when(etcdClient.getKeysMapByPrefix(selectorRootPrefix)).thenReturn(ImmutableMap.of());
         when(etcdClient.getKeysMapByPrefix(pluginPath)).thenReturn(ImmutableMap.of(stalePath, "{}"));
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.UPDATE);
@@ -129,6 +131,25 @@ public class EtcdDataDataChangedListenerTest {
                 MOCK_PLUGIN_NAME, MOCK_ID));
         verify(etcdClient, times(1)).delete(stalePath);
         verify(etcdClient, never()).deleteEtcdPathRecursive(anyString());
+    }
+
+    /**
+     * test case onSelectorChanged namespace refresh with an empty snapshot.
+     */
+    @Test
+    public void testOnSelectorChangedEmptyNamespaceRefreshDeletesStaleSelector() {
+        String namespaceId = "namespace-a";
+        String selectorRootPrefix = "/" + namespaceId + DefaultPathConstants.SELECTOR_PARENT + "/";
+        String pluginParentPath = DefaultPathConstants.buildSelectorParentPath(namespaceId, MOCK_PLUGIN_NAME);
+        String stalePath = DefaultPathConstants.buildSelectorRealPath(namespaceId, MOCK_PLUGIN_NAME, MOCK_ID);
+
+        when(etcdClient.getKeysMapByPrefix(selectorRootPrefix))
+                .thenReturn(ImmutableMap.of(pluginParentPath + "/" + MOCK_ID, "{}"));
+        when(etcdClient.getKeysMapByPrefix(pluginParentPath + "/")).thenReturn(ImmutableMap.of(stalePath, "{}"));
+
+        etcdDataDataChangedListener.onSelectorChanged(ImmutableList.of(), DataEventTypeEnum.REFRESH, namespaceId);
+
+        verify(etcdClient, times(1)).delete(stalePath);
     }
 
     /**
@@ -144,8 +165,10 @@ public class EtcdDataDataChangedListenerTest {
                 .namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID)
                 .build();
         String ruleParentPath = DefaultPathConstants.buildRuleParentPath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME) + "/";
+        String ruleRootPrefix = "/" + Constants.SYS_DEFAULT_NAMESPACE_ID + DefaultPathConstants.RULE_PARENT + "/";
         String stalePath = DefaultPathConstants.buildRulePath(Constants.SYS_DEFAULT_NAMESPACE_ID, MOCK_PLUGIN_NAME,
                 MOCK_SELECTOR_ID, "STALE");
+        when(etcdClient.getKeysMapByPrefix(ruleRootPrefix)).thenReturn(ImmutableMap.of());
         when(etcdClient.getKeysMapByPrefix(ruleParentPath))
                 .thenReturn(ImmutableMap.of(stalePath, "{}"));
         etcdDataDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);

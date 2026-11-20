@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.listener;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -37,12 +36,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 
 /**
  * AbstractPathDataChangedListener.
@@ -62,14 +60,14 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
-        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
+        final String resolvedNamespaceId = DataChangedListener.snapshotNamespace(namespaceId, changed, AppAuthData::getNamespaceId);
+        if (Objects.isNull(resolvedNamespaceId)) {
             return;
         }
-        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, AppAuthData::getNamespaceId);
-        if (isNamespaceRefresh(eventType, namespaceId)) {
-            this.refreshFlatGroup(resolvedNamespaceId, DefaultPathConstants.APP_AUTH_PARENT, changed,
-                    AppAuthData::getAppKey, DefaultPathConstants::buildAppAuthPath);
+        if (DataChangedListener.isNamespaceRefresh(eventType, namespaceId)) {
+            this.reconcile(resolvedNamespaceId, "appAuth",
+                    () -> this.refreshFlatGroup(resolvedNamespaceId, DefaultPathConstants.APP_AUTH_PARENT, changed,
+                            AppAuthData::getAppKey, DefaultPathConstants::buildAppAuthPath));
             return;
         }
         for (AppAuthData data : changed) {
@@ -146,13 +144,14 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
-        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
+        final String resolvedNamespaceId = DataChangedListener.snapshotNamespace(namespaceId, changed, SelectorData::getNamespaceId);
+        if (Objects.isNull(resolvedNamespaceId)) {
             return;
         }
-        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, SelectorData::getNamespaceId);
+        final boolean wholeNamespace = DataChangedListener.isNamespaceRefresh(eventType, namespaceId);
         if (DataEventTypeEnum.REFRESH == eventType) {
-            this.refreshSelectorGroup(resolvedNamespaceId, changed, StringUtils.isNotBlank(namespaceId));
+            this.reconcile(resolvedNamespaceId, "selector",
+                    () -> this.refreshSelectorGroup(resolvedNamespaceId, changed, wholeNamespace));
             return;
         }
         for (SelectorData data : changed) {
@@ -177,15 +176,21 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
-        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
+        final String resolvedNamespaceId = DataChangedListener.snapshotNamespace(namespaceId, changed, PluginData::getNamespaceId);
+        if (Objects.isNull(resolvedNamespaceId)) {
             return;
         }
-        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, PluginData::getNamespaceId);
-        if (isNamespaceRefresh(eventType, namespaceId)) {
-            this.deleteStalePluginGroups(resolvedNamespaceId, changed);
-            this.refreshFlatGroup(resolvedNamespaceId, DefaultPathConstants.PLUGIN_PARENT, changed,
-                    PluginData::getName, DefaultPathConstants::buildPluginPath);
+        if (DataChangedListener.isNamespaceRefresh(eventType, namespaceId)) {
+            this.reconcile(resolvedNamespaceId, "plugin", () -> {
+                // enumerate the stale plugins before the snapshot overwrites the plugin listing
+                final Set<String> stalePlugins = this.stalePluginNames(resolvedNamespaceId, changed);
+                this.refreshFlatGroup(resolvedNamespaceId, DefaultPathConstants.PLUGIN_PARENT, changed,
+                        PluginData::getName, DefaultPathConstants::buildPluginPath);
+                stalePlugins.forEach(pluginName -> {
+                    deletePathRecursive(DefaultPathConstants.buildSelectorParentPath(resolvedNamespaceId, pluginName));
+                    deletePathRecursive(DefaultPathConstants.buildRuleParentPath(resolvedNamespaceId, pluginName));
+                });
+            });
             return;
         }
         for (PluginData data : changed) {
@@ -213,13 +218,14 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType, final String namespaceId) {
-        // an empty payload is only meaningful when the event names the namespace: it is then a full snapshot
-        if (CollectionUtils.isEmpty(changed) && StringUtils.isBlank(namespaceId)) {
+        final String resolvedNamespaceId = DataChangedListener.snapshotNamespace(namespaceId, changed, RuleData::getNamespaceId);
+        if (Objects.isNull(resolvedNamespaceId)) {
             return;
         }
-        final String resolvedNamespaceId = resolveNamespace(namespaceId, changed, RuleData::getNamespaceId);
+        final boolean wholeNamespace = DataChangedListener.isNamespaceRefresh(eventType, namespaceId);
         if (DataEventTypeEnum.REFRESH == eventType) {
-            this.refreshRuleGroup(resolvedNamespaceId, changed, StringUtils.isNotBlank(namespaceId));
+            this.reconcile(resolvedNamespaceId, "rule",
+                    () -> this.refreshRuleGroup(resolvedNamespaceId, changed, wholeNamespace));
             return;
         }
         for (RuleData data : changed) {
@@ -238,19 +244,24 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
 
     /**
      * A namespace-scoped REFRESH is a full snapshot of the group. Upsert the payload first so
-     * gateways never see an empty plugin, then remove the paths that are absent from the payload.
+     * gateways never see an empty group, then remove the paths that are absent from the payload.
      */
     private <T> void refreshFlatGroup(final String namespaceId, final String groupPath, final List<T> changed,
                                       final Function<? super T, ? extends String> nameMapper,
                                       final BiFunction<String, String, String> pathBuilder) {
+        final String rootPath = buildNamespaceGroupPath(namespaceId, groupPath);
+        final List<String> existingNames = getChildren(rootPath);
         final Set<String> expectedNames = new HashSet<>();
         for (T data : changed) {
             final String name = nameMapper.apply(data);
             expectedNames.add(name);
             createOrUpdate(pathBuilder.apply(namespaceId, name), data);
         }
-        final String rootPath = buildNamespaceGroupPath(namespaceId, groupPath);
-        for (String name : getChildren(rootPath)) {
+        if (Objects.isNull(existingNames)) {
+            // this center cannot list children: keep the previous upsert-only behavior
+            return;
+        }
+        for (String name : existingNames) {
             if (!expectedNames.contains(name)) {
                 deleteNode(buildChildPath(rootPath, name));
             }
@@ -261,25 +272,52 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
         final Map<String, Set<String>> expectedIds = new HashMap<>();
         for (SelectorData data : changed) {
             expectedIds.computeIfAbsent(data.getPluginName(), key -> new HashSet<>()).add(data.getId());
+        }
+        final String rootPath = buildNamespaceGroupPath(namespaceId, DefaultPathConstants.SELECTOR_PARENT);
+        final List<String> existingPlugins = getChildren(rootPath);
+        if (Objects.isNull(existingPlugins)) {
+            // this center cannot list children: keep the previous delete-and-recreate behavior
+            expectedIds.keySet().forEach(pluginName -> deletePathRecursive(
+                    DefaultPathConstants.buildSelectorParentPath(namespaceId, pluginName)));
+        }
+        changed.forEach(data -> {
             synchronized (selectorSyncObject) {
                 createOrUpdate(DefaultPathConstants.buildSelectorRealPath(namespaceId, data.getPluginName(), data.getId()), data);
             }
+        });
+        if (Objects.isNull(existingPlugins)) {
+            return;
         }
-        final String rootPath = buildNamespaceGroupPath(namespaceId, DefaultPathConstants.SELECTOR_PARENT);
-        final Set<String> pluginNames = wholeNamespace ? new HashSet<>(getChildren(rootPath)) : new HashSet<>();
+        final Set<String> pluginNames = wholeNamespace ? new HashSet<>(existingPlugins) : new HashSet<>();
         pluginNames.addAll(expectedIds.keySet());
         for (String pluginName : pluginNames) {
             final String pluginPath = buildChildPath(rootPath, pluginName);
             final Set<String> ids = expectedIds.getOrDefault(pluginName, Collections.emptySet());
-            for (String selectorId : getChildren(pluginPath)) {
+            final List<String> selectorIds = getChildren(pluginPath);
+            for (String selectorId : selectorIds) {
                 if (!ids.contains(selectorId)) {
                     deleteNode(buildChildPath(pluginPath, selectorId));
+                    this.deleteSelectorRules(namespaceId, pluginName, selectorId);
                 }
             }
-            if (ids.isEmpty() && getChildren(pluginPath).isEmpty()) {
+            if (ids.isEmpty() && selectorIds.isEmpty()) {
                 deletePathRecursive(pluginPath);
             }
         }
+    }
+
+    /**
+     * Rules cannot outlive their selector, so drop them together with the stale selector.
+     */
+    private void deleteSelectorRules(final String namespaceId, final String pluginName, final String selectorId) {
+        final String rulePluginPath = DefaultPathConstants.buildRuleParentPath(namespaceId, pluginName);
+        final List<String> ruleNodes = getChildren(rulePluginPath);
+        if (Objects.isNull(ruleNodes)) {
+            return;
+        }
+        final String ruleNodePrefix = selectorId + DefaultPathConstants.SELECTOR_JOIN_RULE;
+        ruleNodes.stream().filter(nodeName -> nodeName.startsWith(ruleNodePrefix))
+                .forEach(nodeName -> deleteNode(buildChildPath(rulePluginPath, nodeName)));
     }
 
     private void refreshRuleGroup(final String namespaceId, final List<RuleData> changed, final boolean wholeNamespace) {
@@ -287,52 +325,60 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
         for (RuleData data : changed) {
             final String ruleNodeName = data.getSelectorId() + DefaultPathConstants.SELECTOR_JOIN_RULE + data.getId();
             expectedNames.computeIfAbsent(data.getPluginName(), key -> new HashSet<>()).add(ruleNodeName);
+        }
+        final String rootPath = buildNamespaceGroupPath(namespaceId, DefaultPathConstants.RULE_PARENT);
+        final List<String> existingPlugins = getChildren(rootPath);
+        if (Objects.isNull(existingPlugins)) {
+            // this center cannot list children: keep the previous delete-and-recreate behavior
+            expectedNames.keySet().forEach(pluginName -> deletePathRecursive(
+                    DefaultPathConstants.buildRuleParentPath(namespaceId, pluginName)));
+        }
+        changed.forEach(data -> {
             synchronized (ruleSyncObject) {
                 createOrUpdate(DefaultPathConstants.buildRulePath(namespaceId, data.getPluginName(), data.getSelectorId(), data.getId()), data);
             }
+        });
+        if (Objects.isNull(existingPlugins)) {
+            return;
         }
-        final String rootPath = buildNamespaceGroupPath(namespaceId, DefaultPathConstants.RULE_PARENT);
-        final Set<String> pluginNames = wholeNamespace ? new HashSet<>(getChildren(rootPath)) : new HashSet<>();
+        final Set<String> pluginNames = wholeNamespace ? new HashSet<>(existingPlugins) : new HashSet<>();
         pluginNames.addAll(expectedNames.keySet());
         for (String pluginName : pluginNames) {
             final String pluginPath = buildChildPath(rootPath, pluginName);
             final Set<String> names = expectedNames.getOrDefault(pluginName, Collections.emptySet());
-            for (String ruleNodeName : getChildren(pluginPath)) {
+            final List<String> ruleNodes = getChildren(pluginPath);
+            for (String ruleNodeName : ruleNodes) {
                 if (!names.contains(ruleNodeName)) {
                     deleteNode(buildChildPath(pluginPath, ruleNodeName));
                 }
             }
-            if (names.isEmpty() && getChildren(pluginPath).isEmpty()) {
+            if (names.isEmpty() && ruleNodes.isEmpty()) {
                 deletePathRecursive(pluginPath);
             }
         }
     }
 
     /**
-     * A plugin absent from the namespace snapshot no longer exists, so its selectors and rules
-     * must go too.
+     * Plugins absent from the snapshot, enumerated before the snapshot overwrites the plugin listing.
      */
-    private void deleteStalePluginGroups(final String namespaceId, final List<PluginData> changed) {
+    private Set<String> stalePluginNames(final String namespaceId, final List<PluginData> changed) {
+        final List<String> existingPlugins = getChildren(buildNamespaceGroupPath(namespaceId, DefaultPathConstants.PLUGIN_PARENT));
+        if (Objects.isNull(existingPlugins)) {
+            return Collections.emptySet();
+        }
         final Set<String> currentPlugins = changed.stream().map(PluginData::getName).collect(Collectors.toSet());
-        final String rootPath = buildNamespaceGroupPath(namespaceId, DefaultPathConstants.PLUGIN_PARENT);
-        for (String pluginName : getChildren(rootPath)) {
-            if (!currentPlugins.contains(pluginName)) {
-                deletePathRecursive(DefaultPathConstants.buildSelectorParentPath(namespaceId, pluginName));
-                deletePathRecursive(DefaultPathConstants.buildRuleParentPath(namespaceId, pluginName));
-            }
-        }
+        return existingPlugins.stream().filter(pluginName -> !currentPlugins.contains(pluginName)).collect(Collectors.toSet());
     }
 
-    private static boolean isNamespaceRefresh(final DataEventTypeEnum eventType, final String namespaceId) {
-        return DataEventTypeEnum.REFRESH == eventType && StringUtils.isNotBlank(namespaceId);
-    }
-
-    private static <T> String resolveNamespace(final String namespaceId, final List<T> changed,
-                                               final Function<? super T, ? extends String> namespaceGetter) {
-        if (StringUtils.isNotBlank(namespaceId)) {
-            return namespaceId;
+    /**
+     * Run one reconciliation step; a config center failure must not stop the remaining listeners.
+     */
+    private void reconcile(final String namespaceId, final String group, final Runnable action) {
+        try {
+            action.run();
+        } catch (Exception e) {
+            LOG.error("[DataChangedListener] {} refresh failed, namespaceId={}", group, namespaceId, e);
         }
-        return StringUtils.defaultString(namespaceGetter.apply(changed.get(0)), SYS_DEFAULT_NAMESPACE_ID);
     }
 
     private static String buildNamespaceGroupPath(final String namespaceId, final String groupPath) {
@@ -366,13 +412,15 @@ public abstract class AbstractPathDataChangedListener implements DataChangedList
     public abstract void deletePathRecursive(String selectorParentPath);
 
     /**
-     * Get the child names of a path. The default returns an empty list; config centers that can list
-     * nodes override this to enable namespace REFRESH reconciliation.
+     * Get the child names of a path, or null when this config center cannot list children.
+     *
+     * <p>A null result makes namespace REFRESH fall back to the behavior that existed before
+     * namespace reconciliation, instead of silently doing nothing.
      *
      * @param path parent path
-     * @return child names, empty when the path has no children
+     * @return child names, or null when child listing is unsupported
      */
     public List<String> getChildren(final String path) {
-        return Collections.emptyList();
+        return null;
     }
 }

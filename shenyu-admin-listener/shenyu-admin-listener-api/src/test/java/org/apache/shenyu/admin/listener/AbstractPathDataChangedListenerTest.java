@@ -222,8 +222,58 @@ public final class AbstractPathDataChangedListenerTest {
         assertTrue(listener.indexOfOperation("create:" + retained) < listener.indexOfOperation("delete:" + stale));
     }
 
+    @Test
+    public void testNamespaceRefreshDeletesRulesOfStaleSelector() {
+        TestPathDataChangedListener listener = new TestPathDataChangedListener();
+        String staleRule = DefaultPathConstants.buildRulePath(NAMESPACE_A, "divide", "stale", "rule-1");
+        String retainedRule = DefaultPathConstants.buildRulePath(NAMESPACE_A, "divide", "retained", "rule-2");
+        listener.putConfig(DefaultPathConstants.buildSelectorRealPath(NAMESPACE_A, "divide", "stale"),
+                selectorData(NAMESPACE_A, "stale"));
+        listener.putConfig(staleRule, ruleData(NAMESPACE_A, "stale", "rule-1"));
+        listener.putConfig(retainedRule, ruleData(NAMESPACE_A, "retained", "rule-2"));
+
+        listener.onSelectorChanged(Collections.singletonList(selectorData(NAMESPACE_A, "retained")),
+                DataEventTypeEnum.REFRESH, NAMESPACE_A);
+
+        assertFalse(listener.has(staleRule));
+        assertTrue(listener.has(retainedRule));
+    }
+
+    @Test
+    public void testNamespaceRefreshWithoutChildListingFallsBackToRecursiveDelete() {
+        TestPathDataChangedListener listener = new TestPathDataChangedListener();
+        listener.supportsChildListing = false;
+        String retained = DefaultPathConstants.buildSelectorRealPath(NAMESPACE_A, "divide", "retained");
+        listener.putConfig(retained, selectorData(NAMESPACE_A, "retained"));
+
+        listener.onSelectorChanged(Collections.singletonList(selectorData(NAMESPACE_A, "retained")),
+                DataEventTypeEnum.REFRESH, NAMESPACE_A);
+
+        assertTrue(listener.hasRecursiveDelete(DefaultPathConstants.buildSelectorParentPath(NAMESPACE_A, "divide")));
+        assertTrue(listener.has(retained));
+    }
+
+    @Test
+    public void testNamespacePluginRefreshWithoutChildListingKeepsUpsertOnlyBehavior() {
+        TestPathDataChangedListener listener = new TestPathDataChangedListener();
+        listener.supportsChildListing = false;
+        String stalePlugin = DefaultPathConstants.buildPluginPath(NAMESPACE_A, "stale");
+        String retainedPlugin = DefaultPathConstants.buildPluginPath(NAMESPACE_A, "divide");
+        listener.putConfig(stalePlugin, pluginData(NAMESPACE_A, "stale"));
+
+        listener.onPluginChanged(Collections.singletonList(pluginData(NAMESPACE_A, "divide")),
+                DataEventTypeEnum.REFRESH, NAMESPACE_A);
+
+        assertTrue(listener.has(retainedPlugin));
+        assertTrue(listener.has(stalePlugin));
+    }
+
     private static AppAuthData appAuthData(final String namespaceId, final String appKey) {
         return AppAuthData.builder().namespaceId(namespaceId).appKey(appKey).build();
+    }
+
+    private static PluginData pluginData(final String namespaceId, final String pluginName) {
+        return PluginData.builder().namespaceId(namespaceId).name(pluginName).build();
     }
 
     private static SelectorData selectorData(final String namespaceId, final String selectorId) {
@@ -239,6 +289,8 @@ public final class AbstractPathDataChangedListenerTest {
         private final Map<String, Object> configs = new HashMap<>();
 
         private final List<String> operations = new ArrayList<>();
+
+        private boolean supportsChildListing = true;
 
         private String deletedPath;
 
@@ -266,6 +318,9 @@ public final class AbstractPathDataChangedListenerTest {
 
         @Override
         public List<String> getChildren(final String path) {
+            if (!supportsChildListing) {
+                return null;
+            }
             List<String> children = new ArrayList<>();
             String prefix = path + DefaultPathConstants.PATH_SEPARATOR;
             configs.keySet().stream().filter(key -> key.startsWith(prefix)).forEach(key -> {

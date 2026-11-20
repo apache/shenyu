@@ -26,10 +26,12 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -116,6 +118,19 @@ public final class AbstractNodeDataChangedListenerTest {
         assertNull(listener.config(selectorListKey(NAMESPACE_A, SECOND_PLUGIN)));
         assertTrue(listener.wasDeleted(ruleDataKey(NAMESPACE_A, SECOND_PLUGIN, STALE_ID, ADDED_ID)));
         assertNull(listener.config(ruleListKey(NAMESPACE_A, SECOND_PLUGIN, STALE_ID)));
+    }
+
+    @Test
+    public void testOnPluginChangedPublishesSnapshotBeforeDeletingStaleGroups() {
+        TestNodeDataChangedListener listener = new TestNodeDataChangedListener();
+        listener.putConfig(pluginListKey(NAMESPACE_A), Arrays.asList(FIRST_PLUGIN, SECOND_PLUGIN));
+        listener.putConfig(selectorListKey(NAMESPACE_A, SECOND_PLUGIN), Collections.singletonList(STALE_ID));
+
+        listener.onPluginChanged(Collections.singletonList(pluginData(NAMESPACE_A, FIRST_PLUGIN)),
+                DataEventTypeEnum.REFRESH, NAMESPACE_A);
+
+        assertTrue(listener.indexOfOperation("publish:" + pluginListKey(NAMESPACE_A))
+                < listener.indexOfOperation("delete:" + selectorDataKey(NAMESPACE_A, SECOND_PLUGIN, STALE_ID)));
     }
 
     @Test
@@ -322,6 +337,8 @@ public final class AbstractNodeDataChangedListenerTest {
 
         private final Set<String> deletedDataIds = new HashSet<>();
 
+        private final List<String> operations = new ArrayList<>();
+
         private TestNodeDataChangedListener() {
             super(new ChangeData("plugin", "selector", "rule", "auth", "meta", "proxy.selector", "discovery"));
         }
@@ -329,12 +346,14 @@ public final class AbstractNodeDataChangedListenerTest {
         @Override
         public void doPublishConfig(final String dataId, final Object data) {
             configs.put(dataId, data);
+            operations.add("publish:" + dataId);
         }
 
         @Override
         protected void doDelConfig(final String dataId) {
             configs.remove(dataId);
             deletedDataIds.add(dataId);
+            operations.add("delete:" + dataId);
         }
 
         @Override
@@ -354,6 +373,10 @@ public final class AbstractNodeDataChangedListenerTest {
 
         private boolean wasDeleted(final String dataId) {
             return deletedDataIds.contains(dataId);
+        }
+
+        private int indexOfOperation(final String operation) {
+            return operations.indexOf(operation);
         }
     }
 }
