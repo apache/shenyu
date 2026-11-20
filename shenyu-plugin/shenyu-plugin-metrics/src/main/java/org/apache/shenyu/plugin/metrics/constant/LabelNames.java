@@ -36,6 +36,9 @@ public final class LabelNames {
 
     public static final String AUTHENTICATION_REJECTIONS_TOTAL = "shenyu_authentication_rejections_total";
 
+    /** Bounded shadow/enforce policy decisions for Agent governance. */
+    public static final String AGENT_GOVERNANCE_DECISIONS_TOTAL = "shenyu_agent_governance_decisions_total";
+
     /** Records accepted at the logging queue admission boundary, not backend deliveries. */
     public static final String LOGGING_QUEUE_ACCEPTED_TOTAL = "shenyu_logging_queue_accepted_total";
 
