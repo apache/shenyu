@@ -31,6 +31,9 @@ public final class AgentInvocationAuditEvent {
      */
     public static final int SCHEMA_VERSION = 1;
 
+    /** Governance record version; version 2 is reserved for usage-enriched terminal records. */
+    public static final int GOVERNANCE_SCHEMA_VERSION = 3;
+
     private final RecordType recordType;
 
     private final String requestId;
@@ -99,6 +102,14 @@ public final class AgentInvocationAuditEvent {
         return new Builder(RecordType.ATTEMPT).attempt(attempt);
     }
 
+    /**
+     * Create a policy observation, not a logical or attempt terminal result.
+     * @return governance metadata builder
+     */
+    public static Builder governance() {
+        return new Builder(RecordType.GOVERNANCE);
+    }
+
     public RecordType getRecordType() {
         return recordType;
     }
@@ -120,7 +131,7 @@ public final class AgentInvocationAuditEvent {
     }
 
     public int getSchemaVersion() {
-        return SCHEMA_VERSION;
+        return recordType == RecordType.GOVERNANCE ? GOVERNANCE_SCHEMA_VERSION : SCHEMA_VERSION;
     }
 
     public Optional<String> getSelectorId() {
@@ -188,7 +199,8 @@ public final class AgentInvocationAuditEvent {
 
     public enum RecordType {
         LOGICAL,
-        ATTEMPT
+        ATTEMPT,
+        GOVERNANCE
     }
 
     public enum Decision {

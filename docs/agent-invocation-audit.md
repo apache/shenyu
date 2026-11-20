@@ -4,7 +4,9 @@ Agent Gateway and AI Proxy can emit metadata-only invocation audit events when `
 
 ## Record contract
 
-Every event has schema version `1`, a logical request id, selector/rule ids, configuration version, policy version, target, decision, bounded outcome/reason, optional HTTP status, and timestamp. Logical records are terminal results; attempt records are separately numbered and correlated by the same request id.
+Logical and attempt events have schema version `1`, a logical request id, selector/rule ids, configuration version, policy version, target, decision, bounded outcome/reason, optional HTTP status, and timestamp. Logical records are terminal results; attempt records are separately numbered and correlated by the same request id.
+
+Schema version `3` adds non-terminal `GOVERNANCE` observations; version 2 is reserved for the separate usage-enrichment contract. Their outcome is a policy result (`ALLOW`, `WOULD_DENY`, `DENY`), not execution success or failure. They share the request id for correlation but must not be counted as logical calls, attempts, or billable usage. Existing version-1 terminal records and their single owner remain unchanged. Consumers that do not support version 3 must skip these records rather than treating every non-attempt as a terminal result.
 
 Trusted tenant and subject are included when a server-side identity adapter resolves them. No prompt, arguments, response body, credential, raw API key, header map, or trace id is stored. W3C trace ids are correlation-only when used by tracing, never identity.
 

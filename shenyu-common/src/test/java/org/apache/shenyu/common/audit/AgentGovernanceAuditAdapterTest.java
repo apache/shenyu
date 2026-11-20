@@ -36,7 +36,9 @@ final class AgentGovernanceAuditAdapterTest {
                 AgentGovernanceDecision.Mode.SHADOW, AgentGovernanceDecision.Result.WOULD_DENY,
                 AgentGovernanceDecision.Reason.MCP_INVOCATION_LIMIT));
         assertEquals(AgentInvocationAuditEvent.Decision.ALLOWED, event.getDecision());
-        assertEquals("SUCCESS", event.getOutcome());
+        assertEquals("GOVERNANCE", event.getRecordType().name());
+        assertEquals("WOULD_DENY", event.getOutcome());
+        assertEquals(3, event.getSchemaVersion());
         assertEquals("SHADOW_MCP_INVOCATION_LIMIT", event.getReason());
     }
 
@@ -48,8 +50,20 @@ final class AgentGovernanceAuditAdapterTest {
                 AgentGovernanceDecision.Mode.ENFORCE, AgentGovernanceDecision.Result.DENY,
                 AgentGovernanceDecision.Reason.COST_BUDGET_EXCEEDED));
         assertEquals(AgentInvocationAuditEvent.Decision.REJECTED, event.getDecision());
-        assertEquals("REJECTED", event.getOutcome());
+        assertEquals("GOVERNANCE", event.getRecordType().name());
+        assertEquals("DENY", event.getOutcome());
         assertEquals("COST_BUDGET_EXCEEDED", event.getReason());
+    }
+
+    @Test
+    void enforceAllowDoesNotInventShadowOrExecutionSuccess() {
+        AgentInvocationAuditEvent event = AgentGovernanceAuditAdapter.toEvent(
+                new AgentRequestContext("request-1", "mcp", "selector", "rule"), decision(
+                        AgentGovernanceDecision.Mode.ENFORCE, AgentGovernanceDecision.Result.ALLOW,
+                        AgentGovernanceDecision.Reason.ALLOWED));
+        assertEquals("GOVERNANCE", event.getRecordType().name());
+        assertEquals("ALLOW", event.getOutcome());
+        assertEquals("ALLOWED", event.getReason());
     }
 
     private AgentGovernanceDecision decision(final AgentGovernanceDecision.Mode mode,
