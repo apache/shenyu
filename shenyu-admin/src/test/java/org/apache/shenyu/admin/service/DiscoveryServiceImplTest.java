@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.discovery.DiscoveryProcessor;
 import org.apache.shenyu.admin.discovery.DiscoveryProcessorHolder;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.DiscoveryHandlerMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryMapper;
 import org.apache.shenyu.admin.mapper.DiscoveryRelMapper;
@@ -487,6 +488,23 @@ public final class DiscoveryServiceImplTest {
                 org.mockito.ArgumentCaptor.forClass(ProxySelectorDTO.class);
         verify(discoveryProcessor).createProxySelector(any(DiscoveryHandlerDTO.class), dtoCaptor.capture());
         assertEquals("divide", dtoCaptor.getValue().getPluginName());
+    }
+
+    @Test
+    public void testCreateRejectsNestedDiscoveryHandlerBeforeWriting() {
+        DiscoveryDTO dto = new DiscoveryDTO();
+        dto.setDiscoveryHandler(new DiscoveryHandlerDTO());
+        assertThrows(ValidFailException.class, () -> discoveryService.createOrUpdate(dto));
+        verifyNoInteractions(discoveryMapper, discoveryHandlerMapper, discoveryRelMapper, discoveryProcessor);
+    }
+
+    @Test
+    public void testUpdateRejectsEchoedDiscoveryRelationBeforeWriting() {
+        DiscoveryDTO dto = new DiscoveryDTO();
+        dto.setId("discovery-1");
+        dto.setDiscoveryRel(new DiscoveryRelDTO());
+        assertThrows(ValidFailException.class, () -> discoveryService.createOrUpdate(dto));
+        verifyNoInteractions(discoveryMapper, discoveryHandlerMapper, discoveryRelMapper, discoveryProcessor);
     }
 
     @Test
