@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.agenticai.connect.ProviderProfile;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AnthropicMessages;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 
 import java.util.EnumSet;
@@ -109,6 +110,19 @@ public record OpenAiProviderOptions(Authentication authentication, String creden
                 chat.replaySafety());
         return new OpenAiProviderOptions(Authentication.HEADER, "Authorization", "Bearer ", Map.of(), Map.of(), Map.of(),
                 JsonNodeFactory.instance.objectNode(), capabilities, null);
+    }
+
+    /**
+     * Native Anthropic Messages using the existing endpoint, credential and transport profile.
+     * No OpenAI request/response conversion or provider-declared safe replay is enabled.
+     * @return native Messages options
+     */
+    public static OpenAiProviderOptions anthropicMessages() {
+        AiProviderCapabilities capabilities = new AiProviderCapabilities(Map.of(AnthropicMessages.NAME,
+                new AiProviderProtocolBinding("/v1/messages", AiProviderRequestTransformer.identity())),
+                EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION), EnumSet.of(AiProviderCapabilities.Feature.STREAMING));
+        return new OpenAiProviderOptions(Authentication.HEADER, "x-api-key", "", Map.of("anthropic-version", "2023-06-01"),
+                Map.of(), Map.of(), JsonNodeFactory.instance.objectNode(), capabilities, null);
     }
 
     /**
