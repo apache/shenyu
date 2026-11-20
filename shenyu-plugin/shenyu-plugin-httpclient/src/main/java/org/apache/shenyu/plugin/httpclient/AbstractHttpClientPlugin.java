@@ -116,9 +116,17 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 : exchange.getRequest().getBody();
         final Mono<R> response = withAttemptTimeout(exchange, duration, () -> doRequest(exchange, httpMethod, uri, requestBody))
                 .doOnError(e -> LOG.error(e.getMessage(), e));
+        // the initial attempt records its own outcome against the initial upstream's breaker:
+        // a failure is recorded immediately (even when a failover follows), and a success is
+        // only credited when no failover happens, so a successful retry can never clear the
+        // failed upstream's breaker (#8156)
+        final String initialBreakerKey = exchange.getAttribute(UpstreamCircuitBreaker.INITIAL_BREAKER_KEY);
+        final Mono<R> recordedResponse = retryTimes > 0 && Objects.nonNull(initialBreakerKey)
+                ? UpstreamCircuitBreaker.recordOutcome(response, initialBreakerKey)
+                : response;
         final Mono<R> retriedResponse = retryTimes <= 0
-                ? response
-                : executeWithRetry(response, exchange, duration, retryTimes);
+                ? recordedResponse
+                : executeWithRetry(recordedResponse, exchange, duration, retryTimes);
         final Mono<Void> result = retriedResponse
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
