@@ -49,6 +49,7 @@ public class JwtPluginDataHandler implements PluginDataHandler {
         JwtConfig jwtConfig = new JwtConfig();
         jwtConfig.setSecretKey(secretKey);
         jwtConfig.setHandleType(handleType);
+        jwtConfig.setResourceMetadataUrl(configMap.get("resourceMetadataUrl"));
         Singleton.INST.single(JwtConfig.class, jwtConfig);
     }
 

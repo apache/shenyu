@@ -36,6 +36,18 @@
         operation_type
     </sql>
 
+    <!-- Oracle binds the audit context as CLOB so large rule snapshots are not truncated as VARCHAR. -->
+    <sql id="Context_Value">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                #{context, jdbcType=CLOB, typeHandler=org.apache.shenyu.admin.mybatis.oracle.OracleClobStringTypeHandler}
+            </when>
+            <otherwise>
+                #{context, jdbcType=LONGVARCHAR}
+            </otherwise>
+        </choose>
+    </sql>
+
     <delete id="deleteByBefore">
         delete
         from operation_record_log
@@ -106,7 +118,7 @@
             #{id},
         </if>
         #{color},
-        #{context},
+        <include refid="Context_Value"/>,
         #{operator},
         #{operationTime},
         #{operationType}

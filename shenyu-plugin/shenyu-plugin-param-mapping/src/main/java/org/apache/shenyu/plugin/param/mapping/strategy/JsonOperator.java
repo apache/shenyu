@@ -69,7 +69,9 @@ public class JsonOperator implements Operator {
                     LOG.info("get body data success data:{}", originalBody);
                     // process entity
                     String modify = operation(originalBody.isEmpty() ? "{}" : originalBody, paramMappingRuleHandle);
-                    BodyInserter<Mono<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(Mono.just(modify),
+                    // A Mono is encoded eagerly to calculate content length. Use a Flux so each body
+                    // subscription encodes its own buffer, and unread bodies allocate nothing.
+                    BodyInserter<Flux<String>, ReactiveHttpOutputMessage> bodyInserter = BodyInserters.fromPublisher(Flux.just(modify),
                             String.class);
                     HttpHeaders headers = new HttpHeaders();
                     headers.putAll(exchange.getRequest().getHeaders());

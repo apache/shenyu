@@ -53,6 +53,14 @@
          WHERE id = #{id, jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIdForUpdate" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+               <include refid="Base_Column_List"/>
+          FROM plugin
+         WHERE id = #{id, jdbcType=VARCHAR}
+         FOR UPDATE
+    </select>
+
     <select id="selectByIds" parameterType="java.util.List" resultMap="BaseResultMap">
         SELECT
                <include refid="Base_Column_List"/>
