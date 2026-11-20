@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +51,10 @@ final class AiUpstreamUsageTap {
 
     private final boolean streaming;
 
+    private final String protocol;
+
+    private AiUsage snapshot = AiUsage.UNKNOWN;
+
     private final boolean inspectCompletion;
 
     private final ByteArrayOutputStream line = new ByteArrayOutputStream();
@@ -63,11 +68,21 @@ final class AiUpstreamUsageTap {
     private int eventBytes;
 
     AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream) {
-        this(observation, headers, stream, true);
+        this(observation, headers, stream, "openai-chat", true);
+    }
+
+    AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final String protocol) {
+        this(observation, headers, stream, protocol, "openai-chat".equals(protocol));
     }
 
     AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final boolean nativeChat) {
+        this(observation, headers, stream, "openai-chat", nativeChat);
+    }
+
+    AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers,
+                       final boolean stream, final String protocol, final boolean nativeChat) {
         this.observation = observation;
+        this.protocol = protocol;
         String contentType = header(headers, "Content-Type").toLowerCase(Locale.ROOT).split(";", 2)[0].trim();
         streaming = contentType.isEmpty() ? stream : "text/event-stream".equals(contentType);
         inspectCompletion = nativeChat && streaming;
@@ -77,6 +92,9 @@ final class AiUpstreamUsageTap {
         String encoding = header(headers, "Content-Encoding");
         if (!encoding.isEmpty() && !"identity".equalsIgnoreCase(encoding)
                 || !contentType.isEmpty() && !"text/event-stream".equals(contentType) && !"application/json".equals(contentType) && !contentType.endsWith("+json")) {
+            unavailable(AiUsage.Status.UNSUPPORTED);
+        }
+        if (!List.of("openai-chat", "openai-responses", "anthropic-messages").contains(protocol)) {
             unavailable(AiUsage.Status.UNSUPPORTED);
         }
     }
@@ -184,6 +202,23 @@ final class AiUpstreamUsageTap {
             unavailable(AiUsage.Status.INVALID);
             return;
         }
+        JsonNode envelope = root;
+        boolean patch = false;
+        if ("openai-responses".equals(protocol) && streaming) {
+            if (!List.of("response.completed", "response.incomplete", "response.failed").contains(root.path("type").asText())) {
+                return;
+            }
+            envelope = root.path("response");
+        } else if ("anthropic-messages".equals(protocol) && streaming) {
+            String type = root.path("type").asText();
+            if ("message_start".equals(type)) {
+                envelope = root.path("message");
+            } else if ("message_delta".equals(type)) {
+                patch = true;
+            } else {
+                return;
+            }
+        }
         if (inspectCompletion && root.path("choices").isArray()) {
             for (JsonNode choice : root.path("choices")) {
                 JsonNode finish = choice.get("finish_reason");
@@ -193,21 +228,139 @@ final class AiUpstreamUsageTap {
                 }
             }
         }
-        JsonNode usage = root.get("usage");
+        JsonNode usage = envelope.get("usage");
         if (Objects.isNull(usage) || usage.isNull()) {
+            if ("openai-responses".equals(protocol) || "anthropic-messages".equals(protocol) && !patch) {
+                snapshot = AiUsage.UNKNOWN;
+                observation.usage(snapshot);
+            }
             return;
         }
         if (!usage.isObject()) {
-            observation.usage(new AiUsage(null, null, null, AiUsage.Status.INVALID));
+            unavailable(AiUsage.Status.INVALID);
             return;
         }
-        Long prompt = count(usage.get("prompt_tokens"));
-        Long completion = count(usage.get("completion_tokens"));
-        Long total = count(usage.get("total_tokens"));
-        AiUsage.Status quality = invalid(usage.get("prompt_tokens")) || invalid(usage.get("completion_tokens")) || invalid(usage.get("total_tokens"))
-                ? AiUsage.Status.INVALID : Objects.isNull(prompt) && Objects.isNull(completion) && Objects.isNull(total) ? AiUsage.Status.UNKNOWN : AiUsage.Status.REPORTED;
-        // Replace the snapshot, never sum cumulative SSE counters or fill fields from an older event.
-        observation.usage(quality == AiUsage.Status.INVALID ? new AiUsage(null, null, null, quality) : new AiUsage(prompt, completion, total, quality));
+        captureUsage(usage, patch);
+    }
+
+    private void captureUsage(final JsonNode usage, final boolean patch) {
+        boolean chat = "openai-chat".equals(protocol);
+        String input = chat ? "prompt_tokens" : "input_tokens";
+        String output = chat ? "completion_tokens" : "output_tokens";
+        String details = chat ? "prompt_tokens_details" : "input_tokens_details";
+        for (String field : new String[]{input, output, "total_tokens", "cache_read_input_tokens", "cache_creation_input_tokens", "cached_tokens", "prompt_cache_hit_tokens"}) {
+            if (invalid(usage.get(field))) {
+                unavailable(AiUsage.Status.INVALID);
+                return;
+            }
+        }
+        JsonNode breakdown = usage.get(details);
+        if (Objects.nonNull(breakdown) && !breakdown.isNull() && (!breakdown.isObject() || invalid(breakdown.get("cached_tokens")))) {
+            unavailable(AiUsage.Status.INVALID);
+            return;
+        }
+        Map<String, Long> categories = categories(usage, breakdown, patch);
+        if (Objects.isNull(categories)) {
+            return;
+        }
+        Long prompt = patch && !usage.has(input) ? snapshot.promptTokens() : count(usage.get(input));
+        Long completion = patch && !usage.has(output) ? snapshot.completionTokens() : count(usage.get(output));
+        Long total = patch && !usage.has("total_tokens") ? snapshot.totalTokens() : count(usage.get("total_tokens"));
+        Long cached = "anthropic-messages".equals(protocol) ? patch && !usage.has("cache_read_input_tokens")
+                ? snapshot.cachedPromptTokens() : count(usage.get("cache_read_input_tokens")) : cached(usage, details);
+        AiUsage.Status quality = Objects.isNull(prompt) && Objects.isNull(completion) && Objects.isNull(total)
+                && Objects.isNull(cached) && categories.isEmpty() ? AiUsage.Status.UNKNOWN : AiUsage.Status.REPORTED;
+        // OpenAI snapshots replace. Anthropic sparse cumulative patches replace present fields, never add counters.
+        snapshot = new AiUsage(prompt, completion, total, cached, categories, quality);
+        observation.usage(snapshot);
+    }
+
+    private Map<String, Long> categories(final JsonNode usage, final JsonNode breakdown, final boolean patch) {
+        Map<String, Long> categories = patch ? new LinkedHashMap<>(snapshot.providerCounts()) : new LinkedHashMap<>();
+        for (String field : new String[]{"cache_creation_input_tokens"}) {
+            if (usage.has(field)) {
+                categories.remove(field);
+                Long value = count(usage.get(field));
+                if (Objects.nonNull(value)) {
+                    categories.put(field, value);
+                }
+            }
+        }
+        // Other billable provider units remain visible; a fixed input/output price cannot silently absorb them.
+        JsonNode serverTools = usage.get("server_tool_use");
+        if (Objects.nonNull(serverTools) && !serverTools.isNull()) {
+            if (!serverTools.isObject()) {
+                unavailable(AiUsage.Status.INVALID);
+                return null;
+            }
+            var fields = serverTools.fields();
+            while (fields.hasNext()) {
+                var field = fields.next();
+                if (!List.of("web_search_requests", "web_fetch_requests", "code_execution_requests").contains(field.getKey())) {
+                    unavailable(AiUsage.Status.UNSUPPORTED);
+                    return null;
+                }
+                if (invalid(field.getValue()) || categories.size() >= 32) {
+                    unavailable(AiUsage.Status.INVALID);
+                    return null;
+                }
+                if (Objects.nonNull(count(field.getValue()))) {
+                    categories.put("server_tool_use." + field.getKey(), count(field.getValue()));
+                }
+            }
+        }
+        JsonNode cacheCreation = usage.get("cache_creation");
+        if (Objects.nonNull(cacheCreation) && !cacheCreation.isNull()) {
+            if (!cacheCreation.isObject()) {
+                unavailable(AiUsage.Status.INVALID);
+                return null;
+            }
+            for (String field : List.of("ephemeral_5m_input_tokens", "ephemeral_1h_input_tokens")) {
+                if (invalid(cacheCreation.get(field))) {
+                    unavailable(AiUsage.Status.INVALID);
+                    return null;
+                }
+                if (Objects.nonNull(count(cacheCreation.get(field)))) {
+                    categories.put("cache_creation." + field, count(cacheCreation.get(field)));
+                }
+            }
+        }
+        if (Objects.nonNull(breakdown) && invalid(breakdown.get("cache_write_tokens"))) {
+            unavailable(AiUsage.Status.INVALID);
+            return null;
+        }
+        if (Objects.nonNull(breakdown) && Objects.nonNull(count(breakdown.get("cache_write_tokens")))) {
+            categories.put("cache_write_tokens", count(breakdown.get("cache_write_tokens")));
+        }
+        return extras(usage, categories);
+    }
+
+    private Map<String, Long> extras(final JsonNode usage, final Map<String, Long> categories) {
+        var extra = usage.fields();
+        while (extra.hasNext()) {
+            var field = extra.next();
+            if (field.getKey().endsWith("_tokens") && !List.of("prompt_tokens", "completion_tokens", "input_tokens", "output_tokens", "total_tokens",
+                    "cached_tokens", "prompt_cache_hit_tokens", "cache_read_input_tokens", "cache_creation_input_tokens").contains(field.getKey())) {
+                if (invalid(field.getValue()) || field.getKey().length() > 128 || categories.size() >= 32) {
+                    unavailable(AiUsage.Status.INVALID);
+                    return null;
+                }
+                if (Objects.nonNull(count(field.getValue()))) {
+                    categories.put(field.getKey(), count(field.getValue()));
+                }
+            }
+        }
+        return categories;
+    }
+
+    private Long cached(final JsonNode usage, final String details) {
+        for (JsonNode value : new JsonNode[]{usage.path(details).get("cached_tokens"), usage.get("cached_tokens"), usage.get("prompt_cache_hit_tokens")}) {
+            Long result = count(value);
+            if (Objects.nonNull(result)) {
+                return result;
+            }
+        }
+        return null;
     }
 
     private Long count(final JsonNode node) {

@@ -159,7 +159,10 @@ class AiProxyObservationTest {
         assertEquals(1, sink.events.size());
         assertEquals("actual", sink.events.get(0).context().getTarget());
         assertNull(sink.events.get(0).context().getProtocolVersion());
-        assertEquals(OpenAiChat.NAME, sink.attempts.get(0).protocol());
+        assertEquals(OpenAiChat.NAME, sink.attempts.get(0).clientProtocol());
+        assertEquals(OpenAiChat.NAME, sink.attempts.get(0).targetProtocol());
+        assertNull(sink.attempts.get(0).requestedModel());
+        assertEquals("actual", sink.attempts.get(0).resolvedModel());
         assertNull(base.getTarget());
     }
 
@@ -204,6 +207,13 @@ class AiProxyObservationTest {
         assertNull(sink.events.get(0).context().getTenant());
         assertNull(sink.events.get(0).context().getSubject());
         assertEquals(AiUsage.Status.UNKNOWN, sink.events.get(0).usage().status());
+        assertEquals(1, sink.events.get(0).usageTotals().unreportedAttemptCount());
+        assertEquals(0, sink.events.get(0).usageTotals().reportedAttemptCount());
+        assertNull(sink.events.get(0).usageTotals().promptTokens());
+        assertNull(sink.events.get(0).usageTotals().completionTokens());
+        assertNull(sink.events.get(0).usageTotals().totalTokens());
+        assertNull(sink.events.get(0).usageTotals().cachedPromptTokens());
+        assertEquals(0, sink.events.get(0).usageTotals().providerCountReports());
     }
 
     @Test
