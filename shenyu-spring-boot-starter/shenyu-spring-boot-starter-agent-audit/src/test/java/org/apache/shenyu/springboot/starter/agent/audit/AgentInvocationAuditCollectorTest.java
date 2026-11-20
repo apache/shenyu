@@ -82,6 +82,22 @@ class AgentInvocationAuditCollectorTest {
     }
 
     @Test
+    void governanceAndTerminalRecordsRemainDistinctInTheSameCollector() throws Exception {
+        List<AgentInvocationAuditEvent> delivered = new CopyOnWriteArrayList<>();
+        try (AgentInvocationAuditCollector collector = new AgentInvocationAuditCollector(8, delivered::addAll)) {
+            collector.start();
+            collector.record(AgentInvocationAuditEvent.governance().requestId("one").outcome("WOULD_DENY").build());
+            collector.record(AgentInvocationAuditEvent.logical().requestId("one").outcome("SERVER_ERROR").build());
+            await().atMost(Duration.ofSeconds(5)).until(() -> delivered.size() == 2);
+            assertEquals(1, delivered.stream().filter(event -> event.getRecordType() == AgentInvocationAuditEvent.RecordType.LOGICAL).count());
+            assertEquals(3, delivered.get(0).getSchemaVersion());
+            assertEquals("WOULD_DENY", delivered.get(0).getOutcome());
+            assertEquals(1, delivered.get(1).getSchemaVersion());
+            assertEquals("SERVER_ERROR", delivered.get(1).getOutcome());
+        }
+    }
+
+    @Test
     void slowSinkDoesNotBlockAdmissionAndOverflowUsesExistingMetrics() throws Exception {
         CountDownLatch entered = new CountDownLatch(1);
         CountDownLatch release = new CountDownLatch(1);
