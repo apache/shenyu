@@ -23,6 +23,7 @@ import io.modelcontextprotocol.common.McpTransportContext;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,7 @@ import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ManagedRemoteMcpCatalogTest {
 
@@ -62,6 +64,11 @@ class ManagedRemoteMcpCatalogTest {
                 StepVerifier.create(catalog.reload(source)).expectNextCount(1).verifyComplete();
             } else {
                 StepVerifier.create(catalog.reload(source)).expectError(IllegalArgumentException.class).verify();
+                assertEquals(current, catalog.diagnosticsState().lifecycle().currentVersion());
+                PluginData update = new PluginData();
+                update.setEnabled(true);
+                update.setConfig(source);
+                catalog.accept(update);
                 assertEquals(current, catalog.diagnosticsState().lifecycle().currentVersion());
             }
         } finally {
@@ -137,6 +144,44 @@ class ManagedRemoteMcpCatalogTest {
         } finally {
             release.countDown();
             catalog.closeAsync().block(Duration.ofSeconds(5));
+        }
+    }
+
+    @Test
+    void validConfigurationReplacesAdmissionLimitsAfterCredentialResolution() throws InterruptedException {
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(128, 64, 32, 16, 8, 16));
+        ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(URI.create("https://192.0.2.10:443/mcp")), Set.of(), target ->
+                new RemoteServerBinding.Credential(target, "fixed-test-token"), admission, false);
+        try {
+            assertEquals(128, catalog.admissionConfig().globalInFlight());
+            catalog.accept(event(true, configWithAdmission(16, 8, 4)));
+            await(() -> catalog.diagnosticsState().lifecycle().currentVersion() > 1L);
+            assertEquals(16, catalog.admissionConfig().globalInFlight());
+            assertEquals(8, catalog.admissionConfig().remoteInFlight());
+            assertEquals(4, catalog.admissionConfig().remoteQueued());
+            assertEquals(16, admission.snapshot().stream()
+                    .filter(state -> state.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.GLOBAL)
+                    .findFirst().orElseThrow().inFlightLimit());
+        } finally {
+            catalog.close();
+            admission.close();
+        }
+    }
+
+    @Test
+    void closingCatalogDoesNotCloseBorrowedAdmissionController() {
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig.parse(null));
+        try {
+            ManagedRemoteMcpCatalog catalog = new ManagedRemoteMcpCatalog(Set.of(), Set.of(), target -> null, admission);
+            catalog.close();
+            assertThrows(IllegalArgumentException.class, () -> new ManagedRemoteMcpCatalog(
+                    Set.of(URI.create("https://untrusted.example/mcp")), Set.of(), target -> null, admission));
+            admission.replace(AgentMcpResourceAdmission.create(org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig.parse(null)));
+            assertEquals("still-open", admission.withLocal(Instant.now().plusSeconds(5), Mono.just("still-open")).block());
+        } finally {
+            admission.close();
         }
     }
 
@@ -317,6 +362,12 @@ class ManagedRemoteMcpCatalogTest {
     private static String config() {
         return "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[{\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\","
                 + "\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}]}}";
+    }
+
+    private static String configWithAdmission(final int global, final int remoteInFlight, final int remoteQueued) {
+        return "{\"aggregation\":{\"revision\":\"admission\",\"servers\":[]},\"admission\":{"
+                + "\"globalInFlight\":" + global + ",\"globalQueued\":32,\"localInFlight\":16,"
+                + "\"localQueued\":8,\"remoteInFlight\":" + remoteInFlight + ",\"remoteQueued\":" + remoteQueued + "}}";
     }
 
     private static void await(final BooleanSupplier condition) throws InterruptedException {

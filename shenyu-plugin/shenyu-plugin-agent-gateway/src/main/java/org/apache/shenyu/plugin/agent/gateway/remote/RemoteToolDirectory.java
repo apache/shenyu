@@ -42,13 +42,20 @@ public final class RemoteToolDirectory {
 
     private final RemoteResourceDirectory resources;
 
+    private final RemotePromptDirectory prompts;
+
     private RemoteToolDirectory(final Map<String, Entry> values) {
         this(values, RemoteResourceDirectory.empty());
     }
 
     private RemoteToolDirectory(final Map<String, Entry> values, final RemoteResourceDirectory resources) {
+        this(values, resources, RemotePromptDirectory.empty());
+    }
+
+    private RemoteToolDirectory(final Map<String, Entry> values, final RemoteResourceDirectory resources, final RemotePromptDirectory prompts) {
         entries = Map.copyOf(values);
         this.resources = resources;
+        this.prompts = prompts;
     }
 
     /**
@@ -95,7 +102,8 @@ public final class RemoteToolDirectory {
                 .collectList()
                 .map(pages -> build(pages, maxTools))
                 .flatMap(directory -> RemoteResourceDirectory.discover(targets.stream().map(Target::resources).filter(Objects::nonNull).toList())
-                        .map(resources -> new RemoteToolDirectory(directory.entries, resources)))
+                        .flatMap(resources -> RemotePromptDirectory.discover(targets.stream().map(Target::prompts).filter(Objects::nonNull).toList())
+                                .map(prompts -> new RemoteToolDirectory(directory.entries, resources, prompts))))
                 .timeout(Duration.ofSeconds(5))
         );
     }
@@ -203,6 +211,10 @@ public final class RemoteToolDirectory {
         return resources;
     }
 
+    public RemotePromptDirectory prompts() {
+        return prompts;
+    }
+
     /**
      * definitions.
      * @param rule trusted rule value
@@ -244,7 +256,7 @@ public final class RemoteToolDirectory {
                 throw new IllegalArgumentException("Combined local/remote tool budget exceeded");
             }
         }
-        return new RemoteToolDirectory(result, resources);
+        return new RemoteToolDirectory(result, resources, prompts);
     }
 
     /**
@@ -315,8 +327,16 @@ public final class RemoteToolDirectory {
         Function<String, Mono<McpSchema.ListToolsResult>> pages,
         Function<McpSchema.CallToolRequest, Mono<McpSchema.CallToolResult>> calls,
         Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCalls,
-        RemoteResourceDirectory.Target resources
+        RemoteResourceDirectory.Target resources,
+        RemotePromptDirectory.Target prompts
     ) {
+
+        public Target(final String name, final Function<String, Mono<McpSchema.ListToolsResult>> pages,
+                      final Function<McpSchema.CallToolRequest, Mono<McpSchema.CallToolResult>> calls,
+                      final Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCalls, final RemoteResourceDirectory.Target resources) {
+            this(name, pages, calls, rawCalls, resources, null);
+        }
+
         public Target(final String name, final Function<String, Mono<McpSchema.ListToolsResult>> pages,
                       final Function<McpSchema.CallToolRequest, Mono<McpSchema.CallToolResult>> calls,
                       final Function<McpSchema.CallToolRequest, Mono<ObjectNode>> rawCalls) {

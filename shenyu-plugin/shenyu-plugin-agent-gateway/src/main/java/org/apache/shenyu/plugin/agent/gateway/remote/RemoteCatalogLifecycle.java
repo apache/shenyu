@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog.CatalogUnavailableException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,12 +38,13 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.LongConsumer;
 import java.util.function.Supplier;
 
 /** Owns complete directory generations, operation leases and bounded session cleanup. */
 public final class RemoteCatalogLifecycle {
 
-    private final Object lock = new Object();
+    private final Object lock;
 
     private final Set<Generation> generations = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -55,6 +57,8 @@ public final class RemoteCatalogLifecycle {
     private final int maxGenerations;
 
     private final boolean resourcesEnabled;
+
+    private final boolean promptsEnabled;
 
     private final int refreshConcurrency;
 
@@ -71,7 +75,7 @@ public final class RemoteCatalogLifecycle {
      * @param maxGenerations trusted maxGenerations value
      */
     public RemoteCatalogLifecycle(final int maxGenerations) {
-        this(maxGenerations, 1, false);
+        this(maxGenerations, AgentGatewayAggregationConfig.DEFAULT_REFRESH_CONCURRENCY, false);
     }
 
     /**
@@ -80,7 +84,7 @@ public final class RemoteCatalogLifecycle {
      * @param resourcesEnabled opt in to resource discovery
      */
     public RemoteCatalogLifecycle(final int maxGenerations, final boolean resourcesEnabled) {
-        this(maxGenerations, 1, resourcesEnabled);
+        this(maxGenerations, AgentGatewayAggregationConfig.DEFAULT_REFRESH_CONCURRENCY, resourcesEnabled);
     }
 
     /**
@@ -99,15 +103,34 @@ public final class RemoteCatalogLifecycle {
      * @param resourcesEnabled opt in to resource discovery
      */
     public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled) {
+        this(maxGenerations, refreshConcurrency, resourcesEnabled, false, new Object());
+    }
+
+    public RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled, final boolean promptsEnabled) {
+        this(maxGenerations, refreshConcurrency, resourcesEnabled, promptsEnabled, new Object());
+    }
+
+    RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final Object lock) {
+        this(maxGenerations, refreshConcurrency, false, false, lock);
+    }
+
+    RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled, final Object lock) {
+        this(maxGenerations, refreshConcurrency, resourcesEnabled, false, lock);
+    }
+
+    RemoteCatalogLifecycle(final int maxGenerations, final int refreshConcurrency, final boolean resourcesEnabled, final boolean promptsEnabled, final Object lock) {
         if (maxGenerations < 2 || maxGenerations > 16) {
             throw new IllegalArgumentException("Generation budget");
         }
-        if (refreshConcurrency < 1 || refreshConcurrency > 8) {
+        if (refreshConcurrency < AgentGatewayAggregationConfig.MIN_REFRESH_CONCURRENCY
+                || refreshConcurrency > AgentGatewayAggregationConfig.MAX_REFRESH_CONCURRENCY) {
             throw new IllegalArgumentException("Refresh concurrency budget");
         }
         this.maxGenerations = maxGenerations;
         this.resourcesEnabled = resourcesEnabled;
+        this.promptsEnabled = promptsEnabled;
         this.refreshConcurrency = refreshConcurrency;
+        this.lock = Objects.requireNonNull(lock, "lock");
     }
 
     /**
@@ -125,7 +148,8 @@ public final class RemoteCatalogLifecycle {
      * @param locals trusted locals value
      * @return operation result
      */
-    public Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals) {
+    public Mono<Long> refresh(final List<Config> source,
+                              final List<RemoteToolDirectory.LocalTool> locals) {
         return refresh(source, locals, Set.of());
     }
 
@@ -136,12 +160,46 @@ public final class RemoteCatalogLifecycle {
      * @param reservedNames names owned by the existing local registry
      * @return published generation
      */
-    public Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals, final Set<String> reservedNames) {
+    public Mono<Long> refresh(final List<Config> source,
+                              final List<RemoteToolDirectory.LocalTool> locals,
+                              final Set<String> reservedNames) {
         return refresh(source, locals, reservedNames, () -> true);
     }
 
-    Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals, final Set<String> reservedNames,
+    Mono<Long> refresh(final List<Config> source,
+                       final List<RemoteToolDirectory.LocalTool> locals,
+                       final Set<String> reservedNames,
                        final BooleanSupplier stillCurrent) {
+        return refresh(source, locals, reservedNames,
+                stillCurrent, refreshConcurrency);
+    }
+
+    Mono<Long> refresh(final List<Config> source,
+                       final List<RemoteToolDirectory.LocalTool> locals,
+                       final Set<String> reservedNames,
+                       final BooleanSupplier stillCurrent,
+                       final int concurrency) {
+        return refresh(source, locals, reservedNames, stillCurrent, concurrency, ignored -> { });
+    }
+
+    // The trusted callback must be nonblocking; it shares the atomic publication boundary.
+    Mono<Long> refresh(final List<Config> source,
+                       final List<RemoteToolDirectory.LocalTool> locals,
+                       final Set<String> reservedNames,
+                       final BooleanSupplier stillCurrent,
+                       final int concurrency,
+                       final LongConsumer published) {
+        return refresh(source, locals, reservedNames, stillCurrent, concurrency, published, false);
+    }
+
+    Mono<Long> refresh(final List<Config> source, final List<RemoteToolDirectory.LocalTool> locals, final Set<String> reservedNames,
+                       final BooleanSupplier stillCurrent, final int concurrency, final LongConsumer published, final boolean preserveCurrent) {
+        Objects.requireNonNull(published, "published");
+        if (concurrency < AgentGatewayAggregationConfig.MIN_REFRESH_CONCURRENCY
+                || concurrency > AgentGatewayAggregationConfig.MAX_REFRESH_CONCURRENCY) {
+            return Mono.error(
+                    new IllegalArgumentException("Refresh concurrency budget"));
+        }
         List<Config> configs = List.copyOf(source);
         List<RemoteToolDirectory.LocalTool> localSnapshot = List.copyOf(locals);
         Set<String> reserved = Set.copyOf(reservedNames);
@@ -150,13 +208,13 @@ public final class RemoteCatalogLifecycle {
         }
         return Mono.usingWhen(
             Mono.defer(() -> {
-                Generation candidate = reserve(stillCurrent);
+                Generation candidate = reserve(stillCurrent, preserveCurrent);
                 // A fenced control update has no resource and must not enter the build/cleanup paths.
                 return Objects.isNull(candidate) ? Mono.empty() : Mono.just(candidate);
             }),
             candidate ->
                 closeIdle()
-                    .then(build(candidate, configs))
+                    .then(build(candidate, configs, concurrency))
                     .map(directory -> directory.withLocal(localSnapshot, 16))
                     .map(directory -> {
                         if (directory.names().stream().anyMatch(reserved::contains)) {
@@ -171,7 +229,11 @@ public final class RemoteCatalogLifecycle {
                                 throw new CatalogUnavailableException();
                             }
                             candidate.directory = directory;
+                            if (Objects.nonNull(current)) {
+                                current.retired = true;
+                            }
                             current = candidate;
+                            published.accept(candidate.version);
                             return candidate.version;
                         }
                     }),
@@ -181,7 +243,7 @@ public final class RemoteCatalogLifecycle {
         );
     }
 
-    private Generation reserve(final BooleanSupplier stillCurrent) {
+    private Generation reserve(final BooleanSupplier stillCurrent, final boolean preserveCurrent) {
         synchronized (lock) {
             // Recheck after credential resolution, atomically with generation allocation.
             if (!stillCurrent.getAsBoolean()) {
@@ -194,18 +256,22 @@ public final class RemoteCatalogLifecycle {
             generations.add(candidate);
             updatingGeneration = candidate;
             // Fail closed for new requests throughout a controlled configuration replacement.
-            if (Objects.nonNull(current)) {
+            if (!preserveCurrent && Objects.nonNull(current)) {
                 current.retired = true;
             }
-            current = null;
+            if (!preserveCurrent) {
+                current = null;
+            }
             return candidate;
         }
     }
 
-    private Mono<RemoteToolDirectory> build(final Generation candidate, final List<Config> configs) {
+    private Mono<RemoteToolDirectory> build(final Generation candidate,
+                                            final List<Config> configs,
+                                            final int concurrency) {
         Objects.requireNonNull(candidate, "A reserved generation is required to build a directory");
         return Flux.fromIterable(configs)
-            // Bounded, order-preserving overlap of handshakes; refreshConcurrency 1 subscribes one config at a time
+            // Bounded, order-preserving overlap of handshakes; concurrency 1 subscribes one config at a time
             // and is exactly the historical serialized concatMap. Allocation and ownership stay atomic under the lock,
             // so a cancelled or failed refresh still closes every client already added to the candidate generation.
             .flatMapSequential(config ->
@@ -235,13 +301,15 @@ public final class RemoteCatalogLifecycle {
                                     ? new RemoteResourceDirectory.Target(config.name(), client::listResources, client::listResourceTemplates, client::readResource) : null;
                             Function<String, Mono<McpSchema.ListToolsResult>> tools = Objects.nonNull(handshake.capabilities().tools())
                                     ? client::listTools : ignored -> Mono.just(new McpSchema.ListToolsResult(List.of(), null));
-                            return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources);
+                            RemotePromptDirectory.Target prompts = promptsEnabled && Objects.nonNull(handshake.capabilities().prompts())
+                                    ? new RemotePromptDirectory.Target(config.name(), client::listPrompts, client::getPrompt) : null;
+                            return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources, prompts);
                         });
                 }),
-                refreshConcurrency
+                concurrency
             )
             .collectList()
-            .flatMap(targets -> targets.isEmpty() ? Mono.just(RemoteToolDirectory.empty()) : RemoteToolDirectory.discover(targets, 4, 16, refreshConcurrency));
+            .flatMap(targets -> targets.isEmpty() ? Mono.just(RemoteToolDirectory.empty()) : RemoteToolDirectory.discover(targets, 4, 16, concurrency));
     }
 
     private Mono<Void> finishUpdate(final Generation candidate) {
@@ -286,14 +354,21 @@ public final class RemoteCatalogLifecycle {
         return withArguments(arguments, (directory, input) -> directory.call(name, ruleSnapshot, grantsSnapshot, input));
     }
 
-    private Generation acquire() {
-        synchronized (lock) {
-            if (closed || Objects.isNull(current)) {
-                throw new CatalogUnavailableException();
+    private Mono<Generation> acquire(final BooleanSupplier admission) {
+        return Mono.defer(() -> {
+            synchronized (lock) {
+                if (closed || Objects.isNull(current)) {
+                    return Mono.error(new CatalogUnavailableException());
+                }
+                if (!admission.getAsBoolean()) {
+                    current.retired = true;
+                    current = null;
+                    return closeIdle().then(Mono.error(new CatalogUnavailableException()));
+                }
+                current.references++;
+                return Mono.just(current);
             }
-            current.references++;
-            return current;
-        }
+        });
     }
 
     /** Stop new remote access immediately while asynchronous retirement proceeds. */
@@ -307,6 +382,13 @@ public final class RemoteCatalogLifecycle {
                 current = null;
             }
         }
+    }
+
+    Mono<Void> withdrawAsync() {
+        return Mono.defer(() -> {
+            withdraw();
+            return closeIdle();
+        });
     }
 
     /**
@@ -443,8 +525,12 @@ public final class RemoteCatalogLifecycle {
      * @return operation result
      */
     public <T> Mono<T> withSnapshot(final Function<RemoteToolDirectory, Mono<T>> operation) {
+        return withSnapshot(operation, () -> true);
+    }
+
+    <T> Mono<T> withSnapshot(final Function<RemoteToolDirectory, Mono<T>> operation, final BooleanSupplier admission) {
         return Mono.usingWhen(
-            Mono.fromCallable(this::acquire),
+            acquire(admission),
             generation -> operation.apply(generation.directory),
             this::release,
             (generation, error) -> release(generation),

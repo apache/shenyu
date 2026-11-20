@@ -95,7 +95,9 @@ public final class JwtAgentMcpSecurityResolver implements AgentMcpSecurityResolv
                         }
                         return Mono.just(new AgentMcpIdentity(tenant, subject,
                                 names(claims.getOrDefault("tool_grants", Set.of()), true), names(claims.getOrDefault("tool_denies", Set.of()), true),
-                                AgentMcpResourceGrants.parse(claims.getOrDefault("resource_grants", Set.of()))));
+                                AgentMcpResourceGrants.parse(claims.getOrDefault("resource_grants", Set.of())))
+                                .withPromptPermissions(names(claims.getOrDefault("prompt_grants", Set.of()), true),
+                                        names(claims.getOrDefault("prompt_denies", Set.of()), true)));
                     } catch (IllegalArgumentException error) {
                         // Reject malformed claims and diagnose without logging JWT or claim values.
                         LOG.debug("Rejected authenticated JWT with invalid Agent Gateway identity claims");

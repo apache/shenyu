@@ -36,6 +36,14 @@ public interface RemoteMcpEndpoint {
      */
     Mono<McpSchema.ListToolsResult> listTools(String cursor);
 
+    default Mono<ObjectNode> listPrompts(final String cursor) {
+        return Mono.error(new UnsupportedOperationException("Prompts are not supported"));
+    }
+
+    default Mono<ObjectNode> getPrompt(final String name, final java.util.Map<String, String> arguments) {
+        return Mono.error(new UnsupportedOperationException("Prompts are not supported"));
+    }
+
     /**
      * Fetch one resource page; legacy endpoint adapters fail closed until implemented.
      * @param cursor opaque cursor or null

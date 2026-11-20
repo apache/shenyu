@@ -36,6 +36,14 @@ public interface AgentMcpRemoteCatalog {
      */
     Mono<ObjectNode> withSnapshot(Function<Snapshot, Mono<ObjectNode>> operation);
 
+    /** Return the closeable request-admission controller owned by this catalog.
+     * @return controller implementation
+     */
+    default AgentMcpResourceAdmission admission() {
+        return AgentMcpResourceAdmission.NOOP;
+    }
+
+
     /** Distinguishes an unavailable catalog from unexpected gateway failures. */
     final class CatalogUnavailableException extends IllegalStateException {
 
@@ -66,6 +74,14 @@ public interface AgentMcpRemoteCatalog {
          * @return metadata copies; no credentials
          */
         Map<String, ObjectNode> definitions();
+
+        default Map<String, ObjectNode> promptDefinitions() {
+            return Map.of();
+        }
+
+        default Mono<ObjectNode> getPrompt(final String name, final Map<String, String> arguments, final AgentMcpExecutionContext context) {
+            return Mono.error(new SecurityException("Prompt is not available"));
+        }
 
         /**
          * Return request-owned resource metadata for this same pinned generation.

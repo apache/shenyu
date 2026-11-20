@@ -29,6 +29,8 @@ import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceDefinition;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceProvider;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptRegistry;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -46,6 +48,10 @@ final class ResourceMcpTestFixture {
     }
 
     static AgentMcpDispatcher dispatcher(final AgentToolRegistry tools) {
+        return dispatcher(tools, new AgentPromptRegistry(List.of()));
+    }
+
+    static AgentMcpDispatcher dispatcher(final AgentToolRegistry tools, final AgentPromptRegistry prompts) {
         ObjectMapper mapper = new ObjectMapper();
         RemoteResourceDirectory directory = RemoteResourceDirectory.discover(List.of(new RemoteResourceDirectory.Target("orders",
                 cursor -> Mono.just(page(mapper, false)), cursor -> Mono.just(page(mapper, true)),
@@ -82,7 +88,7 @@ final class ResourceMcpTestFixture {
         };
         return new AgentMcpDispatcher(tools, "fixture", "1", remote, new AgentResourceRegistry(List.of(
                 provider("local_status", "test://status", false), provider("local_template", "test://record/{id}", true),
-                provider("hidden", "test://hidden", false), provider("outside", "test://outside", false))));
+                provider("hidden", "test://hidden", false), provider("outside", "test://outside", false))), AgentMcpResourceAdmission.NOOP, prompts);
     }
 
     static void assertResources(final java.util.function.BiFunction<String, String,
