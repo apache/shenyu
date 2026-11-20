@@ -43,6 +43,7 @@ public final class AlertTransferTest {
     public void setUp() {
         alertReceiverDTO = new AlertReceiverDTO();
         alertReceiverDTO.setId("123");
+        alertReceiverDTO.setNamespaceId("namespace-test");
         alertReceiverDTO.setName("123");
         alertReceiverDTO.setAccessToken("123");
         alertReceiverDTO.setAgentId("123");
@@ -73,6 +74,7 @@ public final class AlertTransferTest {
 
         alertReceiverDO = new AlertReceiverDO();
         alertReceiverDO.setId("123");
+        alertReceiverDO.setNamespaceId("namespace-test");
         alertReceiverDO.setName("123");
         alertReceiverDO.setAccessToken("123");
         alertReceiverDO.setAgentId("123");
@@ -106,6 +108,7 @@ public final class AlertTransferTest {
         AlertReceiverDO entity = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
         assertNotNull(entity);
         assertEquals(entity.getId(), alertReceiverDTO.getId());
+        assertEquals("namespace-test", entity.getNamespaceId());
         assertEquals(entity.getName(), alertReceiverDTO.getName());
         assertEquals(entity.getAccessToken(), alertReceiverDTO.getAccessToken());
         assertEquals(entity.getAgentId(), alertReceiverDTO.getAgentId());
@@ -139,6 +142,7 @@ public final class AlertTransferTest {
         AlertReceiverDTO dto = AlertTransfer.INSTANCE.mapToAlertReceiverDTO(alertReceiverDO);
         assertNotNull(dto);
         assertEquals(dto.getId(), alertReceiverDO.getId());
+        assertEquals("namespace-test", dto.getNamespaceId());
         assertEquals(dto.getName(), alertReceiverDO.getName());
         assertEquals(dto.getAccessToken(), alertReceiverDO.getAccessToken());
         assertEquals(dto.getAgentId(), alertReceiverDO.getAgentId());

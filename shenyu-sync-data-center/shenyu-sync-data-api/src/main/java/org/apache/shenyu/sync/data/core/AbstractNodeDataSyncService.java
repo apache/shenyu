@@ -266,8 +266,8 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheAuthData(final String removeKey) {
-        final String[] authKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        if (Objects.isNull(authKeys) || authKeys.length < 3) {
+        final String[] authKeys = StringUtils.splitPreserveAllTokens(removeKey, DefaultNodeConstants.JOIN_POINT, 3);
+        if (Objects.isNull(authKeys) || authKeys.length < 3 || StringUtils.isAnyEmpty(authKeys)) {
             LOG.warn("AbstractNodeDataSyncService invalid auth data remove key: {}", removeKey);
             return;
         }

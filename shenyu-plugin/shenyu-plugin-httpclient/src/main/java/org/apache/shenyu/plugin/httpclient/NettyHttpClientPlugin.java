@@ -23,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ResponseStatusException;
@@ -40,8 +43,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
+import reactor.netty.http.server.HttpServerResponse;
 
 import java.net.URI;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Netty http client plugin.
@@ -119,6 +126,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
         } catch (IllegalStateException ex) {
             return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), ex));
         }
+        HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
         return Mono.from(client.headers(headers -> {
             httpHeaders.forEach(headers::set);
             headers.remove(HttpHeaders.HOST);
@@ -145,12 +153,22 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("NettyHttpClient response: status={}", res.status().code());
                     }
+                    if (Objects.nonNull(attempt)) {
+                        attempt.onAbandon(connection::dispose);
+                    }
                     if (shouldFailover(exchange, res.status().code())) {
-                        return connection.inbound().receive().then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
+                        return connection.inbound().receive().doOnComplete(() -> {
+                            if (Objects.nonNull(attempt)) {
+                                attempt.received();
+                            }
+                        }).then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
                     }
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
                     final ServerHttpResponse response = exchange.getResponse();
+                    if (copyNativeResponse(exchange, response, res)) {
+                        return Mono.just(res);
+                    }
                     HttpHeaders headers = new HttpHeaders();
                     res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
                     this.duplicateHeaders(exchange, headers, UniqueHeaderEnum.RESP_UNIQUE_HEADER);
@@ -158,17 +176,55 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (StringUtils.isNotBlank(contentTypeValue)) {
                         exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
                     }
-                    response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
-                    try {
-                        response.getHeaders().putAll(headers);
-                    } catch (UnsupportedOperationException ex) {
-                        LOG.warn("Failed to set response headers because they are read-only. "
-                                + "This may indicate unexpected response decorator usage. "
-                                + "responseClass={}, statusCode={}, message={}",
-                                response.getClass().getName(), res.status().code(), ex.getMessage());
-                    }
+                    HttpRouteResponseHeaders.apply(exchange, () -> {
+                        response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
+                        try {
+                            response.getHeaders().putAll(headers);
+                        } catch (UnsupportedOperationException ex) {
+                            LOG.warn("Failed to set response headers because they are read-only. "
+                                    + "This may indicate unexpected response decorator usage. "
+                                    + "responseClass={}, statusCode={}, message={}",
+                                    response.getClass().getName(), res.status().code(), ex.getMessage());
+                        }
+                    });
                     return Mono.just(res);
                 }));
+    }
+
+    /**
+     * Copy the upstream status and headers straight into Reactor Netty's response headers.
+     *
+     * <p>ReactorServerHttpResponse is package-private. Restrict the native copy to that exact
+     * response so decorators and custom header hooks keep their semantics.</p>
+     *
+     * @param exchange the current exchange
+     * @param response the gateway response
+     * @param res the upstream response
+     * @return true if the native copy was applied; false if the caller must use the generic path
+     */
+    private boolean copyNativeResponse(final ServerWebExchange exchange, final ServerHttpResponse response,
+                                       final HttpClientResponse res) {
+        if (!(getClass() == NettyHttpClientPlugin.class && !response.isCommitted()
+                && Objects.isNull(exchange.getAttribute(HttpRouteResponseHeaders.ATTRIBUTE))
+                && StringUtils.isEmpty(exchange.getAttribute(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName()))
+                && "org.springframework.http.server.reactive.ReactorServerHttpResponse".equals(response.getClass().getName()))) {
+            return false;
+        }
+        String contentTypeValue = res.responseHeaders().get(HttpHeaders.CONTENT_TYPE);
+        if (StringUtils.isNotBlank(contentTypeValue)) {
+            exchange.getAttributes().put(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
+        }
+        response.setStatusCode(HttpStatusCode.valueOf(res.status().code()));
+        HttpServerResponse nativeResponse = ((AbstractServerHttpResponse) response).getNativeResponse();
+        io.netty.handler.codec.http.HttpHeaders targetHeaders = nativeResponse.responseHeaders();
+        if (!targetHeaders.isEmpty()) {
+            Iterator<Map.Entry<CharSequence, CharSequence>> entries = res.responseHeaders().iteratorCharSequence();
+            while (entries.hasNext()) {
+                targetHeaders.remove(entries.next().getKey());
+            }
+        }
+        targetHeaders.add(res.responseHeaders());
+        return true;
     }
 
     @Override
