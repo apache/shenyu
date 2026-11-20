@@ -66,6 +66,8 @@ final class AgentMcpTerminalObservation {
 
     private boolean completed;
 
+    private boolean attempted;
+
     AgentMcpTerminalObservation(final AgentMcpTerminalObserver observer, final AgentTrafficContext traffic, final long configurationVersion) {
         this(observer, traffic, configurationVersion, AgentRuntimeMetrics.NOOP);
     }
@@ -77,6 +79,12 @@ final class AgentMcpTerminalObservation {
         this.configurationVersion = configurationVersion;
         this.metrics = metrics;
         AgentRuntimeMetrics.safely(() -> metrics.started(AgentRuntimeMetrics.Traffic.MCP));
+    }
+
+    synchronized void attempted() {
+        if (!completed) {
+            attempted = true;
+        }
     }
 
     synchronized void identified(final String value) {
@@ -151,6 +159,13 @@ final class AgentMcpTerminalObservation {
                 reason, event.getElapsedMillis()));
         try {
             if (Objects.nonNull(observer)) {
+                if (attempted) {
+                    try {
+                        observer.recordAttempt(event);
+                    } catch (RuntimeException error) {
+                        LOG.debug("MCP attempt event callback failed");
+                    }
+                }
                 observer.record(event);
             }
         } catch (RuntimeException error) {

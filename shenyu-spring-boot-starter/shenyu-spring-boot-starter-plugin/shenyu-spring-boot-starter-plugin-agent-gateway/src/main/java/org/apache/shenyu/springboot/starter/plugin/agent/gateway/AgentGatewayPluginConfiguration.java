@@ -18,6 +18,8 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
@@ -81,6 +83,7 @@ public class AgentGatewayPluginConfiguration {
      * @param terminalObservers optional application-owned terminal event sink
      * @param aiObservers optional application-owned AI attempt and terminal sink
      * @param admissions optional deployment-owned resource admission controller
+     * @param auditors optional unified audit sink
      * @param environment deployment-controlled tracing opt-in
      * @param beanFactory application bean factory used to verify the conditional JWT resolver
      * @return the plugin
@@ -93,6 +96,7 @@ public class AgentGatewayPluginConfiguration {
                                            final ObjectProvider<AgentMcpResourceAdmission.ResourceAdmissionController> admissions,
                                            final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
                                            final ObjectProvider<AiCallObserver> aiObservers,
+                                           final ObjectProvider<AgentInvocationAuditObserver> auditors,
                                            final Environment environment, final BeanFactory beanFactory) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
@@ -116,11 +120,12 @@ public class AgentGatewayPluginConfiguration {
         }
         return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources, admissions.getIfAvailable(),
                 new AgentPromptRegistry(promptProviders.orderedStream().toList()),
-                terminalObservers.getIfAvailable(), aiObservers.getIfAvailable(),
+                AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditors.getIfAvailable()),
+                AgentInvocationAuditBridge.ai(aiObservers.getIfAvailable(), auditors.getIfAvailable()),
                 environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
     }
 
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> resolvers,
+    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> candidates,
                                       final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
                                       final ObjectProvider<AgentResourceProvider> resources,
                                       final AgentMcpResourceAdmission.ResourceAdmissionController admission,
@@ -128,11 +133,11 @@ public class AgentGatewayPluginConfiguration {
                                       final AgentMcpTerminalObserver terminalObserver, final AiCallObserver aiObserver,
                                       final boolean llmIdentityEnabled) {
         AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = resolvers.isEmpty() ? exchange -> Mono.empty() : resolvers.get(0);
-        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
-        if (llmIdentityEnabled && resolvers.isEmpty()) {
+        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
+        if (llmIdentityEnabled && candidates.isEmpty()) {
             throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
         }
+        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
         AgentMcpResourceAdmission effectiveAdmission = java.util.Objects.requireNonNullElse(admission,
                 java.util.Objects.isNull(catalog) ? AgentMcpResourceAdmission.NOOP : catalog.admission());
         AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(registry, "shenyu-agent-gateway",

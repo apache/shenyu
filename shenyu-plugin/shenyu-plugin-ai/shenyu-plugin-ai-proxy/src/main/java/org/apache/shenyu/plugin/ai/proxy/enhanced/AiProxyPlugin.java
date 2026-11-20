@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentRequestContext;
+import org.apache.shenyu.common.dto.ProxyApiKeyData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
@@ -150,6 +151,11 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             AiCommonConfig config = aiProxyConfigService.resolvePrimaryConfig(handle);
             if (Objects.nonNull(realApiKey)) {
                 config.setApiKey(realApiKey);
+                ProxyApiKeyData mapping = AiProxyApiKeyCache.getInstance()
+                        .getValidatedMapping(selector.getId(), exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY));
+                if (Objects.nonNull(mapping)) {
+                    observation.updateContext(observation.getContext().withApiKeyId(mapping.getId()));
+                }
             }
             return DataBufferUtils.join(exchange.getRequest().getBody(), MAX_REQUEST_BODY_SIZE_BYTES)
                     .switchIfEmpty(Mono.error(new ShenyuException("AI request body must not be empty")))

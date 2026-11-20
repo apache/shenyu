@@ -66,13 +66,6 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu resilience4j circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu hystrix circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL, "shenyu ratelimiter request restrict total count");
-        for (CanaryMetric metric : CanaryMetric.values()) {
-            if (Objects.isNull(metric.getBuckets())) {
-                registerCounter(metric.getName(), metric.getLabelNames(), metric.getDescription());
-            } else {
-                registerHistogram(metric.getName(), metric.getLabelNames(), metric.getDescription(), metric.getBuckets());
-            }
-        }
         MetricsReporter.registerCounter(LabelNames.AGENT_REQUESTS_TOTAL, new String[]{"traffic", "outcome", "reason"}, "Terminal Agent request subscriptions including pre-dispatch rejection");
         MetricsReporter.registerHistogram(LabelNames.AGENT_REQUEST_LATENCY, new String[]{"traffic", "outcome"}, "Agent request terminal latency millis");
         MetricsReporter.registerGauge(LabelNames.AGENT_REQUESTS_INFLIGHT, new String[]{"traffic"}, "Active Agent logical request subscriptions, not sessions");
@@ -81,6 +74,13 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.AGENT_CATALOG_OBSERVATIONS_TOTAL, new String[]{"state"}, "Remote catalog availability observed at request lease acquisition");
         MetricsReporter.registerCounter(LabelNames.AUTHENTICATION_REJECTIONS_TOTAL, new String[]{"source", "reason"}, "Authentication plugin rejections before Agent routing is known");
         agentRuntimeMetrics = new AgentRuntimeMetricsReporter(metricsRegister);
+        for (CanaryMetric metric : CanaryMetric.values()) {
+            if (Objects.isNull(metric.getBuckets())) {
+                registerCounter(metric.getName(), metric.getLabelNames(), metric.getDescription());
+            } else {
+                registerHistogram(metric.getName(), metric.getLabelNames(), metric.getDescription(), metric.getBuckets());
+            }
+        }
     }
 
     /**

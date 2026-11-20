@@ -93,9 +93,12 @@ public final class PluginServiceTest {
     @Mock
     private NamespacePluginRelMapper namespacePluginRelMapper;
 
+    @Mock
+    private ResourceService resourceService;
+
     @BeforeEach
     public void setUp() {
-        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, namespacePluginRelMapper);
+        pluginService = new PluginServiceImpl(pluginMapper, modelDataEventPublisher, namespacePluginRelMapper, resourceService);
     }
 
     @Test

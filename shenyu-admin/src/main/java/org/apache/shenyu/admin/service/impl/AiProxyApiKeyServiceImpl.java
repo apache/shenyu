@@ -346,6 +346,7 @@ public class AiProxyApiKeyServiceImpl implements AiProxyApiKeyService {
                     entity.getNamespaceId(), normalizedNs, entity.getProxyApiKey());
         }
         return ProxyApiKeyData.builder()
+                .id(entity.getId())
                 .proxyApiKey(entity.getProxyApiKey())
                 .realApiKey(resolvedRealKey)
                 .description(entity.getDescription())

@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,6 +77,50 @@ public class ResourceServiceImpl implements ResourceService {
         this.pluginMapper = pluginMapper;
         this.publisher = publisher;
         this.properties = properties;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createPluginResource(final String pluginId) {
+        // The database lock serializes resource repair requests for this plugin ID across admin instances.
+        final PluginDO plugin = pluginMapper.selectByIdForUpdate(pluginId);
+        Assert.notNull(plugin, AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
+        final ResourceDO root = getOrCreatePluginResource(plugin.getName());
+        final List<ResourceDO> expected = ResourceUtil.buildPluginDataPermissionResource(root.getId(), plugin.getName());
+        final List<String> permissions = ListUtil.map(expected, ResourceDO::getPerms);
+        final List<ResourceDO> resources = resourceMapper.selectByPerms(permissions);
+        // Database collations may match noncanonical permission values; never ignore these conflicts.
+        Assert.isTrue(resources.stream().allMatch(resource -> permissions.contains(resource.getPerms())), AdminConstants.RESOURCE_NAME_IS_EXIST);
+        final Map<String, List<ResourceDO>> existing = resources.stream().collect(Collectors.groupingBy(ResourceDO::getPerms));
+        final List<ResourceDO> missing = new ArrayList<>();
+        for (ResourceDO button : expected) {
+            List<ResourceDO> matches = existing.get(button.getPerms());
+            if (CollectionUtils.isEmpty(matches)) {
+                missing.add(button);
+                continue;
+            }
+            Assert.isTrue(matches.size() == 1, AdminConstants.RESOURCE_NAME_IS_EXIST);
+            ResourceDO match = matches.get(0);
+            Assert.isTrue(Objects.equals(match.getParentId(), root.getId())
+                    && Objects.equals(match.getResourceType(), AdminResourceEnum.THREE_MENU.getCode()), AdminConstants.RESOURCE_NAME_IS_EXIST);
+        }
+        insertResourceBatch(missing);
+    }
+
+    private ResourceDO getOrCreatePluginResource(final String pluginName) {
+        final List<ResourceDO> resources = resourceMapper.selectByName(pluginName);
+        Assert.isTrue(resources.size() <= 1, AdminConstants.RESOURCE_NAME_IS_EXIST);
+        if (resources.isEmpty()) {
+            ResourceDO resource = ResourceUtil.buildPluginResource(pluginName);
+            createOne(resource);
+            return resource;
+        }
+        final ResourceDO resource = resources.get(0);
+        Assert.isTrue(Objects.equals(resource.getParentId(), AdminConstants.RESOURCE_PLUGIN_ID)
+                && Objects.equals(resource.getResourceType(), AdminResourceEnum.SECOND_MENU.getCode()), AdminConstants.RESOURCE_NAME_IS_EXIST);
+        Assert.isTrue(Objects.equals(resource.getUrl(), AdminConstants.RESOURCE_PLUGIN_URL_PREFIX + pluginName)
+                && Objects.equals(resource.getComponent(), pluginName), AdminConstants.RESOURCE_NAME_IS_EXIST);
+        return resource;
     }
 
     /**

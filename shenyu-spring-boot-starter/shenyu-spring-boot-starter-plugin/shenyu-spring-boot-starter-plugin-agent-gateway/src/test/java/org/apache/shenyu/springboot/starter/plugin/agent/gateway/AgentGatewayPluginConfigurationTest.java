@@ -25,6 +25,8 @@ import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
@@ -80,6 +82,38 @@ class AgentGatewayPluginConfigurationTest {
             .withUserConfiguration(AgentGatewayPluginConfiguration.class);
 
     @Test
+    void promptPermissionsCoexistWithTheUnifiedAuditSink() {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        AgentPromptProvider provider = mock(AgentPromptProvider.class);
+        when(provider.definition()).thenReturn(new AgentPromptDefinition(mapper.createObjectNode().put("name", "summary")));
+        var result = mapper.createObjectNode();
+        result.putArray("messages").addObject().put("role", "user").putObject("content").put("type", "text").put("text", "fixture");
+        when(provider.get(any())).thenReturn(Mono.just(result));
+        List<AgentInvocationAuditEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean(AgentPromptProvider.class, () -> provider)
+                .withBean(AgentInvocationAuditObserver.class, () -> events::add)
+                .withBean(AgentMcpSecurityResolver.class, () -> ignored -> Mono.just(
+                        new AgentMcpIdentity("tenant", "owner", Set.of(), Set.of()).withPromptPermissions(Set.of("summary"), Set.of())))
+                .run(context -> {
+                    assertNull(context.getStartupFailure());
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    String body = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"prompts/get\",\"params\":{\"name\":\"summary\",\"_meta\":{"
+                            + "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\"io.modelcontextprotocol/clientCapabilities\":{}}}}";
+                    MockServerWebExchange request = MockServerWebExchange.from(MockServerHttpRequest.post("/agent")
+                            .header("Content-Type", "application/json").header("Accept", "application/json, text/event-stream")
+                            .header("MCP-Protocol-Version", "2026-07-28").header("Mcp-Method", "prompts/get").header("Mcp-Name", "summary").body(body));
+                    AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedPrompts\":[\"summary\"]}"), true);
+                    StepVerifier.create(handler.handle(request, config, new AgentTrafficContext("prompt-audit", "mcp", "selector", "rule"), 1)).verifyComplete();
+                    assertEquals(200, request.getResponse().getStatusCode().value());
+                    assertEquals(1, events.size());
+                    assertEquals(AgentInvocationAuditEvent.RecordType.LOGICAL, events.get(0).getRecordType());
+                    assertEquals("owner", events.get(0).getSubject().orElseThrow());
+                    assertEquals("SUCCESS", events.get(0).getOutcome());
+                });
+    }
+
+    @Test
     void shouldAssembleExplicitPromptsWithoutInferringToolPermission() {
         AgentPromptProvider provider = mock(AgentPromptProvider.class);
         when(provider.definition()).thenReturn(new AgentPromptDefinition(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode().put("name", "summary")));
@@ -112,6 +146,19 @@ class AgentGatewayPluginConfigurationTest {
             assertFalse(context.containsBean("agentGatewayPlugin"));
             assertFalse(context.containsBean("agentGatewayPluginDataHandler"));
         });
+    }
+
+    @Test
+    void managedAuditPreservesExistingTerminalObservers() {
+        contextRunner.withUserConfiguration(org.apache.shenyu.springboot.starter.agent.audit.AgentInvocationAuditConfiguration.class)
+                .withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.audit.enabled=true")
+                .withBean(org.apache.shenyu.common.metrics.AiCallObserver.class, () -> event -> { })
+                .withBean(org.apache.shenyu.common.metrics.AgentMcpTerminalObserver.class, () -> event -> { })
+                .run(context -> {
+                    assertNull(context.getStartupFailure());
+                    assertEquals(1, context.getBeansOfType(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.class).size());
+                    assertTrue(context.containsBean("agentGatewayPlugin"));
+                });
     }
 
     @Test
