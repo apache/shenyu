@@ -18,7 +18,7 @@
 import sys
 from pathlib import Path
 
-PROVIDERS = ("zookeeper", "etcd", "nacos", "apollo", "eureka", "kubernetes")
+PROVIDERS = ("zookeeper", "nacos", "apollo", "eureka", "kubernetes")
 COMPATIBILITY_PROVIDERS = set(PROVIDERS) - {"apollo"}
 LEAN_MODULES = (
     "shenyu-registry/shenyu-registry-api",

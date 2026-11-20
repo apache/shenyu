@@ -327,11 +327,6 @@
         </dependency>
 
         <!-- shenyu-admin-listener start -->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-admin-listener-etcd</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -369,12 +364,6 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-zookeeper</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-registry-etcd</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>

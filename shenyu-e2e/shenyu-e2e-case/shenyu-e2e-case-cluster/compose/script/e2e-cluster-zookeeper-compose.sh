@@ -25,9 +25,9 @@ CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 # init shenyu sync
 SYNC_ARRAY=("websocket")
-#SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
+#SYNC_ARRAY=("websocket" "http" "zookeeper")
 #SYNC_ARRAY=("websocket" "nacos")
-#MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
+#MIDDLEWARE_SYNC_ARRAY=("zookeeper" "nacos")
 
 docker network create -d bridge shenyu
 
