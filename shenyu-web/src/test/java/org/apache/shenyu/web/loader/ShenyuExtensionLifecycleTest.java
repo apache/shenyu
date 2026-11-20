@@ -22,6 +22,7 @@ import net.bytebuddy.implementation.ExceptionMethod;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.StubMethod;
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
@@ -37,6 +38,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Properties;
 import java.util.jar.JarEntry;
@@ -85,6 +87,18 @@ class ShenyuExtensionLifecycleTest {
             ShenyuPluginClassLoader previousLoader = (ShenyuPluginClassLoader) previous.getClass().getClassLoader();
             String previousBean = previousLoader.getPluginBeanName("fixture.reload.APlugin");
             assertSame(previous, context.getBean(previousBean));
+
+            writeJar(jar, "oversized", List.of("A"), false);
+            config.getExtPlugin().getArchiveLimits().setMaxArchiveBytes(1);
+            service.loadExtOrUploadPlugins(null);
+            PluginData upload = new PluginData();
+            upload.setPluginJar(Base64.getEncoder().encodeToString(Files.readAllBytes(jar)));
+            service.loadExtOrUploadPlugins(upload);
+            assertTrue(holder.hasPluginClassLoader(jar.toString(), "1.0"));
+            assertSame(previousHandler, handlers.get("A"));
+            assertSame(previous, context.getBean(previousBean));
+            assertEquals(3, webHandler.getPlugins().size());
+            config.getExtPlugin().getArchiveLimits().setMaxArchiveBytes(16 * 1024 * 1024);
 
             writeJar(jar, "2.0", List.of("A"), true);
             service.loadExtOrUploadPlugins(null);
