@@ -21,6 +21,10 @@ import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.apache.shenyu.web.controller.LocalAppAuthController;
+import org.apache.shenyu.web.controller.LocalMetadataController;
+import org.apache.shenyu.web.controller.LocalPluginController;
+import org.apache.shenyu.web.filter.LocalDispatcherFilter;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +35,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
@@ -39,6 +44,7 @@ import org.springframework.web.server.WebFilter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link ShenyuConfiguration}.
@@ -51,7 +57,11 @@ public class ShenyuConfigurationTest {
 
     @BeforeEach
     public void before() {
-        applicationContextRunner = new ApplicationContextRunner()
+        applicationContextRunner = baseRunner().withPropertyValues("shenyu.local.enabled=true");
+    }
+
+    private ApplicationContextRunner baseRunner() {
+        return new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(ShenyuConfiguration.class))
             .withBean(ShenyuConfigurationTest.class)
             .withBean(DefaultServerCodecConfigurer.class)
@@ -61,9 +71,27 @@ public class ShenyuConfigurationTest {
                 "debug=true",
                 "shenyu.cross.enabled=true",
                 "shenyu.file.enabled=true",
-                "shenyu.exclude.enabled=true",
-                "shenyu.local.enabled=true"
+                "shenyu.exclude.enabled=true"
             );
+    }
+
+    @Test
+    public void testLocalManagementRequiresExplicitEnablement() {
+        baseRunner().run(context -> assertNoLocalManagement(context));
+        baseRunner().withPropertyValues("shenyu.local.enabled=false").run(context -> assertNoLocalManagement(context));
+        baseRunner().withPropertyValues("shenyu.local.enabled=true").run(context -> {
+            assertTrue(context.getBeansOfType(LocalDispatcherFilter.class).size() == 1);
+            assertTrue(context.getBeansOfType(LocalPluginController.class).size() == 1);
+            assertTrue(context.getBeansOfType(LocalMetadataController.class).size() == 1);
+            assertTrue(context.getBeansOfType(LocalAppAuthController.class).size() == 1);
+        });
+    }
+
+    private void assertNoLocalManagement(final ApplicationContext context) {
+        assertTrue(context.getBeansOfType(LocalDispatcherFilter.class).isEmpty());
+        assertTrue(context.getBeansOfType(LocalPluginController.class).isEmpty());
+        assertTrue(context.getBeansOfType(LocalMetadataController.class).isEmpty());
+        assertTrue(context.getBeansOfType(LocalAppAuthController.class).isEmpty());
     }
 
     @Test
