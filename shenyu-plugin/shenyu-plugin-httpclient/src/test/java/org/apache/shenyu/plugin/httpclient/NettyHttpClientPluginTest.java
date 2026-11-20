@@ -21,25 +21,37 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.HeaderUniqueStrategyEnum;
+import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ServerWebExchangeDecorator;
 import reactor.core.publisher.Mono;
@@ -50,10 +62,18 @@ import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -174,6 +194,346 @@ public final class NettyHttpClientPluginTest {
             assertEquals(529, baseExchange.getResponse().getStatusCode().value());
         } finally {
             server.disposeNow();
+        }
+    }
+
+    static Stream<Arguments> responseHeaderPolicies() {
+        return Stream.of(Arguments.of(null, List.of("one", "two", "one", "three"), List.of("a=1", "b=2", "a=1", "c=3")),
+                Arguments.of("", List.of("one", "two", "one", "three"), List.of("a=1", "b=2", "a=1", "c=3")),
+                Arguments.of("RETAIN_FIRST", List.of("one"), List.of("a=1")),
+                Arguments.of("RETAIN_LAST", List.of("three"), List.of("c=3")),
+                Arguments.of("RETAIN_UNIQUE", List.of("one", "two", "three"), List.of("a=1", "b=2", "c=3")));
+    }
+
+    @ParameterizedTest
+    @MethodSource("responseHeaderPolicies")
+    void testResponseHeadersPreserveValuesAndIsolation(final String policy, final List<String> expected, final List<String> cookies) {
+        DisposableServer server = headerServer();
+        try {
+            ServerWebExchange exchange = generateServerWebExchange();
+            exchange.getResponse().getHeaders().set("X-Multi", "gateway-old");
+            exchange.getResponse().getHeaders().set("X-Gateway", "keep");
+            if (Objects.nonNull(policy)) {
+                exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), policy.isEmpty() ? "" : "X-Multi;Set-Cookie");
+                if (!policy.isEmpty()) {
+                    exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), HeaderUniqueStrategyEnum.valueOf(policy));
+                }
+            }
+            StepVerifier.create(nettyHttpClientPlugin.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + server.port() + "/test"), Flux.empty()))
+                    .assertNext(response -> {
+                        assertEquals(expected, exchange.getResponse().getHeaders().get("x-multi"));
+                        assertEquals(cookies, exchange.getResponse().getHeaders().get(HttpHeaders.SET_COOKIE));
+                        assertEquals("keep", exchange.getResponse().getHeaders().getFirst("X-Gateway"));
+                        assertEquals("text/plain", exchange.getAttribute(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR));
+                        assertEquals(List.of("one", "two", "one", "three"), response.responseHeaders().getAll("X-Multi"));
+                        assertEquals(List.of("a=1", "b=2", "a=1", "c=3"), response.responseHeaders().getAll(HttpHeaders.SET_COOKIE));
+                        exchange.getResponse().getHeaders().set("X-Multi", "changed-after-copy");
+                        assertEquals(List.of("one", "two", "one", "three"), response.responseHeaders().getAll("X-Multi"));
+                    }).verifyComplete();
+        } finally {
+            server.disposeNow();
+        }
+    }
+
+    @Test
+    void testCustomResponseHeaderHookKeepsMutableIndependentHeaders() {
+        NettyHttpClientPlugin custom = new NettyHttpClientPlugin(HttpClient.create(), Constants.BYTES_PER_MB) {
+            @Override
+            protected void duplicateHeaders(final ServerWebExchange exchange, final HttpHeaders headers, final UniqueHeaderEnum type) {
+                if (type == UniqueHeaderEnum.RESP_UNIQUE_HEADER) {
+                    headers.set("X-Multi", "custom");
+                } else {
+                    super.duplicateHeaders(exchange, headers, type);
+                }
+            }
+        };
+        DisposableServer server = headerServer();
+        try {
+            ServerWebExchange exchange = generateServerWebExchange();
+            StepVerifier.create(custom.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + server.port() + "/test"), Flux.empty()))
+                    .assertNext(response -> {
+                        assertEquals(List.of("custom"), exchange.getResponse().getHeaders().get("X-Multi"));
+                        assertEquals(List.of("one", "two", "one", "three"), response.responseHeaders().getAll("X-Multi"));
+                    }).verifyComplete();
+        } finally {
+            server.disposeNow();
+        }
+    }
+
+    @Test
+    void testReadOnlyResponseStillPreservesUpstreamResponse() {
+        ServerWebExchange base = generateServerWebExchange();
+        base.getResponse().getHeaders().set("X-Gateway", "keep");
+        ServerHttpResponse decorated = new ServerHttpResponseDecorator(base.getResponse()) {
+            @Override
+            public HttpHeaders getHeaders() {
+                return HttpHeaders.readOnlyHttpHeaders(super.getHeaders());
+            }
+        };
+        ServerWebExchange exchange = new ServerWebExchangeDecorator(base) {
+            @Override
+            public ServerHttpResponse getResponse() {
+                return decorated;
+            }
+        };
+        DisposableServer server = headerServer();
+        try {
+            StepVerifier.create(nettyHttpClientPlugin.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + server.port() + "/test"), Flux.empty()))
+                    .assertNext(response -> {
+                        assertEquals(List.of("one", "two", "one", "three"), response.responseHeaders().getAll("X-Multi"));
+                        assertEquals("keep", exchange.getResponse().getHeaders().getFirst("X-Gateway"));
+                        assertEquals(200, exchange.getResponse().getStatusCode().value());
+                        assertEquals("text/plain", exchange.getAttribute(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR));
+                    }).verifyComplete();
+        } finally {
+            server.disposeNow();
+        }
+    }
+
+    private DisposableServer headerServer() {
+        return HttpServer.create().host("127.0.0.1").port(0).handle((request, response) -> {
+            response.addHeader("X-Multi", "one").addHeader("x-multi", "two").addHeader("X-MULTI", "one").addHeader("X-Multi", "three");
+            response.addHeader(HttpHeaders.SET_COOKIE, "a=1").addHeader(HttpHeaders.SET_COOKIE, "b=2").addHeader(HttpHeaders.SET_COOKIE, "a=1").addHeader(HttpHeaders.SET_COOKIE, "c=3");
+            return response.header(HttpHeaders.CONTENT_TYPE, "text/plain").send();
+        }).bindNow();
+    }
+
+    static Stream<Arguments> nativeResponseHeaderCases() {
+        return responseHeaderPolicies().flatMap(args -> Stream.of(false, true).map(existing ->
+                Arguments.of(args.get()[0], args.get()[1], args.get()[2], existing)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("nativeResponseHeaderCases")
+    void testNativeResponseHeadersPreserveMergeAndPolicies(final String policy, final List<String> expected,
+                                                          final List<String> cookies, final boolean existing) {
+        DisposableServer upstream = headerServer();
+        AtomicInteger assertions = new AtomicInteger();
+        AtomicReference<Throwable> handlerFailure = new AtomicReference<>();
+        DisposableServer gateway = HttpServer.create().host("127.0.0.1").port(0)
+                .handle(new ReactorHttpHandlerAdapter((request, response) -> {
+                    ServerWebExchange exchange = generateServerWebExchange().mutate().response(response).build();
+                    if (existing) {
+                        response.getHeaders().set("X-Multi", "gateway-old");
+                        response.getHeaders().set("X-Gateway", "keep");
+                    }
+                    if (Objects.nonNull(policy)) {
+                        exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getName(), policy.isEmpty() ? "" : "X-Multi;Set-Cookie");
+                        if (!policy.isEmpty()) {
+                            exchange.getAttributes().put(UniqueHeaderEnum.RESP_UNIQUE_HEADER.getStrategy(), HeaderUniqueStrategyEnum.valueOf(policy));
+                        }
+                    }
+                    return nettyHttpClientPlugin.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + upstream.port() + "/test"), Flux.empty())
+                            .doOnNext(raw -> {
+                                assertEquals(expected, response.getHeaders().get("x-multi"),
+                                        "target=" + response.getHeaders() + "; source=" + raw.responseHeaders());
+                                assertEquals(cookies, response.getHeaders().get(HttpHeaders.SET_COOKIE));
+                                assertEquals("text/plain", exchange.getAttribute(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR));
+                                raw.responseHeaders().set("X-Multi", "upstream-mutated");
+                                assertEquals(expected, response.getHeaders().get("x-multi"));
+                                response.getHeaders().set("X-Multi", "gateway-mutated");
+                                assertEquals(List.of("upstream-mutated"), raw.responseHeaders().getAll("X-Multi"));
+                                response.getHeaders().put("X-Multi", expected);
+                                assertions.incrementAndGet();
+                            }).then(Mono.defer(response::setComplete)).doOnError(handlerFailure::set);
+                })).bindNow();
+        try {
+            HttpClient.create().get().uri("http://127.0.0.1:" + gateway.port() + "/test")
+                    .responseSingle((response, body) -> {
+                        assertEquals(200, response.status().code(), String.valueOf(handlerFailure.get()));
+                        assertEquals(expected, response.responseHeaders().getAll("X-Multi"));
+                        assertEquals(cookies, response.responseHeaders().getAll(HttpHeaders.SET_COOKIE));
+                        assertEquals(existing ? "keep" : null, response.responseHeaders().get("X-Gateway"));
+                        return body.then();
+                    }).block();
+            assertEquals(1, assertions.get());
+        } finally {
+            gateway.disposeNow();
+            upstream.disposeNow();
+        }
+    }
+
+    @Test
+    void testNativeRequestTimeoutRestoresGatewayHeadersBeforeCommit() {
+        DisposableServer upstream = headerServer();
+        AtomicInteger receivedHeaders = new AtomicInteger();
+        DisposableServer gateway = HttpServer.create().host("127.0.0.1").port(0)
+                .handle(new ReactorHttpHandlerAdapter((request, response) -> {
+                    response.getHeaders().set("X-Multi", "gateway-old");
+                    response.getHeaders().set(HttpHeaders.SET_COOKIE, "gateway=1");
+                    ServerWebExchange exchange = generateServerWebExchange().mutate().response(response).build();
+                    exchange.getAttributes().put(Constants.HTTP_URI, URI.create("http://127.0.0.1:" + upstream.port() + "/test"));
+                    exchange.getAttributes().put(Constants.HTTP_TIME_OUT, 10000L);
+                    HttpRouteDeadline deadline = new HttpRouteDeadline(2000);
+                    HttpRouteResponseHeaders headers = new HttpRouteResponseHeaders();
+                    exchange.getAttributes().put(HttpRouteDeadline.REQUEST, deadline);
+                    exchange.getAttributes().put(HttpRouteResponseHeaders.ATTRIBUTE, headers);
+                    return deadline.limit(nettyHttpClientPlugin.execute(exchange, current -> {
+                        assertFalse(response.isCommitted());
+                        assertEquals(List.of("one", "two", "one", "three"), response.getHeaders().get("X-Multi"));
+                        receivedHeaders.incrementAndGet();
+                        return Mono.never();
+                    })).onErrorMap(TimeoutException.class, HttpRouteDeadline::gatewayTimeout)
+                            .onErrorResume(ResponseStatusException.class, error -> {
+                                assertEquals(HttpStatus.GATEWAY_TIMEOUT, error.getStatusCode());
+                                headers.restore(exchange);
+                                response.setStatusCode(error.getStatusCode());
+                                return response.setComplete();
+                            });
+                })).bindNow();
+        try {
+            HttpClient.create().get().uri("http://127.0.0.1:" + gateway.port() + "/test")
+                    .responseSingle((response, body) -> {
+                        assertEquals(504, response.status().code());
+                        assertEquals(List.of("gateway-old"), response.responseHeaders().getAll("X-Multi"));
+                        assertEquals(List.of("gateway=1"), response.responseHeaders().getAll(HttpHeaders.SET_COOKIE));
+                        assertNull(response.responseHeaders().get(HttpHeaders.CONTENT_TYPE));
+                        return body.then();
+                    }).block(java.time.Duration.ofSeconds(5));
+            assertEquals(1, receivedHeaders.get());
+        } finally {
+            gateway.disposeNow();
+            upstream.disposeNow();
+        }
+    }
+
+    @Test
+    void testNativeLateResponseCannotReplaceRestoredGatewayHeaders() {
+        DisposableServer upstream = headerServer();
+        AtomicInteger receivedHeaders = new AtomicInteger();
+        DisposableServer gateway = HttpServer.create().host("127.0.0.1").port(0)
+                .handle(new ReactorHttpHandlerAdapter((request, response) -> {
+                    response.getHeaders().set("X-Multi", "gateway-old");
+                    response.getHeaders().set(HttpHeaders.SET_COOKIE, "gateway=1");
+                    response.setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+                    ServerWebExchange exchange = generateServerWebExchange().mutate().response(response).build();
+                    HttpRouteResponseHeaders headers = new HttpRouteResponseHeaders();
+                    exchange.getAttributes().put(HttpRouteResponseHeaders.ATTRIBUTE, headers);
+                    headers.restore(exchange);
+                    return nettyHttpClientPlugin.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + upstream.port() + "/test"), Flux.empty())
+                            .doOnNext(raw -> {
+                                assertFalse(response.isCommitted());
+                                assertEquals(200, raw.status().code());
+                                receivedHeaders.incrementAndGet();
+                            }).then(Mono.defer(response::setComplete));
+                })).bindNow();
+        try {
+            HttpClient.create().get().uri("http://127.0.0.1:" + gateway.port() + "/test")
+                    .responseSingle((response, body) -> {
+                        assertEquals(504, response.status().code());
+                        assertEquals(List.of("gateway-old"), response.responseHeaders().getAll("X-Multi"));
+                        assertEquals(List.of("gateway=1"), response.responseHeaders().getAll(HttpHeaders.SET_COOKIE));
+                        assertNull(response.responseHeaders().get(HttpHeaders.CONTENT_TYPE));
+                        return body.then();
+                    }).block(java.time.Duration.ofSeconds(5));
+            assertEquals(1, receivedHeaders.get());
+        } finally {
+            gateway.disposeNow();
+            upstream.disposeNow();
+        }
+    }
+
+    @Test
+    void testCommittedNativeResponseKeepsOriginalHeadersAndStatus() throws InterruptedException {
+        DisposableServer upstream = headerServer();
+        CountDownLatch completed = new CountDownLatch(1);
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        DisposableServer gateway = HttpServer.create().host("127.0.0.1").port(0)
+                .handle(new ReactorHttpHandlerAdapter((request, response) -> {
+                    response.getHeaders().set("X-Multi", "already-sent");
+                    response.setStatusCode(org.springframework.http.HttpStatus.ACCEPTED);
+                    ServerWebExchange exchange = generateServerWebExchange().mutate().response(response).build();
+                    return response.setComplete().then(Mono.defer(() ->
+                            nettyHttpClientPlugin.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + upstream.port() + "/test"), Flux.empty())))
+                            .doOnNext(raw -> {
+                                assertTrue(response.isCommitted());
+                                assertEquals(List.of("already-sent"), response.getHeaders().get("X-Multi"));
+                                assertEquals(202, response.getStatusCode().value());
+                                assertEquals("text/plain", exchange.getAttribute(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR));
+                                assertEquals(List.of("one", "two", "one", "three"), raw.responseHeaders().getAll("X-Multi"));
+                            }).then().doOnError(failure::set).doFinally(signal -> completed.countDown());
+                })).bindNow();
+        try {
+            HttpClient.create().get().uri("http://127.0.0.1:" + gateway.port() + "/test")
+                    .responseSingle((response, body) -> {
+                        assertEquals(202, response.status().code());
+                        assertEquals(List.of("already-sent"), response.responseHeaders().getAll("X-Multi"));
+                        return body.then();
+                    }).block();
+            assertTrue(completed.await(5, TimeUnit.SECONDS));
+            assertNull(failure.get());
+        } finally {
+            gateway.disposeNow();
+            upstream.disposeNow();
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"builtin", "subclass", "decorator", "read-only"})
+    void testNativeResponseExtensionBoundaries(final String mode) {
+        NettyHttpClientPlugin plugin = "subclass".equals(mode)
+                ? new NettyHttpClientPlugin(HttpClient.create(), Constants.BYTES_PER_MB) {
+                    @Override
+                    protected void duplicateHeaders(final ServerWebExchange exchange, final HttpHeaders headers, final UniqueHeaderEnum type) {
+                        if (type == UniqueHeaderEnum.RESP_UNIQUE_HEADER) {
+                            headers.set("X-Multi", "custom");
+                        } else {
+                            super.duplicateHeaders(exchange, headers, type);
+                        }
+                    }
+                } : nettyHttpClientPlugin;
+        List<String> expected = "subclass".equals(mode) ? List.of("custom")
+                : "read-only".equals(mode) ? List.of("gateway-old") : List.of("one", "two", "one", "three");
+        AtomicReference<List<String>> atCommit = new AtomicReference<>();
+        AtomicReference<Throwable> handlerFailure = new AtomicReference<>();
+        DisposableServer upstream = headerServer();
+        DisposableServer gateway = HttpServer.create().host("127.0.0.1").port(0)
+                .handle(new ReactorHttpHandlerAdapter((request, response) -> {
+                    response.getHeaders().set("X-Multi", "gateway-old");
+                    response.getHeaders().set("X-Gateway", "keep");
+                    response.getCookies().add("gateway", org.springframework.http.ResponseCookie.from("gateway", "yes").build());
+                    response.beforeCommit(() -> {
+                        atCommit.set(response.getHeaders().get("X-Multi"));
+                        return Mono.empty();
+                    });
+                    ServerHttpResponse selected = response;
+                    if ("decorator".equals(mode)) {
+                        selected = new ServerHttpResponseDecorator(response);
+                    } else if ("read-only".equals(mode)) {
+                        selected = new ServerHttpResponseDecorator(response) {
+                            @Override
+                            public HttpHeaders getHeaders() {
+                                return HttpHeaders.readOnlyHttpHeaders(super.getHeaders());
+                            }
+                        };
+                    }
+                    ServerWebExchange exchange = generateServerWebExchange().mutate().response(selected).build();
+                    return plugin.doRequest(exchange, "GET", URI.create("http://127.0.0.1:" + upstream.port() + "/test"), Flux.empty())
+                            .doOnNext(raw -> {
+                                assertEquals(expected, response.getHeaders().get("X-Multi"));
+                                assertEquals("keep", response.getHeaders().getFirst("X-Gateway"));
+                                assertEquals("text/plain", exchange.getAttribute(Constants.ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR));
+                                assertEquals(List.of("one", "two", "one", "three"), raw.responseHeaders().getAll("X-Multi"));
+                            }).then(Mono.defer(response::setComplete)).doOnError(handlerFailure::set);
+                })).bindNow();
+        try {
+            HttpClient.create().get().uri("http://127.0.0.1:" + gateway.port() + "/test")
+                    .responseSingle((response, body) -> {
+                        assertEquals(200, response.status().code(), String.valueOf(handlerFailure.get()));
+                        assertEquals(expected, response.responseHeaders().getAll("X-Multi"));
+                        assertEquals("keep", response.responseHeaders().get("X-Gateway"));
+                        List<String> cookies = response.responseHeaders().getAll(HttpHeaders.SET_COOKIE);
+                        assertTrue(cookies.stream().anyMatch(value -> value.startsWith("gateway=yes")));
+                        if (!"read-only".equals(mode)) {
+                            assertTrue(cookies.containsAll(List.of("a=1", "b=2", "a=1", "c=3")));
+                        }
+                        return body.then();
+                    }).block(java.time.Duration.ofSeconds(5));
+            assertNull(handlerFailure.get());
+            assertEquals(expected, atCommit.get());
+        } finally {
+            gateway.disposeNow();
+            upstream.disposeNow();
         }
     }
 

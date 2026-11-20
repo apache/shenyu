@@ -70,8 +70,7 @@ requirements even when Canary is disabled. The contract reuses
 `CanaryConfigValidator`; it does not create a second parser. Canary plus retries
 to another target remains rejected until partition-aware failover exists.
 
-Sticky parsing retains its historical coercion and unusable-configuration
-handling. A parseable sticky object is not a promise that affinity will activate:
+Sticky parsing follows the shared validator. It rejects string booleans and unknown key types. Affinity activation also depends on runtime configuration:
 the existing runtime still needs usable secrets, cookie settings and lifetime.
 Array element descriptions and conditional constraints are owned by semantic
 validation, rather than silently enabling generic strict structural validation.

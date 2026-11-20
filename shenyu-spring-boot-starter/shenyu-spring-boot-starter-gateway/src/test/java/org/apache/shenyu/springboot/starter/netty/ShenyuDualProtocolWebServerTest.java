@@ -52,6 +52,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -227,6 +228,8 @@ class ShenyuDualProtocolWebServerTest {
         WebServer server = factory.getWebServer(echoHandler());
         try {
             server.start();
+            // Netty invokes doOnBound asynchronously for the additional listener.
+            await().atMost(Duration.ofSeconds(5)).until(() -> listeners.size() == 2);
             assertEquals(2, listeners.size());
             assertEquals(listeners.get(0).port(), server.getPort());
             assertEquals("https:/gateway", request(true, server.getPort(), "/gateway", sni).block(Duration.ofSeconds(5)));

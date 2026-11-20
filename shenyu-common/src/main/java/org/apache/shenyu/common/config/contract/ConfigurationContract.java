@@ -84,7 +84,7 @@ public record ConfigurationContract(String plugin, ConfigurationScope scope, Str
         public Field {
             Objects.requireNonNull(type);
             unit = Objects.requireNonNullElse(unit, "");
-            values = List.copyOf(values);
+            values = Objects.isNull(values) ? List.of() : List.copyOf(values);
             description = Objects.requireNonNullElse(description, "");
             if (values.size() > 64 || Objects.nonNull(minimum) && Objects.nonNull(maximum) && minimum > maximum) {
                 throw new IllegalArgumentException("Invalid configuration field constraints");

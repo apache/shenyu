@@ -266,8 +266,8 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheAuthData(final String removeKey) {
-        final String[] authKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        if (Objects.isNull(authKeys) || authKeys.length < 3) {
+        final String[] authKeys = StringUtils.splitPreserveAllTokens(removeKey, DefaultNodeConstants.JOIN_POINT, 3);
+        if (Objects.isNull(authKeys) || authKeys.length < 3 || StringUtils.isAnyEmpty(authKeys)) {
             LOG.warn("AbstractNodeDataSyncService invalid auth data remove key: {}", removeKey);
             return;
         }
@@ -322,6 +322,10 @@ public abstract class AbstractNodeDataSyncService {
 
     protected void unCacheDiscoveryUpstreamData(final String removeKey) {
         final String[] proxySelectorKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(proxySelectorKeys) || proxySelectorKeys.length < 4) {
+            LOG.warn("AbstractNodeDataSyncService invalid discovery upstream remove key: {}", removeKey);
+            return;
+        }
         DiscoveryUpstreamKey key = new DiscoveryUpstreamKey(proxySelectorKeys[2], proxySelectorKeys[3], null);
         discoveryUpstreamDataSubscribers.forEach(e -> e.unSubscribe(key));
         removeListener(removeKey);

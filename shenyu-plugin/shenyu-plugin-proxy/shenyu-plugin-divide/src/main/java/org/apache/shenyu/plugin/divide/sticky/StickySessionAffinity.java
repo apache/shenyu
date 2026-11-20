@@ -71,20 +71,15 @@ public class StickySessionAffinity {
     private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
 
     /**
-     * Whether the rule carries an active sticky configuration. Blank secrets,
-     * a blank cookie name or a non-positive binding lifetime disable affinity
-     * instead of producing unusable cookies.
+     * Whether the rule carries an active sticky configuration. The predicate is owned by
+     * {@link StickySessionConfig#isUsable()} so the management-plane validator and the
+     * runtime cannot drift apart.
      *
      * @param handle the sticky configuration, may be null
      * @return true when affinity applies to the request
      */
     public boolean isActive(final StickySessionConfig handle) {
-        if (Objects.isNull(handle) || !handle.isEnabled() || handle.getMaxAgeSeconds() <= 0
-                || StringUtils.isBlank(handle.getCookieName())
-                || Objects.isNull(handle.getSecrets()) || handle.getSecrets().isEmpty()) {
-            return false;
-        }
-        return handle.getSecrets().stream().allMatch(StringUtils::isNotBlank);
+        return Objects.nonNull(handle) && handle.isUsable();
     }
 
     /**

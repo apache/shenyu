@@ -40,7 +40,7 @@ canary-labels	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":1
 canary-conditions-null	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"conditions":null}}	canary.conditions	INVALID_TYPE	-
 canary-fallback	INVALID	false	REJECT_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"fallbackPolicy":"INVALID"}}	canary.fallbackPolicy	SEMANTIC_INVALID	-
 sticky-defaults	VALID	true	REPLACE	{"sticky":{}}	-	-	-
-sticky-legacy-coercion	VALID	true	REPLACE	{"sticky":{"enabled":"true","maxAgeSeconds":"3600","key":{"type":"HEADER","name":"x-user"},"secrets":["fixture-key"]}}	-	-	-
-sticky-unusable-but-parseable	VALID	true	REPLACE	{"sticky":{"enabled":true,"maxAgeSeconds":-1,"secrets":[],"key":{"type":"UNKNOWN"}}}	-	-	-
-sticky-wrong-shape	INVALID	false	REJECT_RETAIN	{"sticky":[]}	$	INVALID_JSON	-
+sticky-enabled-string	INVALID	false	REJECT_RETAIN	{"sticky":{"enabled":"true","maxAgeSeconds":"3600","key":{"type":"HEADER","name":"x-user"},"secrets":["fixture-key"]}}	sticky.enabled	INVALID_TYPE	-
+sticky-unknown-key-type	INVALID	false	REJECT_RETAIN	{"sticky":{"enabled":true,"maxAgeSeconds":-1,"secrets":[],"key":{"type":"UNKNOWN"}}}	sticky.key.type	SEMANTIC_INVALID	-
+sticky-wrong-shape	INVALID	false	REJECT_RETAIN	{"sticky":[]}	sticky	INVALID_TYPE	-
 binding-differs	VALID	true	BINDING_RETAIN	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"stickyKey":{"paramType":"contract-missing"}}}	canary	RUNTIME_BINDING_UNAVAILABLE	contract-missing
