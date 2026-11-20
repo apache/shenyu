@@ -22,14 +22,18 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -77,5 +81,61 @@ public final class MatchStrategyFactoryTest {
     public void testMatch() {
         assertFalse(MatchStrategyFactory.match(MatchModeEnum.AND.getCode(), conditionDataList, exchange));
         assertTrue(MatchStrategyFactory.match(MatchModeEnum.OR.getCode(), conditionDataList, exchange));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"TimeBefore, header, not-a-date", "TimeAfter, header, not-a-date",
+            "TimeBefore, query, not-a-date", "TimeAfter, query, not-a-date",
+            "TimeBefore, header, 2026-13-01 00:00:00", "TimeAfter, header, 2026-13-01 00:00:00",
+            "TimeBefore, query, 2026-13-01 00:00:00", "TimeAfter, query, 2026-13-01 00:00:00"})
+    public void testInvalidRequestTimeDoesNotPreventOtherConditions(final String operator, final String paramType, final String requestTime) {
+        ConditionData timeCondition = timeCondition(operator, paramType, "2030-01-01 00:00:00");
+        ServerWebExchange timeExchange = timeExchange(paramType, requestTime);
+        List<ConditionData> conditions = List.of(timeCondition, conditionDataList.get(0));
+
+        assertFalse(MatchStrategyFactory.match(MatchModeEnum.AND.getCode(), conditions, timeExchange));
+        assertTrue(MatchStrategyFactory.match(MatchModeEnum.OR.getCode(), conditions, timeExchange));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"TimeBefore, header, 2026-01-01 00:00:00, true", "TimeAfter, header, 2026-01-01 00:00:00, false",
+            "TimeBefore, query, 2026-01-01 00:00:00, true", "TimeAfter, query, 2026-01-01 00:00:00, false",
+            "TimeBefore, header, 2031-01-01 00:00:00, false", "TimeAfter, header, 2031-01-01 00:00:00, true",
+            "TimeBefore, query, 2031-01-01 00:00:00, false", "TimeAfter, query, 2031-01-01 00:00:00, true"})
+    public void testValidRequestTimeMatches(final String operator, final String paramType, final String requestTime, final boolean expected) {
+        ConditionData timeCondition = timeCondition(operator, paramType, "2030-01-01 00:00:00");
+
+        assertEquals(expected, MatchStrategyFactory.match(MatchModeEnum.AND.getCode(), List.of(timeCondition), timeExchange(paramType, requestTime)));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"TimeBefore, header, 2026-01-01 00:00:00", "TimeAfter, header, 2026-01-01 00:00:00",
+            "TimeBefore, query, 2026-01-01 00:00:00", "TimeAfter, query, 2026-01-01 00:00:00",
+            "TimeBefore, header, not-a-date", "TimeAfter, header, not-a-date",
+            "TimeBefore, query, not-a-date", "TimeAfter, query, not-a-date"})
+    public void testInvalidConfiguredTimeStillFails(final String operator, final String paramType, final String requestTime) {
+        ConditionData timeCondition = timeCondition(operator, paramType, "invalid-configured-time");
+
+        assertThrows(DateTimeParseException.class,
+                () -> MatchStrategyFactory.match(MatchModeEnum.AND.getCode(), List.of(timeCondition), timeExchange(paramType, requestTime)));
+    }
+
+    private ConditionData timeCondition(final String operator, final String paramType, final String configuredTime) {
+        ConditionData conditionData = new ConditionData();
+        conditionData.setOperator(operator);
+        conditionData.setParamName("request-time");
+        conditionData.setParamType(paramType);
+        conditionData.setParamValue(configuredTime);
+        return conditionData;
+    }
+
+    private ServerWebExchange timeExchange(final String paramType, final String requestTime) {
+        MockServerHttpRequest.BaseBuilder<?> request = MockServerHttpRequest.get("/http/shenyu");
+        if ("header".equals(paramType)) {
+            request.header("request-time", requestTime);
+        } else {
+            request.queryParam("request-time", requestTime);
+        }
+        return MockServerWebExchange.from(request.build());
     }
 }

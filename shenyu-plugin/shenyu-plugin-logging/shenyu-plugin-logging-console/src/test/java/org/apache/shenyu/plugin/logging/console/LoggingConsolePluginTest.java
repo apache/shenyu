@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.plugin.logging.console;
 
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.plugin.logging.console.handler.LoggingConsolePluginDataHandler;
+import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -26,6 +30,8 @@ import org.apache.shenyu.plugin.logging.desensitize.api.factory.DataDesensitizeF
 import org.apache.shenyu.plugin.logging.desensitize.api.matcher.KeyWordMatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -43,11 +49,13 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -96,6 +104,59 @@ public final class LoggingConsolePluginTest {
         // Sorry, I do not how to mock this case by an simply way, so I give up.
 
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    public void testCredentialHeadersAndConfigReload(final boolean error) {
+        final String pluginId = "console-credential-test";
+        final LoggingConsolePluginDataHandler handler = new LoggingConsolePluginDataHandler();
+        final PluginData data = new PluginData();
+        data.setId(pluginId);
+        data.setEnabled(true);
+        data.setConfig("{\"maskedHeaders\":[\"X-Api-Key\"]}");
+        handler.handlerPlugin(data);
+        final SelectorData selector = new SelectorData();
+        selector.setPluginId(pluginId);
+        try {
+            final AtomicReference<StringBuilder> logged = new AtomicReference<>();
+            final MockServerWebExchange credentialExchange = MockServerWebExchange.from(MockServerHttpRequest.get("/")
+                    .header("aUtHoRiZaTiOn", "request-secret").header("X-Api-Key", "custom-secret").build());
+            final Mono<Void> execution = loggingConsolePlugin.doExecute(credentialExchange, decorated -> {
+                assertEquals("request-secret", decorated.getRequest().getHeaders().getFirst("Authorization"));
+                decorated.getResponse().getHeaders().add("Set-Cookie", "response-secret");
+                logged.set((StringBuilder) ReflectionTestUtils.getField(decorated.getResponse(), "logInfo"));
+                data.setConfig("{\"maskCredentialHeaders\":false}");
+                handler.handlerPlugin(data);
+                return error ? Mono.error(new IllegalStateException("failure"))
+                        : decorated.getResponse().writeWith(Mono.just(decorated.getResponse().bufferFactory().wrap(new byte[] {1})));
+            }, selector, ruleData);
+            if (error) {
+                assertThrows(IllegalStateException.class, execution::block);
+            } else {
+                execution.block();
+            }
+            assertTrue(logged.get().toString().contains("aUtHoRiZaTiOn: ***"));
+            assertTrue(logged.get().toString().contains("X-Api-Key: ***"));
+            assertTrue(logged.get().toString().contains("Set-Cookie: ***"));
+            assertFalse(logged.get().toString().contains("secret"));
+            assertEquals("response-secret", credentialExchange.getResponse().getHeaders().getFirst("Set-Cookie"));
+            final MockServerWebExchange next = MockServerWebExchange.from(MockServerHttpRequest.get("/").header("Authorization", "visible").build());
+            loggingConsolePlugin.doExecute(next, decorated -> {
+                logged.set((StringBuilder) ReflectionTestUtils.getField(decorated.getResponse(), "logInfo"));
+                return Mono.empty();
+            }, selector, ruleData).block();
+            assertTrue(logged.get().toString().contains("Authorization: visible"));
+            data.setEnabled(false);
+            handler.handlerPlugin(data);
+            assertFalse(AbstractLogPluginDataHandler.getPluginGlobalConfigMap().containsKey(pluginId));
+            data.setEnabled(true);
+            handler.handlerPlugin(data);
+            handler.removePlugin(data);
+            assertFalse(AbstractLogPluginDataHandler.getPluginGlobalConfigMap().containsKey(pluginId));
+        } finally {
+            AbstractLogPluginDataHandler.getPluginGlobalConfigMap().remove(pluginId);
+        }
     }
 
     @Test

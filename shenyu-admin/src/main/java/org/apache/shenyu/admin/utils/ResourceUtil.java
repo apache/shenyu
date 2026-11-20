@@ -111,6 +111,17 @@ public final class ResourceUtil {
     }
     
     /**
+     * build the permission of a plugin operation, for example {@code plugin:divideSelector:add}.
+     *
+     * @param pluginName   plugin name
+     * @param pluginAction the operation, in the form of the {@code AdminConstants.PLUGIN_TYPE_*} constants
+     * @return permission
+     */
+    public static String buildPluginPermission(final String pluginName, final String pluginAction) {
+        return "plugin:" + pluginName + pluginAction;
+    }
+    
+    /**
      * build Plugin Selector Button Resource.
      *
      * @param parentId               parent menu id
@@ -133,15 +144,15 @@ public final class ResourceUtil {
         switch (configGroupEnum) {
             case SELECTOR:
                 resourceDO.setTitle("SHENYU.BUTTON.PLUGIN." + ConfigGroupEnum.SELECTOR.name() + "." + adminPluginOperateEnum.name());
-                resourceDO.setPerms("plugin:" + pluginName + "Selector:" + adminPluginOperateEnum.getName());
+                resourceDO.setPerms(buildPluginPermission(pluginName, "Selector:" + adminPluginOperateEnum.getName()));
                 break;
             case RULE:
                 resourceDO.setTitle("SHENYU.BUTTON.PLUGIN." + ConfigGroupEnum.RULE.name() + "." + adminPluginOperateEnum.name());
-                resourceDO.setPerms("plugin:" + pluginName + "Rule:" + adminPluginOperateEnum.getName());
+                resourceDO.setPerms(buildPluginPermission(pluginName, "Rule:" + adminPluginOperateEnum.getName()));
                 break;
             case PLUGIN:
                 resourceDO.setTitle("SHENYU.BUTTON.PLUGIN." + adminPluginOperateEnum.name());
-                resourceDO.setPerms("plugin:" + pluginName + ":" + adminPluginOperateEnum.getName());
+                resourceDO.setPerms(buildPluginPermission(pluginName, ":" + adminPluginOperateEnum.getName()));
                 break;
             default:
                 break;

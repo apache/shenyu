@@ -51,6 +51,19 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 -- Preserve complete API-debug request headers.
 ALTER TABLE mock_request_record ALTER COLUMN header CLOB;
 
+-- Agent Gateway OpenAPI import ownership: Admin-only provenance, never synchronized to gateways.
+-- Stop Admin writers and back up rule before this one-time migration: handle expands to CLOB.
+CREATE TABLE agent_gateway_import (
+    id VARCHAR(128) NOT NULL PRIMARY KEY,
+    rule_id VARCHAR(128) NOT NULL,
+    namespace_id VARCHAR(50) NOT NULL,
+    manifest CLOB NOT NULL,
+    date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX uk_agent_gateway_import_rule ON agent_gateway_import (rule_id);
+ALTER TABLE rule ALTER COLUMN handle CLOB;
+
 CREATE TABLE IF NOT EXISTS registration_fencing_target (
     id VARCHAR(128) NOT NULL PRIMARY KEY,
     date_created TIMESTAMP NOT NULL,

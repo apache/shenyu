@@ -1,0 +1,71 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Reports the stricter rules of script/shenyu_checkstyle_new_code.xml (Q1..Q6 in
+# AGENTS.md) on lines added by a pull request. The job is advisory: findings are
+# shown as annotations and in the job summary, and do not fail the check.
+name: new-code-quality
+on:
+  pull_request:
+    paths:
+      - '**/*.java'
+      - 'script/shenyu_checkstyle_new_code.xml'
+      - '.github/scripts/check-new-code-quality.py'
+      - '.github/scripts/test-check-new-code-quality.py'
+      - '.github/workflows/new-code-quality.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Checkstyle 9.3 is the version used by maven-checkstyle-plugin 3.4.0 in the build.
+  CHECKSTYLE_VERSION: '9.3'
+  CHECKSTYLE_SHA256: 02ad3307e46059a7c4f8af6c5f61f477bc5fd910e56afb145c45904c95d213ac
+
+jobs:
+  added-lines:
+    if: github.repository == 'apache/shenyu'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Test the added-line filter
+        run: python3 -B .github/scripts/test-check-new-code-quality.py
+      - name: Download Checkstyle
+        run: |
+          jar="${RUNNER_TEMP}/checkstyle-${CHECKSTYLE_VERSION}-all.jar"
+          curl -fsSL --retry 3 --retry-delay 5 -o "${jar}" \
+            "https://github.com/checkstyle/checkstyle/releases/download/checkstyle-${CHECKSTYLE_VERSION}/checkstyle-${CHECKSTYLE_VERSION}-all.jar"
+          echo "${CHECKSTYLE_SHA256}  ${jar}" | sha256sum --check --strict
+          echo "CHECKSTYLE_JAR=${jar}" >> "${GITHUB_ENV}"
+      - name: Report findings on added lines
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          python3 -B .github/scripts/check-new-code-quality.py \
+            --base "origin/${BASE_REF}" \
+            --checkstyle-jar "${CHECKSTYLE_JAR}" \
+            --java "${JAVA_HOME}/bin/java" \
+            --mode advisory

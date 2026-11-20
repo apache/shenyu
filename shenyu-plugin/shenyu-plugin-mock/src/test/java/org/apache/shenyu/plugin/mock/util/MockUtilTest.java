@@ -18,13 +18,40 @@
 package org.apache.shenyu.plugin.mock.util;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link MockUtil}.
  */
 public final class MockUtilTest {
+
+    @ParameterizedTest
+    @CsvSource({
+        "0, 2147483647",
+        "-2147483648, 2147483647",
+        "-2147483648, 0",
+        "-2147483648, -1",
+        "2147483647, 2147483647",
+        "-2147483648, -2147483648",
+        "0, 0",
+        "10, 15"
+    })
+    public void randomIntShouldSupportInclusiveIntegerBounds(final int min, final int max) {
+        for (int i = 0; i < 100; i++) {
+            int value = MockUtil.randomInt(min, max);
+            assertTrue(value >= min && value <= max, "Generated value must remain within the inclusive bounds");
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1, 0", "2147483647, -2147483648"})
+    public void randomIntShouldRejectReversedBounds(final int min, final int max) {
+        assertThrows(IllegalArgumentException.class, () -> MockUtil.randomInt(min, max));
+    }
 
     @Test
     public void zhShouldReturnLengthsWithinTheInclusiveRange() {

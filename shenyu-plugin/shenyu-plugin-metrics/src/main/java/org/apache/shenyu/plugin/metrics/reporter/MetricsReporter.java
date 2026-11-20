@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.plugin.metrics.reporter;
 
-import org.apache.shenyu.plugin.metrics.config.Metric;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.plugin.metrics.config.Metric;
 import org.apache.shenyu.plugin.metrics.constant.CanaryMetric;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
 import org.apache.shenyu.plugin.metrics.spi.MetricsRegister;
@@ -66,13 +66,6 @@ public final class MetricsReporter {
         MetricsReporter.registerCounter(LabelNames.RESILIENCE4J_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu resilience4j circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.HYSTRIX_REQUEST_CIRCUITBREAKER_TOTAL, "shenyu hystrix circuitbreaker request total count");
         MetricsReporter.registerCounter(LabelNames.RATELIMITER_REQUEST_RESTRICT_TOTAL, "shenyu ratelimiter request restrict total count");
-        for (CanaryMetric metric : CanaryMetric.values()) {
-            if (Objects.isNull(metric.getBuckets())) {
-                registerCounter(metric.getName(), metric.getLabelNames(), metric.getDescription());
-            } else {
-                registerHistogram(metric.getName(), metric.getLabelNames(), metric.getDescription(), metric.getBuckets());
-            }
-        }
         MetricsReporter.registerCounter(LabelNames.AGENT_REQUESTS_TOTAL, new String[]{"traffic", "outcome", "reason"}, "Terminal Agent request subscriptions including pre-dispatch rejection");
         MetricsReporter.registerHistogram(LabelNames.AGENT_REQUEST_LATENCY, new String[]{"traffic", "outcome"}, "Agent request terminal latency millis");
         MetricsReporter.registerGauge(LabelNames.AGENT_REQUESTS_INFLIGHT, new String[]{"traffic"}, "Active Agent logical request subscriptions, not sessions");
@@ -84,6 +77,13 @@ public final class MetricsReporter {
         registerCounter(PluginLifecycleMetricsSink.EVENTS, new String[]{"plugin", "boundary", "outcome"}, "Sampled plugin boundaries; drops are separate observer diagnostics");
         registerHistogram(PluginLifecycleMetricsSink.INCLUSIVE, new String[]{"plugin", "outcome"}, "Sampled inclusive plugin publisher lifetime milliseconds");
         registerCounter(PluginLifecycleMetricsSink.MATCHES, new String[]{"plugin", "decision", "selectorCache", "ruleCache"}, "Actual sampled matching decisions; no identifiers as labels");
+        for (CanaryMetric metric : CanaryMetric.values()) {
+            if (Objects.isNull(metric.getBuckets())) {
+                registerCounter(metric.getName(), metric.getLabelNames(), metric.getDescription());
+            } else {
+                registerHistogram(metric.getName(), metric.getLabelNames(), metric.getDescription(), metric.getBuckets());
+            }
+        }
     }
 
     /**

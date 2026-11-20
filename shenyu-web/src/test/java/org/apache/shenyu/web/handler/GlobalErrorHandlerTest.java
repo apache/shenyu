@@ -20,6 +20,7 @@ package org.apache.shenyu.web.handler;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.alert.AlarmService;
 import org.junit.jupiter.api.AfterAll;
@@ -39,6 +40,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -89,6 +91,19 @@ public final class GlobalErrorHandlerTest {
         });
 
         globalErrorHandler = new GlobalErrorHandler();
+    }
+
+    @Test
+    public void testCommittedRouteTimeoutPropagatesToTransport() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getAttributes().put(HttpRouteDeadline.REQUEST, new HttpRouteDeadline(100));
+        exchange.getResponse().getHeaders().add("Content-Encoding", "gzip");
+        ResponseStatusException failure = HttpRouteDeadline.gatewayTimeout(null);
+        globalErrorHandler.handle(exchange, failure).block();
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, exchange.getResponse().getStatusCode());
+        assertTrue(exchange.getResponse().getHeaders().getOrEmpty("Content-Encoding").isEmpty());
+        assertTrue(exchange.getResponse().isCommitted());
+        StepVerifier.create(globalErrorHandler.handle(exchange, failure)).expectErrorMatches(error -> error == failure).verify();
     }
 
     @Test
