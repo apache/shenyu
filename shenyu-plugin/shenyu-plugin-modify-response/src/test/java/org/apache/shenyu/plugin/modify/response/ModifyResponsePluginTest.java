@@ -33,6 +33,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -51,11 +53,13 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -302,6 +306,41 @@ public final class ModifyResponsePluginTest {
         assertEquals(contentType, response.getHeaders().getContentType());
         assertEquals("{\"value\":true}".getBytes(StandardCharsets.UTF_8).length, response.getHeaders().getContentLength());
         StepVerifier.create(response.getBodyAsString()).expectNext("{\"value\":true}").verifyComplete();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "application/json;charset=ISO-8859-1, application/json;charset=ISO-8859-1",
+        "application/json;charset=UTF-16LE, application/json;charset=UTF-16LE",
+        "text/plain;charset=ISO-8859-1, text/plain;charset=ISO-8859-1",
+        "text/plain;charset=UTF-16LE, text/plain;charset=UTF-16LE",
+        "application/json;charset=ISO-8859-1, application/json;charset=UTF-8",
+        "application/json;charset=UTF-8, text/plain;charset=UTF-16LE",
+        "application/json, application/json",
+        "text/plain, text/plain"
+    })
+    public void testWriteWithUsesOriginalAndConfiguredCharsets(final String originalContentType, final String configuredContentType) {
+        mockShenyuResult();
+        final ModifyResponseRuleHandle responseRuleHandle = new ModifyResponseRuleHandle();
+        responseRuleHandle.setRemoveBodyKeys(Collections.singleton("$.remove"));
+        if (!originalContentType.equals(configuredContentType)) {
+            responseRuleHandle.setSetHeaders(Collections.singletonMap(HttpHeaders.CONTENT_TYPE, configuredContentType));
+        }
+        final MediaType inputType = MediaType.parseMediaType(originalContentType);
+        final MediaType outputType = MediaType.parseMediaType(configuredContentType);
+        final Charset inputCharset = Objects.requireNonNullElse(inputType.getCharset(), StandardCharsets.UTF_8);
+        final Charset outputCharset = Objects.requireNonNullElse(outputType.getCharset(), StandardCharsets.UTF_8);
+        final MockServerHttpResponse response = (MockServerHttpResponse) exchange.getResponse();
+        final ModifyResponsePlugin.ModifyResponseDecorator decorator =
+                new ModifyResponsePlugin.ModifyResponseDecorator(exchange, responseRuleHandle);
+        response.getHeaders().setContentType(inputType);
+        final DataBuffer body = response.bufferFactory().wrap("{\"value\":\"café\",\"remove\":true}".getBytes(inputCharset));
+
+        StepVerifier.create(decorator.writeWith(Mono.just(body))).verifyComplete();
+
+        assertEquals(outputType, response.getHeaders().getContentType());
+        StepVerifier.create(response.getBodyAsString()).expectNext("{\"value\":\"café\"}").verifyComplete();
+        assertEquals("{\"value\":\"café\"}".getBytes(outputCharset).length, response.getHeaders().getContentLength());
     }
 
     @Test
