@@ -112,6 +112,10 @@ shenyu_agent_governance_decisions_total{consumer,mode,result,reason}
 Tenant, subject, tool name, endpoint, request id, and trace id are not metric
 labels. Non-allow decisions can also be emitted as metadata-only audit events
 through the application-provided audit observer.
+These are schema-version-3 `GOVERNANCE` observations, not invocation terminals.
+Their outcomes are `ALLOW`, `WOULD_DENY`, or `DENY`; the HTTP handler still emits
+one logical terminal result, plus an attempt only when the tool actually executes.
+Audit consumers must exclude governance records from call counts and failure ratios.
 Would-deny decisions are also counted in the governor's bounded, generation-owned
 `AgentGovernanceShadowLedger`, available through `shadowSnapshot()`, separately
 from enforce Redis state.

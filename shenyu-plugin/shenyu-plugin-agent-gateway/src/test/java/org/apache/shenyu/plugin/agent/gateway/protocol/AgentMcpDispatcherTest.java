@@ -20,7 +20,12 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
+import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
 import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
+import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
+import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaConfig;
 import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaGovernor;
 import org.apache.shenyu.plugin.agent.gateway.governance.AgentMcpQuotaStore;
@@ -35,7 +40,11 @@ import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.awaitility.Awaitility;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -480,6 +489,65 @@ class AgentMcpDispatcherTest {
                 .expectErrorSatisfies(error -> assertProtocol(error, 429, -32027,
                         "MCP invocation quota exceeded")).verify();
         assertEquals(0, calls.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"success", "error", "cancel", "deny", "fail-open", "backend-deny"})
+    void quotaDecisionIsNotALogicalTerminalInTheHttpAuditSink(final String scenario) {
+        List<AgentInvocationAuditEvent> records = new CopyOnWriteArrayList<>();
+        AtomicInteger calls = new AtomicInteger();
+        boolean rejected = "deny".equals(scenario) || "backend-deny".equals(scenario);
+        boolean backendFailure = "fail-open".equals(scenario) || "backend-deny".equals(scenario);
+        AgentMcpQuotaGovernor governor = new AgentMcpQuotaGovernor(
+                AgentMcpQuotaConfig.of(rejected || backendFailure ? AgentMcpQuotaConfig.Mode.ENFORCE : AgentMcpQuotaConfig.Mode.SHADOW,
+                        2, Duration.ofSeconds(60), 2, Duration.ofSeconds(60), "fail-open".equals(scenario)),
+                backendFailure ? failingStore() : recordingStore(new AgentMcpQuotaStore.Admission(false, true, false, ""), new CopyOnWriteArrayList<>()),
+                AgentRuntimeMetrics.NOOP, "test", records::add);
+        AgentToolProvider tool = provider("order_status", input -> {
+            calls.incrementAndGet();
+            if ("cancel".equals(scenario)) {
+                return Mono.never();
+            }
+            return "success".equals(scenario) ? Mono.just(new JsonObject()) : Mono.error(new IllegalStateException("fixture failure"));
+        });
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of(tool)), "fixture", "1",
+                null, new AgentResourceRegistry(List.of()), AgentMcpResourceAdmission.NOOP, governor);
+        AgentMcpHttpHandler handler = new AgentMcpHttpHandler(dispatcher,
+                ignored -> Mono.just(new AgentMcpIdentity("tenant", "subject", Set.of("order_status"), Set.of())), null,
+                AgentInvocationAuditBridge.mcp(null, records::add));
+        AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString(
+                "{\"allowedTools\":[\"order_status\"],\"responseMode\":\"json\",\"timeoutMs\":5000}").getAsJsonObject(), true);
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/mcp")
+                .contentType(MediaType.APPLICATION_JSON).header("Accept", "application/json, text/event-stream")
+                .header("MCP-Protocol-Version", "2026-07-28").header("Mcp-Method", "tools/call").header("Mcp-Name", "order_status")
+                .body("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"order_status\",\"_meta\":{"
+                        + "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\"io.modelcontextprotocol/clientCapabilities\":{}}}}"));
+        Mono<Void> handling = handler.handle(exchange, config, new AgentTrafficContext("request", "mcp", "selector", "rule"), 1);
+        if ("cancel".equals(scenario)) {
+            reactor.core.Disposable subscription = handling.subscribe();
+            Awaitility.await().atMost(Duration.ofSeconds(5)).until(() -> calls.get() == 1);
+            subscription.dispose();
+        } else {
+            handling.block(Duration.ofSeconds(5));
+        }
+        Awaitility.await().atMost(Duration.ofSeconds(5)).until(() -> records.size() == (rejected ? 2 : 3));
+        List<AgentInvocationAuditEvent> terminal = records.stream()
+                .filter(event -> event.getRecordType() == AgentInvocationAuditEvent.RecordType.LOGICAL).toList();
+        assertEquals(1, terminal.size(), records.toString());
+        assertEquals("GOVERNANCE", records.get(0).getRecordType().name());
+        assertEquals(3, records.get(0).getSchemaVersion());
+        assertEquals(rejected ? "DENY" : backendFailure ? "ALLOW" : "WOULD_DENY", records.get(0).getOutcome());
+        assertTrue(records.get(0).getHttpStatus().isEmpty());
+        assertTrue(records.stream().allMatch(event -> "request".equals(event.getRequestId())));
+        assertEquals(rejected ? 0 : 1, calls.get());
+        assertEquals(rejected ? 0 : 1, records.stream().filter(event -> event.getRecordType() == AgentInvocationAuditEvent.RecordType.ATTEMPT).count());
+        assertEquals(1, terminal.get(0).getSchemaVersion());
+        assertEquals("success".equals(scenario) ? "SUCCESS" : "cancel".equals(scenario) ? "CANCELLED"
+                : "deny".equals(scenario) ? "REJECTED" : "SERVER_ERROR", terminal.get(0).getOutcome());
+        if (!"cancel".equals(scenario)) {
+            assertEquals("success".equals(scenario) ? 200 : "deny".equals(scenario) ? 429
+                    : "backend-deny".equals(scenario) ? 503 : 500, terminal.get(0).getHttpStatus().orElseThrow());
+        }
     }
 
     @Test
