@@ -111,21 +111,40 @@ class RemoteCatalogLifecycleTest {
     }
 
     @Test
-    void failedCleanupQuarantineUsesUnavailableContractWithoutClosingTheManager() {
+    void failedCleanupIsReportedWithoutClosingTheManagerOrBlockingReplacement() {
         RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
         Fake client = new Fake("quarantined");
         client.failClose = true;
         manager.refresh(List.of(config(client))).block(WAIT);
         manager.withdraw();
-        assertThrows(CatalogUnavailableException.class, () -> manager.refresh(List.of()).block(WAIT));
         var state = manager.diagnosticsState();
         assertFalse(state.closed());
-        assertFalse(state.cleanupFailures().isEmpty());
+        assertTrue(state.cleanupFailures().isEmpty());
         assertThrows(UnsupportedOperationException.class, () -> state.cleanupFailures().clear());
-        assertThrows(CatalogUnavailableException.class, () -> manager.refresh(List.of(config(new Fake("next")))).block(WAIT));
-        assertThrows(CatalogUnavailableException.class, () -> manager.withSnapshot(directory -> Mono.just(true)).block(WAIT));
-        assertEquals(1, client.closes.get());
+        assertEquals(2L, manager.refresh(List.of(config(new Fake("next")))).block(WAIT));
+        assertTrue(manager.withSnapshot(directory -> Mono.just(true)).block(WAIT));
+        assertEquals(2, client.closes.get());
+        assertTrue(!manager.diagnosticsState().cleanupFailures().isEmpty());
+        assertEquals(2, manager.diagnosticsState().clients());
         assertThrows(RuntimeException.class, () -> manager.closeGracefully().block(WAIT));
+    }
+
+    @Test
+    void transientCleanupFailureDoesNotPoisonUnrelatedTargetsForever() {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
+        Fake failing = new Fake("failing");
+        failing.failClose = true;
+        manager.refresh(List.of(config(failing))).block(WAIT);
+        manager.withdraw();
+        assertThrows(CatalogUnavailableException.class, () -> manager.withSnapshot(directory -> Mono.just(true)).block(WAIT));
+
+        // The failed close remains isolated; it must not prevent a new generation from being
+        // built after the quarantined endpoint is no longer owned by the lifecycle.
+        Fake replacement = new Fake("replacement");
+        manager.refresh(List.of(config(replacement))).block(WAIT);
+        assertEquals("replacement", manager.callRaw("orders.lookup", TOOLS, TOOLS, Map.of()).block(WAIT).path("version").textValue());
+        assertThrows(RuntimeException.class, () -> manager.closeGracefully().block(WAIT));
+        assertEquals(1, replacement.closes.get());
     }
 
     @Test
@@ -259,16 +278,19 @@ class RemoteCatalogLifecycleTest {
     }
 
     @Test
-    void failedCloseRemainsQuarantinedAndPreventsNewAllocation() {
+    void failedCloseRemainsObservableAndSuccessfulRetryAllowsCleanShutdown() {
         Fake client = new Fake("bad");
         client.failClose = true;
         RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
         manager.refresh(List.of(config(client))).block(WAIT);
         manager.withdraw();
         assertThrows(RuntimeException.class, () -> manager.closeGracefully().block(WAIT));
+        assertEquals(3, client.closes.get());
         assertEquals(1, manager.diagnosticsState().clients());
-        assertThrows(RuntimeException.class, () -> manager.refresh(List.of(config(new Fake("next")))).block(WAIT));
-        assertEquals(1, client.closes.get());
+        assertTrue(!manager.diagnosticsState().cleanupFailures().isEmpty());
+        client.failClose = false;
+        manager.closeGracefully().block(WAIT);
+        assertEquals(0, manager.diagnosticsState().clients());
     }
 
     @Test
@@ -297,6 +319,21 @@ class RemoteCatalogLifecycleTest {
         assertEquals(0L, manager.diagnosticsState().currentVersion());
         manager.closeGracefully().block(WAIT);
         assertEquals(1, client.closes.get());
+    }
+
+    @Test
+    void withdrawalFencesRecoveryEvenWhileAnExistingOperationHoldsItsLease() {
+        Fake client = new Fake("leased");
+        client.result = Sinks.one();
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
+        manager.refresh(List.of(config(client))).block(WAIT);
+        final var call = manager.callRaw("orders.lookup", TOOLS, TOOLS, Map.of()).toFuture();
+        assertTrue(client.recoveryAllowed.getAsBoolean());
+        manager.withdraw();
+        assertFalse(client.recoveryAllowed.getAsBoolean());
+        assertEquals(1, manager.diagnosticsState().references());
+        call.cancel(true);
+        manager.closeGracefully().block(WAIT);
     }
 
     @Test
@@ -361,8 +398,15 @@ class RemoteCatalogLifecycleTest {
 
         private boolean repeatCursor;
 
+        private java.util.function.BooleanSupplier recoveryAllowed;
+
         private Fake(final String version) {
             this.version = version;
+        }
+
+        @Override
+        public void recoveryGuard(final java.util.function.BooleanSupplier valid) {
+            recoveryAllowed = valid;
         }
 
         private McpSchema.InitializeResult info() {
