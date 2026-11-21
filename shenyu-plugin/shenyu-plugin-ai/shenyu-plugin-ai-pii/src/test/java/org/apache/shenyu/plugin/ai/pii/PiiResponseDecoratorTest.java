@@ -307,14 +307,18 @@ public final class PiiResponseDecoratorTest {
     }
 
     @Test
-    public void testStrictToolCallOnlyResponseRemainsUnchanged() {
+    public void testToolCallArgumentsAreRedactedInResponse() {
         PiiDetectionHandle handle = new PiiDetectionHandle();
         handle.setFailClosed(true);
         MockServerWebExchange exchange = exchange(MediaType.APPLICATION_JSON);
         String body = "{\"choices\":[{\"message\":{\"content\":null,\"tool_calls\":[{\"type\":\"function\","
                 + "\"function\":{\"name\":\"lookup\",\"arguments\":\"{\\\"phone\\\":\\\"13800138000\\\"}\"}}]}}]}";
+        // the identifier embedded in the tool call arguments is now scanned and redacted,
+        // the surrounding structure and the function name are preserved
+        String expected = "{\"choices\":[{\"message\":{\"content\":null,\"tool_calls\":[{\"type\":\"function\","
+                + "\"function\":{\"name\":\"lookup\",\"arguments\":\"{\\\"phone\\\":\\\"<PHONE_CN>\\\"}\"}}]}}]}";
         write(PiiDetectionRule.compile("rule-1", handle), exchange, body);
-        assertEquals(body, exchange.getResponse().getBodyAsString().block());
+        assertEquals(expected, exchange.getResponse().getBodyAsString().block());
     }
 
     private void write(final PiiDetectionRule rule, final MockServerWebExchange exchange, final String body) {
