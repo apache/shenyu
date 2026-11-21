@@ -52,8 +52,6 @@ import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -215,24 +213,37 @@ public final class InstanceInfoUpsertTest {
         jdbc.execute("CREATE TABLE shenyu_dict (id VARCHAR(128) PRIMARY KEY, type VARCHAR(100), dict_code VARCHAR(100),"
                 + " dict_name VARCHAR(100), dict_value VARCHAR(2048), `desc` VARCHAR(255), sort INT, enabled INT,"
                 + " date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, date_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        // Required by the complete upgrade script.
+        jdbc.execute("CREATE TABLE resource (id VARCHAR(128) PRIMARY KEY)");
+        jdbc.execute("CREATE TABLE permission (id VARCHAR(128) PRIMARY KEY, resource_id VARCHAR(128))");
+
         insertLegacy("old-heartbeat", "ns", 100, "2026-01-03 00:00:00");
         insertLegacy("latest-heartbeat", "ns", 200, "2026-01-01 00:00:00");
         insertLegacy("tie-a", "ns-tie", 0, "2026-01-01 00:00:00");
         insertLegacy("tie-z", "ns-tie", 0, "2026-01-01 00:00:00");
         insertLegacy("other", "ns-other", 100, "2026-01-01 00:00:00");
+
         Path root = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (Objects.nonNull(root) && !Files.isDirectory(root.resolve("db/upgrade"))) {
             root = root.getParent();
         }
         assertNotNull(root);
+
         new ResourceDatabasePopulator(new FileSystemResource(root.resolve("db/upgrade/2.7.2-upgrade-2.7.3-h2.sql")))
                 .execute(Objects.requireNonNull(jdbc.getDataSource()));
-        assertEquals(Set.of("latest-heartbeat", "tie-z", "other"), mapper.selectAll().stream().map(InstanceInfoDO::getId).collect(Collectors.toSet()));
+
+        assertEquals(3, mapper.selectAll().size());
+        assertNotNull(mapper.selectById("latest-heartbeat"));
+        assertNotNull(mapper.selectById("tie-z"));
+        assertNotNull(mapper.selectById("other"));
+
         InstanceInfoDO retained = mapper.selectById("latest-heartbeat");
         assertEquals(200, retained.getLastHeartBeatTime());
         assertEquals("info-200", retained.getInstanceInfo());
         assertEquals(Timestamp.valueOf("2026-01-01 00:00:00"), retained.getDateUpdated());
-        assertThrows(DuplicateKeyException.class, () -> insertLegacy("conflict", "ns", 300, "2026-01-04 00:00:00"));
+
+        assertThrows(DuplicateKeyException.class,
+                () -> insertLegacy("conflict", "ns", 300, "2026-01-04 00:00:00"));
     }
 
     private void insertLegacy(final String id, final String namespace, final long heartbeat, final String updated) {

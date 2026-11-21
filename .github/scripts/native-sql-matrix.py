@@ -25,6 +25,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 BASELINE = "218c5634ebffb1f0ce7e8ea921b85cd5a633cde7"  # v2.7.1, peeled commit
+
+OBSOLETE_API_DOC_RESOURCE_IDS = (
+    "1534577121923309568",
+    "1534585430311051264",
+    "1534585531108564992",
+)
 # Upgrade scripts applied in order on top of the BASELINE schema, newest last.
 # Adding a released migration here keeps every ALTER/DROP gated on real engines.
 MIGRATIONS_FROM_BASELINE = ("2.7.1-upgrade-2.7.2", "2.7.2-upgrade-2.7.3")
@@ -202,6 +208,21 @@ class Engine:
 
     def table(self, name):
         return '"resource"' if self.dialect == "oracle" and name == "resource" else name
+
+    def check_fresh_api_doc_resources(self):
+        """Ensure obsolete API documentation resources are absent from fresh schemas."""
+        resource_ids = ", ".join(
+            f"'{resource_id}'" for resource_id in OBSOLETE_API_DOC_RESOURCE_IDS
+        )
+        remaining = set(self.sql(
+            f"SELECT id FROM {self.table('resource')} WHERE id IN ({resource_ids});"
+        ).split())
+
+        if remaining:
+            raise AssertionError(
+                "Fresh schema contains obsolete API documentation resources: "
+                + ", ".join(sorted(remaining))
+            )
 
     def insert_sentinel(self):
         binary = {"mysql": f"UNHEX('{JAR_HEX}')", "ob": f"UNHEX('{JAR_HEX}')",
@@ -552,9 +573,39 @@ def execute_matrix(dialect, root, output):
             engine.insert_sentinel()
             original_listing = engine.sql("SELECT " + ",".join(listing) + f" FROM plugin WHERE id='{SENTINEL}';")
             before = {table: set(engine.sql("SELECT id FROM " + engine.table(table) + ";").split()) for table in TABLES}
+            expected_deleted = {table: set() for table in TABLES}
+
             if flow == "upgrade":
+                obsolete_resource_ids = set(OBSOLETE_API_DOC_RESOURCE_IDS)
+                resource_ids_sql = ", ".join(
+                    f"'{resource_id}'" for resource_id in OBSOLETE_API_DOC_RESOURCE_IDS
+                )
+
+                expected_deleted["resource"] = obsolete_resource_ids
+
+                if not obsolete_resource_ids.issubset(before["resource"]):
+                    raise AssertionError(
+                        "Upgrade baseline is missing obsolete API documentation resources: "
+                        f"{sorted(obsolete_resource_ids - before['resource'])}"
+                    )
+
+                permission_resource_ids = set(engine.sql(
+                    f"SELECT resource_id FROM permission WHERE resource_id IN ({resource_ids_sql});"
+                ).split())
+
+                if permission_resource_ids != obsolete_resource_ids:
+                    raise AssertionError(
+                        "Upgrade baseline does not contain permissions for all obsolete resources: "
+                        f"{sorted(obsolete_resource_ids - permission_resource_ids)}"
+                    )
+
+                expected_deleted["permission"] = set(engine.sql(
+                    f"SELECT id FROM permission WHERE resource_id IN ({resource_ids_sql});"
+                ).split())
+
                 engine.insert_data_permissions(duplicates=True)
                 engine.insert_legacy_mock_header()
+
                 for step in MIGRATIONS_FROM_BASELINE:
                     if step == "2.7.2-upgrade-2.7.3":
                         engine.insert_instance_observations(duplicates=True)
@@ -569,8 +620,13 @@ def execute_matrix(dialect, root, output):
                 raise AssertionError("Plugin list metadata changed during migration")
             for table, identifiers in before.items():
                 after = set(engine.sql("SELECT id FROM " + engine.table(table) + ";").split())
-                if not identifiers.issubset(after):
-                    raise AssertionError(f"Migration removed rows from {table}: {sorted(identifiers - after)}")
+                removed = identifiers - after
+                allowed = expected_deleted[table]
+                if removed != allowed:
+                    raise AssertionError(
+                        f"Unexpected rows removed from {table}: {sorted(removed - allowed)}; "
+                        f"expected deletions: {sorted(allowed)}"
+                    )
             indexes = engine.indexes()
             engine.check_data_permission_uniqueness(indexes)
             engine.check_instance_identity(indexes, root / "shenyu-admin/src/main/resources/mappers/instance-info-sqlmap.xml")

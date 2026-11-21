@@ -26,6 +26,20 @@ Fresh installations create the table and the wide column directly; an existing
 persistent H2 database requires `2.7.2-upgrade-2.7.3-h2.sql`. No gateway change
 is required.
 
+### Obsolete API documentation menu resources in 2.7.3
+
+The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts remove the obsolete built-in API
+documentation menu resources (`/document`, `/document/apidoc`, and the associated
+`send` permission resource), together with their associated permission records.
+The migration deletes only these known built-in resource IDs. It does not
+recursively delete custom resources whose parent_id references one of the
+removed resources. If your deployment has created custom resources under this
+menu hierarchy, inspect them before upgrading. After the migration, manually
+reassign those resources to a valid parent or remove them if they are no longer
+needed.
+
+Back up the `resource` and `permission` tables before applying the migration. Fresh installations do not include the obsolete built-in menu resources.
+
 ### API-debug request headers in 2.7.3
 
 Stop Admin writers and back up `mock_request_record` before applying the

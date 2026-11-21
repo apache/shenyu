@@ -104,3 +104,18 @@ INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_va
 VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1);
 INSERT IGNORE INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`)
 VALUES ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1);
+
+-- Remove the obsolete API documentation menu resources.
+DELETE FROM permission
+WHERE resource_id IN (
+                      '1534577121923309568',
+                      '1534585430311051264',
+                      '1534585531108564992'
+    );
+
+DELETE FROM resource
+WHERE id IN (
+             '1534577121923309568',
+             '1534585430311051264',
+             '1534585531108564992'
+    );
