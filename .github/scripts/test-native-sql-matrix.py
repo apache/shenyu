@@ -19,6 +19,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import textwrap
 import subprocess
 import sys
@@ -89,8 +90,11 @@ def mock_upgrade_engine(regression=False):
 def mock_fresh_engine():
     engine = MagicMock()
     engine.table.side_effect = lambda table: table
-    engine.sql.return_value = "unchanged-list-metadata"
+    engine.sql.side_effect = lambda query, **kwargs: (
+        "" if "WHERE id IN (" in query else "unchanged-list-metadata"
+    )
     return engine
+
 
 
 
@@ -167,6 +171,24 @@ class NativeSqlMatrixTest(unittest.TestCase):
         self.assertIn(unittest.mock.call(schema, database=False), fresh_engine.sql.call_args_list)
         fresh_engine.check_fresh_mysql_schema.assert_called_once_with(schema, fresh_engine.indexes.return_value)
 
+    def test_fresh_schema_rejects_obsolete_api_doc_resources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            engine = matrix.Engine("mysql", "fresh", Path(directory))
+
+            with patch.object(engine, "sql", return_value="") as sql_mock:
+                engine.check_fresh_api_doc_resources()
+                query = sql_mock.call_args.args[0]
+
+            self.assertIn("1534577121923309568", query)
+            self.assertIn("1534585430311051264", query)
+            self.assertIn("1534585531108564992", query)
+
+            with patch.object(
+                engine, "sql", return_value=OBSOLETE_RESOURCE_IDS[1]
+            ), self.assertRaisesRegex(
+                AssertionError, "Fresh schema contains obsolete API documentation resources"
+            ):
+                engine.check_fresh_api_doc_resources()
     def test_fresh_shared_schema_rejects_missing_table_index_and_constraint(self):
         schema = "CREATE TABLE IF NOT EXISTS plugin (id int); CREATE INDEX idx_plugin ON `plugin` (id);"
         with tempfile.TemporaryDirectory() as directory:
@@ -216,17 +238,47 @@ class NativeSqlMatrixTest(unittest.TestCase):
 
     def test_opengauss_storage_initialization_copies_the_shared_schema(self):
         script = ROOT / "shenyu-e2e/shenyu-e2e-case/k8s/script/storage/storage_init_opengauss.sh"
-        content = script.read_text(encoding="utf-8")
-        shared_schema = matrix.DIALECTS["pg"][1]
 
-        # Validate the actual source path used by the storage initializer. Executing
-        # this shell script through Git Bash is not portable on Windows because
-        # subprocess argument forwarding differs between native Windows and MSYS.
-        copy_commands = re.findall(r"(?m)^\s*cp\s+([^\s]+)\s+([^\s]+)", content)
-        self.assertIn(
-            (shared_schema, "/tmp/shenyu-e2e/opengauss/schema/create-table.sql"),
-            copy_commands,
-        )
+        bash = None
+        git_executable = shutil.which("git")
+
+        if os.name == "nt" and git_executable:
+            git_root = Path(git_executable).resolve().parent.parent
+            git_bash = git_root / "bin" / "bash.exe"
+            if git_bash.is_file():
+                bash = str(git_bash)
+
+        if bash is None:
+            bash = shutil.which("bash")
+
+        self.assertIsNotNone(bash, "Bash is required to execute the storage initialization script")
+
+        if os.name == "nt":
+            command = (
+                'mkdir() { :; }; wget() { :; }; '
+                'cp() { command cp "$1" "$CAPTURE"; }; '
+                'export -f mkdir wget cp; '
+                'bash "$(cygpath -u "$STORAGE_SCRIPT")"'
+            )
+        else:
+            command = (
+                'mkdir() { :; }; wget() { :; }; '
+                'cp() { command cp "$1" "$CAPTURE"; }; '
+                'export -f mkdir wget cp; '
+                'bash "$STORAGE_SCRIPT"'
+            )
+
+        with tempfile.TemporaryDirectory() as directory:
+            capture = Path(directory) / "create-table.sql"
+            result = subprocess.run(
+                [bash, "-c", command],
+                cwd=ROOT,
+                env=dict(os.environ, CAPTURE=str(capture), STORAGE_SCRIPT=str(script)),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(capture.read_bytes(), (ROOT / matrix.DIALECTS["pg"][1]).read_bytes())
 
     def test_shared_postgres_schema_rejects_missing_column_primary_index_and_uniqueness(self):
         schema = ('CREATE TABLE IF NOT EXISTS "public"."discovery_upstream" (\n"id" varchar(128) NOT NULL,\n'

@@ -25,6 +25,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 BASELINE = "218c5634ebffb1f0ce7e8ea921b85cd5a633cde7"  # v2.7.1, peeled commit
+
+OBSOLETE_API_DOC_RESOURCE_IDS = (
+    "1534577121923309568",
+    "1534585430311051264",
+    "1534585531108564992",
+)
 # Upgrade scripts applied in order on top of the BASELINE schema, newest last.
 # Adding a released migration here keeps every ALTER/DROP gated on real engines.
 MIGRATIONS_FROM_BASELINE = ("2.7.1-upgrade-2.7.2", "2.7.2-upgrade-2.7.3")
@@ -202,6 +208,21 @@ class Engine:
 
     def table(self, name):
         return '"resource"' if self.dialect == "oracle" and name == "resource" else name
+
+    def check_fresh_api_doc_resources(self):
+        """Ensure obsolete API documentation resources are absent from fresh schemas."""
+        resource_ids = ", ".join(
+            f"'{resource_id}'" for resource_id in OBSOLETE_API_DOC_RESOURCE_IDS
+        )
+        remaining = set(self.sql(
+            f"SELECT id FROM {self.table('resource')} WHERE id IN ({resource_ids});"
+        ).split())
+
+        if remaining:
+            raise AssertionError(
+                "Fresh schema contains obsolete API documentation resources: "
+                + ", ".join(sorted(remaining))
+            )
 
     def insert_sentinel(self):
         binary = {"mysql": f"UNHEX('{JAR_HEX}')", "ob": f"UNHEX('{JAR_HEX}')",
@@ -555,11 +576,10 @@ def execute_matrix(dialect, root, output):
             expected_deleted = {table: set() for table in TABLES}
 
             if flow == "upgrade":
-                obsolete_resource_ids = {
-                    "1534577121923309568",
-                    "1534585430311051264",
-                    "1534585531108564992",
-                }
+                obsolete_resource_ids = set(OBSOLETE_API_DOC_RESOURCE_IDS)
+                resource_ids_sql = ", ".join(
+                    f"'{resource_id}'" for resource_id in OBSOLETE_API_DOC_RESOURCE_IDS
+                )
 
                 expected_deleted["resource"] = obsolete_resource_ids
 
@@ -570,10 +590,7 @@ def execute_matrix(dialect, root, output):
                     )
 
                 permission_resource_ids = set(engine.sql(
-                    "SELECT resource_id FROM permission WHERE resource_id IN ("
-                    "'1534577121923309568',"
-                    "'1534585430311051264',"
-                    "'1534585531108564992');"
+                    f"SELECT resource_id FROM permission WHERE resource_id IN ({resource_ids_sql});"
                 ).split())
 
                 if permission_resource_ids != obsolete_resource_ids:
@@ -583,14 +600,12 @@ def execute_matrix(dialect, root, output):
                     )
 
                 expected_deleted["permission"] = set(engine.sql(
-                    "SELECT id FROM permission WHERE resource_id IN ("
-                    "'1534577121923309568',"
-                    "'1534585430311051264',"
-                    "'1534585531108564992');"
+                    f"SELECT id FROM permission WHERE resource_id IN ({resource_ids_sql});"
                 ).split())
-            if flow == "upgrade":
+
                 engine.insert_data_permissions(duplicates=True)
                 engine.insert_legacy_mock_header()
+
                 for step in MIGRATIONS_FROM_BASELINE:
                     if step == "2.7.2-upgrade-2.7.3":
                         engine.insert_instance_observations(duplicates=True)
