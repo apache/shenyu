@@ -26,21 +26,6 @@ import io.grpc.Context;
 public interface GrpcConstants {
 
     /**
-     * grpc gray release selector id.
-     */
-    Context.Key<String> GRPC_SELECTOR_ID = Context.key("grpcSelectorId");
-
-    /**
-     * grpc gray release rule id.
-     */
-    Context.Key<String> GRPC_RULE_ID = Context.key("grpcRuleId");
-
-    /**
-     * grpc remote address.
-     */
-    Context.Key<String> GRPC_REMOTE_ADDRESS = Context.key("grpcRemoteAddress");
-
-    /**
      * grpc selector id carried with each call so delayed picks retain request context.
      */
     CallOptions.Key<String> GRPC_SELECTOR_ID_OPTION = CallOptions.Key.create("grpcSelectorId");

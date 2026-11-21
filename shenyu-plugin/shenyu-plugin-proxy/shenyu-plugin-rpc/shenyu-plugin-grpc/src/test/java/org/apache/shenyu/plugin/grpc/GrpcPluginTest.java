@@ -205,7 +205,6 @@ public class GrpcPluginTest {
         response.getResults().add("success");
         when(mockClient.call(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(invocation -> {
-                    assertEquals(expectedRemoteAddress, GrpcConstants.GRPC_REMOTE_ADDRESS.get());
                     assertEquals(expectedMethodType, invocation.getArgument(3));
                     CallOptions callOptions = invocation.getArgument(1);
                     assertNotNull(callOptions);
