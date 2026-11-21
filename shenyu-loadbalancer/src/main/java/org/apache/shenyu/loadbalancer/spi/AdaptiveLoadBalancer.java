@@ -83,6 +83,10 @@ public class AdaptiveLoadBalancer extends AbstractLoadBalancer {
 
     @Override
     public Upstream select(final List<Upstream> upstreamList, final LoadBalanceData data) {
+        // maintenance must cover the singleton fast path too: completed singleton
+        // attempts still record statistics, and removed addresses would otherwise
+        // linger forever while traffic keeps using singleton candidate lists
+        stats.pruneIfNeeded(System.currentTimeMillis());
         Upstream picked = super.select(upstreamList, data);
         // AbstractLoadBalancer short-circuits a singleton candidate list before doSelect
         // runs, so the in-flight reservation made here pairs the completion decrement in
@@ -97,11 +101,10 @@ public class AdaptiveLoadBalancer extends AbstractLoadBalancer {
     @Override
     protected Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         long now = System.currentTimeMillis();
-        stats.pruneIfNeeded(now);
         Upstream[] upstreams = pickTwoUpstreams(upstreamList);
         Upstream picked;
         Upstream unpicked;
-        if (compare(upstreams[0], upstreams[1]) > 0) {
+        if (compare(upstreams[0], upstreams[1], now) > 0) {
             picked = upstreams[1];
             unpicked = upstreams[0];
         } else {
@@ -124,21 +127,24 @@ public class AdaptiveLoadBalancer extends AbstractLoadBalancer {
 
     /**
      * Compare two candidates: adaptive scores when both are warm, the p2c load formula
-     * for a cold pair (the scales must never be mixed inside one comparison).
+     * for a cold pair (the scales must never be mixed inside one comparison). Both
+     * weights are sampled at the single selection instant, so a millisecond tick
+     * mid-comparison cannot score the pair on two different warm-up scales.
      *
      * @param first the first candidate
      * @param second the second candidate
+     * @param nowMillis the selection time
      * @return negative/zero/positive following the first candidate's advantage
      */
-    private long compare(final Upstream first, final Upstream second) {
+    private long compare(final Upstream first, final Upstream second, final long nowMillis) {
         if (stats.bothAdaptive(first.identity(), second.identity())) {
-            return Long.compare(score(first), score(second));
+            return Long.compare(score(first, nowMillis), score(second, nowMillis));
         }
         return Long.compare(coldStartComparison.load(first), coldStartComparison.load(second));
     }
 
-    private long score(final Upstream upstream) {
-        OptionalLong adaptive = stats.score(upstream.identity(), upstream.getInflight().get(), getWeight(upstream));
+    private long score(final Upstream upstream, final long nowMillis) {
+        OptionalLong adaptive = stats.score(upstream.identity(), upstream.getInflight().get(), getWeight(upstream, nowMillis));
         // bothAdaptive already guaranteed warm statistics; the fallback keeps the
         // comparison total if a concurrent prune removed the entry between the checks
         return adaptive.orElseGet(() -> coldStartComparison.load(upstream));
