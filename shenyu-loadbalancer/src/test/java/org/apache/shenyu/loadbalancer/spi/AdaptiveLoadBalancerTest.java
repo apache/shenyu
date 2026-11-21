@@ -266,55 +266,100 @@ class AdaptiveLoadBalancerTest {
 
     @Test
     void sustainedSlowerSamplesConvergeDespiteShortFeedbackIntervals() {
-        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
         UpstreamIdentity identity = upstream("latency:8080", 50).identity();
-        stats.record(identity, 1L, AdaptiveOutcome.SUCCESS, 0L);
+        AdaptiveUpstreamStats stats = statsSeededWith(identity, 1L, AdaptiveOutcome.SUCCESS);
         for (int time = 1; time <= 10_000; time++) {
             stats.record(identity, 100L, AdaptiveOutcome.SUCCESS, time);
         }
 
-        long smoothed = stats.statsOf(identity).ewmaLatencyMillis();
+        AdaptiveUpstreamStats.Stats record = stats.statsOf(identity);
+        assertTrue(Double.isFinite(record.ewmaLatency()) && record.ewmaLatency() >= 0.0,
+                "the estimate must stay finite and non-negative under sustained feedback");
+        long smoothed = record.ewmaLatencyMillis();
         assertTrue(smoothed >= 99L && smoothed <= 100L,
                 "10,000 sustained 100 ms samples spaced 1 ms apart must converge toward 100 ms, got " + smoothed);
     }
 
     @Test
     void sameTimestampObservationsStillMoveTheEstimate() {
-        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
         UpstreamIdentity identity = upstream("node:8080", 50).identity();
-        stats.record(identity, 1L, AdaptiveOutcome.SUCCESS, 0L);
+        AdaptiveUpstreamStats stats = statsSeededWith(identity, 1L, AdaptiveOutcome.SUCCESS);
         for (int i = 0; i < 2_000; i++) {
             stats.record(identity, 100L, AdaptiveOutcome.SUCCESS, 0L);
         }
 
-        assertTrue(stats.statsOf(identity).ewmaLatencyMillis() > 1L,
-                "same-timestamp completions must blend with the minimum decay interval, not be discarded");
+        // each same-timestamp completion blends with the 1 ms minimum interval, so
+        // 2,000 of them advance the estimate by 100 - 99 * exp(-2000/600) ~= 96.5 ms;
+        // a token per-sample weight (e.g. 1e-6) would leave it near 1 ms and fail
+        long smoothed = stats.statsOf(identity).ewmaLatencyMillis();
+        assertTrue(smoothed >= 95L && smoothed <= 97L,
+                "2,000 same-timestamp completions must reach the minimum-interval blend (~96 ms), got " + smoothed);
     }
 
     @Test
     void decreasingLatencyPullsTheEstimateDownAtShortIntervals() {
-        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
         UpstreamIdentity identity = upstream("node:8080", 50).identity();
-        stats.record(identity, 100L, AdaptiveOutcome.SUCCESS, 0L);
-        for (int time = 1; time <= 10_000; time++) {
+        AdaptiveUpstreamStats stats = statsSeededWith(identity, 100L, AdaptiveOutcome.SUCCESS);
+        for (int time = 1; time <= 10; time++) {
             stats.record(identity, 1L, AdaptiveOutcome.SUCCESS, time);
         }
 
-        assertTrue(stats.statsOf(identity).ewmaLatencyMillis() <= 2L,
-                "sustained faster samples must pull the smoothing down even at 1 ms feedback intervals");
+        // regression: truncating every update biases the estimate low, so a short
+        // burst collapses it by ~1 ms per sample (100 -> 90) instead of following
+        // the 600 ms time constant (100 -> ~98)
+        long afterBurst = stats.statsOf(identity).ewmaLatencyMillis();
+        assertTrue(afterBurst >= 95L && afterBurst <= 100L,
+                "a 10-sample burst must follow the time constant (~98 ms), not collapse by truncation, got " + afterBurst);
+        for (int time = 11; time <= 10_000; time++) {
+            stats.record(identity, 1L, AdaptiveOutcome.SUCCESS, time);
+        }
+        assertEquals(1L, stats.statsOf(identity).ewmaLatencyMillis(),
+                "sustained faster samples must converge to the new latency even at 1 ms feedback intervals");
     }
 
     @Test
     void failurePenaltySurvivesShortIntervalSmoothing() {
-        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
         UpstreamIdentity identity = upstream("node:8080", 50).identity();
-        stats.record(identity, 1L, AdaptiveOutcome.SERVER_ERROR, 0L);
+        AdaptiveUpstreamStats stats = statsSeededWith(identity, 1L, AdaptiveOutcome.SERVER_ERROR);
         for (int time = 1; time <= 20; time++) {
             stats.record(identity, 1L, AdaptiveOutcome.SERVER_ERROR, time);
         }
 
         assertEquals(AdaptiveUpstreamStats.FAILURE_PENALTY_MILLIS, stats.statsOf(identity).ewmaLatencyMillis(),
                 "the synthetic failure floor must hold while every sample is a fast failure");
+    }
+
+    @Test
+    void scoreUsesTheRoundedLatencyEstimate() {
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        AdaptiveUpstreamStats stats = statsSeededWith(identity, 1L, AdaptiveOutcome.SUCCESS);
+        for (int time = 1; time <= 4; time++) {
+            stats.record(identity, 2L, AdaptiveOutcome.SUCCESS, time);
+        }
+
+        AdaptiveUpstreamStats.Stats record = stats.statsOf(identity);
+        assertTrue(record.ewmaLatency() > 1.0 && record.ewmaLatency() < 1.5,
+                "the fixture must leave a sub-millisecond residue above a whole millisecond");
+        assertEquals(1L, record.ewmaLatencyMillis());
+        assertEquals(2L, stats.score(identity, 0L, 1).orElseThrow(),
+                "scoring must ceil the rounded estimate so sub-millisecond residue cannot shift routing");
+        assertEquals(2L, stats.score(identity, 1L, 3).orElseThrow(),
+                "the rounded estimate must also drive the inflight and weight scaling");
+    }
+
+    @Test
+    void backwardClockFeedbackBlendsLikeASameTimestampCompletion() {
+        UpstreamIdentity identity = upstream("node:8080", 50).identity();
+        AdaptiveUpstreamStats sameTimestamp = statsSeededWith(identity, 100L, AdaptiveOutcome.SUCCESS);
+        sameTimestamp.record(identity, 1L, AdaptiveOutcome.SUCCESS, 0L);
+        AdaptiveUpstreamStats backward = statsSeededWith(identity, 100L, AdaptiveOutcome.SUCCESS);
+        backward.record(identity, 1L, AdaptiveOutcome.SUCCESS, -5L);
+
+        assertEquals(sameTimestamp.statsOf(identity).ewmaLatencyMillis(),
+                backward.statsOf(identity).ewmaLatencyMillis(),
+                "a backward clock must blend with the minimum interval, not amplify the new sample");
+        assertEquals(2L, backward.statsOf(identity).samples(),
+                "out-of-order feedback must still count as a latency sample");
     }
 
     @Test
@@ -503,6 +548,13 @@ class AdaptiveLoadBalancerTest {
     void rejectedCandidatesWithoutIdentityFailSoftly() {
         balancer.onFeedback(null, 10L, AdaptiveOutcome.SUCCESS);
         assertNull(balancer.select(List.of(), new LoadBalanceData()));
+    }
+
+    private AdaptiveUpstreamStats statsSeededWith(final UpstreamIdentity identity, final long elapsedMillis,
+                                                  final AdaptiveOutcome outcome) {
+        AdaptiveUpstreamStats stats = new AdaptiveUpstreamStats();
+        stats.record(identity, elapsedMillis, outcome, 0L);
+        return stats;
     }
 
     private void assertAlwaysPicked(final Upstream expected, final List<Upstream> candidates, final int rounds) {

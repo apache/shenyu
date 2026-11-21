@@ -36,9 +36,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * EWMA family as the p2c trigger. The smoothing keeps double precision internally
  * (in milliseconds): truncating every update to whole milliseconds would discard
  * sub-millisecond increments at short feedback intervals and could pin the estimate
- * at its old value forever. Rounding happens only where a long leaves the record,
- * namely {@link Stats#ewmaLatencyMillis()} and the ceiling of {@link #score}. Feedback
- * classification follows
+ * at its old value forever. Rounding happens only where a long leaves the record:
+ * {@link Stats#ewmaLatencyMillis()} is the single rounded exit, and {@link #score}
+ * scores that rounded value so routing stays identical to whole-millisecond
+ * estimates. Feedback classification follows
  * {@link AdaptiveOutcome}: a 4xx is neutral (the observation says nothing about the
  * upstream), while a 5xx or a transport failure enters the smoothing as a synthetic
  * latency sample of at least {@link #FAILURE_PENALTY_MILLIS} — this is what keeps a
@@ -77,13 +78,6 @@ public class AdaptiveUpstreamStats {
     public static final long EWMA_WINDOW_MILLIS = 600L;
 
     /**
-     * Minimum decay interval in millis applied to same-timestamp observations: a
-     * zero gap would give the new sample zero weight and discard it permanently,
-     * so concurrent completions are blended with at least this much evidence.
-     */
-    public static final long MIN_DECAY_INTERVAL_MILLIS = 1L;
-
-    /**
      * Synthetic latency floor for a failed attempt: a 5xx or transport failure costs
      * the caller at least a retry, so it is smoothed in with this latency even when
      * the upstream answered (or died) within a millisecond.
@@ -118,6 +112,17 @@ public class AdaptiveUpstreamStats {
      * oldest-activity-first so retained state stays bounded under discovery churn.
      */
     public static final int MAX_TRACKED_IDENTITIES = 4096;
+
+    /**
+     * Minimum decay interval in millis applied to observations whose gap is zero or
+     * negative (same-timestamp completions, out-of-order feedback or a clock
+     * regression): a zero gap would give the new sample zero weight and discard it
+     * permanently, so such completions are blended with at least this much evidence.
+     * Decay is applied per sample, so N completions sharing one timestamp advance the
+     * estimate by N minimum intervals; the smoothing is intentionally rate-dependent
+     * in that regime.
+     */
+    static final long MIN_DECAY_INTERVAL_MILLIS = 1L;
 
     private final Map<UpstreamIdentity, Stats> stats = new ConcurrentHashMap<>();
 
@@ -166,7 +171,7 @@ public class AdaptiveUpstreamStats {
         if (Objects.isNull(current) || current.samples() < MIN_SAMPLES) {
             return OptionalLong.empty();
         }
-        double score = (current.ewmaLatency() + 1) * (inflight + 1)
+        double score = (current.ewmaLatencyMillis() + 1) * (inflight + 1)
                 / (double) Math.max(effectiveWeight, 1);
         return OptionalLong.of((long) Math.ceil(score));
     }
@@ -328,7 +333,8 @@ public class AdaptiveUpstreamStats {
 
         /**
          * The smoothed latency rounded to whole millis; the internal double keeps
-         * the unrounded estimate for the next update and for scoring.
+         * the unrounded estimate for the next update, while scoring uses this
+         * rounded value so sub-millisecond residue cannot shift routing.
          *
          * @return the smoothed latency in millis, rounded to the nearest long
          */
@@ -348,7 +354,10 @@ public class AdaptiveUpstreamStats {
         }
 
         private double smooth(final long latency, final long sinceLastMillis) {
-            long interval = Math.max(sinceLastMillis, MIN_DECAY_INTERVAL_MILLIS);
+            // a zero or negative gap (same-timestamp completion, out-of-order feedback
+            // or clock regression) carries no elapsed-time evidence: blend with the
+            // minimum interval instead of discarding the sample or amplifying it
+            long interval = sinceLastMillis <= 0L ? MIN_DECAY_INTERVAL_MILLIS : sinceLastMillis;
             double w = Math.exp((double) -interval / (double) EWMA_WINDOW_MILLIS);
             return ewmaLatency * w + (double) latency * (1.0 - w);
         }
