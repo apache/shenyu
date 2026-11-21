@@ -82,13 +82,13 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
         if (CollectionUtils.isEmpty(existList)) {
             canAddList = addList;
         } else {
-            List<WebSocketUpstream> diffList = addList.stream().filter(upstream -> !existList.contains(upstream)).collect(Collectors.toList());
+            List<WebSocketUpstream> diffList = addList.stream().filter(upstream -> existList.stream().noneMatch(existing -> sameUpstreamIdentity(existing, upstream))).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffList)) {
                 canAddList.addAll(diffList);
                 existList.addAll(diffList);
             }
             List<WebSocketUpstream> diffStatusList = addList.stream().filter(upstream -> !upstream.isStatus()
-                    || existList.stream().anyMatch(e -> e.equals(upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
+                    || existList.stream().anyMatch(e -> sameUpstreamIdentity(e, upstream) && e.isStatus() != upstream.isStatus())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(diffStatusList)) {
                 canAddList.addAll(diffStatusList);
                 syncUpstreamStatus(existList, diffStatusList);
@@ -106,12 +106,17 @@ public class ShenyuClientRegisterWebSocketServiceImpl extends AbstractContextPat
 
     @Override
     public String offline(final String selectorName, final List<URIRegisterDTO> offlineList, final String namespaceId) {
+        return executeRegistrationTransaction(() -> offlineInTransaction(selectorName, offlineList, namespaceId));
+    }
+
+    private String offlineInTransaction(final String selectorName, final List<URIRegisterDTO> offlineList, final String namespaceId) {
         String pluginName = PluginNameAdapter.rpcTypeAdapter(rpcType());
         SelectorService selectorService = getSelectorService();
-        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceId(selectorName, pluginName, namespaceId);
+        SelectorDO selectorDO = selectorService.findByNameAndPluginNameAndNamespaceIdForUpdate(selectorName, pluginName, namespaceId);
         if (Objects.isNull(selectorDO)) {
             return Constants.SUCCESS;
         }
+        assertLegacyUriWrite(selectorDO.getId(), offlineList);
         List<URIRegisterDTO> validOfflineUrl = offlineList.stream()
                 .filter(dto -> Objects.nonNull(dto.getPort()) && StringUtils.isNotBlank(dto.getHost()))
                 .collect(Collectors.toList());

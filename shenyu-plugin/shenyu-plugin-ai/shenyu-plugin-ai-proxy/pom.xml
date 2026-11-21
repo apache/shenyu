@@ -26,6 +26,12 @@
     <artifactId>shenyu-plugin-ai-proxy</artifactId>
 
     <dependencies>
+        <!-- Optional API only: no SDK, exporter, or tracing plugin dependency. -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- Protocol conversion only; ShenYu retains transport and gateway policy. -->
         <dependency>
             <groupId>io.github.agentic-ai-java</groupId>

@@ -126,7 +126,7 @@ class AppAuthLegacyDeleteMarkTest {
         ghost.setRequestId("req-legacy-del");
         ghost.setState("CREATED");
         requestMapper.reserveIfAbsent(ghost);
-        requestMapper.completeCreated("ghost-ld", "auth-gone");
+        requestMapper.completeCreated("ghost-ld", "auth-gone", "CREATED");
 
         // app_auth already missing: the early-return path must not skip the REVOKED marking
         final int deleted = appAuthService.delete(List.of("auth-gone"));

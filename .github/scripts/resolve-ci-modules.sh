@@ -84,6 +84,9 @@ is_ignored_change() {
   local file="$1"
 
   case "${file}" in
+    .github/workflows/ci.yml|.github/scripts/*|actions/*)
+      return 1
+      ;;
     # The opt-in reactor is packaged and smoke-tested by minimal-http.yml.
     shenyu-bootstrap-http/*|script/performance/minimal-http/*)
       return 0
@@ -109,7 +112,7 @@ while IFS= read -r file; do
   has_code_changes=true
 
   case "${file}" in
-    pom.xml|mvnw|mvnw.cmd|.mvn/*|actions/*)
+    pom.xml|mvnw|mvnw.cmd|.mvn/*|actions/*|.github/workflows/ci.yml|.github/scripts/*)
       full_build_required=true
       ;;
   esac

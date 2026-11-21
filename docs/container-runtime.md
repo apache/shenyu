@@ -11,6 +11,10 @@ distribution hardening), [#5273](https://github.com/apache/shenyu/issues/5273)
 (Kubernetes controller follow-up), [#7649](https://github.com/apache/shenyu/issues/7649)
 (minimal HTTP distribution).
 
+For incident investigation and workload-based JVM option evaluation, see the
+[Bootstrap GC and memory diagnostics guide](bootstrap-gc-memory.md)
+([中文](bootstrap-gc-memory-zh.md)).
+
 ## 1. Images
 
 | Image | Dockerfile | Runtime port | Health endpoint |
@@ -140,15 +144,19 @@ the other way around.
 
 | Component | Flag | Default / guidance |
 |---|---|---|
-| Java heap | `-Xmx`, `-Xms`, `-Xmn` | keep `Xms == Xmx` for gateways; with a container limit use `-XX:MaxRAMPercentage=70..75` |
-| Metaspace | `-XX:MaxMetaspaceSize` | 256 MiB is enough for a normal plugin set; a large plugin set can need 384 MiB |
-| Code cache | `-XX:ReservedCodeCacheSize` | JVM default is fine (240 MiB reserved, mostly virtual) |
-| Direct/native buffers | `-XX:MaxDirectMemorySize` | Netty and HTTP clients allocate outside the heap; budget 10-20% of the limit, at least 256 MiB |
+| Java heap | `-Xmx`, `-Xms`, `-Xmn` | size from the measured live set, allocation rate and pause goals; a fixed young generation constrains G1's adaptive pause control |
+| Metaspace | `-XX:MaxMetaspaceSize` | measure the actual plugin/classloader set and class-loading peaks before setting a cap |
+| Code cache | `-XX:ReservedCodeCacheSize` | distinguish reserved address space from committed/resident memory |
+| Direct/native buffers | `-XX:MaxDirectMemorySize` | measure active/pooled buffers under peak body sizes, streaming and retries; this flag does not cap all native allocations |
 | Thread stacks | `-Xss` | gateway default 512 KiB; every request/selector thread adds a stack |
-| GC and JVM overhead | — | reserve ~25-30% headroom above heap + metaspace + direct memory |
+| GC and JVM overhead | — | allow for collector structures, native libraries, diagnostics and operating headroom based on observed peaks |
 | Connection pools | plugin config | `maxConnections` per upstream client, database pool sizes; these consume heap *and* file descriptors |
 
-Example for a `2Gi` memory limit:
+The following `2Gi` deployment illustrates the override syntax only. Its values
+are not a validated recommendation for every plugin set or workload; use the
+[diagnostic checklist and workload matrix](bootstrap-gc-memory.md) before
+adopting them. Percentage-based heap sizing does not automatically budget
+direct memory, metaspace or thread stacks.
 
 ```yaml
 env:
@@ -164,15 +172,12 @@ resources:
     memory: 2Gi
 ```
 
-Rules of thumb:
-
-* keep the heap below ~70% of the memory limit so direct buffers, metaspace,
-  thread stacks and GC structures fit without triggering the OOM killer;
-* `-XX:+ExitOnOutOfMemoryError` is recommended for containers: a process that
-  cannot allocate should restart instead of thrashing;
-* for CPU-sized thread pools, remember that `-Xss` multiplies by the number of
-  threads; raising the thread count without raising the memory limit is a
-  common OOM source for gateways.
+Validate the complete budget against RSS/cgroup usage, including temporary
+storage when `/tmp` is a tmpfs. `-Xmx` is not a total process limit. A direct
+memory or metaspace cap can fail allocations even with heap space available;
+there is no universal heap percentage or native-memory allowance. Account for
+thread count when evaluating `-Xss`, and test the deployment's OOM/restart
+policy separately from its throughput and latency goals.
 
 ## 4. Kubernetes production defaults
 

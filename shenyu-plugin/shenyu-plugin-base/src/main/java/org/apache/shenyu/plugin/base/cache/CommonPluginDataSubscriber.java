@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
 import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -35,8 +36,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -129,6 +132,16 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         }
     }
     
+    /**
+     * Remove extension handlers owned by a displaced loader without removing their replacements.
+     *
+     * @param classLoader owner class loader
+     */
+    public void removeExtendPluginDataHandlers(final ClassLoader classLoader) {
+        handlerMap.entrySet().removeIf(entry -> !builtInHandlerNames.contains(entry.getKey())
+                && entry.getValue().getClass().getClassLoader() == classLoader);
+    }
+
     @Override
     public void onSubscribe(final PluginData pluginData) {
         LOG.info("subscribe plugin data for plugin: [id: {}, name: {}, config: {}]", pluginData.getId(), pluginData.getName(), pluginData.getConfig());
@@ -180,6 +193,37 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
 
     @Override
     public void applySelectorDataSnapshot(final String namespaceId, final List<SelectorData> dataList) {
+        applySelectorSnapshotCore(false, namespaceId, null, dataList);
+    }
+
+    @Override
+    public void refreshSelectorDataScoped(final List<SelectorData> dataList) {
+        if (CollectionUtils.isEmpty(dataList)) {
+            refreshSelectorDataAll();
+            return;
+        }
+        final Map<String, List<SelectorData>> dataByNamespace = new LinkedHashMap<>();
+        dataList.stream().filter(Objects::nonNull).forEach(data -> {
+            final String namespaceId = StringUtils.defaultIfBlank(data.getNamespaceId(), Constants.SYS_DEFAULT_NAMESPACE_ID);
+            data.setNamespaceId(namespaceId);
+            dataByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(data);
+        });
+        dataByNamespace.forEach((namespaceId, namespaceData) -> applySelectorSnapshotCore(true, namespaceId,
+                scopeKeys(namespaceData, SelectorData::getPluginName), namespaceData));
+    }
+
+    /**
+     * Shared body of {@link #applySelectorDataSnapshot} and {@link #refreshSelectorDataScoped}:
+     * an authoritative replace restricted to the given scopes, where a null plugin set
+     * keeps every plugin of the given namespaces. Stale rows leave the cache only after
+     * their removal callbacks succeeded, and the match cache invalidates last.
+     *
+     * @param propagateHandlerFailures snapshots isolate a failing handler so remaining rows still converge,
+     *                                 while a scoped refresh propagates it so the caller cannot treat the
+     *                                 payload as applied (the websocket dedup would skip the retry)
+     */
+    private void applySelectorSnapshotCore(final boolean propagateHandlerFailures, final String namespaceId,
+                                           final Set<String> pluginNames, final List<SelectorData> dataList) {
         final BaseDataCache cache = BaseDataCache.getInstance();
         // A row without a plugin name yields a null grouping key in refreshSelectorData, whose compute on a
         // concurrent map throws and would abort the whole snapshot (and, over a websocket, loop resyncs).
@@ -189,41 +233,48 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (Objects.nonNull(data) && Objects.nonNull(data.getPluginName())) {
                 incoming.add(data);
             } else {
-                LOG.warn("skip malformed selector row without plugin name in snapshot for namespace [{}]", namespaceId);
+                LOG.warn("skip malformed selector row without plugin name in snapshot for namespaces {}", namespaceId);
             }
         }
         final Set<String> selectorIds = incoming.stream().map(SelectorData::getId).collect(Collectors.toSet());
         final List<SelectorData> stale = cache.getSelectorMap().values().stream()
                 .flatMap(List::stream)
-                .filter(data -> namespaceId.equals(data.getNamespaceId()))
+                .filter(data -> namespaceId.equals(data.getNamespaceId())
+                        && (Objects.isNull(pluginNames) || pluginNames.contains(data.getPluginName())))
                 .filter(data -> !selectorIds.contains(data.getId()))
                 .collect(Collectors.toList());
         // Merge and sort once per affected plugin bucket instead of per selector row.
         if (!incoming.isEmpty()) {
             cache.refreshSelectorData(incoming);
         }
-        if (!stale.isEmpty()) {
-            cache.removeSelectDataBatch(stale);
-        }
         try {
-            // Preserve per-item plugin handler callbacks and the initial-sync failure semantics
-            // that the previous per-row subscribe path provided.
-            incoming.forEach(data -> runGuarded(data, () -> {
+            // Removal callbacks run first so handler state keyed by row id is installed last, and each
+            // stale row leaves the cache only after its own removal callback succeeded: a failed cleanup
+            // keeps the row cached, so the next apply rediscovers it as stale and retries the handler state.
+            final List<SelectorData> cleaned = new ArrayList<>(stale.size());
+            for (SelectorData data : stale) {
+                if (runCallback(propagateHandlerFailures, data, () -> {
+                    // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
+                    if (StringUtils.isNotBlank(data.getPluginName())) {
+                        Optional.ofNullable(handlerMap.get(data.getPluginName()))
+                                .ifPresent(handler -> handler.removeSelector(data));
+                    }
+                })) {
+                    cleaned.add(data);
+                }
+            }
+            if (!cleaned.isEmpty()) {
+                cache.removeSelectDataBatch(cleaned);
+            }
+            incoming.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
                             .ifPresent(handler -> handler.handlerSelector(data));
                 }
             }));
-            stale.forEach(data -> runGuarded(data, () -> {
-                // the concurrent handler map rejects null keys, and a dangling selector carries no plugin name
-                if (StringUtils.isNotBlank(data.getPluginName())) {
-                    Optional.ofNullable(handlerMap.get(data.getPluginName()))
-                            .ifPresent(handler -> handler.removeSelector(data));
-                }
-            }));
         } finally {
-            // Invalidate even if a handler aborted during initial sync: the stale rows are already gone from
-            // BaseDataCache above, so a retry cannot rediscover them and their match cache would stay stale.
+            // Invalidate even if a handler aborted, so a retry is not left with match-cache entries
+            // mirroring rows the aborted apply already replaced.
             invalidateSelectorMatchCacheByPlugins(collectAffectedPlugins(incoming, stale, SelectorData::getPluginName));
             invalidateDanglingSelectorMatchCache(incoming, stale);
         }
@@ -231,6 +282,35 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
 
     @Override
     public void applyRuleDataSnapshot(final String namespaceId, final List<RuleData> dataList) {
+        applyRuleSnapshotCore(false, namespaceId, null, dataList);
+    }
+
+    @Override
+    public void refreshRuleDataScoped(final List<RuleData> dataList) {
+        if (CollectionUtils.isEmpty(dataList)) {
+            refreshRuleDataAll();
+            return;
+        }
+        final Map<String, List<RuleData>> dataByNamespace = new LinkedHashMap<>();
+        dataList.stream().filter(Objects::nonNull).forEach(data -> {
+            final String namespaceId = StringUtils.defaultIfBlank(data.getNamespaceId(), Constants.SYS_DEFAULT_NAMESPACE_ID);
+            data.setNamespaceId(namespaceId);
+            dataByNamespace.computeIfAbsent(namespaceId, key -> new ArrayList<>()).add(data);
+        });
+        dataByNamespace.forEach((namespaceId, namespaceData) -> applyRuleSnapshotCore(true, namespaceId,
+                scopeKeys(namespaceData, RuleData::getPluginName), namespaceData));
+    }
+
+    /**
+     * Rule counterpart of {@link #applySelectorSnapshotCore} for
+     * {@link #applyRuleDataSnapshot} and {@link #refreshRuleDataScoped}.
+     *
+     * @param propagateHandlerFailures snapshots isolate a failing handler so remaining rows still converge,
+     *                                 while a scoped refresh propagates it so the caller cannot treat the
+     *                                 payload as applied (the websocket dedup would skip the retry)
+     */
+    private void applyRuleSnapshotCore(final boolean propagateHandlerFailures, final String namespaceId, final Set<String> pluginNames,
+                                       final List<RuleData> dataList) {
         final BaseDataCache cache = BaseDataCache.getInstance();
         // A row without a selector id yields a null grouping key in refreshRuleData, whose compute on a
         // concurrent map throws and would abort the whole snapshot; skip it up front so valid rows still converge.
@@ -239,41 +319,61 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (Objects.nonNull(data) && Objects.nonNull(data.getSelectorId())) {
                 incoming.add(data);
             } else {
-                LOG.warn("skip malformed rule row without selector id in snapshot for namespace [{}]", namespaceId);
+                LOG.warn("skip malformed rule row without selector id in snapshot for namespaces {}", namespaceId);
             }
         }
-        final Set<String> ruleIds = incoming.stream().map(RuleData::getId).collect(Collectors.toSet());
+        // Stale detection must reconcile (selectorId, ruleId) memberships: the rule map is keyed
+        // by selector, so a rule moved to another selector keeps its old bucket entry unless the
+        // pair, not just the id, is matched. SimpleImmutableEntry tolerates null ids.
+        final Set<Map.Entry<String, String>> incomingMemberships = incoming.stream()
+                .map(data -> new AbstractMap.SimpleImmutableEntry<>(data.getSelectorId(), data.getId()))
+                .collect(Collectors.toSet());
         final List<RuleData> stale = cache.getRuleMap().values().stream()
                 .flatMap(List::stream)
-                .filter(data -> namespaceId.equals(data.getNamespaceId()))
-                .filter(data -> !ruleIds.contains(data.getId()))
+                .filter(data -> namespaceId.equals(data.getNamespaceId())
+                        && (Objects.isNull(pluginNames) || pluginNames.contains(data.getPluginName())))
+                .filter(data -> !incomingMemberships.contains(
+                        new AbstractMap.SimpleImmutableEntry<>(data.getSelectorId(), data.getId())))
                 .collect(Collectors.toList());
         // Merge and sort once per affected selector bucket instead of per rule row.
         if (!incoming.isEmpty()) {
             cache.refreshRuleData(incoming);
         }
-        if (!stale.isEmpty()) {
-            cache.removeRuleDataBatch(stale);
-        }
         try {
-            incoming.forEach(data -> runGuarded(data, () -> {
+            // A moved rule is stale under its old membership and incoming under the new one, and handlers
+            // may key rule state by rule id alone, so removals must run first: running them after would
+            // delete the replacement state the incoming callbacks just installed. Each stale row leaves
+            // the cache only after its own removal callback succeeded, keeping a failed cleanup retryable.
+            final List<RuleData> cleaned = new ArrayList<>(stale.size());
+            for (RuleData data : stale) {
+                if (runCallback(propagateHandlerFailures, data, () -> {
+                    if (StringUtils.isNotBlank(data.getPluginName())) {
+                        Optional.ofNullable(handlerMap.get(data.getPluginName()))
+                                .ifPresent(handler -> handler.removeRule(data));
+                    }
+                })) {
+                    cleaned.add(data);
+                }
+            }
+            if (!cleaned.isEmpty()) {
+                cache.removeRuleDataBatch(cleaned);
+            }
+            incoming.forEach(data -> runCallback(propagateHandlerFailures, data, () -> {
                 if (StringUtils.isNotBlank(data.getPluginName())) {
                     Optional.ofNullable(handlerMap.get(data.getPluginName()))
                             .ifPresent(handler -> handler.handlerRule(data));
                 }
             }));
-            stale.forEach(data -> runGuarded(data, () -> {
-                if (StringUtils.isNotBlank(data.getPluginName())) {
-                    Optional.ofNullable(handlerMap.get(data.getPluginName()))
-                            .ifPresent(handler -> handler.removeRule(data));
-                }
-            }));
         } finally {
-            // Invalidate even if a handler aborted during initial sync, so a retry is not left with stale
-            // match-cache entries for rows already removed from BaseDataCache above.
+            // Invalidate even if a handler aborted, so a retry is not left with match-cache entries
+            // mirroring rows the aborted apply already replaced.
             invalidateRuleMatchCacheByPlugins(collectAffectedPlugins(incoming, stale, RuleData::getPluginName));
             invalidateDanglingRuleMatchCache(incoming, stale);
         }
+    }
+
+    private <T> Set<String> scopeKeys(final List<T> dataList, final Function<T, String> keyOf) {
+        return dataList.stream().filter(Objects::nonNull).map(keyOf).collect(Collectors.toSet());
     }
 
     @Override
@@ -497,18 +597,36 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
 
     /**
+     * Run a per-row callback for an authoritative apply: unguarded when the caller must see the
+     * failure, otherwise guarded as described in {@link #runGuarded}.
+     *
+     * @return whether the callback completed without failure
+     */
+    private <T> boolean runCallback(final boolean propagateHandlerFailures, final T data, final Runnable action) {
+        if (propagateHandlerFailures) {
+            action.run();
+            return true;
+        }
+        return runGuarded(data, action);
+    }
+
+    /**
      * Run a per-row callback for a snapshot apply, preserving the exception semantics of
      * {@link #subscribeDataHandler}: during initial sync failures abort the snapshot, otherwise
      * they are logged so subsequent rows still converge.
+     *
+     * @return whether the callback completed without failure
      */
-    private <T> void runGuarded(final T data, final Runnable action) {
+    private <T> boolean runGuarded(final T data, final Runnable action) {
         try {
             action.run();
+            return true;
         } catch (Exception e) {
             if (InitialSyncApplication.isActive()) {
                 throw new IllegalStateException("Initial configuration application failed", e);
             }
             LOG.error("snapshot handler error, classData: {}", JsonUtils.toJson(data), e);
+            return false;
         }
     }
 

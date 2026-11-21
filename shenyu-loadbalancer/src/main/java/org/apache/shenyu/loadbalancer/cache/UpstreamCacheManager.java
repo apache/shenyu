@@ -27,7 +27,6 @@ import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.entity.UpstreamIdentity;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -125,10 +125,17 @@ public final class UpstreamCacheManager {
     }
 
     /**
-     * Find upstream list by selector id list.
+     * Find upstream list by selector id.
+     *
+     * <p>Returns the read-only snapshot published by the health-check task on
+     * configuration and health-state updates, so the request path does not copy
+     * the healthy list per lookup. Legacy gray-exclusive selectors instead get a
+     * filtered view narrowed to their gray upstreams. Callers must not mutate the
+     * returned list either way; elements keep the same shared-instance semantics
+     * as before.</p>
      *
      * @param selectorId the selector id
-     * @return the list
+     * @return the healthy upstreams for the selector, or null when it has no entry
      */
     public List<Upstream> findUpstreamListBySelectorId(final String selectorId) {
         List<Upstream> upstreamList = findAllUpstreamListBySelectorId(selectorId);
@@ -142,12 +149,16 @@ public final class UpstreamCacheManager {
      * Find all healthy upstreams for rules that select their own label partition.
      * The regular lookup retains the legacy gray-exclusive policy, including for failover.
      *
+     * <p>Returns the same read-only snapshot that backs
+     * {@link #findUpstreamListBySelectorId} before gray narrowing, so the canary
+     * path also avoids a per-request copy. Callers must not mutate the returned
+     * list; elements keep the same shared-instance semantics as before.</p>
+     *
      * @param selectorId selector identifier
-     * @return a snapshot of all healthy upstreams, or null when the selector has no healthy pool
+     * @return a read-only snapshot of all healthy upstreams, or null when the selector has no healthy pool
      */
     public List<Upstream> findAllUpstreamListBySelectorId(final String selectorId) {
-        List<Upstream> upstreamList = task.getHealthyUpstream().get(selectorId);
-        return Objects.isNull(upstreamList) ? null : new ArrayList<>(upstreamList);
+        return task.getHealthySnapshot(selectorId);
     }
 
     /**
@@ -185,20 +196,21 @@ public final class UpstreamCacheManager {
         LEGACY_GRAY_SELECTORS.put(selectorId, actualUpstreamList.stream().anyMatch(Upstream::isGray));
         initializeUpstreamHealthStatus(actualUpstreamList);
 
+        Predicate<Upstream> admitted = upstream -> !upstream.isDraining() && upstream.isReady();
         Map<Boolean, List<Upstream>> partitionedUpstreams = actualUpstreamList.stream()
-                .collect(Collectors.partitioningBy(upstream -> upstream.isStatus() && !upstream.isDraining()));
+                .collect(Collectors.partitioningBy(upstream -> upstream.isStatus() && admitted.test(upstream)));
         final List<Upstream> validUpstreamList = partitionedUpstreams.get(true);
-        final List<Upstream> drainingUpstreamList = actualUpstreamList.stream()
-                .filter(Upstream::isDraining).collect(Collectors.toList());
+        final List<Upstream> excludedUpstreamList = actualUpstreamList.stream()
+                .filter(admitted.negate()).collect(Collectors.toList());
         final List<Upstream> offlineUpstreamList = partitionedUpstreams.get(false).stream()
-                .filter(upstream -> !upstream.isDraining()).collect(Collectors.toList());
+                .filter(admitted).collect(Collectors.toList());
         List<Upstream> existUpstreamList = MapUtils.computeIfAbsent(UPSTREAM_MAP, selectorId, k -> Lists.newArrayList());
 
         removeStaleUpstreams(selectorId, actualUpstreamList, existUpstreamList);
         updateUpstreamMetadata(selectorId, actualUpstreamList, existUpstreamList);
         processOfflineUpstreams(selectorId, offlineUpstreamList, existUpstreamList);
         processValidUpstreams(selectorId, validUpstreamList, existUpstreamList);
-        processDrainingUpstreams(selectorId, drainingUpstreamList);
+        processExcludedUpstreams(selectorId, excludedUpstreamList);
 
         List<Upstream> healthyUpstreamList = task.getHealthyUpstreamListBySelectorId(selectorId);
         UPSTREAM_MAP.put(selectorId, Objects.isNull(healthyUpstreamList) ? Lists.newArrayList() : healthyUpstreamList);
@@ -242,6 +254,8 @@ public final class UpstreamCacheManager {
                 cached.setMetadata(Collections.unmodifiableMap(new HashMap<>(upstream.getMetadata())));
                 cached.setLabels(upstream.getLabels());
                 cached.setGray(upstream.isGray());
+                cached.setDraining(upstream.isDraining());
+                cached.setReady(upstream.isReady());
             }
         });
     }
@@ -274,11 +288,11 @@ public final class UpstreamCacheManager {
         });
     }
 
-    private void processDrainingUpstreams(final String selectorId, final List<Upstream> drainingUpstreamList) {
-        // A draining upstream leaves both health pools, so no new selection returns it
-        // and no probe can restore it; it stays in the configured set, and a later sync
-        // without the draining marker re-admits it through the regular paths (#8042).
-        drainingUpstreamList.forEach(drainingUp -> task.triggerRemoveOne(selectorId, drainingUp));
+    private void processExcludedUpstreams(final String selectorId, final List<Upstream> excludedUpstreamList) {
+        // A draining or not-ready upstream leaves both health pools, so no new selection
+        // returns it and no probe can restore it; it stays in the configured set, and a
+        // later sync without the marker re-admits it through the regular paths (#8042).
+        excludedUpstreamList.forEach(excludedUp -> task.triggerRemoveOne(selectorId, excludedUp));
     }
 
     private void processValidUpstreams(final String selectorId, final List<Upstream> validUpstreamList,

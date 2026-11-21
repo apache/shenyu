@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.admin.config;
 
+import org.apache.shenyu.admin.config.properties.RegistrationFencingProperties;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * web handler.
@@ -29,9 +33,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
+    private final RegistrationFencingProperties fencingProperties;
+
+    public WebConfiguration() {
+        this.fencingProperties = new RegistrationFencingProperties();
+    }
+
+    @Autowired
+    public WebConfiguration(final RegistrationFencingProperties fencingProperties) {
+        this.fencingProperties = fencingProperties;
+    }
+
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
-        registry.addInterceptor(new RegistrationProtocolInterceptor()).addPathPatterns(
+        registry.addInterceptor(new RegistrationProtocolInterceptor(fencingProperties)).addPathPatterns(
                 RegistrationProtocol.META_PATH, RegistrationProtocol.URI_PATH, RegistrationProtocol.API_DOC_PATH,
                 RegistrationProtocol.DISCOVERY_CONFIG_PATH, RegistrationProtocol.MCP_TOOLS_PATH,
                 RegistrationProtocol.OFFLINE_PATH, RegistrationProtocol.BEAT_URI_PATH);
@@ -48,5 +63,12 @@ public class WebConfiguration implements WebMvcConfigurer {
                         "Origin, X-Requested-With, Content-Type, Accept")
                 .allowedOrigins("*")
                 .allowedMethods("*");
+    }
+
+    @Override
+    public void configurePathMatch(final PathMatchConfigurer configurer) {
+        final PathPatternParser parser = new PathPatternParser();
+        parser.setMatchOptionalTrailingSeparator(true);
+        configurer.setPatternParser(parser);
     }
 }

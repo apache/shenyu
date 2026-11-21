@@ -33,3 +33,12 @@ Licensing
 ===============================================================================
 
 This software is licensed under the terms you may find in the file named "LICENSE" in this directory.
+
+This convenience binary includes unmodified third-party libraries under terms
+that differ from Apache 2.0, including Logback (EPL 1.0, https://logback.qos.ch/),
+H2 (MPL 2.0, https://h2database.com/), Rhino (MPL 2.0, https://github.com/mozilla/rhino),
+and Java EE/GlassFish APIs (CDDL/EPL, https://github.com/eclipse-ee4j/).
+The LICENSE file identifies the exact components and versions; full terms and
+copyright notices are in the licenses directory. Source is available from the
+linked upstream projects and Maven Central source artifacts. These libraries
+are not included as source code in the ShenYu source distribution.

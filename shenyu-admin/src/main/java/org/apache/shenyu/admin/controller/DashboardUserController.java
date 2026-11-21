@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.admin.exception.ValidFailException;
@@ -89,12 +88,8 @@ public class DashboardUserController {
                                                  @RequestParam @NotNull(message = "pageSize not null") final Integer pageSize) {
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName,
                 new PageParameter(currentPage, pageSize)));
-        
-        if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
-        } else {
-            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR);
-        }
+
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
     
     /**
@@ -177,6 +172,23 @@ public class DashboardUserController {
         }
         dashboardUserModifyPasswordDTO.setId(id);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.modifyPassword(dashboardUserModifyPasswordDTO));
+    }
+
+    /**
+     * revoke every token issued to the given dashboard user.
+     *
+     * <p>Unlike a password change, this does not alter the credential: the
+     * account keeps its password and simply has to log in again.</p>
+     *
+     * @param id primary key.
+     * @return {@linkplain ShenyuAdminResult}
+     */
+    @PutMapping("/revoke/{id}")
+    @RequiresPermissions("system:manager:edit")
+    public ShenyuAdminResult revokeTokens(@PathVariable("id")
+                                          @Existed(provider = DashboardUserMapper.class,
+                                                  message = "user is not found") final String id) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, dashboardUserService.revokeTokens(id));
     }
     
     /**

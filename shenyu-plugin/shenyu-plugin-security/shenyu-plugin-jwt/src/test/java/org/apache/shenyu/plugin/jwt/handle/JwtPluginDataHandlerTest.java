@@ -26,10 +26,15 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test case for {@link JwtPluginDataHandler}.
@@ -50,6 +55,32 @@ public final class JwtPluginDataHandlerTest {
         JwtConfig jwtConfig = Singleton.INST.get(JwtConfig.class);
         Map<String, String> map = GsonUtils.getInstance().toObjectMap(pluginData.getConfig(), String.class);
         assertEquals(jwtConfig.getSecretKey(), map.get("secretKey"));
+    }
+
+    @Test
+    public void testResourceMetadataConfigurationCanBeCleared() {
+        PluginData pluginData = new PluginData("pluginId", "pluginName",
+                "{\"secretKey\":\"shenyu\",\"resourceMetadataUrl\":\"https://gateway.example/metadata\"}", "0", false, null);
+        jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
+        assertEquals("https://gateway.example/metadata", Singleton.INST.get(JwtConfig.class).getResourceMetadataUrl());
+        pluginData.setConfig("{\"secretKey\":\"shenyu\",\"resourceMetadataUrl\":\"\"}");
+        jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
+        assertNull(Singleton.INST.get(JwtConfig.class).getResourceMetadataUrl());
+        pluginData.setConfig("{\"secretKey\":\"shenyu\"}");
+        jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
+        assertNull(Singleton.INST.get(JwtConfig.class).getResourceMetadataUrl());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/metadata", "file:///metadata", "https://user:password@gateway.example/metadata",
+            "https://gateway.example/metadata#fragment", "https://gateway.example/\"injected", "https://gateway.example/\r\nInjected: value"})
+    public void testInvalidMetadataDoesNotReplaceActiveConfiguration(final String metadataUrl) {
+        PluginData pluginData = new PluginData("pluginId", "pluginName", "{\"secretKey\":\"shenyu\"}", "0", false, null);
+        jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData);
+        JwtConfig previous = Singleton.INST.get(JwtConfig.class);
+        pluginData.setConfig(GsonUtils.getInstance().toJson(Map.of("secretKey", "replacement", "resourceMetadataUrl", metadataUrl)));
+        assertThrows(IllegalArgumentException.class, () -> jwtPluginDataHandlerUnderTest.handlerPlugin(pluginData));
+        assertSame(previous, Singleton.INST.get(JwtConfig.class));
     }
 
     @Test

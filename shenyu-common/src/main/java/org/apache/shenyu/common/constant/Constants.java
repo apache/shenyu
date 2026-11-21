@@ -135,6 +135,12 @@ public interface Constants {
     String HTTP_TIME_OUT = "httpTimeOut";
 
     /**
+     * The constant HTTP_POOL_GROUP: optional named upstream connection-pool group
+     * chosen by the divide rule handle; absent means the default shared pool.
+     */
+    String HTTP_POOL_GROUP = "httpPoolGroup";
+
+    /**
      * The constant HTTP_RETRY.
      */
     String HTTP_RETRY = "httpRetry";
@@ -606,6 +612,16 @@ public interface Constants {
      * dubbo load balance from meta data.
      */
     String DUBBO_LOAD_BALANCE = "dubboLoadBalance";
+
+    /**
+     * Marks the logical upstream the gray load balance selected for the current dubbo
+     * attempt. The value is the selected upstream's {@code UpstreamIdentity#hashKey()},
+     * so the consumer-side inflight filter can keep the provider's outstanding count
+     * current without wrapping the invoker (a wrapper would break Dubbo's already-tried
+     * bookkeeping, see #8132). The attachment is local bookkeeping and is removed before
+     * the call reaches the provider.
+     */
+    String DUBBO_INFLIGHT_UPSTREAM_IDENTITY = "shenyuDubboInflightUpstreamIdentity";
 
     /**
      * dubbo serialization protobuf.

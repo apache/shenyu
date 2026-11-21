@@ -70,7 +70,7 @@ public final class RuleDataHandlerTest {
 
 
     @ParameterizedTest
-    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    @ValueSource(strings = {"MYSELF"})
     void testRefreshEventsClearThenUseBatchCallback(final String eventType) {
         List<RuleData> batch = createFakeRuleDateObjects(2);
         ruleDataHandler.handle(new Gson().toJson(batch), eventType);
@@ -79,12 +79,27 @@ public final class RuleDataHandlerTest {
         verifyNoMoreInteractions(subscriber);
     }
 
+    @Test
+    void testRefreshEventUsesScopedCallback() {
+        List<RuleData> batch = createFakeRuleDateObjects(2);
+        ruleDataHandler.handle(new Gson().toJson(batch), "REFRESH");
+        verify(subscriber).refreshRuleDataScoped(batch);
+        verifyNoMoreInteractions(subscriber);
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {"REFRESH", "MYSELF"})
+    @ValueSource(strings = {"MYSELF"})
     void testEmptyRefreshClearsSnapshot(final String eventType) {
         ruleDataHandler.handle("[]", eventType);
         verify(subscriber).refreshRuleDataAll();
         verify(subscriber).onRuleRefresh(java.util.Collections.emptyList());
+        verifyNoMoreInteractions(subscriber);
+    }
+
+    @Test
+    void testEmptyRefreshEventUsesScopedCallback() {
+        ruleDataHandler.handle("[]", "REFRESH");
+        verify(subscriber).refreshRuleDataScoped(Collections.emptyList());
         verifyNoMoreInteractions(subscriber);
     }
 

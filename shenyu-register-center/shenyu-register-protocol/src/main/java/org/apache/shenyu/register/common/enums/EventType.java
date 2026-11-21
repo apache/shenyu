@@ -55,5 +55,15 @@ public enum EventType {
     /**
      * draining event type: the instance is alive but must stop receiving new work.
      */
-    DRAINING
+    DRAINING,
+
+    /**
+     * not-ready event type: the instance is alive but is not ready to receive new work.
+     */
+    NOT_READY,
+
+    /**
+     * ready event type: the instance is ready and may receive new work again.
+     */
+    READY
 }

@@ -32,6 +32,29 @@ forbidden content, but it only inspects the request body, so it also applies to 
   request instead. The words configured on the rule do not depend on redis, so they are enforced in
   every case.
 
+## JSON decoding
+
+A JSON body is scanned twice: once as the raw text and once through the decoded value of every
+string member. The decoded scan makes a word written with JSON escapes, such as a Unicode escape for
+one of its letters, match like its literal spelling; the raw scan keeps the plain text behavior
+unchanged. The body is never re serialized, so the downstream receives the original bytes, and an
+escape split across incoming buffers is decoded correctly because the body is joined before it is
+scanned.
+
+The decoded scan covers the model visible text of the OpenAI protocols because it is carried by
+string members:
+
+- `openai-chat`: `messages[].content`, both a string and the `text` members of multimodal content
+  parts, plus tool definitions and function arguments;
+- `openai-responses`: `input`, either a string or items whose text lives in `content` or `text`.
+
+Object member names and non string values are not model visible and are not decoded. A string value
+that itself holds JSON is decoded once, it is not parsed again. The walk is bounded by the body
+size and by a nesting limit of 64 levels. A body that is not a JSON object or array, and a malformed
+JSON document, keep the plain text scan of the raw bytes only: escaped content in such a body is not
+decoded, so the body is never treated as decoded and clean. This is deterministic keyword
+inspection, not a semantic safety guarantee.
+
 ## Configuration
 
 Plugin level (`config` of the plugin, the redis client used to read the dictionaries):

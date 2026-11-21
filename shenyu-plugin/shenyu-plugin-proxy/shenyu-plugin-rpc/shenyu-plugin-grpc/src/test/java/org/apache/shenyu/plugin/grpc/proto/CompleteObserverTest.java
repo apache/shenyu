@@ -23,8 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The Test Case For {@link CompleteObserver}.
@@ -54,6 +56,23 @@ public class CompleteObserverTest {
         assertThrows(Throwable.class, future::get);
     }
     
+    @Test
+    public void lateErrorAfterCompletionIsIgnored() {
+        completeObserver.onCompleted();
+        assertDoesNotThrow(() -> completeObserver.onError(new Throwable("late error")));
+        ListenableFuture<Void> future = completeObserver.getCompletionFuture();
+        assertTrue(future.isDone());
+        assertDoesNotThrow(() -> future.get());
+    }
+
+    @Test
+    public void lateCompletionAfterErrorIsIgnored() {
+        completeObserver.onError(new Throwable("error"));
+        ListenableFuture<Void> future = completeObserver.getCompletionFuture();
+        assertThrows(Throwable.class, future::get);
+        assertDoesNotThrow(completeObserver::onCompleted);
+    }
+
     @Test
     public void onNext() {
         completeObserver.onNext(new Object());

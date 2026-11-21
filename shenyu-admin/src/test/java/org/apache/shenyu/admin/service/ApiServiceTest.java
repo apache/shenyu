@@ -35,6 +35,7 @@ import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.ApiServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,12 +55,14 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -156,6 +159,48 @@ public final class ApiServiceTest {
         verify(ruleService, times(1)).deleteByIdsAndNamespaceId(Collections.singletonList("rule-1"), SYS_DEFAULT_NAMESPACE_ID);
         verify(selectorService, times(1)).deleteByNamespaceId(Collections.singletonList("selector-1"), SYS_DEFAULT_NAMESPACE_ID);
         verify(metaDataService, times(1)).deleteByIdsAndNamespaceId(Collections.singletonList("metadata-1"), SYS_DEFAULT_NAMESPACE_ID);
+        verify(ruleService, never()).deleteForRegistration(anyList(), anyString());
+        verify(selectorService, never()).deleteForRegistration(anyList(), anyString());
+    }
+
+    @Test
+    public void testDeleteIsRejectedWhenRuleCleanupIsDenied() {
+        RuleVO rule = new RuleVO();
+        rule.setId("rule-1");
+        ApiDO apiDO = buildApiDO("123");
+        when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
+        when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
+        when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
+        doThrow(new UnauthorizedException()).when(ruleService)
+                .deleteByIdsAndNamespaceId(Collections.singletonList("rule-1"), SYS_DEFAULT_NAMESPACE_ID);
+
+        assertThrows(UnauthorizedException.class, () -> apiService.delete(Collections.singletonList("123")));
+
+        verify(selectorService, never()).deleteByNamespaceId(anyList(), anyString());
+        verify(metaDataService, never()).deleteByIdsAndNamespaceId(anyList(), anyString());
+    }
+
+    @Test
+    public void testRegistrationDeleteUsesUncheckedRegistrationDeletes() {
+        RuleVO rule = new RuleVO();
+        rule.setId("rule-1");
+        SelectorDO selector = new SelectorDO();
+        selector.setId("selector-1");
+        ApiDO apiDO = buildApiDO("123");
+        when(apiMapper.selectByApiPathHttpMethodRpcType(apiDO.getApiPath(), apiDO.getHttpMethod(), apiDO.getRpcType()))
+                .thenReturn(Collections.singletonList(apiDO));
+        when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
+        when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
+        when(selectorService.findByNameAndPluginNamesAndNamespaceId(anyString(), anyList(), anyString()))
+                .thenReturn(Collections.singletonList(selector));
+        when(ruleService.findBySelectorId("selector-1")).thenReturn(Collections.emptyList());
+
+        assertEquals(1, apiService.deleteByApiPathHttpMethodRpcType(apiDO.getApiPath(), apiDO.getHttpMethod(), apiDO.getRpcType()));
+
+        verify(ruleService).deleteForRegistration(Collections.singletonList("rule-1"), SYS_DEFAULT_NAMESPACE_ID);
+        verify(selectorService).deleteForRegistration(Collections.singletonList("selector-1"), SYS_DEFAULT_NAMESPACE_ID);
+        verify(ruleService, never()).deleteByIdsAndNamespaceId(anyList(), anyString());
+        verify(selectorService, never()).deleteByNamespaceId(anyList(), anyString());
     }
 
     @Test

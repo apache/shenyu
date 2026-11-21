@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.io.ByteArrayInputStream;
@@ -57,9 +58,9 @@ public class PluginJarParser {
                         byte[] classByteArray = buffer.toByteArray();
                         Properties properties = new Properties();
                         properties.load(new ByteArrayInputStream(classByteArray));
-                        pluginJar.version = properties.get("version").toString();
-                        pluginJar.artifactId = properties.get("artifactId").toString();
-                        pluginJar.groupId = properties.get("groupId").toString();
+                        pluginJar.version = properties.getProperty("version");
+                        pluginJar.artifactId = properties.getProperty("artifactId");
+                        pluginJar.groupId = properties.getProperty("groupId");
                     }
                     continue;
                 }
@@ -72,6 +73,9 @@ public class PluginJarParser {
             }
         } catch (IOException e) {
             throw new ShenyuException("load jar classes find error");
+        }
+        if (StringUtils.isAnyBlank(pluginJar.version, pluginJar.artifactId, pluginJar.groupId)) {
+            throw new ShenyuException("plugin jar is missing required Maven metadata: groupId, artifactId and version");
         }
         return pluginJar;
     }

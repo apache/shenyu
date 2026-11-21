@@ -20,6 +20,12 @@ import sys
 from pathlib import Path
 
 DIALECTS = ("mysql", "ob", "og", "oracle", "pg")
+RELEASED_ORDER = 198
+CURRENT_ORDER = 169
+ORDER_KEYS = {
+    ("plugin", "68"),
+    ("namespace_plugin_rel", "1960000000000001030"),
+}
 EXPECTED = {
     "plugin": {"68"},
     "plugin_handle": {str(1960000000000001000 + i) for i in range(2)},
@@ -63,12 +69,66 @@ def seeds(sql):
     return result
 
 
+def agent_order_token(values):
+    """Return the Agent Gateway sort token range and value."""
+    tokens = normalized_tokens(values)
+    if "'agentGateway'" in tokens:
+        marker = tokens.index("'agentGateway'")
+    else:
+        marker = tokens.index("'68'")
+    order_start = next(index for index, token in enumerate(tokens[marker + 1:], marker + 1) if token.isdigit())
+    order_end = order_start + 1
+    while order_end < len(tokens) and tokens[order_end].isdigit() and order_end - order_start < 3:
+        order_end += 1
+    return (order_start, order_end), int("".join(tokens[order_start:order_end]))
+
+
+def normalized_tokens(values):
+    """Normalize tokenizer character runs into complete numeric literals."""
+    tokens = []
+    number = []
+
+    def flush_number():
+        if number:
+            tokens.append("".join(number))
+            number.clear()
+
+    for token in values:
+        if len(token) == 1 and token.isdigit():
+            number.append(token)
+        else:
+            flush_number()
+            tokens.append(token)
+    flush_number()
+    return tuple(tokens)
+
+
+def only_order_moved(expected, actual):
+    """Whether two seeds differ in exactly the allowed Agent Gateway order value."""
+    expected = normalized_tokens(expected)
+    actual = normalized_tokens(actual)
+    (expected_start, expected_end), expected_order = agent_order_token(expected)
+    (actual_start, actual_end), actual_order = agent_order_token(actual)
+    return (
+        expected_order == CURRENT_ORDER
+        and actual_order == RELEASED_ORDER
+        and len(expected) == len(actual)
+        and all(expected[index] == actual[index]
+                for index in range(len(expected))
+                if not (expected_start <= index < expected_end or actual_start <= index < actual_end))
+    )
+
+
 def check_pair(schema, migration):
-    """Compare every value and column list in each dialect's own seed records."""
+    """Compare released seeds, allowing only the deliberate 2.7.3 order move."""
     expected, actual = seeds(schema), seeds(migration)
     for key in expected:
-        if expected[key] != actual[key]:
-            raise ValueError(f"fresh-install/upgrade mismatch: {key}")
+        if expected[key] == actual[key]:
+            continue
+        if key in ORDER_KEYS:
+            if only_order_moved(expected[key], actual[key]):
+                continue
+        raise ValueError(f"fresh-install/upgrade mismatch: {key}")
     return len(expected)
 
 

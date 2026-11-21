@@ -113,6 +113,18 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
     int updateSelective(SelectorDO selectorDO);
 
     /**
+     * Update a selector handle from the business registration lifecycle.
+     *
+     * <p>This path keeps the selector row as the member-aggregation lock, but
+     * deliberately does not apply the selector-wide management fencing guard.
+     * Registration fencing is enforced per target address by the caller.</p>
+     *
+     * @param selectorDO selector update
+     * @return affected rows
+     */
+    int updateSelectiveForRegistration(SelectorDO selectorDO);
+
+    /**
      * delete selectors by ids and namespaceId.
      *
      * @param ids         primary key.
@@ -120,6 +132,18 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      * @return rows int
      */
     int deleteByNamespaceId(List<String> ids, String namespaceId);
+
+    /**
+     * delete selectors for the registration flow.
+     *
+     * <p>Registration runs without a login user, so this path skips the plugin data permission
+     * check applied by {@link #deleteByNamespaceId(List, String)}. Only use it from registration.</p>
+     *
+     * @param ids         primary key.
+     * @param namespaceId namespaceId.
+     * @return rows int
+     */
+    int deleteForRegistration(List<String> ids, String namespaceId);
 
     /**
      * find selector by id and namespaceId.

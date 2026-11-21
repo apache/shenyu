@@ -46,6 +46,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 
 /**
@@ -107,7 +108,9 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setRequestUri(request.getURI().toString());
         requestInfo.setMethod(request.getMethod().name());
         requestInfo.setRequestMethod(request.getMethod().name());
-        requestInfo.setRequestHeader(() -> LogCollectUtils.getHeaders(request.getHeaders()));
+        GenericGlobalConfig globalConfig = LogCollectConfigUtils.getGlobalConfig(selector.getPluginId());
+        Set<String> maskedHeaders = LogCollectUtils.getMaskedHeaders(globalConfig);
+        requestInfo.setRequestHeader(() -> LogCollectUtils.getHeaders(request.getHeaders(), maskedHeaders));
         requestInfo.setQueryParams(request.getURI().getQuery());
         requestInfo.setClientIp(HostAddressUtils.acquireIp(exchange));
         requestInfo.setUserAgent(request.getHeaders().getFirst(GenericLoggingConstant.USER_AGENT));
@@ -116,10 +119,9 @@ public abstract class AbstractLoggingPlugin<L extends ShenyuRequestLog> extends 
         requestInfo.setSelectorId(selector.getId());
         requestInfo.setRuleId(rule.getId());
         requestInfo.setNamespaceId(rule.getNamespaceId());
-        GenericGlobalConfig globalConfig = LogCollectConfigUtils.getGlobalConfig(selector.getPluginId());
         LoggingServerHttpRequest<L> loggingServerHttpRequest = new LoggingServerHttpRequest<>(request, requestInfo, globalConfig.getMaxRequestBody());
         LoggingServerHttpResponse<L> loggingServerHttpResponse = new LoggingServerHttpResponse<>(exchange.getResponse(),
-                requestInfo, this.logCollector(), desensitized, keyWordMatch, dataDesensitizeAlg, globalConfig.getMaxResponseBody());
+                requestInfo, this.logCollector(), desensitized, keyWordMatch, dataDesensitizeAlg, globalConfig.getMaxResponseBody(), maskedHeaders);
         ServerWebExchange webExchange = exchange.mutate().request(loggingServerHttpRequest)
                 .response(loggingServerHttpResponse).build();
         loggingServerHttpResponse.setExchange(webExchange);

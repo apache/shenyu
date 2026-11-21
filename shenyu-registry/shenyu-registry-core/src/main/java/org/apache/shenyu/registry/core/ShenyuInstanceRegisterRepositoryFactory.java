@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ShenyuInstanceRegisterRepositoryFactory {
     
+    // Production uses one default loader and caches by type. Test loader overloads share this cache and must clear it between fixtures.
     private static final Map<String, ShenyuInstanceRegisterRepository> REPOSITORY_MAP = new ConcurrentHashMap<>();
     
     /**
@@ -41,8 +42,13 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuInstanceRegisterRepository newInstance(final String registerType) {
+        return newInstance(registerType, ExtensionLoader.class.getClassLoader());
+    }
+
+    // Explicit loader overloads let tests select their SPI resources without warming another loader's cache.
+    static ShenyuInstanceRegisterRepository newInstance(final String registerType, final ClassLoader classLoader) {
         checkRegisterType(registerType);
-        return REPOSITORY_MAP.computeIfAbsent(registerType, ShenyuInstanceRegisterRepositoryFactory::loadRepository);
+        return REPOSITORY_MAP.computeIfAbsent(registerType, type -> loadRepository(type, classLoader));
     }
 
     /**
@@ -53,8 +59,12 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
      * @return the repository
      */
     public static ShenyuInstanceRegisterRepository loadRepository(final String registerType) {
+        return loadRepository(registerType, ExtensionLoader.class.getClassLoader());
+    }
+
+    static ShenyuInstanceRegisterRepository loadRepository(final String registerType, final ClassLoader classLoader) {
         checkRegisterType(registerType);
-        ExtensionLoader<ShenyuInstanceRegisterRepository> loader = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class);
+        ExtensionLoader<ShenyuInstanceRegisterRepository> loader = ExtensionLoader.getExtensionLoader(ShenyuInstanceRegisterRepository.class, classLoader);
         Map<String, Class<?>> providers = loader.getExtensionClasses1();
         if (!providers.containsKey(registerType)) {
             throw new IllegalArgumentException("No registry implementation found for registerType '" + registerType
@@ -72,10 +82,14 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuInstanceRegisterRepository newAndInitInstance(final RegisterConfig config) {
+        return newAndInitInstance(config, ExtensionLoader.class.getClassLoader());
+    }
+
+    static ShenyuInstanceRegisterRepository newAndInitInstance(final RegisterConfig config, final ClassLoader classLoader) {
         Objects.requireNonNull(config, "register config is required");
         checkRegisterType(config.getRegisterType());
         return REPOSITORY_MAP.computeIfAbsent(config.getRegisterType(), registerType -> {
-            ShenyuInstanceRegisterRepository result = loadRepository(registerType);
+            ShenyuInstanceRegisterRepository result = loadRepository(registerType, classLoader);
             result.init(config);
             return result;
         });
@@ -88,8 +102,12 @@ public final class ShenyuInstanceRegisterRepositoryFactory {
      * @return the shenyu instance register repository
      */
     public static ShenyuInstanceRegisterRepository reNewAndInitInstance(final RegisterConfig config) {
+        return reNewAndInitInstance(config, ExtensionLoader.class.getClassLoader());
+    }
+
+    static ShenyuInstanceRegisterRepository reNewAndInitInstance(final RegisterConfig config, final ClassLoader classLoader) {
         Objects.requireNonNull(config, "register config is required");
-        ShenyuInstanceRegisterRepository result = loadRepository(config.getRegisterType());
+        ShenyuInstanceRegisterRepository result = loadRepository(config.getRegisterType(), classLoader);
         result.init(config);
         REPOSITORY_MAP.put(config.getRegisterType(), result);
         return result;

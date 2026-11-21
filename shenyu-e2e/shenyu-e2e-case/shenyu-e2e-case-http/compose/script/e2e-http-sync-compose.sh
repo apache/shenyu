@@ -18,6 +18,9 @@
 
 set -euo pipefail
 
+# shellcheck source=.github/scripts/select-e2e-sync.sh
+source "$(dirname "$0")/../../../../../.github/scripts/select-e2e-sync.sh"
+
 # init kubernetes for mysql
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
@@ -63,9 +66,6 @@ start_examples() {
 }
 
 # init shenyu sync
-SYNC_ARRAY=("websocket" "http" "zookeeper")
-#SYNC_ARRAY=("websocket" "nacos")
-#MIDDLEWARE_SYNC_ARRAY=("zookeeper" "etcd" "nacos")
 
 docker network create -d bridge shenyu || true
 

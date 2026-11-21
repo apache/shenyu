@@ -40,6 +40,8 @@ public class WebsocketConfigTest {
 
     private static final String TOKEN = "websocket-sync-token";
 
+    private static final List<String> TRUSTED_MASTER_HOSTS = Lists.newArrayList("master:9095");
+
     private WebsocketConfig websocketConfig;
 
     @BeforeEach
@@ -48,6 +50,7 @@ public class WebsocketConfigTest {
         websocketConfig.setUrls(URLS);
         websocketConfig.setAllowOrigin(ALLOW_ORIGIN);
         websocketConfig.setToken(TOKEN);
+        websocketConfig.setTrustedMasterHosts(TRUSTED_MASTER_HOSTS);
     }
 
     @Test
@@ -61,6 +64,10 @@ public class WebsocketConfigTest {
         assertEquals(60, websocketConfig.getMasterCheckInterval());
         websocketConfig.setMasterCheckInterval(30);
         assertEquals(30, websocketConfig.getMasterCheckInterval());
+        assertEquals(TRUSTED_MASTER_HOSTS, websocketConfig.getTrustedMasterHosts());
+        assertFalse(websocketConfig.isAllowInsecureMasterRedirect());
+        websocketConfig.setAllowInsecureMasterRedirect(true);
+        assertTrue(websocketConfig.isAllowInsecureMasterRedirect());
     }
 
     @Test
@@ -69,6 +76,7 @@ public class WebsocketConfigTest {
         that.setUrls(URLS);
         that.setAllowOrigin(ALLOW_ORIGIN);
         that.setToken(TOKEN);
+        that.setTrustedMasterHosts(TRUSTED_MASTER_HOSTS);
         assertEquals(websocketConfig, websocketConfig);
         assertEquals(websocketConfig, that);
         that.setInitialSyncReadiness(true);
@@ -79,6 +87,12 @@ public class WebsocketConfigTest {
         that.setCompactDiscoveryPayload(false);
         that.setMasterCheckInterval(10);
         assertNotEquals(websocketConfig, that);
+        that.setMasterCheckInterval(60);
+        that.setTrustedMasterHosts(Lists.newArrayList("other:9095"));
+        assertNotEquals(websocketConfig, that);
+        that.setTrustedMasterHosts(TRUSTED_MASTER_HOSTS);
+        that.setAllowInsecureMasterRedirect(true);
+        assertNotEquals(websocketConfig, that);
         assertNotEquals(websocketConfig, null);
         assertNotEquals(websocketConfig, new Object());
     }
@@ -87,13 +101,15 @@ public class WebsocketConfigTest {
     public void testHashCode() {
         assertEquals(Objects.hash(websocketConfig.getUrls(), websocketConfig.getAllowOrigin(),
                 websocketConfig.getToken(), websocketConfig.isInitialSyncReadiness(), websocketConfig.isCompactDiscoveryPayload(),
-                websocketConfig.getMasterCheckInterval()), websocketConfig.hashCode());
+                websocketConfig.getMasterCheckInterval(), websocketConfig.getTrustedMasterHosts(),
+                websocketConfig.isAllowInsecureMasterRedirect()), websocketConfig.hashCode());
     }
 
     @Test
     public void testToString() {
-        String toString = "WebsocketConfig{urls='%s', allowOrigin='%s', token='******', masterCheckInterval=%d}";
-        String expected = String.format(toString, URLS, ALLOW_ORIGIN, 60);
+        String toString = "WebsocketConfig{urls='%s', allowOrigin='%s', token='******', masterCheckInterval=%d, "
+                + "trustedMasterHosts=%s, allowInsecureMasterRedirect=false}";
+        String expected = String.format(toString, URLS, ALLOW_ORIGIN, 60, TRUSTED_MASTER_HOSTS);
         assertEquals(expected, websocketConfig.toString());
         assertFalse(websocketConfig.toString().contains(TOKEN));
     }

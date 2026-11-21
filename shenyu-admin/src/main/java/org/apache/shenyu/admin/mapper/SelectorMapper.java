@@ -52,6 +52,14 @@ public interface SelectorMapper extends ExistProvider {
     SelectorDO selectById(String id);
 
     /**
+     * Select a selector while holding the database row lock.
+     *
+     * @param id selector id
+     * @return selector
+     */
+    SelectorDO selectByIdForUpdate(String id);
+
+    /**
      * select selector namespace id by id.
      *
      * @param id primary key.

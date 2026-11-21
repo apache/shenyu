@@ -78,6 +78,7 @@ public final class RedisRateLimiterTest {
         StepVerifier.create(responseMono).assertNext(r -> {
             assertThat(r.getTokensRemaining(), is(10L));
             assertTrue(r.isAllowed());
+            assertFalse(r.isBackendFailure());
         }).verifyComplete();
     }
 
@@ -162,6 +163,7 @@ public final class RedisRateLimiterTest {
         StepVerifier.create(responseMono).assertNext(r -> {
             assertEquals(-1, r.getTokensRemaining());
             assertTrue(r.isAllowed());
+            assertTrue(r.isBackendFailure());
         }).verifyComplete();
     }
 
@@ -186,6 +188,7 @@ public final class RedisRateLimiterTest {
         StepVerifier.create(responseMono).assertNext(r -> {
             assertEquals(-1, r.getTokensRemaining());
             assertTrue(r.isAllowed());
+            assertTrue(r.isBackendFailure());
         }).verifyComplete();
 
         verify(reactiveZSetOperations).remove(any(), any());

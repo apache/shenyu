@@ -90,8 +90,8 @@ final class AiProxyRetryPolicy {
         return switch (kind) {
             case CONNECT_TIMEOUT, RESPONSE_HEADER_TIMEOUT, STREAM_IDLE_TIMEOUT,
                     CONNECTION_RESET, IO_FAILURE -> true;
-            case STREAM_DURATION_TIMEOUT, RESPONSE_TOO_LARGE, DNS_FAILURE,
-                    TLS_FAILURE, UNKNOWN -> false;
+            case STREAM_DURATION_TIMEOUT, CONNECTION_POOL_TIMEOUT, REQUEST_TOO_LARGE,
+                    RESPONSE_TOO_LARGE, DNS_FAILURE, TLS_FAILURE, UNKNOWN -> false;
         };
     }
 
@@ -99,8 +99,8 @@ final class AiProxyRetryPolicy {
         return switch (kind) {
             case CONNECT_TIMEOUT, RESPONSE_HEADER_TIMEOUT, RESPONSE_TOO_LARGE,
                     CONNECTION_RESET, IO_FAILURE -> true;
-            case STREAM_IDLE_TIMEOUT, STREAM_DURATION_TIMEOUT, DNS_FAILURE,
-                    TLS_FAILURE, UNKNOWN -> false;
+            case STREAM_IDLE_TIMEOUT, STREAM_DURATION_TIMEOUT, CONNECTION_POOL_TIMEOUT,
+                    REQUEST_TOO_LARGE, DNS_FAILURE, TLS_FAILURE, UNKNOWN -> false;
         };
     }
 

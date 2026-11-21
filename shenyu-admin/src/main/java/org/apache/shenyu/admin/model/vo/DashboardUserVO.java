@@ -64,6 +64,11 @@ public class DashboardUserVO implements Serializable {
     private String clientId;
 
     /**
+     * token version used to revoke previously issued JWTs.
+     */
+    private Long tokenVersion;
+
+    /**
      * created time.
      */
     private String dateCreated;
@@ -203,6 +208,24 @@ public class DashboardUserVO implements Serializable {
     }
 
     /**
+     * Gets the value of tokenVersion.
+     *
+     * @return the value of tokenVersion
+     */
+    public Long getTokenVersion() {
+        return tokenVersion;
+    }
+
+    /**
+     * Sets the tokenVersion.
+     *
+     * @param tokenVersion tokenVersion
+     */
+    public void setTokenVersion(final Long tokenVersion) {
+        this.tokenVersion = tokenVersion;
+    }
+
+    /**
      * Gets the value of dateCreated.
      *
      * @return the value of dateCreated
@@ -246,10 +269,14 @@ public class DashboardUserVO implements Serializable {
      */
     public static DashboardUserVO buildDashboardUserVO(final DashboardUserDO dashboardUserDO) {
         return Optional.ofNullable(dashboardUserDO)
-                .map(item -> new DashboardUserVO(item.getId(), item.getUserName(),
-                        item.getPassword(), item.getRole(), item.getEnabled(), item.getClientId(),
-                        DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
-                        DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime())))
+                .map(item -> {
+                    DashboardUserVO dashboardUserVO = new DashboardUserVO(item.getId(), item.getUserName(),
+                            item.getPassword(), item.getRole(), item.getEnabled(), item.getClientId(),
+                            DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+                            DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()));
+                    dashboardUserVO.setTokenVersion(item.getTokenVersion());
+                    return dashboardUserVO;
+                })
                 .orElse(null);
     }
 
@@ -267,12 +294,13 @@ public class DashboardUserVO implements Serializable {
                 && Objects.equals(password, that.password)
                 && Objects.equals(role, that.role)
                 && Objects.equals(enabled, that.enabled)
+                && Objects.equals(tokenVersion, that.tokenVersion)
                 && Objects.equals(dateCreated, that.dateCreated)
                 && Objects.equals(dateUpdated, that.dateUpdated);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userName, password, role, enabled, dateCreated, dateUpdated);
+        return Objects.hash(id, userName, password, role, enabled, tokenVersion, dateCreated, dateUpdated);
     }
 }

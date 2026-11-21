@@ -64,6 +64,8 @@ class AiProxyRetryPolicyTest {
         "RESPONSE_HEADER_TIMEOUT, RETRY",
         "STREAM_IDLE_TIMEOUT, RETRY",
         "STREAM_DURATION_TIMEOUT, PROPAGATE_ERROR",
+        "CONNECTION_POOL_TIMEOUT, PROPAGATE_ERROR",
+        "REQUEST_TOO_LARGE, PROPAGATE_ERROR",
         "RESPONSE_TOO_LARGE, FALLBACK",
         "DNS_FAILURE, PROPAGATE_ERROR",
         "TLS_FAILURE, PROPAGATE_ERROR",
@@ -82,6 +84,8 @@ class AiProxyRetryPolicyTest {
         "RESPONSE_HEADER_TIMEOUT, FALLBACK",
         "STREAM_IDLE_TIMEOUT, PROPAGATE_ERROR",
         "STREAM_DURATION_TIMEOUT, PROPAGATE_ERROR",
+        "CONNECTION_POOL_TIMEOUT, PROPAGATE_ERROR",
+        "REQUEST_TOO_LARGE, PROPAGATE_ERROR",
         "RESPONSE_TOO_LARGE, FALLBACK",
         "DNS_FAILURE, PROPAGATE_ERROR",
         "TLS_FAILURE, PROPAGATE_ERROR",
@@ -92,6 +96,26 @@ class AiProxyRetryPolicyTest {
     void shouldApplyFallbackWhitelistAfterRetriesAreExhausted(final AiTransportException.Kind kind,
                                                               final AiProxyRetryPolicy.Decision expected) {
         assertEquals(expected, policy.decideTransport(transport(kind, 0, true, true)));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "CONNECT_TIMEOUT",
+        "RESPONSE_HEADER_TIMEOUT",
+        "STREAM_IDLE_TIMEOUT",
+        "STREAM_DURATION_TIMEOUT",
+        "CONNECTION_POOL_TIMEOUT",
+        "REQUEST_TOO_LARGE",
+        "RESPONSE_TOO_LARGE",
+        "DNS_FAILURE",
+        "TLS_FAILURE",
+        "CONNECTION_RESET",
+        "IO_FAILURE",
+        "UNKNOWN"
+    })
+    void shouldPropagateTransportFailureWithoutRetriesOrFallback(final AiTransportException.Kind kind) {
+        assertEquals(AiProxyRetryPolicy.Decision.PROPAGATE_ERROR,
+                policy.decideTransport(transport(kind, 0, false, true)));
     }
 
     @Test

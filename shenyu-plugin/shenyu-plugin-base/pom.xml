@@ -25,7 +25,17 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-base</artifactId>
 
+    <properties>
+        <json-schema-validator.version>2.0.0</json-schema-validator.version>
+    </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema-validator.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>

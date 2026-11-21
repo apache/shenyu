@@ -31,7 +31,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.model.vo.AppAuthVO;
+import org.apache.shenyu.admin.model.vo.AppAuthListVO;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.PageService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
@@ -52,7 +52,7 @@ import java.util.List;
  * this is application authority controller.
  */
 @RestApi("/appAuth")
-public class AppAuthController implements PagedController<AppAuthQuery, AppAuthVO> {
+public class AppAuthController implements PagedController<AppAuthQuery, AppAuthListVO> {
 
     private final AppAuthService appAuthService;
 
@@ -109,7 +109,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
         query.setAppKey(appKey);
         query.setPageParameter(new PageParameter(currentPage, pageSize));
         query.setNamespaceId(namespaceId);
-        CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
+        CommonPager<AppAuthListVO> commonPager = appAuthService.listByPage(query);
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -224,7 +224,7 @@ public class AppAuthController implements PagedController<AppAuthQuery, AppAuthV
     }
 
     @Override
-    public PageService<AppAuthQuery, AppAuthVO> pageService() {
+    public PageService<AppAuthQuery, AppAuthListVO> pageService() {
         return appAuthService;
     }
 }

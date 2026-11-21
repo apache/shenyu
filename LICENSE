@@ -216,3 +216,38 @@ The following components are provided under the Apache License. See project link
 The text of each license is the standard Apache 2.0 license.
 
     Maven Wrapper(mvnw, mvnw.cmd files in root path), https://github.com/apache/maven-wrapper  Apache 2.0
+
+========================================================================
+Generated WebAssembly test fixtures
+========================================================================
+
+The WASM API and WASM base test resources include guest binaries compiled
+from the adjacent ShenYu Rust, TinyGo and WAT sources. The TinyGo and Rust
+guests include third-party runtime code. These are test fixtures, not
+libraries in the admin or bootstrap binary distributions.
+
+TinyGo 0.41.1 and 0.43.0 runtime, Go standard-library portions, and LLVM
+runtime portions: see licenses/LICENSE-wasm-fixtures.txt for the copyright
+notices and full BSD, Apache 2.0 with LLVM exceptions, and NCSA terms.
+
+Rust 1.90.0 and 1.95.0 standard-library runtime and its dependencies:
+see licenses/LICENSE-rust-1.90.0-library.txt and
+licenses/LICENSE-rust-1.95.0-library.txt for the upstream copyright and
+license inventories. Apache 2.0 is chosen where Apache 2.0 or MIT is offered.
+The linked WASI C runtime and compiler-rt terms for the recorded WASI SDK 27
+and 30 builds are reproduced in licenses/LICENSE-wasi-runtime.txt.
+
+========================================================================
+Bundled dashboard assets
+========================================================================
+
+Source distributions that include shenyu-admin/src/main/resources/static
+also include the generated dashboard JavaScript and CSS. Their component
+declarations and third-party license texts are provided under
+shenyu-dist/shenyu-admin-dist/src/main/release-docs/LICENSE and its licenses
+directory.
+
+The Apollo shaded Maven artifacts also bundle dependency classes. Their
+additional license texts and notices are in licenses/LICENSE-apollo-shaded.txt
+and licenses/NOTICE-apollo-shaded.txt, and are included in those JARs' META-INF
+directories alongside the preserved upstream resources.

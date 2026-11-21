@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.common.enums;
 
-import java.util.Arrays;
 
 /**
  * The http scheme enum.
@@ -39,6 +38,12 @@ public enum HttpRetryBackoffSpecEnum {
      */
     EXPONENTIAL_BACKOFF("exponential");
 
+    /**
+     * Cached values: {@code values()} clones the array on every call, and this
+     * lookup runs on every retried proxied request (#8424).
+     */
+    private static final HttpRetryBackoffSpecEnum[] VALUES = values();
+
     private final String name;
 
 
@@ -51,9 +56,12 @@ public enum HttpRetryBackoffSpecEnum {
     }
 
     public static HttpRetryBackoffSpecEnum acquireByName(final String name) {
-        return Arrays.stream(HttpRetryBackoffSpecEnum.values())
-                .filter(e -> e.getName().equals(name)).findFirst()
-                .orElse(HttpRetryBackoffSpecEnum.DEFAULT_BACKOFF);
+        for (HttpRetryBackoffSpecEnum spec : VALUES) {
+            if (spec.getName().equals(name)) {
+                return spec;
+            }
+        }
+        return DEFAULT_BACKOFF;
     }
 
     public static String getDefault() {
