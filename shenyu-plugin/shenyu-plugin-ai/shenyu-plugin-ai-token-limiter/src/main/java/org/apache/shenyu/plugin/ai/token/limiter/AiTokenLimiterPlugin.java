@@ -65,7 +65,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.function.Consumer;
 
 /**
@@ -428,12 +427,6 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 } catch (Exception ignored) {
                     invalidate(AiUsage.Status.INVALID);
                 }
-            }
-
-            synchronized OptionalLong finish() {
-                AiUsage outcome = finishOutcome();
-                return outcome.status() == AiUsage.Status.REPORTED
-                        ? OptionalLong.of(outcome.completionTokens()) : OptionalLong.empty();
             }
 
             /**
