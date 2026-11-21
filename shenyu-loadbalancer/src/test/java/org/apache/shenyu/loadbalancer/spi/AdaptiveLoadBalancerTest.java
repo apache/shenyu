@@ -24,6 +24,7 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -360,6 +361,41 @@ class AdaptiveLoadBalancerTest {
                 "a backward clock must blend with the minimum interval, not amplify the new sample");
         assertEquals(2L, backward.statsOf(identity).samples(),
                 "out-of-order feedback must still count as a latency sample");
+    }
+
+    @Test
+    void weightIsSampledAtTheProvidedSelectionInstant() {
+        Upstream node = upstream("node:8080", 50);
+        long created = node.getTimestamp();
+
+        assertEquals(50, balancer.getWeight(node, created),
+                "at the creation instant the uptime is zero and the full weight applies");
+        assertEquals(1, balancer.getWeight(node, created + 1L),
+                "one millisecond later the warm-up ramp must apply at the sampled instant");
+        assertEquals(50, balancer.getWeight(node, created + 10 * 60 * 1000L),
+                "past the warm-up window the full weight returns");
+    }
+
+    @Test
+    void oneSelectionScoresBothCandidatesAtTheSameInstant() {
+        List<Long> instants = new ArrayList<>();
+        AdaptiveLoadBalancer sampling = new AdaptiveLoadBalancer() {
+            @Override
+            protected int getWeight(final Upstream upstream, final long nowMillis) {
+                instants.add(nowMillis);
+                return super.getWeight(upstream, nowMillis);
+            }
+        };
+        Upstream first = upstream("first:8080", 50);
+        Upstream second = upstream("second:8080", 50);
+        feed(sampling, first, AdaptiveOutcome.SUCCESS, 10L, 20);
+        feed(sampling, second, AdaptiveOutcome.SUCCESS, 50L, 20);
+
+        sampling.select(List.of(first, second), new LoadBalanceData());
+
+        assertEquals(2, instants.size(), "a warm comparison must weigh both candidates");
+        assertEquals(instants.get(0), instants.get(1),
+                "both candidates must be weighed at one selection instant, not two clock reads");
     }
 
     @Test

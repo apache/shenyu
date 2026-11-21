@@ -49,15 +49,28 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
     }
 
     protected int getWeight(final Upstream upstream) {
+        return getWeight(upstream, System.currentTimeMillis());
+    }
+
+    /**
+     * Warm-up adjusted weight sampled at a caller-provided instant, so one selection
+     * can compare every candidate on the same weight scale even when the millisecond
+     * clock ticks mid-comparison.
+     *
+     * @param upstream the candidate
+     * @param nowMillis the selection time
+     * @return the effective weight
+     */
+    protected int getWeight(final Upstream upstream, final long nowMillis) {
         if (!upstream.isStatus()) {
             return 0;
         }
-        return getWeight(upstream.getTimestamp(), upstream.getWarmup(), upstream.getWeight());
+        return getWeight(upstream.getTimestamp(), upstream.getWarmup(), upstream.getWeight(), nowMillis);
     }
 
-    private int getWeight(final long timestamp, final int warmup, final int weight) {
+    private int getWeight(final long timestamp, final int warmup, final int weight, final long nowMillis) {
         if (weight > 0 && timestamp > 0) {
-            long uptime = System.currentTimeMillis() - timestamp;
+            long uptime = nowMillis - timestamp;
             if (uptime > 0 && uptime < warmup) {
                 return calculateWarmupWeight((int) uptime, warmup, weight);
             }
