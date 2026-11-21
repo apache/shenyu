@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.token.limiter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiProtocolConversion;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -102,19 +103,20 @@ class AiTokenLimiterResponsesUsageTest {
     }
 
     private long recordedUsage(final boolean stream, final byte[] body) {
-        List<Long> recorded = new ArrayList<>();
+        List<AiUsage> recorded = new ArrayList<>();
         MockServerWebExchange exchange = exchange(stream);
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse observer = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
                 exchange, exchange.getResponse(), recorded::add);
         observer.writeWith(Flux.just(buffer(exchange, body))).block(TIMEOUT);
         assertEquals(1, recorded.size());
-        return recorded.get(0);
+        assertEquals(AiUsage.Status.REPORTED, recorded.get(0).status());
+        return recorded.get(0).completionTokens();
     }
 
     private byte[] forwarded(final boolean stream, final byte[] body) {
         MockServerWebExchange exchange = exchange(stream);
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse observer = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
-                exchange, exchange.getResponse(), tokens -> { });
+                exchange, exchange.getResponse(), usage -> { });
         observer.writeWith(Flux.just(buffer(exchange, body))).block(TIMEOUT);
         return DataBufferUtils.join(exchange.getResponse().getBody()).map(buffer -> {
             byte[] bytes = new byte[buffer.readableByteCount()];
