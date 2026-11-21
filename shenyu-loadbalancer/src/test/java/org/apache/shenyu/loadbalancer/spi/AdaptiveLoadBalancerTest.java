@@ -365,7 +365,16 @@ class AdaptiveLoadBalancerTest {
 
     @Test
     void weightIsSampledAtTheProvidedSelectionInstant() {
-        Upstream node = upstream("node:8080", 50);
+        // explicit warm-up: the shared helper disables it so selection comparisons
+        // stay weight-stable, while this test needs the ramp to probe the sampling
+        Upstream node = Upstream.builder()
+                .protocol("http://")
+                .url("node:8080")
+                .weight(50)
+                .status(true)
+                .timestamp(System.currentTimeMillis())
+                .warmup(10 * 60 * 1000)
+                .build();
         long created = node.getTimestamp();
 
         assertEquals(50, balancer.getWeight(node, created),
