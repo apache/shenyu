@@ -54,15 +54,26 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
         if (CollectionUtils.isEmpty(list)) {
             return getErrorPickResult();
         }
-        SubChannelCopy channel = pick(list);
+        SubChannelCopy channel = pick(list, args);
         return Objects.isNull(channel) ? getErrorPickResult() : LoadBalancer.PickResult.withSubchannel(channel.getChannel());
     }
 
     /**
-     * Choose subChannel.
+     * Choose subChannel using per-call arguments.
      *
      * @param list subChannel list
+     * @param args pick arguments
      * @return result subChannel
+     */
+    protected SubChannelCopy pick(final List<SubChannelCopy> list, final LoadBalancer.PickSubchannelArgs args) {
+        return pick(list);
+    }
+
+    /**
+     * Choose subChannel without per-call arguments.
+     *
+     * @param list subchannels
+     * @return selected subchannel
      */
     protected abstract SubChannelCopy pick(List<SubChannelCopy> list);
 

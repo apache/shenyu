@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.context;
 
+import io.grpc.CallOptions;
 import io.grpc.Context;
 
 /**
@@ -25,19 +26,19 @@ import io.grpc.Context;
 public interface GrpcConstants {
 
     /**
-     * grpc gray release selector id.
+     * grpc selector id carried with each call so delayed picks retain request context.
      */
-    Context.Key<String> GRPC_SELECTOR_ID = Context.key("grpcSelectorId");
+    CallOptions.Key<String> GRPC_SELECTOR_ID_OPTION = CallOptions.Key.create("grpcSelectorId");
 
     /**
-     * grpc gray release rule id.
+     * grpc rule id carried with each call so delayed picks retain request context.
      */
-    Context.Key<String> GRPC_RULE_ID = Context.key("grpcRuleId");
+    CallOptions.Key<String> GRPC_RULE_ID_OPTION = CallOptions.Key.create("grpcRuleId");
 
     /**
-     * grpc remote address.
+     * grpc remote address carried with each call so delayed picks retain request context.
      */
-    Context.Key<String> GRPC_REMOTE_ADDRESS = Context.key("grpcRemoteAddress");
+    CallOptions.Key<String> GRPC_REMOTE_ADDRESS_OPTION = CallOptions.Key.create("grpcRemoteAddress");
 
     /**
      * selectorCachedHandle.

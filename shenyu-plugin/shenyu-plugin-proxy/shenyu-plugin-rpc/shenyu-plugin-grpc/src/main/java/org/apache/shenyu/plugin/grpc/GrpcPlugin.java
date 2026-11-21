@@ -95,22 +95,25 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.GRPC_CLIENT_NULL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        // load balance context
-        Context.current().withValue(GrpcConstants.GRPC_SELECTOR_ID, selector.getId()).attach();
-        Context.current().withValue(GrpcConstants.GRPC_RULE_ID, rule.getId()).attach();
-        Context.current().withValue(GrpcConstants.GRPC_REMOTE_ADDRESS,
-                Optional.ofNullable(exchange.getRequest().getRemoteAddress())
-                        .map(InetSocketAddress::getAddress)
-                        .map(InetAddress::getHostAddress)
-                        .orElse(StringUtils.EMPTY)).attach();
-
         GrpcExtInfo extInfo = ApplicationConfigCache.getInstance().obtainGrpcExtInfo(metaData);
-        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.getTimeout(), TimeUnit.MILLISECONDS);
+        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.getTimeout(), TimeUnit.MILLISECONDS)
+                .withOption(GrpcConstants.GRPC_SELECTOR_ID_OPTION, StringUtils.defaultString(selector.getId()))
+                .withOption(GrpcConstants.GRPC_RULE_ID_OPTION, StringUtils.defaultString(rule.getId()))
+                .withOption(GrpcConstants.GRPC_REMOTE_ADDRESS_OPTION,
+                        Optional.ofNullable(exchange.getRequest().getRemoteAddress())
+                                .map(InetSocketAddress::getAddress)
+                                .map(InetAddress::getHostAddress)
+                                .orElse(StringUtils.EMPTY));
         Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
-        Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.GRPC.getName())).ifPresent(
-            context -> Context.current().withValue(RPC_CONTEXT_KEY, context).attach());
-        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.getMethodType());
-        Context.current().detach(Context.ROOT);
+        Map<String, String> grpcContext = Objects.isNull(rpcContext) ? null : rpcContext.get(PluginEnum.GRPC.getName());
+        Context callContext = Objects.isNull(grpcContext) ? Context.current() : Context.current().withValue(RPC_CONTEXT_KEY, grpcContext);
+        Context previousContext = callContext.attach();
+        CompletableFuture<ShenyuGrpcResponse> result;
+        try {
+            result = client.call(metaData, callOptions, param, extInfo.getMethodType());
+        } finally {
+            callContext.detach(previousContext);
+        }
 
         return Mono.fromFuture(result.thenApply(ret -> {
             exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
