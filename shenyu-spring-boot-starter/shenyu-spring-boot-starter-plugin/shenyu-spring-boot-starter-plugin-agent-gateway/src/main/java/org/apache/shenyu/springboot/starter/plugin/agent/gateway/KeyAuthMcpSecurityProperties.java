@@ -69,6 +69,8 @@ public class KeyAuthMcpSecurityProperties {
 
         private Set<String> toolDenials = Set.of();
 
+        private Set<String> resourceGrants = Set.of();
+
         public String getNamespaceId() {
             return namespaceId;
         }
@@ -115,6 +117,14 @@ public class KeyAuthMcpSecurityProperties {
 
         public void setToolGrants(final Set<String> toolGrants) {
             this.toolGrants = toolGrants;
+        }
+
+        public Set<String> getResourceGrants() {
+            return resourceGrants;
+        }
+
+        public void setResourceGrants(final Set<String> resourceGrants) {
+            this.resourceGrants = resourceGrants;
         }
 
         public Set<String> getToolDenials() {

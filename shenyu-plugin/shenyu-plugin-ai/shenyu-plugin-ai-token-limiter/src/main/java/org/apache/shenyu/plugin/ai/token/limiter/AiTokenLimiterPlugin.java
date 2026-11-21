@@ -259,7 +259,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             return Objects.nonNull(contentType) && MediaType.TEXT_EVENT_STREAM.isCompatibleWith(contentType);
         }
 
-        private GzipStreamDecoder createDecoder() {
+        // Package-visible so tests can substitute a decoder and verify its lifecycle.
+        GzipStreamDecoder createDecoder() {
             HttpHeaders headers = serverHttpResponse.getHeaders();
             boolean isGzip = headers.containsKey(Constants.CONTENT_ENCODING)
                     && headers.getFirst(Constants.CONTENT_ENCODING)
@@ -278,9 +279,16 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                                 byte[] inBytes = new byte[ro.remaining()];
                                 ro.get(inBytes);
 
-                                byte[] processedBytes = Objects.nonNull(decoder) ? decoder.decode(inBytes) : inBytes;
-                                if (processedBytes.length > 0) {
-                                    extractor.accept(processedBytes);
+                                if (Objects.nonNull(decoder)) {
+                                    // Push bounded slices straight into the extractor; once its budget
+                                    // is exhausted the decoder stops inflating, and later chunks skip
+                                    // decompression entirely. Forwarded bytes are untouched either way.
+                                    decoder.decode(inBytes, slice -> {
+                                        extractor.accept(slice);
+                                        return extractor.isActive();
+                                    });
+                                } else {
+                                    extractor.accept(inBytes);
                                 }
                             });
                         } catch (Exception e) {
@@ -352,6 +360,10 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
             ResponseUsageExtractor(final boolean eventStream) {
                 this.eventStream = eventStream;
+            }
+
+            synchronized boolean isActive() {
+                return !stopped && !invalid && !finished;
             }
 
             synchronized void accept(final byte[] bytes) {
