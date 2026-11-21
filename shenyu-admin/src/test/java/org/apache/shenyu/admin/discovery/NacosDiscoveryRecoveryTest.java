@@ -38,6 +38,7 @@ import org.apache.shenyu.admin.model.entity.DiscoveryUpstreamDO;
 import org.apache.shenyu.admin.model.entity.ProxySelectorDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.DiscoveryServiceImpl;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -153,7 +154,8 @@ class NacosDiscoveryRecoveryTest {
             when(handlerMapper.selectBySelectorId("selector-id")).thenReturn(handler);
         }
         DiscoveryServiceImpl service = new DiscoveryServiceImpl(discoveryMapper, proxyMapper, mock(DiscoveryRelMapper.class),
-                handlerMapper, mock(SelectorService.class), selectorMapper, holder, mock(PlatformTransactionManager.class));
+                handlerMapper, mock(SelectorService.class), selectorMapper, holder,
+                mock(RegistrationFencingGuard.class), mock(PlatformTransactionManager.class));
 
         assertFalse(processor.getShenyuDiscoveryService(discovery.getId()).serviceExists(SERVICE));
         assertDoesNotThrow(() -> service.syncData());

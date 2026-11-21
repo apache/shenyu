@@ -32,15 +32,19 @@ import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.impl.DataPermissionServiceImpl;
+import org.apache.shenyu.admin.utils.SessionUtil;
+import org.apache.shenyu.common.constant.AdminConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,9 +52,12 @@ import java.util.List;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test cases for DataPermissionService.
@@ -84,6 +91,7 @@ public final class DataPermissionServiceTest {
         dataPermissionDTO.setId("1");
         dataPermissionDTO.setUserId("1001");
         dataPermissionDTO.setDataId("1");
+        dataPermissionDTO.setDataType(AdminConstants.SELECTOR_DATA_TYPE);
         dataPermissionDTO.setIsSelected(true);
         selectorDTO = new SelectorDTO("1", "1", "test", 1, 1, 1, true, false, true, "test", null, false, null, null);
     }
@@ -101,6 +109,70 @@ public final class DataPermissionServiceTest {
         given(dataPermissionMapper.listByUserId("1001")).willReturn(list);
         List<String> target = Collections.singletonList("1");
         assertThat(dataPermissionService.getDataPermission("1001"), is(target));
+    }
+
+    @Test
+    public void assertGetDataScopeForAdministrator() {
+        try (MockedStatic<SessionUtil> session = mockStatic(SessionUtil.class)) {
+            session.when(SessionUtil::isAdmin).thenReturn(true);
+            session.when(SessionUtil::visitorId).thenReturn("1001");
+            DataPermissionScope scope = dataPermissionService.getDataScope("1001", AdminConstants.SELECTOR_DATA_TYPE);
+            assertTrue(scope.isUnrestricted());
+            assertFalse(scope.isNone());
+        }
+    }
+
+    @Test
+    public void assertGetDataScopeForUserWithoutGrants() {
+        try (MockedStatic<SessionUtil> session = mockStatic(SessionUtil.class)) {
+            session.when(SessionUtil::isAdmin).thenReturn(false);
+            given(dataPermissionMapper.listByUserId("1001")).willReturn(Collections.emptyList());
+            DataPermissionScope scope = dataPermissionService.getDataScope("1001", AdminConstants.SELECTOR_DATA_TYPE);
+            assertFalse(scope.isUnrestricted());
+            assertTrue(scope.isNone());
+            assertTrue(scope.getDataIds().isEmpty());
+        }
+    }
+
+    @Test
+    public void assertGetDataScopeForUserWithGrants() {
+        try (MockedStatic<SessionUtil> session = mockStatic(SessionUtil.class)) {
+            session.when(SessionUtil::isAdmin).thenReturn(false);
+            given(dataPermissionMapper.listByUserId("1001"))
+                    .willReturn(Collections.singletonList(DataPermissionDO.buildPermissionDO(dataPermissionDTO)));
+            DataPermissionScope scope = dataPermissionService.getDataScope("1001", AdminConstants.SELECTOR_DATA_TYPE);
+            assertFalse(scope.isUnrestricted());
+            assertFalse(scope.isNone());
+            assertThat(scope.getDataIds(), is(Collections.singletonList("1")));
+        }
+    }
+
+    @Test
+    public void assertGetDataScopeFiltersByDataType() {
+        try (MockedStatic<SessionUtil> session = mockStatic(SessionUtil.class)) {
+            session.when(SessionUtil::isAdmin).thenReturn(false);
+            DataPermissionDO selectorGrant = DataPermissionDO.builder()
+                    .userId("1001").dataId("selector-1").dataType(AdminConstants.SELECTOR_DATA_TYPE).build();
+            DataPermissionDO ruleGrant = DataPermissionDO.builder()
+                    .userId("1001").dataId("rule-1").dataType(AdminConstants.RULE_DATA_TYPE).build();
+            given(dataPermissionMapper.listByUserId("1001")).willReturn(Arrays.asList(selectorGrant, ruleGrant));
+
+            DataPermissionScope scope = dataPermissionService.getDataScope("1001", AdminConstants.SELECTOR_DATA_TYPE);
+            assertThat(scope.getDataIds(), is(Collections.singletonList("selector-1")));
+        }
+    }
+
+    @Test
+    public void assertGetDataScopeDoesNotTrustAdminFlagForAnotherUser() {
+        try (MockedStatic<SessionUtil> session = mockStatic(SessionUtil.class)) {
+            session.when(SessionUtil::isAdmin).thenReturn(true);
+            session.when(SessionUtil::visitorId).thenReturn("another-user");
+            given(dataPermissionMapper.listByUserId("1001")).willReturn(Collections.emptyList());
+
+            DataPermissionScope scope = dataPermissionService.getDataScope("1001", AdminConstants.SELECTOR_DATA_TYPE);
+            assertFalse(scope.isUnrestricted());
+            assertTrue(scope.isNone());
+        }
     }
 
     @Test

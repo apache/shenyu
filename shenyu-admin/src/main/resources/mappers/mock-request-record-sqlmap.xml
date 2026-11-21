@@ -87,6 +87,7 @@
               and <include refid="Header_Equals"><property name="headerProperty" value="header"/></include>
             </if>
         </where>
+        ORDER BY date_updated DESC, id DESC
     </select>
 
     <select id="queryAll" resultMap="MockRequestRecordMap">

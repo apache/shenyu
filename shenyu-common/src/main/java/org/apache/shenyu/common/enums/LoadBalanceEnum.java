@@ -50,7 +50,14 @@ public enum LoadBalanceEnum {
     /**
      * shortest response load balance enum.
      */
-    SHORTEST_RESPONSE(6, "shortestResponse", true);
+    SHORTEST_RESPONSE(6, "shortestResponse", true),
+
+    /**
+     * adaptive scoring load balance enum (#8300): opt-in score-based selection on top
+     * of the p2c pairing, using per-upstream latency, in-flight work and classified
+     * outcomes.
+     */
+    ADAPTIVE(7, "adaptive", true);
 
     private final int code;
 

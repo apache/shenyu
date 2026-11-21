@@ -42,7 +42,7 @@ class AiRequestTransformerTemplateTest {
         String userContent = "Test user content";
         AiRequestTransformerTemplate template = new AiRequestTransformerTemplate(userContent, request);
 
-        Mono<String> result = template.assembleMessage();
+        Mono<String> result = template.assembleMessage(jsonBody);
 
         StepVerifier.create(result)
                 .assertNext(message -> {
@@ -65,7 +65,7 @@ class AiRequestTransformerTemplateTest {
 
         AiRequestTransformerTemplate template = new AiRequestTransformerTemplate(userContent, request);
 
-        Mono<String> result = template.assembleMessage();
+        Mono<String> result = template.assembleMessage(formBody);
 
         StepVerifier.create(result)
                 .assertNext(message -> {
@@ -87,7 +87,7 @@ class AiRequestTransformerTemplateTest {
                 .body("");
         AiRequestTransformerTemplate template = new AiRequestTransformerTemplate(userContent, request);
 
-        Mono<String> result = template.assembleMessage();
+        Mono<String> result = template.assembleMessage("");
 
         StepVerifier.create(result)
                 .assertNext(message -> {
@@ -109,7 +109,7 @@ class AiRequestTransformerTemplateTest {
 
         AiRequestTransformerTemplate template = new AiRequestTransformerTemplate(userContent, request);
 
-        Mono<String> result = template.assembleMessage();
+        Mono<String> result = template.assembleMessage("");
 
         StepVerifier.create(result)
                 .assertNext(message -> {

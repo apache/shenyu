@@ -18,12 +18,16 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.shenyu.admin.exception.ShenyuAdminException;
+import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.AppAuthRequestMapper;
 import org.apache.shenyu.authtest.AppAuthTestSupport;
 import org.apache.shenyu.admin.model.dto.AppAuthApplyRequestDTO;
 import org.apache.shenyu.admin.model.dto.AppAuthRevokeRequestDTO;
 import org.apache.shenyu.admin.model.dto.AppAuthReplacePathsRequestDTO;
 import org.apache.shenyu.admin.model.vo.AppAuthResultVO;
+import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.AuthParamData;
+import org.apache.shenyu.common.dto.AuthPathData;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -175,6 +179,32 @@ class AppAuthReplacePathsTest {
         assertThrows(ShenyuAdminException.class, () ->
                 txService.replacePaths("svc-a", replaceRequest(second.getId(), List.of("/api/x"))));
         assertEquals(2, pathCount());
+    }
+
+    @Test
+    void replacementPublishesTheExistingApplicationParameters() {
+        final AppAuthApplyRequestDTO request = new AppAuthApplyRequestDTO();
+        request.setNamespaceId("ns-demo");
+        request.setRequestId("req-params");
+        request.setAppName("demo-app");
+        request.setAppParam("tenant-context");
+        request.setUserId("10001");
+        request.setPathList(List.of("/api/old1"));
+        final AppAuthResultVO created = txService.apply("svc-a", request, "hash-params");
+        AppAuthTestSupport.TxConfig.PUBLISHED_EVENTS.clear();
+
+        txService.replacePaths("svc-a", replaceRequest(created.getId(), List.of("/api/new1")));
+
+        final AppAuthData data = AppAuthTestSupport.TxConfig.PUBLISHED_EVENTS.stream()
+                .map(DataChangedEvent.class::cast)
+                .flatMap(event -> event.getSource().stream())
+                .map(AppAuthData.class::cast)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("replacePaths must publish an UPDATE sync"));
+        assertEquals(List.of(new AuthParamData("demo-app", "tenant-context")), data.getParamDataList(),
+                "the gateway Sign subscriber replaces the whole cached auth, so the parameters must be in the payload");
+        assertEquals(List.of("/api/new1"),
+                data.getPathDataList().stream().map(AuthPathData::getPath).collect(java.util.stream.Collectors.toList()));
     }
 
     @Test

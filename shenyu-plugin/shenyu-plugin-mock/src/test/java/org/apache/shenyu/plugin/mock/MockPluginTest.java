@@ -21,6 +21,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.MockHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mock.handler.MockPluginHandler;
@@ -29,6 +30,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -37,8 +41,12 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -111,6 +119,24 @@ public final class MockPluginTest {
         verify(chain, never()).execute(any());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"$5", "C:\\temp\\file", "say \"hello\"", "first\nsecond"})
+    public void testGeneratedResponsePreservesJsonEscapes(final String value) {
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/mock").queryParam("value", value).build());
+        RuleData ruleData = buildRuleData();
+        MockHandle mockHandle = new MockHandle();
+        mockHandle.setResponseContent("{\"value\":${expression|#req.queries['value']}}");
+        MockPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
+
+        StepVerifier.create(mockPlugin.doExecute(exchange, chain, mock(SelectorData.class), ruleData)).verifyComplete();
+
+        String expected = "{\"value\":" + JsonUtils.toJson(value) + "}";
+        assertEquals(expected, exchange.getResponse().getBodyAsString().block());
+        assertEquals(expected.getBytes(StandardCharsets.UTF_8).length, exchange.getResponse().getHeaders().getContentLength());
+        assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
+        verify(chain, never()).execute(any());
+    }
+
     @Test
     public void testDoExecuteWithoutCachedHandle() {
         RuleData ruleData = buildRuleData();
@@ -121,6 +147,24 @@ public final class MockPluginTest {
                 .verifyComplete();
 
         verify(chain).execute(any());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0, 2147483647", "2147483647, 2147483647", "0, 0", "10, 15"})
+    public void testIntegerResponseSupportsInclusiveBounds(final int min, final int max) {
+        RuleData ruleData = buildRuleData();
+        MockHandle mockHandle = new MockHandle();
+        mockHandle.setResponseContent(String.format("${int|%d-%d}", min, max));
+        MockPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
+
+        StepVerifier.create(mockPlugin.doExecute(exchange, chain, mock(SelectorData.class), ruleData)).verifyComplete();
+
+        String body = exchange.getResponse().getBodyAsString().block();
+        int value = Integer.parseInt(body);
+        assertTrue(value >= min && value <= max);
+        assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
+        assertEquals(body.getBytes(StandardCharsets.UTF_8).length, exchange.getResponse().getHeaders().getContentLength());
+        verify(chain, never()).execute(any());
     }
 
     @Test

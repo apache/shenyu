@@ -48,6 +48,15 @@ public class ScalePolicyCache {
     }
 
     /**
+     * Remove a policy that no longer exists in storage.
+     *
+     * @param id the policy id
+     */
+    public void removePolicy(final String id) {
+        cache.remove(id);
+    }
+
+    /**
      * get all policies.
      *
      * @return List

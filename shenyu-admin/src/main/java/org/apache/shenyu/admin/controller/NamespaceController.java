@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
+import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,6 +94,7 @@ public class NamespaceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/insertOrUpdate")
+    @RequiresPermissions(value = {"system:namespace:add", "system:namespace:edit"}, logical = Logical.OR)
     public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final NamespaceDTO namespaceDTO) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, namespaceService.createOrUpdate(namespaceDTO));
     }
@@ -104,6 +106,7 @@ public class NamespaceController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
+    @RequiresPermissions("system:namespace:delete")
     public ShenyuAdminResult delete(@RequestBody @NotEmpty final List<@NotBlank String> ids) {
         return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, namespaceService.delete(ids));
     }

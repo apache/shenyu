@@ -28,8 +28,9 @@ on:
       - '.github/workflows/codeql-analysis.yml'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Give every non-PR run its own group, including runs still waiting for a runner.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   analyze:
@@ -53,16 +54,7 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-
-      - name: Restore ShenYu Maven Repos
-        if: github.event_name != 'pull_request'
-        id: restore-maven-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          cache: maven
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

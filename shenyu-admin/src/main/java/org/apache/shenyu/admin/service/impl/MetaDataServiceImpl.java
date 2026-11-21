@@ -42,6 +42,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.ListUtil;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,6 +66,10 @@ import java.util.stream.Collectors;
 public class MetaDataServiceImpl implements MetaDataService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetaDataServiceImpl.class);
+
+    private static final String CREATE_PERMISSION = "system:meta:add";
+
+    private static final String UPDATE_PERMISSION = "system:meta:edit";
 
     private final MetaDataMapper metaDataMapper;
 
@@ -93,6 +98,8 @@ public class MetaDataServiceImpl implements MetaDataService {
             eventType = DataEventTypeEnum.CREATE;
         } else {
             metaDataDO.setId(exist.getId());
+            // the update sql keeps the stored enabled status, so the event must carry it too
+            metaDataDO.setEnabled(exist.getEnabled());
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
@@ -104,7 +111,9 @@ public class MetaDataServiceImpl implements MetaDataService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
-        if (StringUtils.isBlank(metaDataDTO.getId())) {
+        final boolean create = StringUtils.isBlank(metaDataDTO.getId());
+        SecurityUtils.getSubject().checkPermission(create ? CREATE_PERMISSION : UPDATE_PERMISSION);
+        if (create) {
             create(metaDataDTO);
             return ShenyuResultMessage.CREATE_SUCCESS;
         }
@@ -319,23 +328,30 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));
         metaDataDO.setPathDesc(Optional.ofNullable(metaDataDO.getPathDesc()).orElse(""));
         final MetaDataDO before = metaDataMapper.selectById(metaDataDO.getId());
+        final List<MetaData> changedMetaData = new LinkedList<>();
         if (metaDataMapper.update(metaDataDO) > 0) {
             publisher.onUpdated(metaDataDO, before);
+            changedMetaData.add(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO));
             // update other rpc_ext for the same service
             final List<MetaDataDO> befores = Optional.ofNullable(metaDataMapper.findByServiceNameAndMethodAndNamespaceId(
                     metaDataDO.getServiceName(), null, metaDataDO.getNamespaceId())).orElseGet(LinkedList::new);
             for (MetaDataDO b : befores) {
+                if (Objects.equals(b.getId(), metaDataDO.getId()) || Objects.equals(b.getRpcExt(), metaDataDTO.getRpcExt())) {
+                    continue;
+                }
                 MetaDataDO update = MetaDataTransfer.INSTANCE.copy(b);
                 update.setRpcExt(metaDataDTO.getRpcExt());
                 if (metaDataMapper.update(update) > 0) {
                     publisher.onUpdated(update, b);
+                    changedMetaData.add(MetaDataTransfer.INSTANCE.mapToData(update));
                 }
             }
         }
 
-        // publish AppAuthData's update event
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
+        // publish MetaData's update event, including sibling methods whose rpc_ext changed
+        if (!changedMetaData.isEmpty()) {
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.UPDATE, changedMetaData));
+        }
         return ShenyuResultMessage.UPDATE_SUCCESS;
     }
 

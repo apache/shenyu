@@ -27,6 +27,12 @@
     <artifactId>shenyu-admin-listener-etcd</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>test</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>

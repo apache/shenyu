@@ -28,6 +28,7 @@ import java.sql.Timestamp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * test cast for {@link AlertTransfer}.
@@ -42,6 +43,7 @@ public final class AlertTransferTest {
     public void setUp() {
         alertReceiverDTO = new AlertReceiverDTO();
         alertReceiverDTO.setId("123");
+        alertReceiverDTO.setNamespaceId("namespace-test");
         alertReceiverDTO.setName("123");
         alertReceiverDTO.setAccessToken("123");
         alertReceiverDTO.setAgentId("123");
@@ -72,6 +74,7 @@ public final class AlertTransferTest {
 
         alertReceiverDO = new AlertReceiverDO();
         alertReceiverDO.setId("123");
+        alertReceiverDO.setNamespaceId("namespace-test");
         alertReceiverDO.setName("123");
         alertReceiverDO.setAccessToken("123");
         alertReceiverDO.setAgentId("123");
@@ -105,6 +108,7 @@ public final class AlertTransferTest {
         AlertReceiverDO entity = AlertTransfer.INSTANCE.mapToAlertReceiverDO(alertReceiverDTO);
         assertNotNull(entity);
         assertEquals(entity.getId(), alertReceiverDTO.getId());
+        assertEquals("namespace-test", entity.getNamespaceId());
         assertEquals(entity.getName(), alertReceiverDTO.getName());
         assertEquals(entity.getAccessToken(), alertReceiverDTO.getAccessToken());
         assertEquals(entity.getAgentId(), alertReceiverDTO.getAgentId());
@@ -114,7 +118,7 @@ public final class AlertTransferTest {
         assertEquals(entity.getDiscordChannelId(), alertReceiverDTO.getDiscordChannelId());
         assertEquals(entity.getEmail(), alertReceiverDTO.getEmail());
         assertEquals(entity.getWechatId(), alertReceiverDTO.getWechatId());
-        assertEquals(entity.isEnable(), alertReceiverDTO.isEnable());
+        assertEquals(entity.getEnable(), alertReceiverDTO.getEnable());
         assertEquals(entity.getHookUrl(), alertReceiverDTO.getHookUrl());
         assertEquals(entity.getType(), alertReceiverDTO.getType());
         assertEquals(entity.getLabels(), alertReceiverDTO.getLabels());
@@ -127,7 +131,7 @@ public final class AlertTransferTest {
         assertEquals(entity.getSmnTopicUrn(), alertReceiverDTO.getSmnTopicUrn());
         assertEquals(entity.getSmnRegion(), alertReceiverDTO.getSmnRegion());
         assertEquals(entity.getPhone(), alertReceiverDTO.getPhone());
-        assertEquals(entity.isMatchAll(), alertReceiverDTO.isMatchAll());
+        assertEquals(entity.getMatchAll(), alertReceiverDTO.getMatchAll());
         assertEquals(entity.getSlackWebHookUrl(), alertReceiverDTO.getSlackWebHookUrl());
         assertEquals(entity.getDateCreated(), alertReceiverDTO.getDateCreated());
         assertEquals(entity.getDateUpdated(), alertReceiverDTO.getDateUpdated());
@@ -138,6 +142,7 @@ public final class AlertTransferTest {
         AlertReceiverDTO dto = AlertTransfer.INSTANCE.mapToAlertReceiverDTO(alertReceiverDO);
         assertNotNull(dto);
         assertEquals(dto.getId(), alertReceiverDO.getId());
+        assertEquals("namespace-test", dto.getNamespaceId());
         assertEquals(dto.getName(), alertReceiverDO.getName());
         assertEquals(dto.getAccessToken(), alertReceiverDO.getAccessToken());
         assertEquals(dto.getAgentId(), alertReceiverDO.getAgentId());
@@ -147,7 +152,7 @@ public final class AlertTransferTest {
         assertEquals(dto.getDiscordChannelId(), alertReceiverDO.getDiscordChannelId());
         assertEquals(dto.getEmail(), alertReceiverDO.getEmail());
         assertEquals(dto.getWechatId(), alertReceiverDO.getWechatId());
-        assertEquals(dto.isEnable(), alertReceiverDO.isEnable());
+        assertEquals(dto.getEnable(), alertReceiverDO.getEnable());
         assertEquals(dto.getHookUrl(), alertReceiverDO.getHookUrl());
         assertEquals(dto.getType(), alertReceiverDO.getType());
         assertEquals(dto.getLabels(), alertReceiverDO.getLabels());
@@ -160,9 +165,21 @@ public final class AlertTransferTest {
         assertEquals(dto.getSmnTopicUrn(), alertReceiverDO.getSmnTopicUrn());
         assertEquals(dto.getSmnRegion(), alertReceiverDO.getSmnRegion());
         assertEquals(dto.getPhone(), alertReceiverDO.getPhone());
-        assertEquals(dto.isMatchAll(), alertReceiverDO.isMatchAll());
+        assertEquals(dto.getMatchAll(), alertReceiverDO.getMatchAll());
         assertEquals(dto.getSlackWebHookUrl(), alertReceiverDO.getSlackWebHookUrl());
         assertEquals(dto.getDateCreated(), alertReceiverDO.getDateCreated());
         assertEquals(dto.getDateUpdated(), alertReceiverDO.getDateUpdated());
+    }
+
+    @Test
+    void testMapNullBooleanValues() {
+        AlertReceiverDTO dto = new AlertReceiverDTO();
+        AlertReceiverDO entity = AlertTransfer.INSTANCE.mapToAlertReceiverDO(dto);
+        assertNull(entity.getEnable());
+        assertNull(entity.getMatchAll());
+
+        AlertReceiverDTO mappedDto = AlertTransfer.INSTANCE.mapToAlertReceiverDTO(entity);
+        assertNull(mappedDto.getEnable());
+        assertNull(mappedDto.getMatchAll());
     }
 }

@@ -20,12 +20,19 @@ package org.apache.shenyu.admin.controller;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.executable.ExecutableValidator;
+import org.apache.shenyu.admin.model.dto.NamespaceDTO;
+import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test cases for NamespaceController.
@@ -41,5 +48,22 @@ public final class NamespaceControllerTest {
 
         assertFalse(executableValidator.validateParameters(controller, method,
                 new Object[]{Collections.emptyList()}).isEmpty());
+    }
+
+    @Test
+    public void testMutationsRequireActionPermissions() throws NoSuchMethodException {
+        final RequiresPermissions createOrUpdate = NamespaceController.class
+                .getMethod("createOrUpdate", NamespaceDTO.class)
+                .getDeclaredAnnotation(RequiresPermissions.class);
+        assertNotNull(createOrUpdate, "createOrUpdate should declare @RequiresPermissions");
+        assertArrayEquals(new String[]{"system:namespace:add", "system:namespace:edit"}, createOrUpdate.value());
+        assertEquals(Logical.OR, createOrUpdate.logical(),
+                "the shared create/update endpoint accepts either action permission");
+
+        final RequiresPermissions delete = NamespaceController.class
+                .getMethod("delete", List.class)
+                .getDeclaredAnnotation(RequiresPermissions.class);
+        assertNotNull(delete, "delete should declare @RequiresPermissions");
+        assertArrayEquals(new String[]{"system:namespace:delete"}, delete.value());
     }
 }

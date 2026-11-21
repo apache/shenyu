@@ -34,3 +34,15 @@ Licensing
 ===============================================================================
 
 This software is licensed under the terms you may find in the file named "LICENSE" in this directory.
+
+This convenience binary includes unmodified third-party libraries under terms
+that differ from Apache 2.0, including Logback (EPL 1.0, https://logback.qos.ch/),
+GlassFish JSON APIs and Parsson (EPL 2.0, https://github.com/eclipse-ee4j/), and
+Java annotation APIs (CDDL, https://github.com/javaee/common-annotations-spec).
+Snappy JNI includes a statically linked GCC runtime under GPL 3.0 with the GCC
+Runtime Library Exception 3.1 (https://www.gnu.org/licenses/gcc-exception-3.1.html).
+The LICENSE file identifies exact components and versions; full terms and
+copyright notices, including native compression libraries, are in the licenses
+directory. Source is available from the linked upstream projects and Maven
+Central source artifacts. These libraries are not included as source code in
+the ShenYu source distribution.

@@ -60,6 +60,11 @@ public class HttpSyncProperties {
     private int cacheRebuildThreads = 1;
 
     /**
+     * The heartbeat interval in milliseconds for liveness refresh during long-polling holds, default: 10000ms.
+     */
+    private long heartbeatInterval = 10000L;
+
+    /**
      * Get the fixed coalescing window.
      *
      * @return cache rebuild window
@@ -176,5 +181,23 @@ public class HttpSyncProperties {
      */
     public void setNotifyBatchSize(final int notifyBatchSize) {
         this.notifyBatchSize = notifyBatchSize;
+    }
+
+    /**
+     * Gets the value of heartbeatInterval.
+     *
+     * @return the value of heartbeatInterval
+     */
+    public long getHeartbeatInterval() {
+        return heartbeatInterval;
+    }
+
+    /**
+     * Sets the heartbeatInterval.
+     *
+     * @param heartbeatInterval heartbeatInterval
+     */
+    public void setHeartbeatInterval(final long heartbeatInterval) {
+        this.heartbeatInterval = heartbeatInterval;
     }
 }

@@ -41,7 +41,8 @@ cp "$api/rust-wasm-plugin/target/wasm32-wasip1/release/rust_wasm_plugin.wasm" \
 make -C shenyu-plugin/shenyu-plugin-wasm-api/src/test/go-wasm-plugin build
 ```
 
-This uses TinyGo `-target wasm-unknown -opt=2 -no-debug -panic=trap`. The exact
-Rust/TinyGo compiler versions used for the older checked-in binaries were not
-recorded. Run both module suites using the command in the WASM base README after
-rebuilding.
+This uses TinyGo `-target wasm-unknown -opt=2 -no-debug -panic=trap`. The checked-in
+API fixtures identify TinyGo 0.41.1 and Rust 1.95.0 in their WebAssembly
+`producers` sections. Runtime copyright and license texts are included in the
+repository's root `licenses` directory and referenced by the root `LICENSE`.
+Run both module suites using the command in the WASM base README after rebuilding.

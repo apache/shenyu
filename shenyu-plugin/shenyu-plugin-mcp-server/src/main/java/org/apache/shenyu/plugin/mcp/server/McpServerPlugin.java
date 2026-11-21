@@ -382,7 +382,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                 = shenyuMcpServerManager.getOrCreateMcpServerTransport(serverPath, messageEndpoint);
 
         if (uri.endsWith(messageEndpoint)) {
-            setupSessionContext(exchange, chain);
+            setupSseSessionContext(exchange, chain, transportProvider);
             return handleMessageEndpoint(exchange, transportProvider, request);
         } else {
             return handleSseEndpoint(exchange, transportProvider, request);
@@ -402,6 +402,15 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
             exchange.getAttributes().put(Constants.CHAIN, chain);
             ShenyuMcpExchangeHolder.put(sessionId, exchange);
             LOG.debug("Set up session context for sessionId: {}", sessionId);
+        }
+    }
+
+    private void setupSseSessionContext(final ServerWebExchange exchange,
+                                        final ShenyuPluginChain chain,
+                                        final ShenyuSseServerTransportProvider transportProvider) {
+        final String sessionId = extractSessionId(exchange);
+        if (Objects.nonNull(sessionId) && transportProvider.hasSession(sessionId)) {
+            setupSessionContext(exchange, chain);
         }
     }
 

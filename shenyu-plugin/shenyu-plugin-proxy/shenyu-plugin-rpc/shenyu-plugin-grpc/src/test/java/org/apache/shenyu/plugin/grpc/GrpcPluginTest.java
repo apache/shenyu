@@ -17,8 +17,13 @@
 
 package org.apache.shenyu.plugin.grpc;
 
+import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
+import io.grpc.ClientCall;
+import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -58,11 +63,13 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +108,49 @@ public class GrpcPluginTest {
     public void testDoExecute() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         ServerWebExchange exchange = getServerWebExchange(new InetSocketAddress("127.0.0.1", 8090));
         executeRequest(exchange, "127.0.0.1", getMetaData(), MethodDescriptor.MethodType.SERVER_STREAMING);
+    }
+
+    @Test
+    public void testCancellationPropagatesToOriginalClientResult()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{message:1}");
+        MetaData metaData = getMetaData();
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
+        CompletableFuture<ShenyuGrpcResponse> result = new CompletableFuture<>();
+        ShenyuGrpcClient mockClient = mock(ShenyuGrpcClient.class);
+        when(mockClient.call(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(result);
+        Class<?> grpcClientCacheClass = Class.forName("org.apache.shenyu.plugin.grpc.cache.GrpcClientCache");
+        Field grpcClientCacheField = grpcClientCacheClass.getDeclaredField("CLIENT_CACHE");
+        grpcClientCacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, ShenyuGrpcClient> clientCacheMap = (Map<String, ShenyuGrpcClient>) grpcClientCacheField.get(grpcClientCacheClass);
+        clientCacheMap.put("grpcId", mockClient);
+        when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
+        RuleData data = mock(RuleData.class);
+
+        reactor.core.Disposable subscription = grpcPlugin.doExecute(exchange, chain, selector, data).subscribe();
+        subscription.dispose();
+
+        assertTrue(result.isCancelled());
+    }
+
+    @Test
+    public void testCancellationReachesRealTransport()
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        ServerWebExchange exchange = getServerWebExchange();
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"data\":[{\"message\":1}]}");
+        exchange.getAttributes().put(Constants.META_DATA, getMetaData());
+        RecordingCall call = new RecordingCall();
+        ManagedChannel channel = mock(ManagedChannel.class);
+        Mockito.doReturn(call).when(channel).newCall(Mockito.any(), Mockito.any());
+        putClient(new ShenyuGrpcClient(channel));
+        when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
+        RuleData data = mock(RuleData.class);
+
+        StepVerifier.create(grpcPlugin.doExecute(exchange, chain, selector, data)).thenCancel().verify();
+
+        assertEquals(1, call.cancellations.get());
     }
 
     @Test
@@ -217,6 +267,17 @@ public class GrpcPluginTest {
         assertFalse(result);
     }
 
+    @SuppressWarnings("unchecked")
+    private void putClient(final ShenyuGrpcClient client)
+            throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        Class<?> grpcClientCacheClass = Class.forName("org.apache.shenyu.plugin.grpc.cache.GrpcClientCache");
+        Field clientCacheField = grpcClientCacheClass.getDeclaredField("CLIENT_CACHE");
+        clientCacheField.setAccessible(true);
+        Map<String, ShenyuGrpcClient> clientCacheMap =
+                (Map<String, ShenyuGrpcClient>) clientCacheField.get(grpcClientCacheClass);
+        clientCacheMap.put("grpcId", client);
+    }
+
     private MetaData getMetaData() {
         return MetaData.builder()
                 .id("1332017977771636096")
@@ -244,5 +305,35 @@ public class GrpcPluginTest {
         when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.GRPC.getName());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         return exchange;
+    }
+
+    private static final class RecordingCall extends ClientCall<DynamicMessage, DynamicMessage> {
+
+        private final AtomicInteger cancellations = new AtomicInteger();
+
+        private Listener<DynamicMessage> listener;
+
+        @Override
+        public void start(final Listener<DynamicMessage> responseListener, final Metadata headers) {
+            this.listener = responseListener;
+        }
+
+        @Override
+        public void request(final int numMessages) {
+        }
+
+        @Override
+        public void cancel(final String message, final Throwable cause) {
+            cancellations.incrementAndGet();
+            listener.onClose(Status.CANCELLED.withDescription(message).withCause(cause), new Metadata());
+        }
+
+        @Override
+        public void halfClose() {
+        }
+
+        @Override
+        public void sendMessage(final DynamicMessage message) {
+        }
     }
 }

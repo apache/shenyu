@@ -124,7 +124,7 @@ public class FileSizeFilter implements WebFilter {
      */
     private Mono<Void> payloadTooLarge(final ServerWebExchange exchange, final String sizeDetail) {
         ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(HttpStatus.BAD_REQUEST);
+        response.setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
         Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.PAYLOAD_TOO_LARGE);
         LOG.info("The file size exceeds the limit. {} , response:{}", sizeDetail, error);
         return WebFluxResultUtils.result(exchange, error);

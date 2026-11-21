@@ -103,7 +103,7 @@ public class CountSamplerTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"0.01, 1", "0.5, 50", "1, 100"})
+    @CsvSource({"0.01, 1", "0.5, 50", "0.53, 53", "0.59, 59", "1, 100"})
     public void testSamplingCountPerCycle(final String probability, final int expectedCount) {
         Sampler sampler = CountSampler.create(probability);
         for (int cycle = 0; cycle < 2; cycle++) {

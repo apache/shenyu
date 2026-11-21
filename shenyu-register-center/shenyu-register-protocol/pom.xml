@@ -28,11 +28,6 @@
     <dependencies>
         <!-- Override inherited runtime dependencies: the wire contract uses only the JDK. -->
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <scope>test</scope>

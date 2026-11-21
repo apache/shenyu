@@ -32,7 +32,9 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,25 +60,56 @@ public class StickySessionAffinity {
 
     private static final String SEPARATOR = "|";
 
+    /**
+     * Bytes of the rule-id digest used in the default cookie name: 12 hex
+     * characters, enough to keep distinct rules apart while staying readable.
+     */
+    private static final int RULE_DIGEST_BYTES = 6;
+
     private static final Base64.Encoder ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     private static final Base64.Decoder DECODER = Base64.getUrlDecoder();
 
     /**
-     * Whether the rule carries an active sticky configuration. Blank secrets,
-     * a blank cookie name or a non-positive binding lifetime disable affinity
-     * instead of producing unusable cookies.
+     * Whether the rule carries an active sticky configuration. The predicate is owned by
+     * {@link StickySessionConfig#isUsable()} so the management-plane validator and the
+     * runtime cannot drift apart.
      *
      * @param handle the sticky configuration, may be null
      * @return true when affinity applies to the request
      */
     public boolean isActive(final StickySessionConfig handle) {
-        if (Objects.isNull(handle) || !handle.isEnabled() || handle.getMaxAgeSeconds() <= 0
-                || StringUtils.isBlank(handle.getCookieName())
-                || Objects.isNull(handle.getSecrets()) || handle.getSecrets().isEmpty()) {
-            return false;
+        return Objects.nonNull(handle) && handle.isUsable();
+    }
+
+    /**
+     * Resolves the browser cookie that stores the binding of a rule. The
+     * default name is a base name and the effective name carries a rule-scoped
+     * suffix, so rules served under the same host never overwrite each other's
+     * binding (#8136). Any other name is used verbatim: rules configuring the
+     * same name share one cookie, and the signed rule id still makes a foreign
+     * binding a miss.
+     *
+     * @param ruleId the identifier of the matched rule, the binding scope
+     * @param handle the sticky configuration
+     * @return the effective cookie name
+     */
+    public String cookieName(final String ruleId, final StickySessionConfig handle) {
+        final String configured = handle.getCookieName();
+        if (StringUtils.isNotBlank(configured) && !StickySessionConfig.DEFAULT_COOKIE_NAME.equals(configured)) {
+            return configured;
         }
-        return handle.getSecrets().stream().allMatch(StringUtils::isNotBlank);
+        return StickySessionConfig.DEFAULT_COOKIE_NAME + "-" + ruleDigest(ruleId);
+    }
+
+    private String ruleDigest(final String ruleId) {
+        try {
+            // a digest keeps the name within the cookie-name charset whatever the rule id holds
+            final byte[] digest = MessageDigest.getInstance("SHA-256").digest(ruleId.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest, 0, RULE_DIGEST_BYTES);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("sticky session affinity digest failure", e);
+        }
     }
 
     /**
@@ -92,7 +125,7 @@ public class StickySessionAffinity {
      */
     public Resolution resolve(final ServerWebExchange exchange, final String ruleId,
                               final StickySessionConfig handle, final List<Upstream> candidates) {
-        final String cookieValue = readCookie(exchange.getRequest(), handle.getCookieName());
+        final String cookieValue = readCookie(exchange.getRequest(), cookieName(ruleId, handle));
         if (StringUtils.isBlank(cookieValue)) {
             return new Resolution(null, false);
         }
@@ -132,7 +165,7 @@ public class StickySessionAffinity {
         final long expiry = System.currentTimeMillis() / 1000L + handle.getMaxAgeSeconds();
         final String payload = ruleId + SEPARATOR + upstream.identity().hashKey() + SEPARATOR + expiry;
         final ServerHttpResponse response = exchange.getResponse();
-        final ResponseCookie cookie = ResponseCookie.from(handle.getCookieName(), encode(payload, handle.getSecrets().get(0)))
+        final ResponseCookie cookie = ResponseCookie.from(cookieName(ruleId, handle), encode(payload, handle.getSecrets().get(0)))
                 .httpOnly(true)
                 .secure("https".equalsIgnoreCase(exchange.getRequest().getURI().getScheme()))
                 .path("/")

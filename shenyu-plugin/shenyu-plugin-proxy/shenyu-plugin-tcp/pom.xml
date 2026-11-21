@@ -28,6 +28,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+        <dependency>
             <artifactId>shenyu-protocol-tcp</artifactId>
             <groupId>org.apache.shenyu</groupId>
             <version>${project.version}</version>

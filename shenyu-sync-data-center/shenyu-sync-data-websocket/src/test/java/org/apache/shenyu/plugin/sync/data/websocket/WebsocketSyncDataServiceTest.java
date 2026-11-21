@@ -85,6 +85,104 @@ public final class WebsocketSyncDataServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void testUntrustedAdvertisedMasterReceivesNoCredential() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        service.getWebsocketConfig().setUrls(List.of("ws://seed:9095/websocket"));
+        service.getWebsocketConfig().setToken("test-token");
+        ShenyuWebsocketClient follower = follower(service, "ws://seed:9095/websocket", "ws://untrusted:9095/websocket");
+
+        try (MockedConstruction<ShenyuWebsocketClient> constructed = mockConstruction(ShenyuWebsocketClient.class)) {
+            invokeMasterCheck(service);
+            assertTrue(constructed.constructed().isEmpty());
+            verify(follower, never()).nowClose();
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testTrustedAdvertisedMasterReceivesTheCredential() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        service.getWebsocketConfig().setUrls(List.of("ws://seed:9095/websocket"));
+        service.getWebsocketConfig().setToken("test-token");
+        service.getWebsocketConfig().setTrustedMasterHosts(List.of("master:9095"));
+        follower(service, "ws://seed:9095/websocket", "ws://master:9095/websocket");
+
+        try (MockedConstruction<ShenyuWebsocketClient> constructed = mockConstruction(ShenyuWebsocketClient.class,
+                (client, context) -> {
+                    Map<String, String> headers = (Map<String, String>) context.arguments().get(1);
+                    assertEquals("test-token", headers.get(Constants.X_SHENYU_SYNC_TOKEN));
+                })) {
+            invokeMasterCheck(service);
+            assertEquals(1, constructed.constructed().size());
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testSecureSeedDoesNotFollowPlaintextMaster() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        service.getWebsocketConfig().setUrls(List.of("wss://seed:9095/websocket"));
+        service.getWebsocketConfig().setToken("test-token");
+        ShenyuWebsocketClient follower = follower(service, "wss://seed:9095/websocket", "ws://seed:9095/websocket");
+
+        try (MockedConstruction<ShenyuWebsocketClient> constructed = mockConstruction(ShenyuWebsocketClient.class)) {
+            invokeMasterCheck(service);
+            assertTrue(constructed.constructed().isEmpty());
+            verify(follower, never()).nowClose();
+        } finally {
+            service.close();
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testExplicitInsecureRedirectAllowsPlaintextMaster() throws Exception {
+        WebsocketSyncDataService service = createWebsocketSyncDataService();
+        service.getWebsocketConfig().setUrls(List.of("wss://seed:9095/websocket"));
+        service.getWebsocketConfig().setToken("test-token");
+        service.getWebsocketConfig().setAllowInsecureMasterRedirect(true);
+        follower(service, "wss://seed:9095/websocket", "ws://seed:9095/websocket");
+
+        try (MockedConstruction<ShenyuWebsocketClient> constructed = mockConstruction(ShenyuWebsocketClient.class,
+                (client, context) -> {
+                    Map<String, String> headers = (Map<String, String>) context.arguments().get(1);
+                    assertEquals("test-token", headers.get(Constants.X_SHENYU_SYNC_TOKEN));
+                })) {
+            invokeMasterCheck(service);
+            assertEquals(1, constructed.constructed().size());
+        } finally {
+            service.close();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private ShenyuWebsocketClient follower(final WebsocketSyncDataService service, final String current, final String advertised) throws Exception {
+        ShenyuWebsocketClient follower = mock(ShenyuWebsocketClient.class);
+        when(follower.isOpen()).thenReturn(true);
+        when(follower.getRunningMode()).thenReturn("CLUSTER");
+        when(follower.getURI()).thenReturn(URI.create(current));
+        when(follower.getMasterUrl()).thenReturn(advertised);
+        Field clientsField = WebsocketSyncDataService.class.getDeclaredField("clients");
+        clientsField.setAccessible(true);
+        ((List<ShenyuWebsocketClient>) clientsField.get(service)).add(follower);
+        Field boundPort = WebsocketSyncDataService.class.getDeclaredField("boundPort");
+        boundPort.setAccessible(true);
+        boundPort.setInt(service, 9195);
+        return follower;
+    }
+
+    private void invokeMasterCheck(final WebsocketSyncDataService service) throws Exception {
+        Method masterCheck = WebsocketSyncDataService.class.getDeclaredMethod("masterCheck");
+        masterCheck.setAccessible(true);
+        masterCheck.invoke(service);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void testCloseShutsDownPrivateTimer() throws Exception {
         Timer sharedTimer = mock(Timer.class);
         Timer privateTimer = mock(Timer.class);

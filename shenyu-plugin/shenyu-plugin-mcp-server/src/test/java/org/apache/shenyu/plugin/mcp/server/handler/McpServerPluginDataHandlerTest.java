@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.plugin.mcp.server.handler;
 
+import org.apache.shenyu.common.config.ShenyuConfig.RuleMatchCache;
+import org.apache.shenyu.common.config.ShenyuConfig.SelectorMatchCache;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,13 +37,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -60,6 +68,7 @@ class McpServerPluginDataHandlerTest {
     void setUp() {
         McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
         McpServerPluginDataHandler.CACHED_TOOL.get().getAllCache().clear();
+        BaseDataCache.getInstance().cleanRuleData();
         dataHandler = new McpServerPluginDataHandler(shenyuMcpServerManager);
     }
 
@@ -67,6 +76,7 @@ class McpServerPluginDataHandlerTest {
     void tearDown() {
         McpServerPluginDataHandler.CACHED_SERVER.get().getAllCache().clear();
         McpServerPluginDataHandler.CACHED_TOOL.get().getAllCache().clear();
+        BaseDataCache.getInstance().cleanRuleData();
     }
 
     @Test
@@ -551,5 +561,82 @@ class McpServerPluginDataHandlerTest {
 
         verify(shenyuMcpServerManager).removeTool(eq("/mcp/test"), eq("customTool"));
         verify(shenyuMcpServerManager, never()).removeTool(eq("/mcp/test"), eq("testTool"));
+    }
+
+    @Test
+    void movedRuleKeepsTheToolRegisteredOnTheNewSelectorThroughScopedRefresh() {
+        // selectors A (/a) and B (/b) exist, and the rule's tool is registered under A
+        dataHandler.handlerSelector(selectorAt("/a/**", "selector-a"));
+        dataHandler.handlerSelector(selectorAt("/b/**", "selector-b"));
+        final RuleData original = toolRule("selector-a");
+        dataHandler.handlerRule(original);
+        verify(shenyuMcpServerManager).addTool(eq("/a"), eq("moved-tool"), any(), any(), anyString());
+        BaseDataCache.getInstance().cacheRuleData(original);
+
+        // the rule keeps its id but moves to selector B; the scoped refresh must revoke the
+        // old registration before installing the new one, otherwise removeRule(A) removes by
+        // rule id and unregisters the tool handlerRule(B) just registered
+        final CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(
+                List.of(dataHandler), new SelectorMatchCache(), new RuleMatchCache());
+        final RuleData moved = toolRule("selector-b");
+        subscriber.refreshRuleDataScoped(List.of(moved));
+
+        verify(shenyuMcpServerManager).removeTool("/a", "moved-tool");
+        verify(shenyuMcpServerManager).addTool(eq("/b"), eq("moved-tool"), any(), any(), anyString());
+        verify(shenyuMcpServerManager, never()).removeTool("/b", "moved-tool");
+        assertEquals(List.of(moved), BaseDataCache.getInstance().obtainRuleData("selector-b"));
+        assertNotNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(moved)));
+    }
+
+    @Test
+    void failedRuleRemovalIsRetriedThroughScopedRefresh() {
+        dataHandler.handlerSelector(selectorAt("/a/**", "selector-a"));
+        final RuleData stale = toolRule("selector-a");
+        stale.setSort(1);
+        dataHandler.handlerRule(stale);
+        BaseDataCache.getInstance().cacheRuleData(stale);
+        final RuleData replacement = toolRule("selector-a");
+        replacement.setId("replacement-rule");
+        replacement.setName("replacement-tool");
+        replacement.setHandle("{\"name\":\"replacement-tool\",\"parameters\":[]}");
+        replacement.setSort(2);
+        final CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(
+                List.of(dataHandler), new SelectorMatchCache(), new RuleMatchCache());
+        doThrow(new IllegalStateException("removal failed")).doNothing()
+                .when(shenyuMcpServerManager).removeTool("/a", "moved-tool");
+
+        assertThrows(IllegalStateException.class, () -> subscriber.refreshRuleDataScoped(List.of(replacement)));
+        assertEquals(List.of(stale, replacement), BaseDataCache.getInstance().obtainRuleData("selector-a"));
+
+        subscriber.refreshRuleDataScoped(List.of(replacement));
+
+        verify(shenyuMcpServerManager, times(2)).removeTool("/a", "moved-tool");
+        verify(shenyuMcpServerManager).addTool(eq("/a"), eq("replacement-tool"), any(), any(), anyString());
+        verify(shenyuMcpServerManager, never()).removeTool("/a", "replacement-tool");
+        assertEquals(List.of(replacement), BaseDataCache.getInstance().obtainRuleData("selector-a"));
+        assertNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(stale)));
+        assertNotNull(McpServerPluginDataHandler.CACHED_TOOL.get().obtainHandle(CacheKeyUtils.INST.getKey(replacement)));
+    }
+
+    private SelectorData selectorAt(final String uriPattern, final String selectorId) {
+        ConditionData condition = new ConditionData();
+        condition.setParamType(ParamTypeEnum.URI.getName());
+        condition.setParamValue(uriPattern);
+        SelectorData selector = new SelectorData();
+        selector.setId(selectorId);
+        selector.setConditionList(Collections.singletonList(condition));
+        selector.setHandle("{\"messageEndpoint\":\"/message\"}");
+        return selector;
+    }
+
+    private RuleData toolRule(final String selectorId) {
+        RuleData rule = new RuleData();
+        rule.setId("moved-rule");
+        rule.setSelectorId(selectorId);
+        rule.setPluginName(dataHandler.pluginNamed());
+        rule.setNamespaceId("ns1");
+        rule.setName("moved-tool");
+        rule.setHandle("{\"name\":\"moved-tool\",\"parameters\":[]}");
+        return rule;
     }
 }

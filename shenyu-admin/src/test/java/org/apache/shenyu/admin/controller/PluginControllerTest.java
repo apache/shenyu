@@ -61,6 +61,7 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -122,6 +123,16 @@ public final class PluginControllerTest {
                 .andExpect(jsonPath("$.data.dataList[0].file").doesNotExist())
                 .andExpect(jsonPath("$.data.dataList[0].jar").doesNotExist())
                 .andReturn();
+    }
+
+    @Test
+    public void testConfigurationContractsAreMetadataOnly() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/plugin-template/config-contracts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].plugin", is("agentGateway")))
+                .andExpect(jsonPath("$.data[0].scope", is("PLUGIN")))
+                .andExpect(jsonPath("$.data[0].version", is("1")));
+        verifyNoInteractions(pluginService);
     }
 
     @Test

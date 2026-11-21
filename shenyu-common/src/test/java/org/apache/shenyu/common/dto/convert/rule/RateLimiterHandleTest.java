@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto.convert.rule;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,13 +40,32 @@ public class RateLimiterHandleTest {
         handle.setRequestCount(2.0);
         handle.setLogged(true);
         handle.setKeyResolverName("resolverName");
-        
+        handle.setBackendFailurePolicy(RateLimiterHandle.BACKEND_FAILURE_POLICY_REJECT);
+
         assertThat(handle.getAlgorithmName(), is("algorithmName"));
         assertThat(handle.getReplenishRate(), closeTo(500, 0.1));
         assertThat(handle.getBurstCapacity(), closeTo(1000, 0.1));
         assertThat(handle.getRequestCount(), closeTo(2.0, 0.1));
         assertThat(handle.isLogged(), is(true));
         assertThat(handle.getKeyResolverName(), is("resolverName"));
+        assertThat(handle.getBackendFailurePolicy(), is(RateLimiterHandle.BACKEND_FAILURE_POLICY_REJECT));
+        assertThat(handle.isRejectOnBackendFailure(), is(true));
+    }
+
+    @Test
+    public void testBackendFailurePolicyDefaultsToAllow() {
+        RateLimiterHandle handle = new RateLimiterHandle();
+
+        assertThat(handle.getBackendFailurePolicy(), is(RateLimiterHandle.BACKEND_FAILURE_POLICY_ALLOW));
+        assertThat(handle.isRejectOnBackendFailure(), is(false));
+    }
+
+    @Test
+    public void testBackendFailurePolicyDefaultsToAllowWhenOmittedFromJson() {
+        RateLimiterHandle handle = GsonUtils.getGson().fromJson("{}", RateLimiterHandle.class);
+
+        assertThat(handle.getBackendFailurePolicy(), is(RateLimiterHandle.BACKEND_FAILURE_POLICY_ALLOW));
+        assertThat(handle.isRejectOnBackendFailure(), is(false));
     }
     
     @Test

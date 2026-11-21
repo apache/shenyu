@@ -18,7 +18,11 @@
 package org.apache.shenyu.plugin.ai.common.config;
 
 import org.apache.shenyu.common.dto.convert.rule.AiProxyHandle;
+import org.apache.shenyu.common.dto.convert.rule.AiStructuredOutputConfig;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -67,6 +71,21 @@ public class AiCommonConfig {
      */
     private String protocol = "openai-chat";
 
+    /**
+     * Request-body patches keyed by native target protocol.
+     */
+    private Map<String, Map<String, Object>> requestBodyOverrides;
+
+    /**
+     * Whether request-body patches overwrite existing values.
+     */
+    private Boolean requestBodyForceOverride;
+
+    /**
+     * Opt-in structured output policy (issue #8257); {@code null} means disabled.
+     */
+    private AiStructuredOutputConfig structuredOutput;
+
     public AiCommonConfig() {
     }
 
@@ -88,6 +107,26 @@ public class AiCommonConfig {
         this.maxTokens = other.getMaxTokens();
         this.stream = other.getStream();
         this.protocol = other.getProtocol();
+        this.requestBodyOverrides = copyRequestBodyOverrides(other.getRequestBodyOverrides());
+        this.requestBodyForceOverride = other.getRequestBodyForceOverride();
+        this.structuredOutput = copyStructuredOutput(other.getStructuredOutput());
+    }
+
+    /**
+     * Defensive copy of the nested structured-output policy: the DTO is Gson-parsed
+     * and mutable, so a config copy must never share the nested instance.
+     */
+    private static AiStructuredOutputConfig copyStructuredOutput(final AiStructuredOutputConfig config) {
+        if (Objects.isNull(config)) {
+            return null;
+        }
+        AiStructuredOutputConfig copy = new AiStructuredOutputConfig();
+        copy.setSchema(config.getSchema());
+        copy.setRepairEnabled(config.getRepairEnabled());
+        copy.setRepairPrompt(config.getRepairPrompt());
+        copy.setRepairMaxAttempts(config.getRepairMaxAttempts());
+        copy.setRepairMaxTokens(config.getRepairMaxTokens());
+        return copy;
     }
 
     /**
@@ -235,6 +274,60 @@ public class AiCommonConfig {
     }
 
     /**
+     * Get request-body patches keyed by native target protocol.
+     *
+     * @return request-body patches
+     */
+    public Map<String, Map<String, Object>> getRequestBodyOverrides() {
+        return requestBodyOverrides;
+    }
+
+    /**
+     * Set request-body patches keyed by native target protocol.
+     *
+     * @param requestBodyOverrides request-body patches
+     */
+    public void setRequestBodyOverrides(final Map<String, Map<String, Object>> requestBodyOverrides) {
+        this.requestBodyOverrides = copyRequestBodyOverrides(requestBodyOverrides);
+    }
+
+    /**
+     * Get whether configured request-body values overwrite existing values.
+     *
+     * @return force-override flag
+     */
+    public Boolean getRequestBodyForceOverride() {
+        return requestBodyForceOverride;
+    }
+
+    /**
+     * Set whether request-body patches overwrite existing values.
+     *
+     * @param requestBodyForceOverride force-override flag
+     */
+    public void setRequestBodyForceOverride(final Boolean requestBodyForceOverride) {
+        this.requestBodyForceOverride = requestBodyForceOverride;
+    }
+
+    /**
+     * Get the opt-in structured output policy.
+     *
+     * @return structured output config, or {@code null} when disabled
+     */
+    public AiStructuredOutputConfig getStructuredOutput() {
+        return structuredOutput;
+    }
+
+    /**
+     * Set the opt-in structured output policy.
+     *
+     * @param structuredOutput structured output config
+     */
+    public void setStructuredOutput(final AiStructuredOutputConfig structuredOutput) {
+        this.structuredOutput = structuredOutput;
+    }
+
+    /**
      * merge with another config.
      *
      * @param overlay overlay config
@@ -252,7 +345,21 @@ public class AiCommonConfig {
         this.setMaxTokens(Optional.ofNullable(overlay.getMaxTokens()).orElse(this.getMaxTokens()));
         this.setStream(Optional.ofNullable(overlay.getStream()).orElse(this.getStream()));
         this.setProtocol(Optional.ofNullable(overlay.getProtocol()).orElse(this.getProtocol()));
+        this.setRequestBodyOverrides(Optional.ofNullable(overlay.getRequestBodyOverrides()).orElse(this.getRequestBodyOverrides()));
+        this.setRequestBodyForceOverride(Optional.ofNullable(overlay.getRequestBodyForceOverride()).orElse(this.getRequestBodyForceOverride()));
+        this.setStructuredOutput(Optional.ofNullable(overlay.getStructuredOutput()).orElse(this.getStructuredOutput()));
         return this;
+    }
+
+    private static Map<String, Map<String, Object>> copyRequestBodyOverrides(
+            final Map<String, Map<String, Object>> overrides) {
+        if (Objects.isNull(overrides)) {
+            return null;
+        }
+        Map<String, Map<String, Object>> copy = new LinkedHashMap<>();
+        overrides.forEach((protocol, patch) -> copy.put(protocol,
+                Collections.unmodifiableMap(new LinkedHashMap<>(patch))));
+        return Collections.unmodifiableMap(copy);
     }
 
     @Override
@@ -271,12 +378,15 @@ public class AiCommonConfig {
                 && Objects.equals(temperature, that.temperature)
                 && Objects.equals(maxTokens, that.maxTokens)
                 && Objects.equals(stream, that.stream)
-                && Objects.equals(protocol, that.protocol);
+                && Objects.equals(protocol, that.protocol)
+                && Objects.equals(requestBodyOverrides, that.requestBodyOverrides)
+                && Objects.equals(requestBodyForceOverride, that.requestBodyForceOverride);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, protocol);
+        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, protocol,
+                requestBodyOverrides, requestBodyForceOverride);
     }
 
     @Override
@@ -290,6 +400,9 @@ public class AiCommonConfig {
                 + ", maxTokens=" + maxTokens
                 + ", stream=" + stream
                 + ", protocol='" + protocol + '\''
+                + ", requestBodyOverrideProtocols="
+                + (Objects.isNull(requestBodyOverrides) ? null : requestBodyOverrides.keySet())
+                + ", requestBodyForceOverride=" + requestBodyForceOverride
                 + '}';
     }
 }

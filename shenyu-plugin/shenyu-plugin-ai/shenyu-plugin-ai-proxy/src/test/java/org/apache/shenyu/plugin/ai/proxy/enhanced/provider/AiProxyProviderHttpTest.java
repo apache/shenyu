@@ -69,7 +69,8 @@ class AiProxyProviderHttpTest {
         try {
             OpenAiProviderOptions options = new OpenAiProviderOptions("/generate", OpenAiProviderOptions.Authentication.HEADER, "api-key", "",
                     Map.of("X-Tenant", "tenant"), Map.of("api-version", "2026-01"), Map.of("alias", "native-model"),
-                    MAPPER.createObjectNode(), AiProviderCapabilities.chat(), null, "max_tokens");
+                    MAPPER.createObjectNode(), AiProviderCapabilities.chat(), null)
+                    .withRequestTransformer(OpenAiChat.NAME, (payload, context) -> payload);
             OpenAiCompatible provider = new OpenAiCompatible("custom", options);
             AiProxyEngine engine = engine(provider);
             AiCommonConfig config = config(server, "custom", OpenAiChat.NAME);

@@ -83,7 +83,10 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
         if (!Objects.equals(before.getEnabled(), after.getEnabled())) {
             builder.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
         }
-        
+        if (!Objects.equals(before.getTokenVersion(), after.getTokenVersion())) {
+            builder.append(String.format("token version[%s => %s] ", before.getTokenVersion(), after.getTokenVersion()));
+        }
+
         return builder.toString();
     }
     

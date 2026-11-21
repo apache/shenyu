@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "real Admin initial snapshot and HTTP success",
+    "upstream 503 preserved",
+    "Admin rule update removes old path and enables new path",
+    "Admin rule deletion removes route",
+    "Admin rule creation restores route",
+    "Admin selector deletion removes route"
+  ],
+  "readiness_s": 2.312000000005355,
+  "admin_storage": "disposable in-memory H2",
+  "synchronization": "real Admin WebSocket listener"
+}

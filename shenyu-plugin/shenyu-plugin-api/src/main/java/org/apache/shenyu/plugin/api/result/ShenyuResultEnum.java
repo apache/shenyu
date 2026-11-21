@@ -58,6 +58,11 @@ public enum ShenyuResultEnum {
     RUN_OUT_OF_TOKENS(429, "You have reach your tokens limit, please try again later!"),
     
     /**
+     * Rate limiter backend unavailable shenyu result enum.
+     */
+    RATE_LIMITER_BACKEND_UNAVAILABLE(503, "Rate limiter backend is unavailable, please try again later!"),
+
+    /**
      * Hystrix plugin fallback, due to a circuit break.
      */
     HYSTRIX_PLUGIN_FALLBACK(429, "HystrixPlugin fallback success, please check your service status!"),

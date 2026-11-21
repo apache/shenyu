@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DiscoveryUpstreamMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryHandlerDTO;
 import org.apache.shenyu.admin.model.dto.ProxySelectorDTO;
+import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.transfer.DiscoveryTransfer;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -43,6 +44,17 @@ public class APDiscoveryProcessor extends AbstractDiscoveryProcessor {
      */
     public APDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper) {
         super(discoveryUpstreamMapper);
+    }
+
+    /**
+     * APDiscoveryProcessor.
+     *
+     * @param discoveryUpstreamMapper discoveryUpstreamMapper
+     * @param registrationFencingGuard selector write guard
+     */
+    public APDiscoveryProcessor(final DiscoveryUpstreamMapper discoveryUpstreamMapper,
+                                final RegistrationFencingGuard registrationFencingGuard) {
+        super(discoveryUpstreamMapper, registrationFencingGuard);
     }
 
     @Override

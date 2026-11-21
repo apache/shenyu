@@ -17,21 +17,22 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import io.github.agenticai.connect.ProviderProfile;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 
-import java.net.URI;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 /**
  * Immutable configuration for a named Chat-compatible provider in the explicit registry.
  *
- * @param path relative upstream operation path
  * @param authentication credential placement
  * @param credentialName credential header or query parameter name
  * @param credentialPrefix credential prefix
@@ -41,21 +42,15 @@ import java.util.Objects;
  * @param defaults missing-field defaults in the client protocol's payload
  * @param capabilities provider capability declarations
  * @param dialect Connect provider dialect, or null for identity adaptation
- * @param maxTokensField Chat token field, or empty to preserve the client's field choice
  */
-public record OpenAiProviderOptions(String path, Authentication authentication, String credentialName, String credentialPrefix,
+public record OpenAiProviderOptions(Authentication authentication, String credentialName, String credentialPrefix,
                                     Map<String, String> headers, Map<String, String> queryParameters, Map<String, String> modelMappings,
-                                    ObjectNode defaults, AiProviderCapabilities capabilities, ProviderProfile dialect, String maxTokensField) {
+                                    ObjectNode defaults, AiProviderCapabilities capabilities, ProviderProfile dialect) {
 
     /**
      * Copy mutable data and reject options that would change the protocol or transport contract.
      */
     public OpenAiProviderOptions {
-        URI relative = URI.create(path);
-        if (path.isBlank() || relative.isAbsolute() || path.startsWith("//") || Objects.nonNull(relative.getRawQuery())
-                || Objects.nonNull(relative.getRawFragment())) {
-            throw new IllegalArgumentException("AI provider path must be a relative path without query or fragment");
-        }
         Objects.requireNonNull(authentication, "AI provider authentication is required");
         Objects.requireNonNull(credentialName, "AI provider credential name is required");
         Objects.requireNonNull(credentialPrefix, "AI provider credential prefix is required");
@@ -72,9 +67,30 @@ public record OpenAiProviderOptions(String path, Authentication authentication, 
                 throw new IllegalArgumentException("AI provider defaults must not replace the request envelope: " + field);
             }
         }
-        if (!"".equals(maxTokensField) && !"max_tokens".equals(maxTokensField) && !"max_completion_tokens".equals(maxTokensField)) {
-            throw new IllegalArgumentException("AI provider token field must be max_tokens or max_completion_tokens");
-        }
+    }
+
+    /**
+     * Retain the Chat-only constructor used by existing compatible provider extensions.
+     *
+     * @param path relative upstream operation path
+     * @param authentication credential placement
+     * @param credentialName credential header or query parameter name
+     * @param credentialPrefix credential prefix
+     * @param headers provider headers
+     * @param queryParameters provider query parameters
+     * @param modelMappings client or routed model aliases
+     * @param defaults missing-field defaults
+     * @param capabilities provider capabilities
+     * @param dialect Connect provider dialect
+     */
+    public OpenAiProviderOptions(final String path, final Authentication authentication, final String credentialName,
+                                 final String credentialPrefix, final Map<String, String> headers,
+                                 final Map<String, String> queryParameters, final Map<String, String> modelMappings,
+                                 final ObjectNode defaults, final AiProviderCapabilities capabilities,
+                                 final ProviderProfile dialect) {
+        this(authentication, credentialName, credentialPrefix, headers, queryParameters, modelMappings, defaults,
+                capabilities.withProtocolBindings(Map.of(OpenAiChat.NAME, chatBinding(path, dialect,
+                        AiProviderRequestTransformer.identity()))), dialect);
     }
 
     /**
@@ -83,7 +99,16 @@ public record OpenAiProviderOptions(String path, Authentication authentication, 
      * @return OpenAI options
      */
     public static OpenAiProviderOptions openAi() {
-        return generic(null).withMaxTokensField("max_completion_tokens");
+        String chatPath = "/v1/chat/completions";
+        Map<String, AiProviderProtocolBinding> bindings = Map.of(
+                OpenAiChat.NAME, chatBinding(chatPath, null, tokenFieldTransformer("max_completion_tokens")),
+                OpenAiResponses.NAME, responsesBinding("/v1/responses"));
+        AiProviderCapabilities chat = AiProviderCapabilities.chat();
+        AiProviderCapabilities capabilities = new AiProviderCapabilities(bindings,
+                EnumSet.of(ShenyuAiRequest.Operation.CHAT_COMPLETION, ShenyuAiRequest.Operation.RESPONSE), chat.features(),
+                chat.replaySafety());
+        return new OpenAiProviderOptions(Authentication.HEADER, "Authorization", "Bearer ", Map.of(), Map.of(), Map.of(),
+                JsonNodeFactory.instance.objectNode(), capabilities, null);
     }
 
     /**
@@ -94,7 +119,7 @@ public record OpenAiProviderOptions(String path, Authentication authentication, 
      */
     public static OpenAiProviderOptions generic(final ProviderProfile dialect) {
         return new OpenAiProviderOptions("/v1/chat/completions", Authentication.HEADER, "Authorization", "Bearer ",
-                Map.of(), Map.of(), Map.of(), JsonNodeFactory.instance.objectNode(), AiProviderCapabilities.chat(), dialect, "");
+                Map.of(), Map.of(), Map.of(), JsonNodeFactory.instance.objectNode(), AiProviderCapabilities.chat(), dialect);
     }
 
     /**
@@ -108,7 +133,9 @@ public record OpenAiProviderOptions(String path, Authentication authentication, 
         AiProviderCapabilities all = AiProviderCapabilities.chat();
         return new OpenAiProviderOptions("/chat/completions", Authentication.HEADER, "Authorization", "Bearer ",
                 Map.of(), Map.of(), Map.of(), JsonNodeFactory.instance.objectNode(),
-                new AiProviderCapabilities(all.protocols(), all.operations(), features), ProviderProfile.deepSeekChat(), "");
+                new AiProviderCapabilities(all.protocolBindings(), all.operations(), features, all.replaySafety()),
+                ProviderProfile.deepSeekChat())
+                .withRequestTransformer(OpenAiChat.NAME, tokenFieldTransformer("max_tokens"));
     }
 
     /**
@@ -122,52 +149,62 @@ public record OpenAiProviderOptions(String path, Authentication authentication, 
     }
 
     /**
-     * Select one Chat token-limit field, implemented in Connect's provider adaptation phase.
+     * Append provider behavior to one native target protocol.
      *
-     * @param field Chat token-limit field
+     * @param protocol native target protocol
+     * @param transformer provider request transformer
      * @return updated options
      */
-    public OpenAiProviderOptions withMaxTokensField(final String field) {
-        return new OpenAiProviderOptions(path, authentication, credentialName, credentialPrefix, headers, queryParameters,
-                modelMappings, defaults, capabilities, dialect, field);
+    public OpenAiProviderOptions withRequestTransformer(final String protocol,
+                                                        final AiProviderRequestTransformer transformer) {
+        Map<String, AiProviderProtocolBinding> bindings = new LinkedHashMap<>(capabilities.protocolBindings());
+        AiProviderProtocolBinding current = protocolBinding(protocol);
+        bindings.put(protocol, new AiProviderProtocolBinding(current.path(),
+                current.requestTransformer().andThen(transformer)));
+        return new OpenAiProviderOptions(authentication, credentialName, credentialPrefix, headers, queryParameters,
+                modelMappings, defaults, capabilities.withProtocolBindings(bindings), dialect);
     }
 
     /**
-     * Get the request-scoped Connect dialect including the explicit token-field choice.
+     * Get the provider behavior for a native target protocol.
      *
-     * @return provider dialect
+     * @param protocol target protocol
+     * @return protocol binding
      */
-    public ProviderProfile connectProfile() {
-        if (maxTokensField.isEmpty()) {
-            return dialect;
-        }
-        return new ProviderProfile() {
-            @Override
-            public void adapt(final JsonObject payload, final Adaptation adaptation) {
-                if (Objects.nonNull(dialect)) {
-                    dialect.adapt(payload, adaptation);
-                }
-                JsonElement tokens = payload.get("max_completion_tokens");
-                if (Objects.isNull(tokens) || tokens.isJsonNull()) {
-                    tokens = payload.get("max_tokens");
-                }
-                if (Objects.nonNull(tokens)) {
-                    payload.remove("max_tokens");
-                    payload.remove("max_completion_tokens");
-                    payload.add(maxTokensField, tokens);
-                }
-            }
+    public AiProviderProtocolBinding protocolBinding(final String protocol) {
+        return capabilities.protocolBinding(protocol);
+    }
 
-            @Override
-            public boolean rendersReasoning() {
-                return Objects.nonNull(dialect) && dialect.rendersReasoning();
+    private static AiProviderProtocolBinding chatBinding(final String path, final ProviderProfile dialect,
+                                                         final AiProviderRequestTransformer transformer) {
+        AiProviderRequestTransformer dialectTransformer = Objects.isNull(dialect)
+                ? AiProviderRequestTransformer.identity()
+                : (payload, context) -> new ConnectProviderDialectAdapter(context.upstreamModel(), dialect).adapt(payload);
+        return new AiProviderProtocolBinding(path, dialectTransformer.andThen(transformer));
+    }
+
+    private static AiProviderProtocolBinding responsesBinding(final String path) {
+        return new AiProviderProtocolBinding(path, AiProviderRequestTransformer.identity());
+    }
+
+    private static AiProviderRequestTransformer tokenFieldTransformer(final String targetField) {
+        return (payload, context) -> {
+            JsonNode tokens = payload.get("max_completion_tokens");
+            if (Objects.isNull(tokens) || tokens.isNull()) {
+                tokens = payload.get("max_tokens");
             }
+            if (Objects.nonNull(tokens)) {
+                payload.remove("max_tokens");
+                payload.remove("max_completion_tokens");
+                payload.set(targetField, tokens);
+            }
+            return payload;
         };
     }
 
     @Override
     public String toString() {
-        return "OpenAiProviderOptions[path=" + path + ", authentication=" + authentication + ", capabilities=" + capabilities + "]";
+        return "OpenAiProviderOptions[authentication=" + authentication + ", capabilities=" + capabilities + "]";
     }
 
     /**

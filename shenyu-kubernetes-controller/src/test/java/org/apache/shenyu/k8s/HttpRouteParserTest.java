@@ -19,6 +19,7 @@ package org.apache.shenyu.k8s;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.kubernetes.client.informer.cache.Indexer;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
@@ -31,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.selector.DivideUpstream;
 import org.apache.shenyu.common.enums.OperatorEnum;
@@ -41,6 +43,9 @@ import org.apache.shenyu.k8s.common.ShenyuMemoryConfig;
 import org.apache.shenyu.k8s.parser.HttpRouteParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Objects;
@@ -56,6 +61,108 @@ public final class HttpRouteParserTest {
     private static final String SERVICE_NAME = "test-service";
 
     private static final int SERVICE_PORT = 8189;
+
+    @ParameterizedTest
+    @CsvSource({"2m3s4ms, 500ms, 123004, 500", "0s, 1h, 0, 3600000", "1s, 0ms, 1000, 0",
+        "1h, , 3600000, 3000", ", 1m, 0, 60000", ", , , 3000"})
+    public void testTimeoutRuleValues(final String request, final String backend, final Long expectedRequest, final long expectedBackend) {
+        DynamicKubernetesObject route = buildHTTPRoute(NAMESPACE, "timeouts", NAMESPACE, "gateway", SERVICE_NAME, SERVICE_PORT,
+                "/test", "Exact", null, null);
+        JsonObject timeouts = new JsonObject();
+        if (Objects.nonNull(request)) {
+            timeouts.addProperty("request", request);
+        }
+        if (Objects.nonNull(backend)) {
+            timeouts.addProperty("backendRequest", backend);
+        }
+        route.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject().add("timeouts", timeouts);
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        List<RuleData> rules = extractRules(parser.parse(route, List.of("one.example", "two.example")));
+        Assertions.assertEquals(2, rules.size());
+        for (RuleData rule : rules) {
+            DivideRuleHandle handle = GsonUtils.getGson().fromJson(rule.getHandle(), DivideRuleHandle.class);
+            Assertions.assertEquals(expectedRequest, handle.getRequestTimeout());
+            Assertions.assertEquals(expectedBackend, handle.getTimeout());
+            Assertions.assertEquals(3, handle.getRetry());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-1s", "1.5s", "1d", "100000ms", "1h2m3s4ms5ms", ""})
+    public void testMalformedDuration(final String value) {
+        DynamicKubernetesObject route = buildHTTPRoute(NAMESPACE, "timeouts", NAMESPACE, "gateway", SERVICE_NAME, SERVICE_PORT,
+                "/test", "Exact", null, null);
+        JsonObject timeouts = new JsonObject();
+        timeouts.addProperty("request", value);
+        route.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject().add("timeouts", timeouts);
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(route, List.of());
+        Assertions.assertTrue(config.getRouteConfigList().isEmpty());
+        Assertions.assertTrue(config.getRuleRejectionMessage().contains("rule 0: timeouts.request"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "[]", "123", "{\"request\":42}", "{\"backendRequest\":null}"})
+    public void testInvalidTimeoutShape(final String value) {
+        DynamicKubernetesObject route = buildHTTPRoute(NAMESPACE, "invalid", NAMESPACE, "gateway", SERVICE_NAME, SERVICE_PORT,
+                "/test", "Exact", null, null);
+        route.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject().add("timeouts", JsonParser.parseString(value));
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        ShenyuMemoryConfig config = parser.parse(route, List.of());
+        Assertions.assertTrue(config.getRouteConfigList().isEmpty());
+        Assertions.assertNotNull(config.getRuleRejectionMessage());
+    }
+
+    @Test
+    public void testFirstRejectedRuleProvidesStatusMessage() {
+        DynamicKubernetesObject route = buildHTTPRoute(NAMESPACE, "invalid", NAMESPACE, "gateway", SERVICE_NAME, SERVICE_PORT,
+                "/test", "Exact", null, null);
+        JsonArray rules = route.getRaw().getAsJsonObject("spec").getAsJsonArray("rules");
+        JsonObject first = rules.get(0).getAsJsonObject();
+        first.add("filters", JsonParser.parseString("[{}]"));
+        JsonObject second = new JsonObject();
+        second.addProperty("timeouts", false);
+        rules.add(second);
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        Assertions.assertEquals("rule 0: filters are not supported by ShenYu", parser.parse(route, List.of()).getRuleRejectionMessage());
+        rules.remove(0);
+        Assertions.assertEquals("rule 0: timeouts must be an object", parser.parse(route, List.of()).getRuleRejectionMessage());
+    }
+
+    /** Changing either budget must reach the generated Divide rule. */
+    @Test
+    public void testRouteHandleCarriesBothTimeoutsIndependently() {
+        final HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        DynamicKubernetesObject route = buildHTTPRoute(NAMESPACE, "timeout-route", NAMESPACE,
+                "shenyu-gateway", SERVICE_NAME, SERVICE_PORT, "/slow", "Exact", null, null);
+        JsonObject timeouts = new JsonObject();
+        timeouts.addProperty("request", "2s");
+        timeouts.addProperty("backendRequest", "500ms");
+        route.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject().add("timeouts", timeouts);
+
+        String original = extractRules(parser.parse(route, List.of())).get(0).getHandle();
+        timeouts.addProperty("request", "3s");
+        String longerRequest = extractRules(parser.parse(route, List.of())).get(0).getHandle();
+        Assertions.assertNotEquals(original, longerRequest, "Changing request must reach the rule");
+        timeouts.addProperty("backendRequest", "1s");
+        Assertions.assertNotEquals(longerRequest, extractRules(parser.parse(route, List.of())).get(0).getHandle(),
+                "Changing backendRequest must reach the rule");
+    }
+
+    /** A backend attempt cannot have a larger budget than the enclosing finite request. */
+    @Test
+    public void testInvalidTimeoutPairDoesNotProgramRule() {
+        DynamicKubernetesObject route = buildHTTPRoute(NAMESPACE, "timeout-route", NAMESPACE,
+                "shenyu-gateway", SERVICE_NAME, SERVICE_PORT, "/slow", "Exact", null, null);
+        JsonObject timeouts = new JsonObject();
+        timeouts.addProperty("request", "1s");
+        timeouts.addProperty("backendRequest", "1500ms");
+        route.getRaw().getAsJsonObject("spec").getAsJsonArray("rules").get(0).getAsJsonObject().add("timeouts", timeouts);
+
+        HttpRouteParser parser = new HttpRouteParser(mockEndpointsLister(), mockServiceLister(), mockReferenceGrantLister());
+        Assertions.assertTrue(parser.parse(route, List.of()).getRouteConfigList().isEmpty(),
+                "Rule with backendRequest > request must not be programmed");
+    }
 
     /**
      * Test parse with path prefix match: the spec requires element-boundary matching

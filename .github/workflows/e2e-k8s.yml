@@ -22,30 +22,17 @@ on:
     branches:
       - master
     paths-ignore:
-      - '**.md'
-      - '**.txt'
-      - '**.png'
-      - '**.jpg'
-      - '**.jpeg'
-      - '**.gif'
-      - '**.svg'
-      - '**.ico'
-      - '**.pdf'
-      - '**.doc'
-      - '**.docx'
-      - 'LICENSE'
-      - 'NOTICE'
-      - 'DISCLAIMER'
-      - '.asf.yaml'
-      - '.gitignore'
-      - '.licenserc.yaml'
+      - '*.md'
+      - '**/README*.md'
+      - 'docs/**'
+      - '**/docs/**'
       - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE'
-      - '**/resources/static/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Give every non-PR run its own group, including runs still waiting for a runner.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   changes:
@@ -57,8 +44,9 @@ jobs:
       run_e2e_cases: ${{ steps.cases.outputs.run_e2e_cases }}
       storage_matrix: ${{ steps.cases.outputs.storage_matrix }}
       e2e_matrix: ${{ steps.cases.outputs.e2e_matrix }}
+      e2e_shards: ${{ steps.shards.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - name: Test conditional disk cleanup
@@ -71,27 +59,21 @@ jobs:
         id: filter
         with:
           list-files: "json"
+          predicate-quantifier: every
           filters: |
             e2e:
-              - 'shenyu-e2e/**'
-              - '**/e2e/**'
-              - 'shenyu-*/**'
-              - 'db/**'
-              - 'pom.xml'
-              - '**/pom.xml'
-              - '!**/*.md'
-              - '!**/*.txt'
-              - '!resources/static/**'
+              - '{shenyu-e2e/**,**/e2e/**,shenyu-*/**,db/**,pom.xml,**/pom.xml,.github/workflows/e2e-k8s.yml,.github/scripts/*e2e-maven-repository*,.github/scripts/resolve-test-case-matrix*.sh,.github/scripts/**,actions/**,mvnw,mvnw.cmd,.mvn/**}'
               - '!.asf.yaml'
               - '!.gitignore'
               - '!.licenserc.yaml'
               - '!LICENSE'
               - '!NOTICE'
-              - '.github/workflows/e2e-k8s.yml'
-              - '.github/scripts/*e2e-maven-repository*'
-              - '.github/scripts/resolve-test-case-matrix*.sh'
               - '!.github/ISSUE_TEMPLATE/**'
-              - '!.github/PULL_REQUEST_TEMPLATE'
+              - '!*.md'
+              - '!**/README*.md'
+              - '!docs/**'
+              - '!**/docs/**'
+              - '!.github/PULL_REQUEST_TEMPLATE.md'
       - name: Resolve E2E cases
         id: cases
         if: steps.filter.outputs.e2e == 'true'
@@ -100,12 +82,24 @@ jobs:
           CI_CASE_MODE: e2e
         run: bash .github/scripts/resolve-test-case-matrix.sh
 
+      - name: Expand protocol and sync channel shards
+        id: shards
+        if: steps.cases.outputs.run_e2e_cases == 'true'
+        env:
+          E2E_MATRIX: ${{ steps.cases.outputs.e2e_matrix }}
+        run: |
+          matrix=$(jq -c '{include: [.include[] |
+            if ((.script | endswith("-sync-compose")) or .script == "e2e-logging-rocketmq-compose") then
+              . as $entry | ["websocket", "http", "zookeeper"][] | $entry + {sync: .}
+            else . + {sync: ""} end]}' <<< "$E2E_MATRIX")
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   build-docker-images:
     needs: changes
     if: ${{ needs.changes.outputs.run_e2e == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - name: Free disk space when needed
@@ -116,73 +110,18 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-
-      - name: Install mvnd
-        shell: bash
-        run: |
-          MVND_VERSION=1.0.6
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-windows-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-windows-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          else
-            curl -sfL https://downloads.apache.org/maven/mvnd/${MVND_VERSION}/maven-mvnd-${MVND_VERSION}-linux-amd64.zip -o mvnd.zip
-            unzip -q mvnd.zip
-            mkdir -p $HOME/.local
-            mv maven-mvnd-${MVND_VERSION}-linux-amd64 $HOME/.local/mvnd
-            echo "$HOME/.local/mvnd/bin" >> $GITHUB_PATH
-            echo "MVND_HOME=$HOME/.local/mvnd" >> $GITHUB_ENV
-          fi
-
-      - name: Restore ShenYu Maven Repos
-        id: restore-maven-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          cache: maven
 
       - name: Build with Maven
         shell: bash
         run: |
-          if mvnd --version > /dev/null 2>&1; then
-            echo "Using mvnd for build"
-            exec bash .github/scripts/maven-with-retry.sh mvnd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
-          else
-            echo "Falling back to maven wrapper"
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              exec bash .github/scripts/maven-with-retry.sh ./mvnw.cmd -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
-            else
-              exec bash .github/scripts/maven-with-retry.sh ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
-            fi
-          fi
-
-      - name: Save ShenYu Maven Repos
-        if: steps.restore-maven-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          exec bash .github/scripts/maven-with-retry.sh ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Drat.skip=true -Dmaven.test.skip=true -Djacoco.skip=true -DskipITs -DskipTests -T1C
 
       - name: Prepare selected example and E2E Maven inputs
         env:
           E2E_MATRIX: ${{ needs.changes.outputs.e2e_matrix }}
           STORAGE_MATRIX: ${{ needs.changes.outputs.storage_matrix }}
         run: bash .github/scripts/prepare-e2e-maven-repository.sh /tmp/shenyu-m2
-
-      #      - name: Build shenyu-e2e-engine with Maven
-      #        run: ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-engine -am clean install
-
-      #      - name: Save ShenYu E2E Maven Repos
-      #        if: steps.restore-e2e-maven-cache.outputs.cache-hit != 'true'
-      #        uses: actions/cache/save@v3
-      #        with:
-      #          path: ~/.m2/repository
-      #          key: ${{ runner.os }}-e2e-maven-${{ hashFiles('**/pom.xml') }}
 
       - name: Build Docker Image
         run: |
@@ -201,6 +140,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shenyu-local-maven-repository
+          compression-level: 0
           path: |
             /tmp/shenyu-m2/repository.tar.gz
             /tmp/shenyu-m2/settings.xml
@@ -218,7 +158,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.changes.outputs.storage_matrix || '{"include":[]}') }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -294,6 +234,7 @@ jobs:
   #          kubectl get events --all-namespaces
 
   e2e-case:
+    name: e2e-case (${{ matrix.script }}, ${{ matrix.sync || 'default' }})
     runs-on: ubuntu-latest
     needs:
       - changes
@@ -302,10 +243,10 @@ jobs:
     #    if: (github.repository == 'apache/shenyu')
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.e2e_matrix || '{"include":[]}') }}
+      matrix: ${{ fromJSON(needs.changes.outputs.e2e_shards || '{"include":[]}') }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -384,6 +325,8 @@ jobs:
       #          detached: true
 
       - name: Run E2E Tests
+        env:
+          SHENYU_E2E_SYNC: ${{ matrix.sync }}
         run: |
           bash ./shenyu-e2e/shenyu-e2e-case/${{ matrix.case }}/compose/script/${{ matrix.script }}.sh
 
@@ -395,7 +338,7 @@ jobs:
 
   requirement:
     name: e2e
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     needs:
       - changes
       - build-docker-images

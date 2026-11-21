@@ -110,6 +110,28 @@ class AgentMcpResourceIntegrationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"json", "sse"})
+    void configuredHttpToolsKeepTheLocalResourceRegistry(final String mode) {
+        // the rule grants the HTTP tool "lookup" and the local resource "status" independently:
+        // binding the request-local tool providers must not drop the local registrations
+        AgentMcpHttpHandler handler = handler(input -> Mono.just(List.of(AgentResourceContent.text(input.getUri(), "text/plain", "local-status"))),
+                new AgentMcpIdentity("trusted-owner", Set.of("lookup"), Set.of("status")));
+        for (String method : List.of("server/discover", "resources/list", "resources/templates/list", "resources/read", "tools/list")) {
+            MockServerWebExchange exchange = exchange(method, "test://status");
+            handler.handle(exchange, config(mode, true), traffic("http-tools-" + method), 1).block(Duration.ofSeconds(3));
+            assertEquals(200, exchange.getResponse().getStatusCode().value(), method + " with a configured HTTP tool");
+            String wire = exchange.getResponse().getBodyAsString().block();
+            if ("resources/read".equals(method)) {
+                assertTrue(wire.contains("local-status"), wire);
+            } else if ("resources/list".equals(method)) {
+                assertTrue(wire.contains("test://status"), wire);
+            } else if ("tools/list".equals(method)) {
+                assertTrue(wire.contains("\"lookup\""), wire);
+            }
+        }
+    }
+
     @Test
     void toolGrantsDoNotAuthorizeResourceReadsOrLists() {
         AtomicInteger reads = new AtomicInteger();
@@ -194,6 +216,15 @@ class AgentMcpResourceIntegrationTest {
 
     private AgentGatewayMcpConfig config(final String mode) {
         return AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedResources\":[\"status\"],\"responseMode\":\"" + mode + "\"}"), true);
+    }
+
+    private AgentGatewayMcpConfig config(final String mode, final boolean httpTools) {
+        String json = "{\"allowedResources\":[\"status\"],\"responseMode\":\"" + mode + "\""
+                + (httpTools ? ",\"allowedTools\":[\"lookup\"],\"httpTools\":{\"lookup\":{\"description\":\"Lookup the local status\","
+                + "\"inputSchema\":{\"type\":\"object\",\"properties\":{}},"
+                + "\"requestConfig\":{\"requestTemplate\":{\"method\":\"GET\",\"url\":\"/status\"},\"argsPosition\":{}}}}" : "")
+                + "}";
+        return AgentGatewayMcpConfig.parse(JsonParser.parseString(json), true);
     }
 
     private AgentTrafficContext traffic(final String id) {

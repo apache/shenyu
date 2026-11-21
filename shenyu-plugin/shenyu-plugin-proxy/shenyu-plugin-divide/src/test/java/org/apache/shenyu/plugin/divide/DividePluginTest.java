@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.divide;
 
+import io.netty.buffer.PooledByteBufAllocator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.DiscoveryUpstreamData;
@@ -49,6 +50,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -56,12 +60,15 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -223,6 +230,120 @@ public final class DividePluginTest {
     }
 
     @Test
+    public void doExecuteReleasesPooledOverflowBufferOnFirstChunk() {
+        configureChunkedLimit(1);
+        final NettyDataBuffer overflow = pooled("ab");
+        final MockServerWebExchange chunked = chunkedExchange(Flux.just(overflow));
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            final ServerWebExchange downstream = invocation.getArgument(0);
+            return downstream.getRequest().getBody().doOnNext(DataBufferUtils::release).then();
+        });
+
+        StepVerifier.create(dividePlugin.doExecute(chunked, chain, selectorData, ruleData))
+                .expectSubscription()
+                .verifyErrorSatisfies(error -> {
+                    assertInstanceOf(ResponseStatusException.class, error);
+                    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ((ResponseStatusException) error).getStatusCode());
+                });
+        assertEquals(0, overflow.getNativeBuffer().refCnt());
+    }
+
+    @Test
+    public void doExecuteReleasesPooledOverflowBufferOnLaterChunk() {
+        configureChunkedLimit(3);
+        final NettyDataBuffer accepted = pooled("ab");
+        final NettyDataBuffer overflow = pooled("cd");
+        final NettyDataBuffer queued = pooled("ef");
+        final MockServerWebExchange chunked = chunkedExchange(Flux.create(sink -> {
+            sink.next(accepted);
+            sink.next(overflow);
+            sink.next(queued);
+            sink.complete();
+        }, FluxSink.OverflowStrategy.BUFFER));
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            final ServerWebExchange downstream = invocation.getArgument(0);
+            return downstream.getRequest().getBody().doOnNext(DataBufferUtils::release).then();
+        });
+
+        StepVerifier.create(dividePlugin.doExecute(chunked, chain, selectorData, ruleData))
+                .expectSubscription()
+                .verifyErrorSatisfies(error -> {
+                    assertInstanceOf(ResponseStatusException.class, error);
+                    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ((ResponseStatusException) error).getStatusCode());
+                });
+        assertEquals(0, accepted.getNativeBuffer().refCnt());
+        assertEquals(0, overflow.getNativeBuffer().refCnt());
+        assertEquals(0, queued.getNativeBuffer().refCnt());
+    }
+
+    @Test
+    public void doExecuteReleasesQueuedPooledBuffersOnCancellation() {
+        configureChunkedLimit(10);
+        final NettyDataBuffer first = pooled("a");
+        final NettyDataBuffer second = pooled("b");
+        final NettyDataBuffer third = pooled("c");
+        final MockServerWebExchange chunked = chunkedExchange(Flux.create(sink -> {
+            sink.next(first);
+            sink.next(second);
+            sink.next(third);
+            sink.complete();
+        }, FluxSink.OverflowStrategy.BUFFER));
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            final ServerWebExchange downstream = invocation.getArgument(0);
+            return downstream.getRequest().getBody().doOnNext(DataBufferUtils::release).take(1).then();
+        });
+
+        StepVerifier.create(dividePlugin.doExecute(chunked, chain, selectorData, ruleData))
+                .expectSubscription()
+                .verifyComplete();
+        final String refs = "refs=" + first.getNativeBuffer().refCnt() + "/"
+                + second.getNativeBuffer().refCnt() + "/" + third.getNativeBuffer().refCnt();
+        assertEquals(0, first.getNativeBuffer().refCnt(), refs);
+        assertEquals(0, second.getNativeBuffer().refCnt(), refs);
+        assertEquals(0, third.getNativeBuffer().refCnt(), refs);
+    }
+
+    @Test
+    public void doExecuteForwardsPooledChunksWithoutReleasingThemTwice() {
+        configureChunkedLimit(10);
+        final NettyDataBuffer first = pooled("ab");
+        final NettyDataBuffer second = pooled("cd");
+        final MockServerWebExchange chunked = chunkedExchange(Flux.just(first, second));
+        when(chain.execute(any())).thenAnswer(invocation -> {
+            final ServerWebExchange downstream = invocation.getArgument(0);
+            return downstream.getRequest().getBody().doOnNext(DataBufferUtils::release).then();
+        });
+
+        StepVerifier.create(dividePlugin.doExecute(chunked, chain, selectorData, ruleData))
+                .expectSubscription()
+                .verifyComplete();
+        assertEquals(0, first.getNativeBuffer().refCnt());
+        assertEquals(0, second.getNativeBuffer().refCnt());
+    }
+
+    private void configureChunkedLimit(final int maxSize) {
+        final DivideRuleHandle handle = new DivideRuleHandle();
+        handle.setRequestMaxSize(maxSize);
+        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
+        new DividePluginDataHandler().handlerRule(ruleData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+    }
+
+    private MockServerWebExchange chunkedExchange(final Flux<NettyDataBuffer> body) {
+        final MockServerWebExchange chunked = MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .header("Transfer-Encoding", "chunked")
+                .body(body));
+        chunked.getAttributes().put(Constants.CONTEXT, exchange.getAttribute(Constants.CONTEXT));
+        return chunked;
+    }
+
+    private static NettyDataBuffer pooled(final String text) {
+        final NettyDataBuffer buffer = new NettyDataBufferFactory(PooledByteBufAllocator.DEFAULT).allocateBuffer();
+        buffer.write(text.getBytes(StandardCharsets.UTF_8));
+        return buffer;
+    }
+
+    @Test
     public void testRetryBackOffSpecAttributeSet() {
         DivideRuleHandle handle = new DivideRuleHandle();
         handle.setRetryBackOffSpec(HttpRetryBackoffSpecEnum.FIXED_BACKOFF.getName());
@@ -355,6 +476,43 @@ public final class DividePluginTest {
             subscription.dispose();
 
             assertEquals(2, upstream.getInflight().get());
+        }
+    }
+
+    @Test
+    public void shortestResponseInflightReturnsToBaselineOnTerminalSignals() {
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setLoadBalance("shortestResponse");
+        Upstream upstream = Upstream.builder().url("http://upstream").build();
+        try (MockedStatic<LoadbalancerUtils> loadbalancerUtils = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancerUtils.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenReturn(upstream);
+
+            upstream.getInflight().set(2);
+            when(chain.execute(exchange)).thenReturn(Mono.empty());
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+            assertEquals(1, upstream.getInflight().get());
+            assertEquals(1, upstream.getSucceeded().get());
+
+            upstream.getInflight().set(2);
+            when(chain.execute(exchange)).thenReturn(Mono.error(new IllegalStateException("boom")));
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData))
+                    .verifyError(IllegalStateException.class);
+            assertEquals(1, upstream.getInflight().get());
+            assertEquals(1, upstream.getSucceeded().get());
+
+            upstream.getInflight().set(2);
+            when(chain.execute(exchange)).thenReturn(Mono.never());
+            Disposable subscription = dividePlugin.doExecute(exchange, chain, selectorData, ruleData).subscribe();
+            subscription.dispose();
+            assertEquals(1, upstream.getInflight().get());
+            assertEquals(1, upstream.getSucceeded().get());
+
+            upstream.getInflight().set(0);
+            when(chain.execute(exchange)).thenReturn(Mono.empty());
+            StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+            assertEquals(0, upstream.getInflight().get());
         }
     }
 

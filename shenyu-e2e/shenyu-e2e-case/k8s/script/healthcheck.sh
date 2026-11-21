@@ -16,8 +16,9 @@
 # limitations under the License.
 #
 
-for loop in $(seq 1 30); do
-  status=$(curl -s -o /dev/null -w %{http_code} -X GET "${1}" -H "accept: */*")
+# Callers replacing a fixed startup delay can retain that grace with more polls.
+for loop in $(seq 1 "${2:-30}"); do
+  status=$(curl -s -o /dev/null -w "%{http_code}" -X GET "${1}" -H "accept: */*")
   echo -e "${loop} curl ${1} response $status"
   if [ "$status" -eq 200 ]; then
     break

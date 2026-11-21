@@ -39,6 +39,7 @@ import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.server.ServerWebExchange;
@@ -61,7 +62,10 @@ import java.util.Objects;
  * scope is rejected up front when the rule is fail closed, otherwise the
  * response scan is skipped with a warning, and the response decorator passes
  * server sent events and compressed bodies through with a warning, or rejects
- * them when the rule is fail closed.</p>
+ * them when the rule is fail closed. A request whose {@code Content-Encoding}
+ * is not {@code identity} is never decoded as text either: a fail open rule
+ * forwards the original wire bytes, a fail closed rule rejects it before the
+ * backend is invoked.</p>
  *
  * <p>Mutual exclusion: when the aiResponseTransformer plugin (order 66) is
  * enabled on the same traffic, its decorator sits inside this one and replaces
@@ -122,6 +126,14 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
         if (piiRule.isOversized(declaredSize)) {
             return oversized(exchange, chain, effective, piiRule, declaredSize);
         }
+        // every path that decodes the request body as text has to decide on the content
+        // encoding first: the codec reads the raw wire bytes as characters, so decoding a
+        // compressed body and writing the string back corrupts it even when nothing is
+        // redacted. The response side applies the same policy to compressed responses.
+        final String contentEncoding = effective.getRequest().getHeaders().getFirst(HttpHeaders.CONTENT_ENCODING);
+        if (decodesRequestBody(piiRule) && isUnsupportedEncoding(contentEncoding)) {
+            return unsupportedRequestEncoding(exchange, chain, effective, piiRule, contentEncoding);
+        }
         if (!piiRule.scansRequest()) {
             if (piiRule.scansResponse() && piiRule.isFailClosed()) {
                 // a strict response scope still prechecks the enforcement mode of the
@@ -174,6 +186,52 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
         LOG.warn("pii detection: the request of {} bytes exceeds maxBodySize {}, the body is not scanned",
                 size, rule.getMaxBodySize());
         return chain.execute(effective);
+    }
+
+    /**
+     * Whether this rule reads the request body as text, which is exactly what a
+     * compressed request cannot survive. A rule that scans the request always
+     * reads it; a response only scope reads it just for the fail closed mode
+     * precheck.
+     *
+     * @param rule the compiled rule
+     * @return true when the plugin would decode the request body
+     */
+    private boolean decodesRequestBody(final PiiDetectionRule rule) {
+        return rule.scansRequest() || (rule.scansResponse() && rule.isFailClosed());
+    }
+
+    /**
+     * A request the plugin cannot decode as text, mirroring the response side: a
+     * fail closed rule rejects it before the backend is invoked, a fail open rule
+     * forwards the original wire bytes untouched. The body is never decompressed
+     * and inspected, so no framing or encoding header has to be rewritten.
+     *
+     * @param exchange the current exchange
+     * @param chain the plugin chain
+     * @param effective the exchange with the response decorator applied
+     * @param rule the compiled rule
+     * @param contentEncoding the declared content encoding
+     * @return the continuation
+     */
+    private Mono<Void> unsupportedRequestEncoding(final ServerWebExchange exchange, final ShenyuPluginChain chain,
+                                                  final ServerWebExchange effective, final PiiDetectionRule rule,
+                                                  final String contentEncoding) {
+        if (rule.isFailClosed()) {
+            LOG.warn("pii detection: the request carries Content-Encoding {}, it cannot be scanned and failClosed"
+                    + " is set, the request is rejected", contentEncoding);
+            return reject(exchange);
+        }
+        // the body is never buffered on this path, it streams through unchanged, the
+        // downstream still sees the original Content-Encoding and the original bytes
+        LOG.warn("pii detection: the request carries Content-Encoding {}, the body is passed through unscanned,"
+                + " ruleId {}", contentEncoding, rule.getRuleId());
+        return chain.execute(effective).onErrorResume(error -> resume(exchange, error));
+    }
+
+    private boolean isUnsupportedEncoding(final String contentEncoding) {
+        return Objects.nonNull(contentEncoding) && !contentEncoding.isEmpty()
+                && !"identity".equalsIgnoreCase(contentEncoding);
     }
 
     private Mono<String> inspectRequest(final ServerWebExchange exchange,

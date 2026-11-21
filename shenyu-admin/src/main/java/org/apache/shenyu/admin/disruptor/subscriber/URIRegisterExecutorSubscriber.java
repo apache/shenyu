@@ -96,6 +96,14 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
             if (CollectionUtils.isNotEmpty(draining)) {
                 service.draining(selectorName, draining, namespaceId);
             }
+            List<URIRegisterDTO> notReady = groupByEventType.get(EventType.NOT_READY);
+            if (CollectionUtils.isNotEmpty(notReady)) {
+                service.notReady(selectorName, notReady, namespaceId);
+            }
+            List<URIRegisterDTO> ready = groupByEventType.get(EventType.READY);
+            if (CollectionUtils.isNotEmpty(ready)) {
+                service.ready(selectorName, ready, namespaceId);
+            }
         });
     }
     

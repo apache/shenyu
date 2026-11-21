@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -55,6 +56,14 @@ public final class UpstreamCheckTask implements Runnable {
     private final Map<String, List<Upstream>> healthyUpstream = Maps.newConcurrentMap();
 
     private final Map<String, List<Upstream>> unhealthyUpstream = Maps.newConcurrentMap();
+
+    /**
+     * Read-only snapshots of {@link #healthyUpstream}, re-published inside {@link #lock}
+     * on every structural or health-state change. Request-path readers take the snapshot
+     * reference directly, so routing lookups no longer copy the whole healthy list per
+     * request while writers own the (bounded, low-frequency) copy cost.
+     */
+    private final Map<String, List<Upstream>> healthySnapshot = Maps.newConcurrentMap();
 
     private final Object lock = new Object();
 
@@ -188,9 +197,16 @@ public final class UpstreamCheckTask implements Runnable {
              */
             synchronized (lock) {
                 if (tryStartHealthCheck()) {
-                    submitted = doHealthCheck(maxEndpointLatencyMillis);
-                    pendingAtWait = countPendingFutures();
-                    waitFinish();
+                    try {
+                        submitted = doHealthCheck(maxEndpointLatencyMillis);
+                        pendingAtWait = countPendingFutures();
+                        waitFinish();
+                    } finally {
+                        // A round aborted between submit and wait (for example an executor rejection)
+                        // must not leak its futures into the next round, where they would be awaited
+                        // and applied a second time.
+                        futures.clear();
+                    }
                 }
             }
         } catch (Exception e) {
@@ -274,9 +290,7 @@ public final class UpstreamCheckTask implements Runnable {
             String key = entry.getKey();
             List<Upstream> value = entry.getValue();
             for (Upstream upstream : value) {
-                CompletableFuture<UpstreamWithSelectorId> future =
-                        CompletableFuture.supplyAsync(() -> check(key, upstream, maxEndpointLatencyMillis), executor);
-                futures.add(future);
+                futures.add(submitCheck(key, upstream, maxEndpointLatencyMillis));
                 submitted++;
             }
         }
@@ -296,6 +310,13 @@ public final class UpstreamCheckTask implements Runnable {
         boolean pass;
         try {
             pass = UpstreamCheckUtils.checkUrl(upstream.getUrl(), checkTimeout);
+        } catch (RuntimeException e) {
+            // An unparsable upstream URL throws from the probe instead of returning false. Treat it
+            // as a failed probe so this endpoint can still leave the healthy pool; otherwise it would
+            // keep being selected while never producing a result.
+            LOG.error("[Health Check] Selector [{}] upstream {} could not be probed.",
+                    selectorId, upstream.getUrl(), e);
+            pass = false;
         } finally {
             final long latencyMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - probeStart);
             maxEndpointLatencyMillis.accumulateAndGet(latencyMillis, Math::max);
@@ -331,17 +352,59 @@ public final class UpstreamCheckTask implements Runnable {
         return new UpstreamWithSelectorId(selectorId, upstream);
     }
 
+    /**
+     * Submit one probe so that its failure stays contained in its own future.
+     *
+     * <p>An exceptional probe completes with a {@code null} result instead of an exception, so the
+     * round can still apply every other probe result and can always clear its bookkeeping.
+     * Ordinary unsuccessful probes are unaffected: they return {@code false} from the URL check
+     * rather than throwing.
+     *
+     * @param selectorId selectorId
+     * @param upstream upstream to probe
+     * @param maxEndpointLatencyMillis per-round latency accumulator
+     * @return the probe future, never completing exceptionally
+     */
+    private CompletableFuture<UpstreamWithSelectorId> submitCheck(final String selectorId, final Upstream upstream,
+                                                                  final AtomicLong maxEndpointLatencyMillis) {
+        return CompletableFuture
+                .supplyAsync(() -> check(selectorId, upstream, maxEndpointLatencyMillis), executor)
+                .exceptionally(ex -> {
+                    LOG.error("[Health Check] Selector [{}] upstream {} health check failed to complete.",
+                            selectorId, upstream.getUrl(), ex);
+                    return null;
+                });
+    }
+
     private boolean tryStartHealthCheck() {
         return checkStarted.compareAndSet(false, true);
     }
 
-    private void waitFinish() throws ExecutionException, InterruptedException {
+    /**
+     * Apply the results of the current round.
+     *
+     * <p>Each future is awaited on its own, so one failed or cancelled probe no longer hides the
+     * results of the others, and the caller always clears the round bookkeeping afterwards.
+     */
+    private void waitFinish() {
         for (CompletableFuture<UpstreamWithSelectorId> future : futures) {
-            UpstreamWithSelectorId entity = future.get();
-            putEntityToMap(entity);
+            final UpstreamWithSelectorId entity;
+            try {
+                entity = future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn("[Health Check] Interrupted while awaiting probe results, abandoning this round.");
+                return;
+            } catch (CancellationException | ExecutionException e) {
+                // Probes complete with null instead of exceptionally, so this only covers a future
+                // that was cancelled or rejected before running. Skip it and keep applying the rest.
+                LOG.error("[Health Check] A probe did not complete, skipping its result for this round.", e);
+                continue;
+            }
+            if (Objects.nonNull(entity)) {
+                putEntityToMap(entity);
+            }
         }
-
-        futures.clear();
     }
 
     private void putEntityToMap(final UpstreamWithSelectorId entity) {
@@ -392,6 +455,9 @@ public final class UpstreamCheckTask implements Runnable {
             List<Upstream> list = MapUtils.computeIfAbsent(map, selectorId, k -> new CopyOnWriteArrayList<>());
             if (!list.contains(upstream)) {
                 list.add(upstream);
+                if (healthyUpstream == map) {
+                    publishHealthySnapshot(selectorId);
+                }
             }
         }
     }
@@ -406,8 +472,8 @@ public final class UpstreamCheckTask implements Runnable {
     public void removeFromMap(final Map<String, List<Upstream>> map, final String selectorId, final Upstream upstream) {
         synchronized (lock) {
             List<Upstream> list = map.get(selectorId);
-            if (CollectionUtils.isNotEmpty(list)) {
-                list.remove(upstream);
+            if (CollectionUtils.isNotEmpty(list) && list.remove(upstream) && healthyUpstream == map) {
+                publishHealthySnapshot(selectorId);
             }
         }
     }
@@ -432,7 +498,27 @@ public final class UpstreamCheckTask implements Runnable {
         synchronized (lock) {
             healthyUpstream.remove(selectorId);
             unhealthyUpstream.remove(selectorId);
+            healthySnapshot.remove(selectorId);
         }
+    }
+
+    /**
+     * Re-publish an immutable snapshot of the healthy list for the selector.
+     * Must be called while holding {@link #lock} so readers never observe a
+     * snapshot torn across concurrent structural changes.
+     *
+     * <p>{@link List#copyOf} rejects null elements, so a healthy list must never
+     * contain a null upstream; today no code path inserts one, and this guard
+     * documents that invariant rather than defending against it. The
+     * {@code isNull} branch is defensive only: both current callers reach this
+     * method right after the selector's list is present, so {@code live} is
+     * non-null in practice.
+     *
+     * @param selectorId selectorId
+     */
+    private void publishHealthySnapshot(final String selectorId) {
+        List<Upstream> live = healthyUpstream.get(selectorId);
+        healthySnapshot.put(selectorId, Objects.isNull(live) ? List.of() : List.copyOf(live));
     }
     
     /**
@@ -477,6 +563,25 @@ public final class UpstreamCheckTask implements Runnable {
      */
     public List<Upstream> getHealthyUpstreamListBySelectorId(final String selectorId) {
         return getHealthyUpstream().get(selectorId);
+    }
+
+    /**
+     * Get the published read-only healthy upstream snapshot of the selector.
+     * The snapshot is re-published on configuration and health-state updates and
+     * must not be mutated by callers.
+     *
+     * <p>Return contract: {@code null} when the selector has no snapshot entry at
+     * all (never submitted, or removed via {@link #triggerRemoveAll}); otherwise an
+     * immutable list that may be empty (all upstreams unhealthy) but never contains
+     * a removed target once the removal has been published. Callers treat both the
+     * {@code null} and empty cases as "no healthy upstream" via
+     * {@code CollectionUtils.isEmpty}.
+     *
+     * @param selectorId selectorId
+     * @return immutable snapshot list, or null when the selector has no entry
+     */
+    public List<Upstream> getHealthySnapshot(final String selectorId) {
+        return healthySnapshot.get(selectorId);
     }
     
     /**

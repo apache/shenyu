@@ -23,6 +23,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
+import org.apache.shenyu.common.dto.convert.rule.sticky.DeterministicKeyConfig;
 import org.apache.shenyu.common.dto.convert.rule.sticky.StickySessionConfig;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
@@ -32,29 +33,40 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
+import org.apache.shenyu.loadbalancer.spi.AdaptiveLoadBalancer;
+import org.apache.shenyu.loadbalancer.spi.AdaptiveOutcome;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamAttemptOwner;
 import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
 import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
+import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
+import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
+import org.apache.shenyu.plugin.divide.sticky.DeterministicKeyExtractor;
 import org.apache.shenyu.plugin.divide.sticky.StickySessionAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import reactor.core.publisher.SignalType;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.lang.NonNull;
 import org.springframework.web.server.ResponseStatusException;
@@ -81,9 +93,13 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private static final String SHORTEST_RESPONSE = "shortestResponse";
 
+    private static final String ADAPTIVE = "adaptive";
+
     private final CanaryDecisionService canaryDecisionService;
 
     private final StickySessionAffinity stickySessionAffinity = new StickySessionAffinity();
+
+    private final DeterministicKeyExtractor deterministicKeyExtractor = new DeterministicKeyExtractor();
 
     public DividePlugin() {
         this(new DefaultCanaryDecisionService());
@@ -100,16 +116,36 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        return Mono.defer(() -> executeRequest(exchange, chain, selector, rule));
+        return Mono.defer(() -> {
+            DivideRuleHandle handle = buildRuleHandle(rule);
+            if (Objects.isNull(handle.getRequestTimeout())) {
+                exchange.getAttributes().remove(HttpRouteDeadline.REQUEST);
+                exchange.getAttributes().remove(HttpRouteResponseHeaders.ATTRIBUTE);
+                return executeRequest(exchange, chain, selector, rule, handle);
+            }
+            HttpRouteDeadline deadline = new HttpRouteDeadline(handle.getRequestTimeout());
+            exchange.getAttributes().put(HttpRouteDeadline.REQUEST, deadline);
+            HttpRouteResponseHeaders headers = new HttpRouteResponseHeaders();
+            exchange.getAttributes().put(HttpRouteResponseHeaders.ATTRIBUTE, headers);
+            return deadline.limit(Mono.defer(() -> executeRequest(exchange, chain, selector, rule, handle)))
+                    .onErrorMap(java.util.concurrent.TimeoutException.class, HttpRouteDeadline::gatewayTimeout)
+                    .doOnError(ResponseStatusException.class, error -> {
+                        if (HttpStatus.GATEWAY_TIMEOUT.equals(error.getStatusCode())) {
+                            headers.restore(exchange);
+                        }
+                    });
+        });
     }
 
-    private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        // A re-entered exchange must not inherit a previous selector's partition.
+    private Mono<Void> executeRequest(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
+                                      final RuleData rule, final DivideRuleHandle ruleHandle) {
+        // A re-entered exchange must not inherit a previous selector's partition or pool group.
         exchange.getAttributes().remove(UpstreamRoutingContext.ATTRIBUTE);
+        exchange.getAttributes().remove(UpstreamAttemptOwner.ATTRIBUTE);
         exchange.getAttributes().remove(Constants.SHENYU_CANARY_CONTEXT);
+        exchange.getAttributes().remove(Constants.HTTP_POOL_GROUP);
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
-        DivideRuleHandle ruleHandle = buildRuleHandle(rule);
         final ServerWebExchange effectiveExchange = limitChunkedRequestBody(exchange, ruleHandle);
         if (ruleHandle.getHeaderMaxSize() > 0) {
             long headerSize = calculateHeaderSize(effectiveExchange.getRequest().getHeaders());
@@ -188,34 +224,40 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(UpstreamCircuitBreaker.HALF_OPEN_PROBE, candidates.isProbe());
         List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         Upstream upstream;
+        boolean p2cReserved = false;
         if (candidates.isProbe()) {
             upstream = breakeredUpstreamList.get(0);
-            if (P2C.equals(ruleHandle.getLoadBalance())) {
-                upstream.getInflight().incrementAndGet();
-                upstream.setLastPicked(System.currentTimeMillis());
-            }
+            p2cReserved = reserveProbe(ruleHandle, upstream);
         } else if (CollectionUtils.isNotEmpty(specifyDomains)) {
             // an explicit specify-domain request is an operations override and never affinity-bound
             String requested = specifyDomains.get(0);
-            upstream = breakeredUpstreamList.stream()
+            Upstream requestedUpstream = breakeredUpstreamList.stream()
                     .filter(u -> u.getUrl().equals(requested))
                     .findFirst()
-                    .map(u -> Upstream.builder()
-                            .url(u.getUrl())
-                            .protocol(u.getProtocol())
-                            .weight(u.getWeight())
-                            .warmup(u.getWarmup())
-                            .status(u.isStatus())
-                            .build())
-                    .orElseGet(() -> LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange));
+                    .orElse(null);
+            if (Objects.nonNull(requestedUpstream)) {
+                // the copy is not the cache object and P2C is not reserved for it
+                upstream = Upstream.builder()
+                        .url(requestedUpstream.getUrl())
+                        .protocol(requestedUpstream.getProtocol())
+                        .weight(requestedUpstream.getWeight())
+                        .warmup(requestedUpstream.getWarmup())
+                        .status(requestedUpstream.isStatus())
+                        .build();
+            } else {
+                upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
+                p2cReserved = P2C.equals(ruleHandle.getLoadBalance());
+            }
         } else if (stickySessionAffinity.isActive(ruleHandle.getSticky())) {
             upstream = resolveWithAffinity(exchange, rule, ruleHandle, breakeredUpstreamList);
+            p2cReserved = P2C.equals(ruleHandle.getLoadBalance());
             if (Objects.isNull(upstream)) {
                 return WebFluxResultUtils.result(exchange,
                         ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL));
             }
         } else {
             upstream = LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
+            p2cReserved = P2C.equals(ruleHandle.getLoadBalance());
         }
         if (Objects.isNull(upstream)) {
             rejectCanary(exchange);
@@ -223,11 +265,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        if (LEAST_ACTIVE.equals(ruleHandle.getLoadBalance())) {
-            // Least active compares outstanding requests, so the choice is reserved here and released
-            // once the request terminates, whatever its outcome.
-            upstream.getInflight().incrementAndGet();
-        }
+        final UpstreamAttemptOwner attemptOwner = installAttemptOwner(exchange, ruleHandle, upstream, p2cReserved);
         // a sticky binding is committed for the target chosen here, before the response headers
         // are committed: a downstream retry to another target never rewrites the binding (#8037)
         if (stickySessionAffinity.isActive(ruleHandle.getSticky())
@@ -245,12 +283,36 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().put(Constants.RETRY_STRATEGY, StringUtils.defaultIfEmpty(ruleHandle.getRetryStrategy(), RetryEnum.CURRENT.getName()));
         exchange.getAttributes().put(Constants.LOAD_BALANCE, StringUtils.defaultIfEmpty(ruleHandle.getLoadBalance(), LoadBalanceEnum.RANDOM.getName()));
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, selector.getId());
+        if (StringUtils.isNotEmpty(ruleHandle.getPoolGroup())) {
+            exchange.getAttributes().put(Constants.HTTP_POOL_GROUP, ruleHandle.getPoolGroup());
+        }
         CanaryContext observation = exchange.getAttribute(Constants.SHENYU_CANARY_CONTEXT);
         if (Objects.nonNull(observation)) {
             observation.setActualPartition(Objects.nonNull(observation.getFallbackReason()) ? CanaryDecision.STABLE.getName() : observation.getIntendedPartition());
             reportCanary(exchange);
         }
-        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, candidates.getBreakerKey(upstream), upstream, candidates.isProbe());
+        return forwardWithCircuitBreaker(exchange, chain, ruleHandle, candidates.getBreakerKey(upstream), upstream,
+                attemptOwner, candidates.isProbe());
+    }
+
+    /**
+     * A half-open probe skips the load balancer, so reserve here for the algorithms that
+     * otherwise count the selection.
+     *
+     * @param ruleHandle the divide rule handle
+     * @param upstream the probe target
+     * @return true when the probe reserved a P2C attempt
+     */
+    private boolean reserveProbe(final DivideRuleHandle ruleHandle, final Upstream upstream) {
+        if (P2C.equals(ruleHandle.getLoadBalance())) {
+            upstream.getInflight().incrementAndGet();
+            upstream.setLastPicked(System.currentTimeMillis());
+            return true;
+        }
+        if (SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
+            upstream.getInflight().incrementAndGet();
+        }
+        return false;
     }
 
     private void rejectCanary(final ServerWebExchange exchange) {
@@ -317,18 +379,88 @@ public class DividePlugin extends AbstractShenyuPlugin {
      * @param probe whether the caller already attached exclusive probe accounting
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
+    private UpstreamAttemptOwner installAttemptOwner(final ServerWebExchange exchange, final DivideRuleHandle ruleHandle,
+                                                     final Upstream upstream, final boolean p2cReserved) {
+        final boolean leastActive = LEAST_ACTIVE.equals(ruleHandle.getLoadBalance());
+        if (leastActive) {
+            // Least active compares outstanding requests, so the choice is reserved here; the
+            // terminal release runs when the response body is done, or a failed failover
+            // attempt releases itself earlier (#8158).
+            upstream.getInflight().incrementAndGet();
+        }
+        final UpstreamAttemptOwner attemptOwner;
+        if (leastActive) {
+            attemptOwner = new UpstreamAttemptOwner(serving -> serving.getInflight().decrementAndGet());
+        } else if (P2C.equals(ruleHandle.getLoadBalance()) && p2cReserved) {
+            attemptOwner = new UpstreamAttemptOwner(this::responseTrigger);
+        } else if (SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
+            // Selection, a half-open probe, or a binding hit already reserved this attempt.
+            // Failover moves the owner; the terminal release runs once when the body is done (#7973, #8158).
+            attemptOwner = new UpstreamAttemptOwner(this::releaseShortestResponseInflight);
+        } else {
+            attemptOwner = null;
+        }
+        if (Objects.nonNull(attemptOwner)) {
+            attemptOwner.move(upstream);
+            exchange.getAttributes().put(UpstreamAttemptOwner.ATTRIBUTE, attemptOwner);
+        }
+        return attemptOwner;
+    }
+
     private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-                                                 final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream, final boolean probe) {
+                                                 final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream,
+                                                 final UpstreamAttemptOwner attemptOwner, final boolean probe) {
         Mono<Void> response = Mono.defer(() -> chain.execute(exchange));
-        if (ruleHandle.getLoadBalance().equals(LEAST_ACTIVE)) {
-            response = response.doFinally(signalType -> upstream.getInflight().decrementAndGet());
-        } else if (ruleHandle.getLoadBalance().equals(P2C)) {
-            response = response.doFinally(signalType -> responseTrigger(upstream));
-        } else if (ruleHandle.getLoadBalance().equals(SHORTEST_RESPONSE)) {
+        if (SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
             long beginTime = System.currentTimeMillis();
             response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime));
+        } else if (ADAPTIVE.equals(ruleHandle.getLoadBalance())) {
+            // the attempt's own start time feeds the adaptive scoring, so overlapping
+            // attempts never share a timestamp the way the p2c lag attribution does
+            long beginTime = System.currentTimeMillis();
+            response = response.doFinally(signalType -> adaptiveFeedback(upstream, exchange, beginTime, signalType));
+        }
+        if (Objects.nonNull(attemptOwner)) {
+            // the owner names whichever attempt is serving; failover moves it, and this terminal
+            // release runs when the response body is done, errors or is cancelled (#8158)
+            response = response.doFinally(signalType -> attemptOwner.releaseCurrent());
         }
         return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
+    }
+
+    /**
+     * Pair the adaptive selection's in-flight reservation with the attempt outcome and
+     * feed the classified result into the adaptive scoring: a downstream cancellation
+     * says nothing about the upstream, a 4xx is neutral, a 5xx or a transport failure
+     * penalizes through the synthetic failure latency floor.
+     *
+     * @param upstream the upstream that served the attempt
+     * @param exchange the current server exchange
+     * @param beginTime the attempt's own start time
+     * @param signalType the completion signal
+     */
+    private void adaptiveFeedback(final Upstream upstream, final ServerWebExchange exchange,
+                                  final long beginTime, final SignalType signalType) {
+        upstream.getInflight().decrementAndGet();
+        if (SignalType.CANCEL.equals(signalType)) {
+            return;
+        }
+        AdaptiveOutcome outcome;
+        if (SignalType.ON_ERROR.equals(signalType)) {
+            outcome = AdaptiveOutcome.TRANSPORT_ERROR;
+        } else {
+            HttpStatusCode status = exchange.getResponse().getStatusCode();
+            if (Objects.isNull(status)) {
+                outcome = AdaptiveOutcome.SUCCESS;
+            } else if (status.is5xxServerError()) {
+                outcome = AdaptiveOutcome.SERVER_ERROR;
+            } else if (status.is4xxClientError()) {
+                outcome = AdaptiveOutcome.CLIENT_ERROR;
+            } else {
+                outcome = AdaptiveOutcome.SUCCESS;
+            }
+        }
+        AdaptiveLoadBalancer.feedback(upstream, System.currentTimeMillis() - beginTime, outcome);
     }
 
     /**
@@ -349,11 +481,14 @@ public class DividePlugin extends AbstractShenyuPlugin {
                 stickySessionAffinity.resolve(exchange, rule.getId(), sticky, breakeredUpstreamList);
         final Upstream bound = resolution.getBound();
         if (Objects.nonNull(bound)) {
-            if (P2C.equals(ruleHandle.getLoadBalance())) {
-                // a binding hit skips the P2C selection, which normally reserves the
+            if (P2C.equals(ruleHandle.getLoadBalance()) || ADAPTIVE.equals(ruleHandle.getLoadBalance())) {
+                // a binding hit skips the pairing selection, which normally reserves the
                 // attempt: the same accounting must apply or the count drifts down
                 bound.getInflight().incrementAndGet();
                 bound.setLastPicked(System.currentTimeMillis());
+            } else if (SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
+                // A binding hit skips selection, which is where shortestResponse reserves inflight.
+                bound.getInflight().incrementAndGet();
             }
             return bound;
         }
@@ -364,7 +499,42 @@ public class DividePlugin extends AbstractShenyuPlugin {
             exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
             return null;
         }
+        // a configured deterministic key maps a binding-less request onto the admitted
+        // candidates by the consistent hash ring; it is key hashing, not a binding —
+        // no separate cookie is written for it and a missing key falls back to the
+        // algorithm (#8037). The key is a sub-mode of the sticky configuration: it is
+        // evaluated inside the affinity path, so sticky itself must be active (enabled
+        // with usable binding secrets), which keeps one configuration surface.
+        final Upstream keyed = resolveWithDeterministicKey(exchange, sticky, ruleHandle, breakeredUpstreamList);
+        if (Objects.nonNull(keyed)) {
+            return keyed;
+        }
         return LoadbalancerUtils.getForExchange(breakeredUpstreamList, ruleHandle.getLoadBalance(), exchange);
+    }
+
+    private Upstream resolveWithDeterministicKey(final ServerWebExchange exchange, final StickySessionConfig sticky,
+                                                 final DivideRuleHandle ruleHandle, final List<Upstream> breakeredUpstreamList) {
+        final DeterministicKeyConfig keyConfig = Objects.nonNull(sticky) ? sticky.getKey() : null;
+        if (Objects.isNull(keyConfig) || !keyConfig.isConfigured()) {
+            return null;
+        }
+        final String key = deterministicKeyExtractor.extract(exchange, keyConfig);
+        if (Objects.isNull(key)) {
+            return null;
+        }
+        final LoadBalanceData data = new LoadBalanceData();
+        data.setHashKey(key);
+        final Upstream upstream = LoadBalancerFactory.selector(breakeredUpstreamList, LoadBalanceEnum.HASH.getName(), data);
+        if (Objects.nonNull(upstream) && (P2C.equals(ruleHandle.getLoadBalance()) || ADAPTIVE.equals(ruleHandle.getLoadBalance()))) {
+            // the hash pick skips the pairing selection, which normally reserves the
+            // attempt: the same accounting must apply or the count drifts down
+            upstream.getInflight().incrementAndGet();
+            upstream.setLastPicked(System.currentTimeMillis());
+        } else if (Objects.nonNull(upstream) && SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
+            // The hash pick skips shortestResponse selection, which is where inflight is reserved.
+            upstream.getInflight().incrementAndGet();
+        }
+        return upstream;
     }
 
     private DivideRuleHandle buildRuleHandle(final RuleData rule) {
@@ -399,6 +569,10 @@ public class DividePlugin extends AbstractShenyuPlugin {
         upstream.getSucceeded().incrementAndGet();
     }
 
+    private void releaseShortestResponseInflight(final Upstream upstream) {
+        upstream.getInflight().updateAndGet(current -> current > 0 ? current - 1 : 0);
+    }
+
     /**
      * A positive requestMaxSize must also cover chunked / unknown-length bodies: the
      * Content-Length header is absent (-1) there, so the limit is enforced on the actual
@@ -417,13 +591,19 @@ public class DividePlugin extends AbstractShenyuPlugin {
             public Flux<DataBuffer> getBody() {
                 return Flux.defer(() -> {
                     forwarded = 0;
-                    return super.getBody().doOnNext(buffer -> {
-                        forwarded += buffer.readableByteCount();
-                        if (forwarded > maxSize) {
-                            LOG.error("request entity is too large");
-                            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
-                        }
-                    });
+                    // The overflowing chunk is owned by this operator and is released before the
+                    // error is propagated. doOnDiscard covers chunks that an upstream publisher
+                    // has already queued when the body is cancelled or fails before forwarding.
+                    return super.getBody()
+                            .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                            .doOnNext(buffer -> {
+                                forwarded += buffer.readableByteCount();
+                                if (forwarded > maxSize) {
+                                    DataBufferUtils.release(buffer);
+                                    LOG.error("request entity is too large");
+                                    throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+                                }
+                            });
                 });
             }
         }).build();

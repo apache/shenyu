@@ -107,7 +107,7 @@ public final class RegisterUtils {
             return;
         }
         Headers headers = registrationHeaders(accessToken);
-        String result = OkHttpTools.getInstance().post(url, json, headers);
+        String result = OkHttpTools.getInstance().postWithStatusCheck(url, json, headers);
         if (Objects.equals(SUCCESS, result)) {
             LOGGER.info("{} success: {} ", type, json);
         } else {

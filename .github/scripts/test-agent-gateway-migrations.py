@@ -86,7 +86,7 @@ class MigrationConsistencyTest(unittest.TestCase):
 
     def test_quoted_null_is_not_a_null_literal(self):
         changed, replacements = re.subn(
-            r"('68', )NULL(, \d+)",
+            r"('68', 'agentGateway', )null(, 'Ai', \d+)",
             r"\1'NULL'\2",
             self.migration,
             count=1,
