@@ -103,8 +103,8 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
 
         GrpcExtInfo extInfo = ApplicationConfigCache.getInstance().obtainGrpcExtInfo(metaData);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.getTimeout(), TimeUnit.MILLISECONDS)
-                .withOption(GrpcConstants.GRPC_SELECTOR_ID_OPTION, selector.getId())
-                .withOption(GrpcConstants.GRPC_RULE_ID_OPTION, rule.getId())
+                .withOption(GrpcConstants.GRPC_SELECTOR_ID_OPTION, StringUtils.defaultString(selector.getId()))
+                .withOption(GrpcConstants.GRPC_RULE_ID_OPTION, StringUtils.defaultString(rule.getId()))
                 .withOption(GrpcConstants.GRPC_REMOTE_ADDRESS_OPTION,
                         Optional.ofNullable(exchange.getRequest().getRemoteAddress())
                                 .map(InetSocketAddress::getAddress)

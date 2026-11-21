@@ -29,6 +29,8 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannelCopy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +40,8 @@ import java.util.stream.Collectors;
  * Shenyu picker.
  */
 public class ShenyuPicker extends AbstractReadyPicker {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuPicker.class);
 
     private final RandomPicker randomPicker;
 
@@ -54,6 +58,7 @@ public class ShenyuPicker extends AbstractReadyPicker {
     @Override
     protected SubChannelCopy pick(final List<SubChannelCopy> list, final LoadBalancer.PickSubchannelArgs args) {
         if (Objects.isNull(args)) {
+            LOG.debug("Using random gRPC picker without call arguments");
             return randomPicker.pick(list);
         }
         CallOptions callOptions = args.getCallOptions();
@@ -61,10 +66,12 @@ public class ShenyuPicker extends AbstractReadyPicker {
         String selectorId = callOptions.getOption(GrpcConstants.GRPC_SELECTOR_ID_OPTION);
         String remoteAddressIp = callOptions.getOption(GrpcConstants.GRPC_REMOTE_ADDRESS_OPTION);
         if (StringUtils.isBlank(grpcRuleId) || StringUtils.isBlank(selectorId)) {
+            LOG.debug("Using random gRPC picker without routing IDs: selector={}, rule={}", selectorId, grpcRuleId);
             return randomPicker.pick(list);
         }
         final GrpcRuleHandle cacheRuleHandle = ApplicationConfigCache.getInstance().getCacheRuleHandle(grpcRuleId);
         if (Objects.isNull(cacheRuleHandle)) {
+            LOG.debug("Using random gRPC picker without cached rule: selector={}, rule={}", selectorId, grpcRuleId);
             return randomPicker.pick(list);
         }
         List<GrpcUpstream> grpcUpstreams = ApplicationConfigCache.getInstance().getGrpcUpstreamListCache(selectorId);
