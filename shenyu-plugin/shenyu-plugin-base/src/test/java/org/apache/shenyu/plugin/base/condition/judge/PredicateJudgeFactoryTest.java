@@ -146,6 +146,25 @@ public final class PredicateJudgeFactoryTest {
     }
 
     @Test
+    public void testClockBasedTimeConditionsWithoutRequestValue() {
+        conditionData.setParamType(ParamTypeEnum.HEADER.getName());
+        conditionData.setOperator(OperatorEnum.TIME_BEFORE.getAlias());
+        conditionData.setParamValue(MAX_TIME);
+        assertTrue(PredicateJudgeFactory.judge(conditionData, null));
+
+        conditionData.setOperator(OperatorEnum.TIME_AFTER.getAlias());
+        conditionData.setParamName("");
+        conditionData.setParamValue(FIRST_TIME);
+        assertTrue(PredicateJudgeFactory.judge(conditionData, ""));
+
+        conditionData.setParamName("X-Date");
+        assertFalse(PredicateJudgeFactory.judge(conditionData, ""));
+        conditionData.setOperator(OperatorEnum.TIME_BEFORE.getAlias());
+        conditionData.setParamValue(MAX_TIME);
+        assertFalse(PredicateJudgeFactory.judge(conditionData, null));
+    }
+
+    @Test
     public void testExcludeJudge() {
         conditionData.setOperator(OperatorEnum.EXCLUDE.getAlias());
         conditionData.setParamValue("/http/test");
