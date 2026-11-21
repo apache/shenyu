@@ -29,6 +29,7 @@ import org.apache.shenyu.register.client.http.HttpClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
 import org.apache.shenyu.register.common.config.ShenyuDiscoveryConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -57,7 +58,7 @@ public class ShenyuGrpcDiscoveryConfiguration {
     @Bean("grpcInstanceRegisterListener")
     @ConditionalOnProperty(prefix = "shenyu.discovery", name = "register", matchIfMissing = false)
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
-    public InstanceRegisterListener instanceRegisterListener(final ClientRegisterConfig clientRegisterConfig,
+    public InstanceRegisterListener instanceRegisterListener(@Qualifier("grpcClientRegisterConfig") final ClientRegisterConfig clientRegisterConfig,
                                                              final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                              final ShenyuClientConfig shenyuClientConfig) {
         DiscoveryUpstreamData discoveryUpstreamData = new DiscoveryUpstreamData();
@@ -87,7 +88,7 @@ public class ShenyuGrpcDiscoveryConfiguration {
     @ConditionalOnBean(ShenyuDiscoveryConfig.class)
     public ClientDiscoveryConfigRefreshedEventListener clientDiscoveryConfigRefreshedEventListener(final ShenyuDiscoveryConfig shenyuDiscoveryConfig,
                                                                                                    final HttpClientRegisterRepository httpClientRegisterRepository,
-                                                                                                   final ClientRegisterConfig clientRegisterConfig,
+                                                                                                   @Qualifier("grpcClientRegisterConfig") final ClientRegisterConfig clientRegisterConfig,
                                                                                                    final ShenyuClientConfig shenyuClientConfig) {
         return new ClientDiscoveryConfigRefreshedEventListener(shenyuDiscoveryConfig, httpClientRegisterRepository, clientRegisterConfig, PluginEnum.GRPC, shenyuClientConfig);
     }
