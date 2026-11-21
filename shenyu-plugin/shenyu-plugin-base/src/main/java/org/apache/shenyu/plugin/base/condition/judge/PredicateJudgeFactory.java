@@ -54,10 +54,16 @@ public final class PredicateJudgeFactory {
             return false;
         }
         PredicateJudge predicateJudge = newInstance(conditionData.getOperator());
-        if (!(predicateJudge instanceof BlankPredicateJudge) && StringUtils.isBlank(realData)) {
+        if (StringUtils.isBlank(realData) && !(predicateJudge instanceof BlankPredicateJudge)
+                && !usesCurrentTime(conditionData, predicateJudge)) {
             return false;
         }
         return predicateJudge.judge(conditionData, realData);
+    }
+
+    private static boolean usesCurrentTime(final ConditionData conditionData, final PredicateJudge predicateJudge) {
+        return StringUtils.isEmpty(conditionData.getParamName())
+                && (predicateJudge instanceof TimerBeforePredicateJudge || predicateJudge instanceof TimerAfterPredicateJudge);
     }
 
     /**
