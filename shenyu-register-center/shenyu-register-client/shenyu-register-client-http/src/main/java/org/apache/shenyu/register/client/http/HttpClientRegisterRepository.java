@@ -271,6 +271,7 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
 
     @Override
     public void closeRepository() {
+        super.closeRepository();
         uriRegisterDTOs.values().forEach(registerDTO -> {
             if (fencingEnabled()) {
                 registerDTO.setEventType(EventType.OFFLINE);
