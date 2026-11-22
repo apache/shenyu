@@ -73,10 +73,14 @@ public class DiscoveryController {
     }
 
     /**
-     * Insert or update discovery.
+     * Insert or update a standalone discovery.
+     * When editing a discovery from {@code GET /discovery}, map {@code discoveryName} to {@code name}
+     * and {@code discoveryType} to {@code type} in the write DTO.
+     * Omit {@code discoveryHandler} and {@code discoveryRel} from the write DTO.
+     * Use {@code POST /proxy-selector/binding} to create a selector discovery binding.
      *
      * @param discoveryDTO {@link DiscoveryDTO}
-     * @return {@linkplain ShenyuAdminResult}
+     * @return the saved discovery, or HTTP 400 when the request includes nested binding data
      */
     @PostMapping("/insertOrUpdate")
     @RequiresPermissions("system:plugin:edit")
