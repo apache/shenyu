@@ -134,14 +134,15 @@ public final class ClientRegistrationDiagnostics {
     }
 
     /**
-     * Retire every retained entry as offline (resource close/shutdown).
+     * Retire every retained entry as offline (resource close/shutdown). The replacement
+     * is conditional so a concurrent fresh failure is never overwritten by this pass.
      */
     public void retireAll() {
         for (Map.Entry<String, RegistrationEntry> entry : entries.entrySet()) {
             RegistrationEntry current = entry.getValue();
             RegistrationEntry retired = new RegistrationEntry(current.identity(), RegistrationStatus.OFFLINE,
                     current.attempts(), FailureCategory.NONE, null, System.currentTimeMillis());
-            entries.replace(entry.getKey(), retired);
+            entries.replace(entry.getKey(), current, retired);
         }
         offlineCount.add(entries.size());
     }

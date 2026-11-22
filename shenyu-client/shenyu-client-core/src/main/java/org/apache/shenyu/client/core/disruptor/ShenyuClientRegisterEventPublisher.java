@@ -113,8 +113,9 @@ public class ShenyuClientRegisterEventPublisher {
      * @param data the data
      */
     public void publishEvent(final DataTypeParent data) {
-        ClientRegistrationDiagnostics.getInstance().recordQueuedEvent();
         DisruptorProvider<DataTypeParent> provider = providerManage.getProvider();
         provider.onData(data);
+        // counted after the enqueue attempt succeeded, not before
+        ClientRegistrationDiagnostics.getInstance().recordQueuedEvent();
     }
 }
