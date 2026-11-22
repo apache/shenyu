@@ -33,8 +33,10 @@ The machine-readable catalog is also available through Admin's existing
 | `retryBackOffSpec` | `default` | Existing default/fixed/exponential interpretation and fallback |
 | `retry` | 3 | Retry count |
 | `timeout` | 3000 | Milliseconds |
+| `requestTimeout` | absent | Overall HTTPRoute request budget in milliseconds. An absent value uses legacy timeout handling. Zero disables the deadline. |
 | `headerMaxSize` | 0 | UTF-8 bytes plus framing allowance; non-positive disables this check |
 | `requestMaxSize` | 0 | Body bytes; non-positive disables enforcement |
+| `poolGroup` | absent | Optional [upstream connection-pool group](upstream-pool-groups.md). An absent or empty value uses the shared default pool. Named groups are resolved by the gateway. |
 | `canary` | absent | Legacy routing; a present configuration uses existing partition validation |
 | `sticky` | absent | Existing optional HTTP affinity |
 

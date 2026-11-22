@@ -22,8 +22,10 @@ malformed	INVALID	false	REJECT_RETAIN	{	$	INVALID_JSON	-
 array-root	INVALID	false	REJECT_RETAIN	[]	$	INVALID_TYPE	-
 bad-root-field	INVALID	false	REJECT_RETAIN	{"retry":{}}	$	INVALID_JSON	-
 custom-names	VALID	true	REPLACE	{"loadBalance":"contract-custom","retryStrategy":"custom","retryBackOffSpec":"custom"}	-	-	-
+named-pool-group	VALID	true	REPLACE	{"poolGroup":"bulk"}	-	-	-
+request-budget	VALID	true	REPLACE	{"requestTimeout":1200}	-	-	-
 coercion	VALID	true	REPLACE	{"retry":"2","timeout":"9000","requestMaxSize":"1024"}	-	-	-
-nullable	VALID	true	REPLACE	{"retry":null,"timeout":null,"canary":null,"sticky":null}	-	-	-
+nullable	VALID	true	REPLACE	{"retry":null,"timeout":null,"requestTimeout":null,"poolGroup":null,"canary":null,"sticky":null}	-	-	-
 legacy-ranges	VALID	true	REPLACE	{"retry":-1,"timeout":-1,"headerMaxSize":-1,"requestMaxSize":-1}	-	-	-
 disabled-canary	VALID	true	REPLACE	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"enabled":false}}	-	-	-
 full-canary	VALID	true	REPLACE	{"canary":{"stableLabels":{"release":"stable"},"canaryLabels":{"release":"canary"},"enabled":true,"percentage":100}}	-	-	-

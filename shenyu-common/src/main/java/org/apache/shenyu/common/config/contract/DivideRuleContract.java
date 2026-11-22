@@ -80,8 +80,10 @@ public final class DivideRuleContract implements ConfigurationContractProvider {
         add(fields, "retryBackOffSpec", STRING, "default", "", false, "default/fixed/exponential; unknown names retain legacy fallback");
         add(fields, "retry", INTEGER, "3", "attempt retries", false, "Existing retry count; no new root-field range policy");
         add(fields, "timeout", INTEGER, "3000", "milliseconds", false, "Upstream timeout; inherited runtime interpretation is unchanged");
+        add(fields, "requestTimeout", INTEGER, null, "milliseconds", false, "Overall HTTPRoute request budget; absent uses legacy timeout handling and zero disables the deadline");
         add(fields, "headerMaxSize", INTEGER, "0", "bytes", false, "UTF-8 plus framing allowance; non-positive disables checking; legacy form preset is 10240");
         add(fields, "requestMaxSize", INTEGER, "0", "bytes", false, "Non-positive disables checking; legacy form preset is 102400");
+        add(fields, "poolGroup", STRING, null, "", false, "Optional named upstream connection pool; absent or empty uses the shared default pool");
         add(fields, "canary", OBJECT, null, "", false, "Absent/null uses legacy routing; a present object must satisfy the existing partition validator");
         add(fields, "canary.enabled", BOOLEAN, "false", "", false, "False selects Stable; present values must be JSON booleans");
         add(fields, "canary.conditions", ARRAY, null, "", true, "Optional request predicates; explicit null is invalid; an empty list admits all requests");
