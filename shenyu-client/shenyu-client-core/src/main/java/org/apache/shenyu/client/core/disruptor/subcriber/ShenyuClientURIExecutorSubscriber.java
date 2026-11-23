@@ -34,14 +34,17 @@ import org.springframework.beans.BeanUtils;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * The type Shenyu client uri executor subscriber.
@@ -50,6 +53,8 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuClientURIExecutorSubscriber.class);
 
+    private static final long HEARTBEAT_SHUTDOWN_WAIT_MILLIS = 2_000L;
+
     /**
      * URIs registered through this subscriber instance only. Instance-scoped so that
      * subscriber instances from different client contexts in the same JVM never
@@ -57,6 +62,8 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
      * accumulate duplicates in the heartbeat list.
      */
     private final List<URIRegisterDTO> uris = new CopyOnWriteArrayList<>();
+
+    private final List<Consumer<URIRegisterDTO>> registrationListeners = new CopyOnWriteArrayList<>();
     
     private final ShenyuClientRegisterRepository shenyuClientRegisterRepository;
     
@@ -91,29 +98,64 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     }
 
     /**
-     * Start reporting URI heartbeats.
+     * Start reporting URI heartbeats. A stop is final: starting after shutdown schedules
+     * nothing, so a stopped subscriber can never resurrect renewal.
      */
     public void start() {
-        if (started.compareAndSet(false, true)) {
+        if (executor.isShutdown() || !started.compareAndSet(false, true)) {
+            return;
+        }
+        try {
             executor.scheduleAtFixedRate(() -> uris.forEach(this::sendHeartbeat), 30, 10, TimeUnit.SECONDS);
+        } catch (RejectedExecutionException ex) {
+            LOG.debug("Heartbeat scheduler was shut down before the first tick was scheduled", ex);
         }
     }
 
     /**
-     * Stop reporting URI heartbeats. Idempotent; the executor rejects further renewals.
+     * Stop reporting URI heartbeats and wait for an in-flight tick to finish, so a heartbeat
+     * cannot land after a later draining update. Idempotent; the executor rejects further
+     * renewals.
      */
     public void shutdown() {
         executor.shutdown();
+        try {
+            if (!executor.awaitTermination(HEARTBEAT_SHUTDOWN_WAIT_MILLIS, TimeUnit.MILLISECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException ex) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    boolean isHeartbeatShutdown() {
+        return executor.isShutdown();
     }
 
     /**
-     * A read-only snapshot of the URIs this subscriber has registered, for lifecycle
-     * bridges that must address the same identities the registration flow used.
+     * A snapshot of the URIs this subscriber has registered, for lifecycle bridges that must
+     * address the same identities the registration flow used. Each element is a detached
+     * copy, so callers may rewrite its event type without racing heartbeat serialization.
      *
-     * @return an unmodifiable copy of the registered URIs
+     * @return an unmodifiable list of detached copies of the registered URIs
      */
     public List<URIRegisterDTO> registeredUris() {
-        return List.copyOf(uris);
+        List<URIRegisterDTO> snapshot = new ArrayList<>(uris.size());
+        for (URIRegisterDTO uri : uris) {
+            snapshot.add(detachedCopy(uri));
+        }
+        return List.copyOf(snapshot);
+    }
+
+    /**
+     * Observe URIs this subscriber registers, so a lifecycle bridge can apply the current
+     * serving state to registrations that complete after its last transition event.
+     *
+     * @param listener the listener, invoked with a detached copy on the first registration of a URI
+     */
+    public void addRegistrationListener(final Consumer<URIRegisterDTO> listener) {
+        registrationListeners.add(Objects.requireNonNull(listener));
     }
     
     @Override
@@ -133,15 +175,16 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
             ShenyuClientShutdownHook.delayOtherHooks();
             shenyuClientRegisterRepository.persistURI(uriRegisterDTO);
 
-            addUriIfAbsent(uriRegisterDTO);
+            if (addUriIfAbsent(uriRegisterDTO)) {
+                notifyRegistrationListeners(uriRegisterDTO);
+            }
             
             ShutdownHookManager.get().addShutdownHook(new Thread(() -> offlineAndShutdown(uriRegisterDTO)), 2);
         }
     }
 
     void offlineAndShutdown(final URIRegisterDTO uriRegisterDTO) {
-        final URIRegisterDTO offlineDTO = new URIRegisterDTO();
-        BeanUtils.copyProperties(uriRegisterDTO, offlineDTO);
+        final URIRegisterDTO offlineDTO = detachedCopy(uriRegisterDTO);
         offlineDTO.setEventType(EventType.OFFLINE);
         try {
             shenyuClientRegisterRepository.offline(offlineDTO);
@@ -191,7 +234,7 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
         }
     }
 
-    private void addUriIfAbsent(final URIRegisterDTO uriRegisterDTO) {
+    private boolean addUriIfAbsent(final URIRegisterDTO uriRegisterDTO) {
         boolean alreadyRegistered = uris.stream().anyMatch(registered ->
                 Objects.equals(registered.getNamespaceId(), uriRegisterDTO.getNamespaceId())
                         && Objects.equals(registered.getContextPath(), uriRegisterDTO.getContextPath())
@@ -199,6 +242,29 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
                         && Objects.equals(registered.getPort(), uriRegisterDTO.getPort()));
         if (!alreadyRegistered) {
             uris.add(uriRegisterDTO);
+            return true;
         }
+        return false;
+    }
+
+    private void notifyRegistrationListeners(final URIRegisterDTO uriRegisterDTO) {
+        if (registrationListeners.isEmpty()) {
+            return;
+        }
+        final URIRegisterDTO detached = detachedCopy(uriRegisterDTO);
+        for (Consumer<URIRegisterDTO> listener : registrationListeners) {
+            try {
+                listener.accept(detached);
+            } catch (RuntimeException ex) {
+                // a listener must not break registration or other listeners
+                LOG.warn("Registration listener failed for {}:{}", uriRegisterDTO.getHost(), uriRegisterDTO.getPort(), ex);
+            }
+        }
+    }
+
+    private static URIRegisterDTO detachedCopy(final URIRegisterDTO uriRegisterDTO) {
+        final URIRegisterDTO copy = new URIRegisterDTO();
+        BeanUtils.copyProperties(uriRegisterDTO, copy);
+        return copy;
     }
 }

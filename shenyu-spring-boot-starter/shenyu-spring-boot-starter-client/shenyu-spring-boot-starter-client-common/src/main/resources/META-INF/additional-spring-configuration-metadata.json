@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "shenyu.register.lifecycle-bridge.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Bridge Spring readiness and graceful shutdown to the registered instance's serving state: ready/notReady at real readiness transitions and draining on context close. Requires a client register repository."
+    }
+  ]
+}

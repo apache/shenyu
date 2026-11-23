@@ -27,8 +27,12 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,10 +92,57 @@ class ShenyuClientURIExecutorSubscriberReadinessSnapshotTest {
     }
 
     @Test
+    void snapshotIsDetachedFromHeartbeatPayloads() {
+        URIRegisterDTO first = uriDto("ns-1", socket.getLocalPort());
+        subscriber.executor(List.of(first));
+        List<URIRegisterDTO> snapshot = subscriber.registeredUris();
+        assertNotSame(first, snapshot.get(0), "the snapshot must not share the heartbeat payload instance");
+        snapshot.get(0).setEventType(org.apache.shenyu.register.common.enums.EventType.DRAINING);
+        assertEquals(org.apache.shenyu.register.common.enums.EventType.REGISTER, first.getEventType(),
+                "mutating a snapshot entry must not rewrite the heartbeat payload");
+        assertEquals(org.apache.shenyu.register.common.enums.EventType.REGISTER,
+                subscriber.registeredUris().get(0).getEventType());
+    }
+
+    @Test
+    void registrationListenersReceiveDetachedCopyOnFirstRegistrationOnly() {
+        AtomicInteger notified = new AtomicInteger();
+        AtomicReference<URIRegisterDTO> received = new AtomicReference<>();
+        subscriber.addRegistrationListener(uri -> {
+            notified.incrementAndGet();
+            received.set(uri);
+        });
+        URIRegisterDTO first = uriDto("ns-1", socket.getLocalPort());
+        subscriber.executor(List.of(first));
+        assertEquals(1, notified.get());
+        assertNotSame(first, received.get(), "listeners must not receive the heartbeat payload instance");
+        subscriber.executor(List.of(first));
+        assertEquals(1, notified.get(), "re-registering the same identity must not notify again");
+    }
+
+    @Test
+    void failingRegistrationListenerDoesNotBreakRegistration() {
+        subscriber.addRegistrationListener(uri -> {
+            throw new IllegalStateException("listener failed");
+        });
+        URIRegisterDTO first = uriDto("ns-1", socket.getLocalPort());
+        assertDoesNotThrow(() -> subscriber.executor(List.of(first)));
+        assertEquals(1, subscriber.registeredUris().size());
+    }
+
+    @Test
     void heartbeatStopIsIdempotent() {
         subscriber.start();
         subscriber.shutdown();
+        assertTrue(subscriber.isHeartbeatShutdown());
         subscriber.shutdown();
+        assertDoesNotThrow(subscriber::start, "starting after shutdown must not schedule on a stopped executor");
+    }
+
+    @Test
+    void startingAfterStopDoesNotScheduleOnAStoppedExecutor() {
+        subscriber.shutdown();
+        assertDoesNotThrow(subscriber::start);
     }
 
     private URIRegisterDTO uriDto(final String namespace, final int port) {

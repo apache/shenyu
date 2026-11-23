@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Bean;
  */
 @AutoConfiguration(after = ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnBean(ShenyuClientRegisterRepository.class)
-@ConditionalOnProperty(name = "shenyu.register.lifecycle-bridge.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "shenyu.register.lifecycle-bridge.enabled", havingValue = "true")
 public class ServingStateLifecycleBridgeConfiguration {
 
     /**

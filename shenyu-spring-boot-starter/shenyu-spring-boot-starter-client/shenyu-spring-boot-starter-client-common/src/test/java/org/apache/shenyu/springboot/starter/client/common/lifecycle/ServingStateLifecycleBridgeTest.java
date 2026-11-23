@@ -28,11 +28,17 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -135,6 +141,92 @@ class ServingStateLifecycleBridgeTest {
     @Test
     void notReadyBeforeAnyReadinessEmitsNothing() {
         bridge.onApplicationEvent(availabilityChange(ReadinessState.REFUSING_TRAFFIC));
+        verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    void readyEmissionCompletesBeforeDrainStarts() throws Exception {
+        CountDownLatch readyEntered = new CountDownLatch(1);
+        CountDownLatch releaseReady = new CountDownLatch(1);
+        List<String> order = Collections.synchronizedList(new ArrayList<>());
+        doAnswer(invocation -> {
+            readyEntered.countDown();
+            releaseReady.await(5, TimeUnit.SECONDS);
+            order.add("ready");
+            return null;
+        }).when(repository).ready(any());
+        doAnswer(invocation -> {
+            order.add("draining");
+            return null;
+        }).when(repository).draining(any());
+
+        Thread readyThread = new Thread(() -> bridge.onApplicationReady(readyEvent()));
+        readyThread.start();
+        assertThat(readyEntered.await(5, TimeUnit.SECONDS)).isTrue();
+
+        Thread closeThread = new Thread(() -> bridge.onContextClosed(new ContextClosedEvent(mock(ApplicationContext.class))));
+        closeThread.start();
+        closeThread.join(300);
+        assertThat(closeThread.isAlive()).as("drain must wait for the in-flight ready emission").isTrue();
+
+        releaseReady.countDown();
+        readyThread.join(5000);
+        closeThread.join(5000);
+        assertThat(order).containsExactly("ready", "ready", "draining", "draining");
+    }
+
+    @Test
+    void heartbeatStopFailureStillDrains() {
+        bridge = new ServingStateLifecycleBridge(repository, () -> registered, () -> {
+            throw new IllegalStateException("stop failed");
+        });
+        bridge.onApplicationReady(readyEvent());
+        assertThatCode(() -> bridge.onContextClosed(new ContextClosedEvent(mock(ApplicationContext.class))))
+                .doesNotThrowAnyException();
+        verify(repository, times(2)).draining(any());
+    }
+
+    @Test
+    void snapshotFailureStillStopsRenewal() {
+        bridge = new ServingStateLifecycleBridge(repository, () -> {
+            throw new IllegalStateException("snapshot failed");
+        }, heartbeatStops::incrementAndGet);
+        assertThatCode(() -> bridge.onContextClosed(new ContextClosedEvent(mock(ApplicationContext.class))))
+                .doesNotThrowAnyException();
+        assertThat(heartbeatStops.get()).isEqualTo(1);
+    }
+
+    @Test
+    void registrationAfterReadyReceivesTheRememberedState() {
+        bridge.onApplicationReady(readyEvent());
+        URIRegisterDTO late = uriDto("ns-1", "127.0.0.9", 9200);
+        bridge.onRegistered(late);
+        verify(repository).ready(same(late));
+    }
+
+    @Test
+    void registrationWhileNotReadyReceivesTheRefusal() {
+        bridge.onApplicationReady(readyEvent());
+        bridge.onApplicationEvent(availabilityChange(ReadinessState.REFUSING_TRAFFIC));
+        URIRegisterDTO late = uriDto("ns-1", "127.0.0.9", 9200);
+        bridge.onRegistered(late);
+        verify(repository).notReady(same(late));
+    }
+
+    @Test
+    void registrationAfterDrainIsDrainedImmediately() {
+        bridge.onApplicationReady(readyEvent());
+        bridge.onContextClosed(new ContextClosedEvent(mock(ApplicationContext.class)));
+        URIRegisterDTO late = uriDto("ns-1", "127.0.0.9", 9200);
+        bridge.onRegistered(late);
+        verify(repository).draining(same(late));
+        verify(repository, never()).ready(same(late));
+    }
+
+    @Test
+    void registrationBeforeAnyTransitionEmitsNothing() {
+        URIRegisterDTO early = uriDto("ns-1", "127.0.0.9", 9200);
+        bridge.onRegistered(early);
         verifyNoMoreInteractions(repository);
     }
 
