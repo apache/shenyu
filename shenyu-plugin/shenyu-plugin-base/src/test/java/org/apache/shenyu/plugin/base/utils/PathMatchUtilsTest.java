@@ -100,6 +100,12 @@ public final class PathMatchUtilsTest {
         assertThat(realPath, is("demo/order/path/1/godfje@"));
     }
 
+    @Test
+    public void testReplaceAllTreatsTargetAndReplacementAsLiterals() {
+        assertEquals("/$1\\value/$1\\value", PathMatchUtils.replaceAll("/{id.}/{id.}", "{id.}", "$1\\value"));
+        assertEquals("/{idx}", PathMatchUtils.replaceAll("/{idx}", "{id.}", "$1"));
+    }
+
     private Cache<?, ?> getCache(final String fieldName) throws ReflectiveOperationException {
         Field cacheField = PathMatchUtils.class.getDeclaredField(fieldName);
         cacheField.setAccessible(true);
