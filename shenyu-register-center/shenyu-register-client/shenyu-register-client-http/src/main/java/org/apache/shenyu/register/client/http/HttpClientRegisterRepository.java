@@ -159,17 +159,18 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
      * @param registerDTO the register dto
      */
     @Override
-    public void doPersistURI(final URIRegisterDTO registerDTO) {
+    public boolean doPersistURI(final URIRegisterDTO registerDTO) {
         if (RuntimeUtils.listenByOther(registerDTO.getPort())) {
-            return;
+            return false;
         }
         if (fencingEnabled()) {
             uriRegisterDTOs.put(uriIdentity(registerDTO), registerDTO);
             fencedMutate(registerDTO, RegistrationFencingProtocol.REGISTER);
-            return;
+            return true;
         }
         doRegister(registerDTO, Constants.URI_PATH, Constants.URI);
         uriRegisterDTOs.put(uriIdentity(registerDTO), registerDTO);
+        return true;
     }
     
     @Override
@@ -245,28 +246,31 @@ public class HttpClientRegisterRepository extends FailbackRegistryRepository {
      * @param registerDTO registerDTO
      */
     @Override
-    protected void doPersistApiDoc(final ApiDocRegisterDTO registerDTO) {
+    protected boolean doPersistApiDoc(final ApiDocRegisterDTO registerDTO) {
         doRegister(registerDTO, Constants.API_DOC_PATH, Constants.API_DOC_TYPE);
         apiDocRegisterDTOs.put(apiDocIdentity(registerDTO), registerDTO);
+        return true;
     }
     
     @Override
-    public void doPersistInterface(final MetaDataRegisterDTO metadata) {
+    public boolean doPersistInterface(final MetaDataRegisterDTO metadata) {
         if (fencingEnabled()) {
             // A fenced selector is provisioned by the operator; the boot session owns only instance membership.
             LOGGER.debug("Skip metadata registration for a boot-session fenced client: {}", metadata.getPath());
-            return;
+            return false;
         }
         doRegister(metadata, Constants.META_PATH, Constants.META_TYPE);
+        return true;
     }
 
     @Override
-    protected void doPersistMcpTools(final McpToolsRegisterDTO registerDTO) {
+    protected boolean doPersistMcpTools(final McpToolsRegisterDTO registerDTO) {
         if (fencingEnabled()) {
             LOGGER.debug("Skip MCP tools registration for a boot-session fenced client");
-            return;
+            return false;
         }
         doRegister(registerDTO, Constants.MCP_TOOLS_PATH, Constants.MCP_TOOLS_TYPE);
+        return true;
     }
 
     @Override

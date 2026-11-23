@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "shenyu.register.diagnostics.health-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "Expose the bounded client registration diagnostics snapshot through Spring Boot Actuator health details. Requires Actuator on the classpath; the contributor always reports UP so application liveness is unaffected."
+    }
+  ]
+}

@@ -26,14 +26,15 @@ import org.springframework.context.annotation.Configuration;
  * Opt-in Spring Boot health integration for the client registration diagnostics.
  *
  * <p>Active only when Spring Boot Actuator is on the classpath and the operator sets
- * {@code shenyu.register.diagnostics.health-enabled=true}. The contributor always reports
- * UP with the bounded snapshot in its details, so this never fails application liveness
- * or readiness by default: registration diagnostics are observability, not a
- * process-aliveness signal.</p>
+ * {@code shenyu.register.diagnostics.health-enabled=true} (default {@code false}). The
+ * contributor always reports UP with the bounded snapshot in its details, so this never
+ * fails application liveness or readiness by default: registration diagnostics are
+ * observability, not a process-aliveness signal. The property is documented for tooling
+ * in {@code META-INF/additional-spring-configuration-metadata.json}.</p>
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(name = "org.springframework.boot.actuate.health.HealthIndicator")
-@ConditionalOnProperty(name = "shenyu.register.diagnostics.health-enabled", havingValue = "true")
+@ConditionalOnProperty(value = "shenyu.register.diagnostics.health-enabled", havingValue = "true")
 public class RegistrationDiagnosticsHealthConfiguration {
 
     /**
