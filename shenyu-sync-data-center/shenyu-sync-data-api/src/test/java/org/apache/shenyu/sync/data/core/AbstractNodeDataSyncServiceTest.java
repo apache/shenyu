@@ -42,8 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -124,13 +124,30 @@ public class AbstractNodeDataSyncServiceTest {
         assertEquals("testPlugin", captor.getValue().getName());
     }
 
-
     @Test
     public void testUnCacheDiscoveryUpstreamDataIgnoresShortKeys() {
         // a short/malformed removal key must not throw AIOOBE — sibling unCache methods
         // all guard their key arrays before indexing
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheDiscoveryUpstreamData("namespace.discovery"));
         verify(discoveryUpstreamDataSubscriber, never()).unSubscribe(any(DiscoveryUpstreamKey.class));
+    }
+
+    @Test
+    public void testUnCachePluginDataRemovesListenerLikeSiblingCaches() {
+        final java.util.List<String> removedKeys = new java.util.ArrayList<>();
+        final AbstractNodeDataSyncService service = new AbstractNodeDataSyncServiceImpl(
+                changeData, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, shenyuConfig) {
+            @Override
+            protected void doRemoveListener(final String removeKey) {
+                removedKeys.add(removeKey);
+            }
+        };
+
+        service.unCachePluginData("namespace.plugin.testPlugin");
+
+        assertTrue(removedKeys.contains("namespace.plugin.testPlugin"),
+                "unCachePluginData must remove the per-plugin listener like the sibling unCache methods do");
     }
 
     @Test
