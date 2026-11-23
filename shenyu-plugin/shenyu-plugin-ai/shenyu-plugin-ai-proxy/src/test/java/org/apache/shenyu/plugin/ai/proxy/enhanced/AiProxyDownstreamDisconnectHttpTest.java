@@ -144,6 +144,7 @@ class AiProxyDownstreamDisconnectHttpTest {
         try (Probe probe = new Probe(Flux.just(FIRST_CHUNK)
                 .concatWith(Flux.error(new IllegalStateException("private upstream text"))))) {
             probe.consumeToleratingFailure();
+            assertSingleObservation(probe);
             assertEquals(AiCallOutcome.ERROR, probe.terminal().outcome(), "a failed write is not a success");
             assertEquals(AiCallOutcome.ERROR, probe.attempts().get(0).outcome(), "attempt outcome");
             assertEquals("TRANSPORT_FAILURE", probe.attempts().get(0).completion().evidence().name(),
