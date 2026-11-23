@@ -422,6 +422,29 @@ class AgentGatewayPluginTest {
     }
 
     @Test
+    void shouldReuseIngressRequestIdInInvalidConfigAudit() {
+        ServerWebExchange exchange = newExchange();
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("ingress-request-id", "llm", "s", "r"));
+        java.util.List<org.apache.shenyu.common.audit.AgentInvocationAuditEvent> audits = new java.util.concurrent.CopyOnWriteArrayList<>();
+        exchange.getAttributes().put(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE,
+                (org.apache.shenyu.common.audit.AgentInvocationAuditObserver) audits::add);
+        RuleData invalidRule = RuleData.builder()
+                .id("rule-1")
+                .selectorId("selector-1")
+                .handle("{\"trafficType\":\"MCP\"}")
+                .build();
+
+        StepVerifier.create(plugin.doExecute(exchange, next -> Mono.empty(), selector(), invalidRule))
+                .verifyComplete();
+
+        assertEquals(1, audits.size());
+        assertEquals("ingress-request-id", audits.get(0).getRequestId());
+        assertEquals("INVALID_CONFIGURATION", audits.get(0).getReason());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
     void shouldIgnoreUnknownRuleHandleFieldOnRequestPath() {
         ServerWebExchange exchange = newExchange();
         AtomicBoolean called = new AtomicBoolean();

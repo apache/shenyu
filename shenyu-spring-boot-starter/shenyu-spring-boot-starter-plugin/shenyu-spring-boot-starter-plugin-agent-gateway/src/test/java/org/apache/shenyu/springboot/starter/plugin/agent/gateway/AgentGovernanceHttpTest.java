@@ -152,6 +152,7 @@ class AgentGovernanceHttpTest {
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.terminals.size()));
             assertEquals(1, fixture.attempts.size());
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(2, fixture.audits.size()));
+            assertTrue(fixture.audits.stream().allMatch(audit -> responseRequestId.equals(audit.getRequestId())));
             assertTrue(fixture.audits.stream().allMatch(audit -> audit.getTenant().orElseThrow().equals("tenant")
                     && audit.getSubject().orElseThrow().equals("service") && audit.getOutcome().equals("SUCCESS")));
             assertEquals(1, fixture.upstreamCalls.get());
@@ -197,6 +198,8 @@ class AgentGovernanceHttpTest {
             assertNotNull(responseRequestId);
             await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(1, fixture.terminals.size()));
             assertEquals(responseRequestId, fixture.terminals.element().context().getRequestId());
+            await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertEquals(2, fixture.audits.size()));
+            assertTrue(fixture.audits.stream().allMatch(audit -> responseRequestId.equals(audit.getRequestId())));
             assertEquals(1, fixture.terminals.element().attemptCount());
             assertEquals(1, fixture.upstreamCalls.get());
         }
@@ -214,6 +217,7 @@ class AgentGovernanceHttpTest {
             assertEquals(responseRequestId, event.context().getRequestId());
             assertEquals(AiCallOutcome.RATE_LIMITED, event.outcome());
             assertEquals(1, fixture.audits.size());
+            assertEquals(responseRequestId, fixture.audits.element().getRequestId());
             assertEquals("RATE_LIMITED", fixture.audits.element().getOutcome());
             assertEquals(AgentInvocationAuditEvent.Decision.REJECTED, fixture.audits.element().getDecision());
             assertEquals("tenant", event.context().getTenant());
@@ -327,16 +331,15 @@ class AgentGovernanceHttpTest {
                     attempts.add(event);
                 }
             };
+            AiCallObserver auditObserver = AgentInvocationAuditBridge.ai(observer, audits::add);
             AgentGatewayPlugin agent = new AgentGatewayPlugin(new AgentMcpHttpHandler(
-                    new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1"), resolver), resolver, observer);
+                    new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1"), resolver), resolver,
+                    auditObserver);
             if (withAgentGateway) {
                 agentHandler.handlerRule(register(agent, "{\"trafficType\":\"LLM\"}"));
             }
             AiRequestIdPlugin requestId = new AiRequestIdPlugin();
             requestIdHandler.handlerRule(register(requestId, "{\"responseHeaderEnabled\":true}"));
-                    new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "fixture", "1"), resolver), resolver,
-                    AgentInvocationAuditBridge.ai(observer, audits::add));
-            agentHandler.handlerRule(register(agent, "{\"trafficType\":\"LLM\"}"));
             AiPromptPlugin prompt = new AiPromptPlugin(ServerCodecConfigurer.create().getReaders());
             RuleData promptRule = register(prompt, "{\"prepend\":\"governed\",\"preRole\":\"system\"}");
             promptHandler.handlerRule(promptRule);
@@ -355,7 +358,7 @@ class AgentGovernanceHttpTest {
             AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                     new AiProxyProviderFactory(List.of(new OpenAi())), new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())),
                     new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
-            AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler, observer);
+            AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler, auditObserver);
             final RuleData proxyRule = register(proxy, "{}");
             AiProxyHandle handle = new AiProxyHandle();
             handle.setProvider("OpenAI");

@@ -194,13 +194,17 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         return value instanceof AgentRequestContext context ? context.getRequestId() : null;
     }
 
+    private String rejectRequestId(final ServerWebExchange exchange) {
+        final String existing = contextRequestId(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+        return AgentRequestContext.isReusableRequestId(existing) ? existing : UUID.randomUUID().toString();
+    }
 
     private Mono<Void> reject(final ServerWebExchange exchange, final String reason, final SelectorData selector, final RuleData rule) {
         exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         final Object error = ShenyuResultWrap.error(exchange, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 AgentGatewayConstants.CONFIG_INVALID_CODE + ": " + reason, null);
         long started = System.nanoTime();
-        String requestId = UUID.randomUUID().toString();
+        String requestId = rejectRequestId(exchange);
         return WebFluxResultUtils.result(exchange, error).doFinally(signal -> {
             Object callback = exchange.getAttribute(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE);
             if (callback instanceof org.apache.shenyu.common.audit.AgentInvocationAuditObserver audit) {
