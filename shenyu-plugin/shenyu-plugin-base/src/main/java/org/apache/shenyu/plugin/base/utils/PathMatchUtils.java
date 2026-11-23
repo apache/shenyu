@@ -25,9 +25,6 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * The type Path match utils.
  */
@@ -44,15 +41,15 @@ public class PathMatchUtils {
             .build();
     
     /**
-     * replace url {id} to real param.
+     * Replace literal URL placeholders with their actual values.
      *
      * @param path the total path
-     * @param regex the regex content
+     * @param target the literal text to replace
      * @param replacement the replacement content
      * @return the string
      */
-    public static String replaceAll(final String path, final String regex, final String replacement) {
-        return path.replaceAll(Pattern.quote(regex), Matcher.quoteReplacement(replacement));
+    public static String replaceAll(final String path, final String target, final String replacement) {
+        return path.replace(target, replacement);
     }
     
     /**
