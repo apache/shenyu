@@ -18,6 +18,7 @@
 package org.apache.shenyu.springboot.starter.client.common.lifecycle;
 
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,7 +31,7 @@ import org.springframework.context.annotation.Bean;
  * {@code shenyu.register.lifecycle-bridge.enabled=true}; shipped behavior changes
  * nothing by default.
  */
-@AutoConfiguration
+@AutoConfiguration(after = ShenyuClientCommonBeanConfiguration.class)
 @ConditionalOnBean(ShenyuClientRegisterRepository.class)
 @ConditionalOnProperty(name = "shenyu.register.lifecycle-bridge.enabled", havingValue = "true")
 public class ServingStateLifecycleBridgeConfiguration {
