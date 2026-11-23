@@ -16,3 +16,4 @@
 #
 
 org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration
+org.apache.shenyu.springboot.starter.client.common.lifecycle.ServingStateLifecycleBridgeConfiguration

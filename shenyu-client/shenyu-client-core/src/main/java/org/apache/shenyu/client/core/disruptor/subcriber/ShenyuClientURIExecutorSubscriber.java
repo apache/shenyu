@@ -100,10 +100,20 @@ public class ShenyuClientURIExecutorSubscriber implements ExecutorTypeSubscriber
     }
 
     /**
-     * Stop reporting URI heartbeats.
+     * Stop reporting URI heartbeats. Idempotent; the executor rejects further renewals.
      */
     public void shutdown() {
         executor.shutdown();
+    }
+
+    /**
+     * A read-only snapshot of the URIs this subscriber has registered, for lifecycle
+     * bridges that must address the same identities the registration flow used.
+     *
+     * @return an unmodifiable copy of the registered URIs
+     */
+    public List<URIRegisterDTO> registeredUris() {
+        return List.copyOf(uris);
     }
     
     @Override

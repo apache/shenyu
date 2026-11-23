@@ -38,6 +38,8 @@ public class ShenyuClientRegisterEventPublisher {
 
     private volatile DisruptorProviderManage<DataTypeParent> providerManage;
 
+    private volatile ShenyuClientURIExecutorSubscriber uriSubscriber;
+
     /**
      * Get instance.
      *
@@ -59,6 +61,7 @@ public class ShenyuClientRegisterEventPublisher {
         RegisterClientExecutorFactory factory = new RegisterClientExecutorFactory();
         factory.addSubscribers(new ShenyuClientMetadataExecutorSubscriber(shenyuClientRegisterRepository));
         ShenyuClientURIExecutorSubscriber uriSubscriber = createUriSubscriber(shenyuClientRegisterRepository);
+        this.uriSubscriber = uriSubscriber;
         factory.addSubscribers(uriSubscriber);
         factory.addSubscribers(new ShenyuClientApiDocExecutorSubscriber(shenyuClientRegisterRepository));
         factory.addSubscribers(new ShenyuClientMcpExecutorSubscriber(shenyuClientRegisterRepository));
@@ -104,6 +107,16 @@ public class ShenyuClientRegisterEventPublisher {
      */
     public DisruptorProviderManage<DataTypeParent> getProviderManage() {
         return providerManage;
+    }
+
+    /**
+     * Gets the URI subscriber this publisher started, for lifecycle bridges that must
+     * address the same registered identities.
+     *
+     * @return the URI subscriber, or null before {@link #start}
+     */
+    public ShenyuClientURIExecutorSubscriber getUriSubscriber() {
+        return uriSubscriber;
     }
     
     /**
