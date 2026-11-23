@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
@@ -25,6 +26,8 @@ import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.validation.annotation.Existed;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,15 +73,23 @@ public class DiscoveryController {
     }
 
     /**
-     * Insert or update discovery.
+     * Insert or update a standalone discovery.
+     * When editing a discovery from {@code GET /discovery}, map {@code discoveryName} to {@code name}
+     * and {@code discoveryType} to {@code type} in the write DTO.
+     * Omit {@code discoveryHandler} and {@code discoveryRel} from the write DTO.
+     * Use {@code POST /proxy-selector/binding} to create a selector discovery binding.
      *
      * @param discoveryDTO {@link DiscoveryDTO}
-     * @return {@linkplain ShenyuAdminResult}
+     * @return the saved discovery, or HTTP 400 when the request includes nested binding data
      */
     @PostMapping("/insertOrUpdate")
     @RequiresPermissions("system:plugin:edit")
-    public ShenyuAdminResult createOrUpdate(@Valid @RequestBody final DiscoveryDTO discoveryDTO) {
-        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.createOrUpdate(discoveryDTO));
+    public ResponseEntity<ShenyuAdminResult> createOrUpdate(@Valid @RequestBody final DiscoveryDTO discoveryDTO) {
+        try {
+            return ResponseEntity.ok(ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, discoveryService.createOrUpdate(discoveryDTO)));
+        } catch (ValidFailException e) {
+            return ResponseEntity.badRequest().body(ShenyuAdminResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage()));
+        }
     }
 
     /**

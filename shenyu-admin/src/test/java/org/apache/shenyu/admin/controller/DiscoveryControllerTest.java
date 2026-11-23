@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.exception.ValidFailException;
 import org.apache.shenyu.admin.mapper.NamespaceMapper;
 import org.apache.shenyu.admin.model.dto.DiscoveryDTO;
 import org.apache.shenyu.admin.model.vo.DiscoveryVO;
@@ -118,6 +119,20 @@ public final class DiscoveryControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.discoveryName").value("test-discovery"));
         verify(discoveryService).createOrUpdate(any(DiscoveryDTO.class));
+    }
+
+    @Test
+    public void testCreateOrUpdateReturnsBadRequestForInvalidDiscovery() throws Exception {
+        when(namespaceMapper.existed(NAMESPACE_ID)).thenReturn(true);
+        when(discoveryService.createOrUpdate(any(DiscoveryDTO.class)))
+                .thenThrow(new ValidFailException("Use POST /proxy-selector/binding to create a selector discovery binding."));
+
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/discovery/insertOrUpdate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(GsonUtils.getInstance().toJson(buildDiscoveryDTO())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message", containsString("POST /proxy-selector/binding")));
     }
 
     @Test
