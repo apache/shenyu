@@ -37,7 +37,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -53,7 +52,8 @@ public class NettyClientMessageWriter implements MessageWriter {
      * Both of the above have expired.
      * latest version: {@linkplain MediaType#APPLICATION_NDJSON}
      */
-    private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_NDJSON);
+    private static final List<MediaType> STREAMING_MEDIA_TYPES =
+            List.of(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_NDJSON);
 
     @Override
     public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -104,6 +104,15 @@ public class NettyClientMessageWriter implements MessageWriter {
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {
-        return Objects.nonNull(contentType) && this.streamingMediaTypes.stream().anyMatch(contentType::isCompatibleWith);
+        if (Objects.isNull(contentType)) {
+            return false;
+        }
+        // plain loop over the two constant media types (#8424)
+        for (MediaType mediaType : STREAMING_MEDIA_TYPES) {
+            if (mediaType.isCompatibleWith(contentType)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
