@@ -95,8 +95,15 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
     protected abstract boolean updateCacheIfNeed(ConfigData<T> result);
 
     /**
-     * If the MD5 values are different and the last update time of the old data is less than
-     * the last update time of the new data, the configuration cache is considered to have been changed.
+     * If the MD5 values are different, the configuration cache is considered to have been changed
+     * and is replaced by the new snapshot.
+     *
+     * <p>The last-modify timestamps of both snapshots come from the admin side (the gateway posts
+     * back the timestamp it previously received), so they are not compared here: with several admin
+     * instances or an admin clock step, a genuine update can carry an older timestamp, and rejecting
+     * it would keep the stale snapshot applied forever. Content equality is judged by md5 alone;
+     * admins sharing one database report the same md5 for the same content, so a flip-flop between
+     * snapshots can only appear for genuinely divergent admin views.
      *
      * @param newVal    the lasted config
      * @param groupEnum the group enum
@@ -113,10 +120,9 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
                 LOG.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
                 return oldVal;
             }
-            // the md5 already differs, so the content changed; the last-modify timestamp
-            // comes from the admin's own clock and cannot be compared against the gateway
-            // clock — with admin/gateway clock skew a genuine update would carry an older
-            // timestamp and be rejected here forever, keeping stale gateway config
+            // the md5 already differs, so the content changed; both timestamps come from the
+            // admin side, and an older one (several admin instances, admin clock step) must
+            // not block the fresher content from being applied
             LOG.info("update {} config: {}", groupEnum, newVal);
             holder.result = true;
             return newVal;
