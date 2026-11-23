@@ -56,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -106,6 +107,45 @@ class AiProxyPluginHandlerTest {
         assertEquals("https://api.openai.com", cached.getBaseUrl());
         assertEquals("sk-test", cached.getApiKey());
         assertEquals("gpt-4", cached.getModel());
+    }
+
+    @Test
+    void testSelectorResolutionUsesTheMatchedUpdate() {
+        SelectorData matched = new SelectorData();
+        matched.setId("native-selector");
+        matched.setHandle("{\"mode\":\"passthrough\",\"baseUrl\":\"https://vendor.example\",\"stripPrefix\":\"/vendor\"}");
+        handler.handlerSelector(matched);
+
+        SelectorData updated = new SelectorData();
+        updated.setId(matched.getId());
+        updated.setHandle("{\"mode\":\"converted\"}");
+        handler.handlerSelector(updated);
+
+        // 更新缓存后，分别检查新旧请求取得的模式、厂商地址和路径前缀。
+        AiProxyHandle original = handler.resolveSelectorHandle(matched);
+        assertTrue(original.isPassthrough());
+        assertEquals("https://vendor.example", original.getBaseUrl());
+        assertEquals("/vendor", original.getStripPrefix());
+        assertFalse(handler.resolveSelectorHandle(updated).isPassthrough());
+        updated.setHandle(null);
+        assertNull(handler.resolveSelectorHandle(updated));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"mode\":\"passthru\"}", "{\"mode\":\"passthrough\"}", "[]", "broken"})
+    void testInvalidSelectorUpdateCannotReuseAnEarlierHandle(final String invalid) {
+        SelectorData selector = new SelectorData();
+        selector.setId("invalid-update");
+        selector.setHandle("{\"provider\":\"open_ai\"}");
+        handler.handlerSelector(selector);
+
+        // 写入无效配置，验证解析被拒且旧缓存已清除。
+        selector.setHandle(invalid);
+        assertThrows(IllegalArgumentException.class, () -> handler.resolveSelectorHandle(selector));
+        handler.handlerSelector(selector);
+        String key = CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE);
+        assertNull(handler.getSelectorCachedHandle().obtainHandle(key));
+        assertThrows(IllegalArgumentException.class, () -> handler.resolveSelectorHandle(selector));
     }
 
     @Test

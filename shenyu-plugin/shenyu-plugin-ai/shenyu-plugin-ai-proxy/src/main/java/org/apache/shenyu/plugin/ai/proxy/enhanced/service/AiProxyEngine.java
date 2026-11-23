@@ -29,9 +29,11 @@ import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.AiResponseAdapter;
@@ -52,6 +54,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRoute;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
@@ -229,6 +234,109 @@ public final class AiProxyEngine {
     private static AiProtocolRouteResolver defaultRouteResolver() {
         return new AiProtocolRouteResolver(new AiProtocolConverterFactory(java.util.List.of(
                 new org.apache.shenyu.plugin.ai.proxy.enhanced.conversion.ConnectResponsesToChatConverter())));
+    }
+
+    /**
+     * Stream a native upload, retry eligible rate limits, and own the final downstream write.
+     * @param request trusted destination and end-to-end client headers
+     * @param upload original inbound body
+     * @param protocol client protocol identified without consuming the upload
+     * @param observation logical invocation
+     * @param writer downstream response consumer
+     * @return completion of the exchange
+     */
+    public Mono<Void> forwardNative(final AiUpstreamRequest request, final Flux<DataBuffer> upload, final String protocol,
+                                    final AiRequestObservation observation, final Function<AiUpstreamResponse, Mono<Void>> writer) {
+        return Mono.defer(() -> {
+            // 为本次调用设置统一截止时间，仅在允许重试时复制上传正文。
+            int maxRetries = nativeStatusRetries(protocol);
+            AiUploadReplayBuffer copy = new AiUploadReplayBuffer();
+            long deadline = System.nanoTime() + retryProperties.getRequestDeadline().toNanos();
+            return sendNative(request, maxRetries == 0 ? upload : copy.capture(upload), copy, protocol, observation, writer, maxRetries, 0, deadline);
+        });
+    }
+
+    private int nativeStatusRetries(final String protocol) {
+        AiProxyRetryProperties.ReplayProperties replay = retryProperties.getReplay();
+        // 按已识别的操作读取重放配置，未知协议使用通用的响应状态策略。
+        AiProxyRetryProperties.ReplayMode mode = switch (protocol) {
+            case OpenAiChat.NAME -> replay.mode(ShenyuAiRequest.Operation.CHAT_COMPLETION, false, false);
+            case OpenAiResponses.NAME -> replay.mode(ShenyuAiRequest.Operation.RESPONSE, false, false);
+            default -> replay.getResponseStatus();
+        };
+        // Raw routes have no provider declaration of replay safety.
+        return mode == AiProxyRetryProperties.ReplayMode.CONSERVATIVE ? retryProperties.getStreamingMaxRetries() : 0;
+    }
+
+    private Mono<Void> sendNative(final AiUpstreamRequest request, final Flux<DataBuffer> upload, final AiUploadReplayBuffer copy,
+                                  final String protocol, final AiRequestObservation observation, final Function<AiUpstreamResponse, Mono<Void>> writer,
+                                  final int maxRetries, final int retries, final long deadline) {
+        long remaining = deadline - System.nanoTime();
+        if (remaining <= 0) {
+            return Mono.error(nativeDeadlineExceeded());
+        }
+        // 校验上传参数并准备发送，然后登记本次厂商调用。
+        Mono<AiUpstreamResponse> prepared = aiProxyTransport.prepareStreaming(request, upload);
+        AiAttemptEvent.Kind kind = retries == 0 ? AiAttemptEvent.Kind.PRIMARY : AiAttemptEvent.Kind.RETRY;
+        AiRequestObservation.Attempt attempt = observation.startAttempt(observation.getContext(), kind, "passthrough", protocol, false);
+        return prepared.flatMap(response -> {
+            AiUpstreamResponse observed = observeNative(response, protocol, attempt);
+            // 仅当厂商返回 429、仍有重试次数且上传副本完整时计算等待时间。
+            if (response.getStatusCode() == 429 && retries < maxRetries && copy.isComplete()) {
+                Duration delay = nativeRetryDelay(response.getHeaders(), retries);
+                if (Objects.nonNull(delay) && delay.toNanos() < deadline - System.nanoTime()) {
+                    // 读完本次 429 的响应体，把重试等待时间传给下一步。
+                    return observed.getBody().then(Mono.just(delay));
+                }
+            }
+            // 释放上传副本，将最终响应交给客户端写出。
+            copy.discard();
+            return consumeResponse(observed, writer, new AtomicBoolean()).then(Mono.<Duration>empty());
+        }).timeout(Duration.ofNanos(remaining), Mono.error(AiProxyEngine::nativeDeadlineExceeded))
+                .doOnSuccess(ignored -> attempt.finish(SignalType.ON_COMPLETE, null))
+                .doOnError(error -> attempt.finish(SignalType.ON_ERROR, AiObservationSupport.outcome(error)))
+                .doOnCancel(() -> attempt.finish(SignalType.CANCEL, null))
+                .contextWrite(context -> context.put(AiRequestObservation.Attempt.REACTOR_KEY, attempt))
+                .flatMap(delay -> {
+                    // 等待重试前，再按本次调用的截止时间检查剩余额度。
+                    if (delay.toNanos() >= deadline - System.nanoTime()) {
+                        return Mono.error(nativeDeadlineExceeded());
+                    }
+                    // 等待结束后，用上传副本向同一厂商重发请求。
+                    return Mono.delay(delay).then(Mono.defer(() ->
+                            sendNative(request, copy.replay(), copy, protocol, observation, writer, maxRetries, retries + 1, deadline)));
+                });
+    }
+
+    private static AiTransportException nativeDeadlineExceeded() {
+        return new AiTransportException(AiTransportException.Kind.STREAM_DURATION_TIMEOUT, "AI passthrough deadline exceeded", null);
+    }
+
+    private Duration nativeRetryDelay(final Map<String, List<String>> headers, final int retries) {
+        Duration retryAfter = AiProxyRetryPolicy.retryAfter(headers, retryProperties);
+        // Retry-After 无效或超出允许上限时，返回 null 以跳过重试。
+        if (AiProxyRetryPolicy.hasRetryAfter(headers) && !retryProperties.acceptsRetryAfter(retryAfter)) {
+            return null;
+        }
+        // 取网关重试延迟与厂商 Retry-After 中较长的等待时间。
+        Duration delay = retryProperties.retryDelay(true, retries, System.nanoTime());
+        return Objects.nonNull(retryAfter) && retryAfter.compareTo(delay) > 0 ? retryAfter : delay;
+    }
+
+    private AiUpstreamResponse observeNative(final AiUpstreamResponse response, final String protocol, final AiRequestObservation.Attempt attempt) {
+        // 根据厂商响应的 Content-Type 判断是否为 SSE。
+        boolean streaming = response.getHeaders().entrySet().stream().filter(entry -> HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(entry.getKey()))
+                .flatMap(entry -> entry.getValue().stream()).anyMatch(value -> MediaType.TEXT_EVENT_STREAM_VALUE.equalsIgnoreCase(value.split(";", 2)[0].trim()));
+        attempt.response(response.getStatusCode(), streaming);
+        if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
+            return response;
+        }
+        if (OpenAiChat.NAME.equals(protocol) || OpenAiResponses.NAME.equals(protocol)) {
+            return new AiUpstreamUsageTap(attempt, response.getHeaders(), streaming, OpenAiChat.NAME.equals(protocol), OpenAiResponses.NAME.equals(protocol)).attach(response);
+        }
+        // 将未识别协议的用量标记为不支持，并返回厂商响应。
+        attempt.usage(new AiUsage(null, null, null, AiUsage.Status.UNSUPPORTED));
+        return response;
     }
 
     /**

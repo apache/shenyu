@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.exception.ResponsiveException;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.slf4j.Logger;
@@ -77,6 +78,8 @@ public class AiPromptPlugin extends AbstractShenyuPlugin {
             aiPromptConfig.setAppend(aiPromptHandle.getAppend());
         }
         
+        // 在改写提示词之前，为当前请求设置透传冲突标记。
+        AiPassthroughPolicy.markIncompatible(exchange);
         final AiPromptConfig finalAiPromptConfig = aiPromptConfig;
         return ServerWebExchangeUtils.rewriteRequestBody(exchange,
                         messageReaders,

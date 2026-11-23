@@ -40,7 +40,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -53,11 +53,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Terminal AI proxy gateway boundary backed exclusively by AiProxyEngine.
@@ -67,9 +64,6 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyPlugin.class);
 
     private static final int MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024;
-
-    private static final Set<String> HOP_HEADERS = Set.of("connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
-            "te", "trailer", "transfer-encoding", "upgrade");
 
     private static final AiProxyFailureMapper FAILURE_MAPPER = new AiProxyFailureMapper();
 
@@ -134,8 +128,18 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule, final AiRequestObservation observation) {
         return Mono.defer(() -> {
-            AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
-                    .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+            final AiProxyHandle handle;
+            try {
+                // 解析本次请求命中的选择器配置。
+                handle = aiProxyPluginHandler.resolveSelectorHandle(selector);
+            } catch (IllegalArgumentException invalidConfig) {
+                exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+                return exchange.getResponse().setComplete();
+            }
+            // 透传模式直接转发客户端凭证和正文，跳过代理密钥映射与 JSON 聚合。
+            if (Objects.nonNull(handle) && handle.isPassthrough()) {
+                return forwardNative(exchange, handle, observation);
+            }
             final String realApiKey;
             if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
                 String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
@@ -179,6 +183,18 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
+    private Mono<Void> forwardNative(final ServerWebExchange exchange, final AiProxyHandle handle, final AiRequestObservation observation) {
+        // 检测到内容处理插件留下的冲突标记时，返回 503 并结束响应。
+        if (AiPassthroughPolicy.isIncompatible(exchange)) {
+            exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            return exchange.getResponse().setComplete();
+        }
+        AiPassthroughRequest request = AiPassthroughRequest.from(exchange.getRequest(), handle);
+        // 将厂商请求的地址、方法、头和客户端原始正文流交给引擎。
+        return aiProxyEngine.forwardNative(request.upstream(), exchange.getRequest().getBody(), request.protocol(), observation,
+                upstream -> writeResponse(exchange.getResponse(), upstream, observation));
+    }
+
     private Mono<Optional<AiResponseCacheScope>> cacheScope(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
         if (Objects.isNull(cacheScopeResolver) || !org.springframework.http.HttpMethod.POST.equals(exchange.getRequest().getMethod())
                 || !exchange.getRequest().getCookies().isEmpty()
@@ -194,27 +210,15 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream, final AiRequestObservation observation) {
         response.setStatusCode(HttpStatusCode.valueOf(upstream.getStatusCode()));
-        Set<String> excluded = new HashSet<>(HOP_HEADERS);
-        upstream.getHeaders().forEach((name, values) -> {
-            if ("connection".equalsIgnoreCase(name)) {
-                values.forEach(value -> {
-                    for (String token : value.split(",")) {
-                        excluded.add(token.trim().toLowerCase(Locale.ROOT));
-                    }
-                });
-            }
-        });
-        upstream.getHeaders().forEach((name, values) -> {
-            if (!excluded.contains(name.toLowerCase(Locale.ROOT))) {
-                response.getHeaders().put(name, values);
-            }
-        });
+        // 把厂商的端到端响应头复制到网关发给客户端的响应中。
+        AiPassthroughRequest.copyEndToEndHeaders(upstream.getHeaders(), response.getHeaders());
         Flux<DataBuffer> body = upstream.getBody().map(bytes -> response.bufferFactory().wrap(bytes))
                 .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnCancel(observation::downstreamDisconnected);
         // the body subscription and the outer writing publisher terminate independently: the first
         // one observes a peer that stopped consuming, the second one reports how the write ended,
         // so an aborted or failed write is never inferred from a normal outer completion alone
+        // 将厂商响应体按块写给客户端，每写一块就刷新一次。
         return response.writeAndFlushWith(body.map(buffer -> Mono.just(buffer).doOnDiscard(DataBuffer.class, DataBufferUtils::release)))
                 .doOnCancel(observation::downstreamDisconnected)
                 .doOnError(ignored -> observation.downstreamWriteFailed());

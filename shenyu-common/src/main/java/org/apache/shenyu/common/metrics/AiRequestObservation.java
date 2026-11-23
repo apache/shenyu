@@ -311,7 +311,7 @@ public final class AiRequestObservation {
 
         private final String protocol;
 
-        private final boolean streaming;
+        private boolean streaming;
 
         private final long started = System.nanoTime();
 
@@ -338,6 +338,21 @@ public final class AiRequestObservation {
             synchronized (owner) {
                 if (!completed) {
                     status = value;
+                }
+            }
+        }
+
+        /**
+         * Record the actual response mode when it was not determined from the request body.
+         * @param value upstream status
+         * @param eventStream whether the response is an SSE stream
+         */
+        public void response(final int value, final boolean eventStream) {
+            // 为尚未结束的调用尝试记录厂商状态码和 SSE 标记。
+            synchronized (owner) {
+                if (!completed) {
+                    status = value;
+                    streaming = eventStream;
                 }
             }
         }

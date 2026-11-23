@@ -17,17 +17,31 @@
 
 package org.apache.shenyu.common.dto.convert.rule;
 
+import com.google.gson.JsonParseException;
 import org.apache.shenyu.common.enums.AiModelProviderEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.UriUtils;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * this is Ai Proxy plugin handle.
  */
 public class AiProxyHandle {
+
+    // 匹配由非空字面路径段组成的前缀，排除点段、转义字符和通配符。
+    private static final Pattern PATH_PREFIX = Pattern.compile("(?:/(?!\\.{1,2}(?:/|$))[a-zA-Z0-9._~-]++)++");
+
+    private String mode;
+
+    private String stripPrefix;
+
+    // 保存缓存对象对应的原始选择器配置，序列化时忽略该字段。
+    private transient String selectorSource;
 
     /**
      * provider.
@@ -113,6 +127,100 @@ public class AiProxyHandle {
      * enable proxy apikey authentication. When true, header X-API-KEY is required.
      */
     private String proxyEnabled;
+
+    /**
+     * Read and validate an AI Proxy selector handle without including secrets in parse failures.
+     *
+     * @param source serialized selector handle
+     * @return validated handle bound to this exact selector update
+     */
+    public static AiProxyHandle fromSelectorHandle(final String source) {
+        final AiProxyHandle handle;
+        try {
+            handle = GsonUtils.getInstance().fromJson(source, AiProxyHandle.class);
+        } catch (JsonParseException | NumberFormatException e) {
+            throw new IllegalArgumentException("selector.invalidHandle");
+        }
+        if (Objects.isNull(handle)) {
+            throw new IllegalArgumentException("selector.invalidHandle");
+        }
+        // 校验模式和透传参数，然后记录原始配置。
+        handle.validateMode();
+        handle.selectorSource = source;
+        return handle;
+    }
+
+    /**
+     * Whether this cached handle belongs to the selector version matched for this request.
+     *
+     * @param source serialized handle of the matched selector
+     * @return true if the cached handle has the same source
+     */
+    public boolean matchesSelectorHandle(final String source) {
+        return Objects.equals(selectorSource, source);
+    }
+
+    /**
+     * Check the opt-in and fields used to route caller credentials.
+     */
+    public void validateMode() {
+        // 缺省模式及 converted 模式跳过透传基址和前缀校验。
+        if (Objects.isNull(mode) || "converted".equals(mode)) {
+            return;
+        }
+        if (!isPassthrough()) {
+            throw new IllegalArgumentException("mode.unsupported");
+        }
+        UriUtils.parseHttpEndpoint(baseUrl);
+        if (Objects.nonNull(stripPrefix) && !stripPrefix.isEmpty() && !PATH_PREFIX.matcher(stripPrefix).matches()) {
+            throw new IllegalArgumentException("stripPrefix.invalidPath");
+        }
+    }
+
+    /**
+     * Check the explicit vendor-native opt-in.
+     *
+     * @return whether this selector forwards native requests
+     */
+    public boolean isPassthrough() {
+        return "passthrough".equals(mode);
+    }
+
+    /**
+     * Get the configured request mode.
+     *
+     * @return selector mode, or null for legacy conversion
+     */
+    public String getMode() {
+        return mode;
+    }
+
+    /**
+     * Set the selector request mode.
+     *
+     * @param mode request mode
+     */
+    public void setMode(final String mode) {
+        this.mode = mode;
+    }
+
+    /**
+     * Get the literal gateway prefix removed from the raw request path.
+     *
+     * @return optional path prefix
+     */
+    public String getStripPrefix() {
+        return stripPrefix;
+    }
+
+    /**
+     * Set the literal gateway prefix removed from the raw request path.
+     *
+     * @param stripPrefix optional path prefix
+     */
+    public void setStripPrefix(final String stripPrefix) {
+        this.stripPrefix = stripPrefix;
+    }
 
     /**
      * new default instance.
@@ -445,6 +553,8 @@ public class AiProxyHandle {
         }
         AiProxyHandle that = (AiProxyHandle) o;
         return Objects.equals(provider, that.provider)
+                && Objects.equals(mode, that.mode)
+                && Objects.equals(stripPrefix, that.stripPrefix)
                 && Objects.equals(baseUrl, that.baseUrl)
                 && Objects.equals(apiKey, that.apiKey)
                 && Objects.equals(model, that.model)
@@ -461,7 +571,7 @@ public class AiProxyHandle {
 
     @Override
     public int hashCode() {
-        return Objects.hash(provider, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig,
+        return Objects.hash(provider, mode, stripPrefix, baseUrl, apiKey, model, temperature, maxTokens, stream, fallbackConfig,
                 requestBodyOverrides, requestBodyForceOverride, dynamicFallbackEnabled, fallbackTargets, proxyEnabled);
     }
 

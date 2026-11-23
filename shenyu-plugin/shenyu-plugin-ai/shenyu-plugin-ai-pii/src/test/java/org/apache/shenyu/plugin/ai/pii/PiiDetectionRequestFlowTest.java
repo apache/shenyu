@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -103,7 +104,10 @@ public final class PiiDetectionRequestFlowTest {
         StepProbe probe = new StepProbe();
         ShenyuPluginChain chain = chain(probe);
         PiiDetectionPlugin plugin = new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add);
-        plugin.doExecute(jsonRequest(CHAT_BODY), chain, null, ruleData).block();
+        MockServerWebExchange exchange = jsonRequest(CHAT_BODY);
+        plugin.doExecute(exchange, chain, null, ruleData).block();
+        // 验证经过 PII 处理的请求带有透传冲突标记。
+        assertTrue(AiPassthroughPolicy.isIncompatible(exchange));
         assertTrue(probe.body.contains("<PHONE_CN>"), "the phone must be redacted: " + probe.body);
         assertFalse(probe.body.contains("13800138000"), "the phone must not survive");
         assertTrue(probe.body.contains("gpt-4"), "the nontext fields survive");

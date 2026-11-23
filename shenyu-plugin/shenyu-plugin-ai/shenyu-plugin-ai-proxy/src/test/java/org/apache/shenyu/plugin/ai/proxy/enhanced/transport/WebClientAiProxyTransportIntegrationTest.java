@@ -21,12 +21,15 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.netty.Connection;
 import reactor.netty.DisposableServer;
 import reactor.netty.NettyPipeline;
@@ -68,6 +71,28 @@ class WebClientAiProxyTransportIntegrationTest {
         if (Objects.nonNull(connectionProvider)) {
             connectionProvider.disposeLater().block(Duration.ofSeconds(5));
         }
+    }
+
+    @Test
+    void testUpstreamReceivesFirstChunkBeforeUploadCompletes() {
+        // 厂商读到第一块后才允许发送第二块，验证首块在上传结束前到达。
+        final Sinks.Empty<Void> firstChunkReceived = Sinks.empty();
+        server = HttpServer.create()
+                .host("127.0.0.1")
+                .port(0)
+                .handle((request, response) -> request.receive().asString()
+                        .doOnNext(ignored -> firstChunkReceived.tryEmitEmpty())
+                        .collectList()
+                        .flatMap(parts -> response.sendString(Mono.just(String.join("", parts))).then()))
+                .bindNow();
+        final DefaultDataBufferFactory buffers = DefaultDataBufferFactory.sharedInstance;
+        final Flux<DataBuffer> upload = Flux.concat(Mono.fromSupplier(() -> buffers.wrap(new byte[]{'a'})),
+                firstChunkReceived.asMono().then(Mono.fromSupplier(() -> buffers.wrap(new byte[]{'b'}))));
+
+        StepVerifier.create(transport(defaultProperties()).prepareStreaming(request(), upload)
+                        .flatMapMany(this::asStrings).collectList().map(parts -> String.join("", parts)))
+                .expectNext("ab")
+                .verifyComplete();
     }
 
     @Test
@@ -432,7 +457,9 @@ class WebClientAiProxyTransportIntegrationTest {
         final WebClient webClient = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
-        return new WebClientAiProxyTransport(webClient, properties);
+        final WebClient streamingClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient.disableRetry(true).followRedirect(false).compress(false))).build();
+        return new WebClientAiProxyTransport(webClient, properties, streamingClient);
     }
 
     private AiUpstreamRequest request() {

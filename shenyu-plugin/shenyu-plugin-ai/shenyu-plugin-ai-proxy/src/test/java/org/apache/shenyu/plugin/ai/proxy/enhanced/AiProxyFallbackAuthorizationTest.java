@@ -214,13 +214,14 @@ class AiProxyFallbackAuthorizationTest {
             handler.handlerSelector(selector);
             AiProxyPlugin plugin = plugin(handler);
             MockServerWebExchange allowed = exchange("{\"target\":\"backup\"}", "");
-            StepVerifier.create(run(plugin, allowed)).expectComplete().verify(TIMEOUT);
+            // 使用同一选择器分别执行授权和撤权后的请求，检查备用目标的访问结果。
+            StepVerifier.create(plugin.doExecute(allowed, mock(ShenyuPluginChain.class), selector, new RuleData())).expectComplete().verify(TIMEOUT);
             assertEquals(200, allowed.getResponse().getStatusCode().value());
             handle.setDynamicFallbackEnabled(false);
             selector.setHandle(GsonUtils.getInstance().toJson(handle));
             handler.handlerSelector(selector);
             MockServerWebExchange revoked = exchange("{\"target\":\"backup\"}", "");
-            StepVerifier.create(run(plugin, revoked)).expectComplete().verify(TIMEOUT);
+            StepVerifier.create(plugin.doExecute(revoked, mock(ShenyuPluginChain.class), selector, new RuleData())).expectComplete().verify(TIMEOUT);
             assertEquals(400, revoked.getResponse().getStatusCode().value());
             assertEquals(1, primary.calls.get());
             assertEquals(1, backup.calls.get());

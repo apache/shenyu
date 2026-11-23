@@ -75,6 +75,26 @@ class AiOutboundTraceContextTest {
         assertEquals(List.of("stale"), request.getHeaders().get("TraceParent"));
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void passthroughOnlyForwardsTraceHeadersSuppliedByCaller(final boolean callerSuppliesTrace) {
+        final AtomicReference<ClientRequest> sent = new AtomicReference<>();
+        final WebClient client = client(sent);
+        final AiUpstreamRequest request = request();
+        final Map<String, List<String>> headers = callerSuppliesTrace
+                ? Map.of("TraceParent", List.of("00-" + TRACE + "-1111111111111111-01"), "TraceState", List.of("vendor=client"),
+                        "Baggage", List.of("one=a", "two=b"))
+                : Map.of();
+        request.setHeaders(headers);
+        // 在网关已有追踪上下文时检查厂商请求中三个追踪头的实际值。
+        new WebClientAiProxyTransport(client, new AiProxyTransportProperties(), client).prepareStreaming(request, Flux.empty())
+                .flatMap(response -> response.getBody().then())
+                .contextWrite(context -> context.put(AgentTraceContext.GATEWAY_REACTOR_CONTEXT_KEY, parent(SPAN))).block();
+        for (String name : List.of("TraceParent", "TraceState", "Baggage")) {
+            assertEquals(headers.get(name), sent.get().headers().get(name));
+        }
+    }
+
     @Test
     void gatewayParentWinsAndInvalidGatewayFallsBackToExplicitOtelContext() {
         final Context other = parent("1111111111111111");

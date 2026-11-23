@@ -172,10 +172,34 @@ public class AiProxyPluginHandler implements PluginDataHandler {
                     .removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
             return;
         }
-        AiProxyHandle aiProxyHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), AiProxyHandle.class);
-        aiProxyHandle.normalize();
-        selectorCachedHandle
-                .cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), aiProxyHandle);
+        String key = CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE);
+        try {
+            selectorCachedHandle.cachedHandle(key, AiProxyHandle.fromSelectorHandle(selectorData.getHandle()).normalize());
+        } catch (IllegalArgumentException e) {
+            // 新配置校验失败时移除该选择器的缓存。
+            selectorCachedHandle.removeHandle(key);
+            LOG.warn("AI proxy selector configuration rejected: selectorId={}", selectorData.getId());
+        }
+    }
+
+    /**
+     * Resolve against the exact handle selected for this request even during a sync update.
+     *
+     * @param selector matched selector
+     * @return validated handle, or null for an empty selector
+     */
+    public AiProxyHandle resolveSelectorHandle(final SelectorData selector) {
+        String source = selector.getHandle();
+        AiProxyHandle cached = selectorCachedHandle.obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+        // 仅当缓存来源与本次命中的选择器配置一致时复用缓存。
+        if (Objects.nonNull(cached) && cached.matchesSelectorHandle(source)) {
+            if (Objects.isNull(source)) {
+                cached.validateMode();
+            }
+            return cached;
+        }
+        // 按本次匹配的原始配置解析 handle，空配置返回 null。
+        return StringUtils.isEmpty(source) ? null : AiProxyHandle.fromSelectorHandle(source).normalize();
     }
 
     @Override

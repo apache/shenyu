@@ -102,6 +102,13 @@ CREATE TABLE IF NOT EXISTS `registration_fencing_target` (
 -- Revoke JWTs issued before a password change or an explicit revocation.
 ALTER TABLE dashboard_user ADD COLUMN token_version INT NOT NULL DEFAULT 0 COMMENT 'token version used to revoke issued JWTs';
 
+-- 为 AI Proxy 选择器表单添加 mode 和 stripPrefix 两个字段，mode 默认值为 converted。
+-- Add AI Proxy selector fields for vendor-native requests.
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
+VALUES ('1898454000000000001', '50', 'mode', 'mode', 2, 1, 16, '{"required":"0","defaultValue":"converted","placeholder":"converted / passthrough","rule":""}');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
+VALUES ('1898454000000000002', '50', 'stripPrefix', 'stripPrefix', 2, 1, 17, '{"required":"0","placeholder":"/claude","rule":""}');
+
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}', '2026-10-30 00:00:00', '2026-10-30 00:00:00');

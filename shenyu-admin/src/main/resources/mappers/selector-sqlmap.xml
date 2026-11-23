@@ -170,7 +170,7 @@
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
     </select>
 
-    <select id="findByPluginIdsAndNamespaceId" parameterType="java.util.List" resultMap="BaseResultMap">
+    <sql id="Selectors_By_Plugin_Ids_And_Namespace">
         SELECT
                <include refid="Base_Column_List"/>
           FROM selector
@@ -179,6 +179,16 @@
             #{id, jdbcType=VARCHAR}
         </foreach>
          AND namespace_id = #{namespaceId, jdbcType=VARCHAR}
+    </sql>
+
+    <select id="findByPluginIdsAndNamespaceId" parameterType="java.util.List" resultMap="BaseResultMap">
+        <include refid="Selectors_By_Plugin_Ids_And_Namespace"/>
+    </select>
+
+    <!-- 按插件 ID 和命名空间查询选择器，并用 FOR UPDATE 锁住结果行。 -->
+    <select id="findByPluginIdsAndNamespaceIdForUpdate" resultMap="BaseResultMap">
+        <include refid="Selectors_By_Plugin_Ids_And_Namespace"/>
+        FOR UPDATE
     </select>
 
     <select id="findByPluginIds" parameterType="java.util.List" resultMap="BaseResultMap">
