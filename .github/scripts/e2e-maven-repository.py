@@ -31,7 +31,7 @@ def plan(directory, source):
     examples = set()
     tests = set()
     for item in json.loads(os.environ.get("E2E_MATRIX", '{"include":[]}'))["include"]:
-        examples.update(item["example_projects"].split(","))
+        examples.update(project for project in item["example_projects"].split(",") if project)
         tests.add("shenyu-e2e-case/" + item["case"])
     for item in json.loads(os.environ.get("STORAGE_MATRIX", '{"include":[]}'))["include"]:
         tests.add("shenyu-e2e-case/" + item["case"])
