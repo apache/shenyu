@@ -22,6 +22,7 @@ import org.apache.shenyu.admin.service.DiscoveryService;
 import org.apache.shenyu.admin.service.register.ClientRegisterProvisioner;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,11 +59,11 @@ public class RegisterCenterConfiguration {
      */
     @Bean
     public RegisterClientServerDisruptorPublisher registerClientServerDisruptorPublisher(final List<ShenyuClientRegisterService> shenyuClientRegisterService,
-                                                                                         final List<ClientRegisterProvisioner> clientRegisterProvisioners,
+                                                                                         final ObjectProvider<ClientRegisterProvisioner> clientRegisterProvisioners,
                                                                                          final DiscoveryService discoveryService) {
         RegisterClientServerDisruptorPublisher publisher = RegisterClientServerDisruptorPublisher.getInstance();
         Map<String, ShenyuClientRegisterService> registerServiceMap = shenyuClientRegisterService.stream().collect(Collectors.toMap(ShenyuClientRegisterService::rpcType, Function.identity()));
-        publisher.start(registerServiceMap, discoveryService, clientRegisterProvisioners);
+        publisher.start(registerServiceMap, discoveryService, clientRegisterProvisioners.orderedStream().toList());
         return publisher;
     }
     

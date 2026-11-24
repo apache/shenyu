@@ -101,6 +101,7 @@ public class MetadataExecutorSubscriberTest {
     public void testProvisionerFailureIsolated() {
         ClientRegisterProvisioner failing = mock(ClientRegisterProvisioner.class);
         when(failing.pluginName()).thenReturn("broken");
+        when(failing.supports(any())).thenReturn(true);
         doThrow(new IllegalStateException("boom")).when(failing).provision(any());
         ClientRegisterProvisioner healthy = mock(ClientRegisterProvisioner.class);
         when(healthy.pluginName()).thenReturn("healthy");
