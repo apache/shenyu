@@ -97,9 +97,12 @@ public final class GraphValidator {
             return dedupe(violations);
         }
         validateLimits(graph, byId, violations);
+        if (!violations.isEmpty()) {
+            return dedupe(violations);
+        }
         validateNodeShape(byId, violations);
         validateChoiceDeterminism(byId, violations);
-        if (validateReferences(graph, byId, violations)) {
+        if (validateReferences(graph, byId, violations) && violations.isEmpty()) {
             final boolean acyclic = validateAcyclic(graph, byId, violations);
             validateReachability(graph, byId, violations);
             if (acyclic) {

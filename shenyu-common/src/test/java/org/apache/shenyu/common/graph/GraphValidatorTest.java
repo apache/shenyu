@@ -91,6 +91,13 @@ public class GraphValidatorTest {
     }
 
     @Test
+    public void testDraftWithMissingEntryReturnsValidationError() {
+        final GraphData graph = linearGraph();
+        graph.setEntryNodeId(null);
+        assertThat(validator.validate(graph), hasItem(containsString("entryNodeId must not be blank")));
+    }
+
+    @Test
     public void testDuplicateNodeIdRejected() {
         final GraphData graph = graph("n0",
                 plugin("n0", "global", "n1"),

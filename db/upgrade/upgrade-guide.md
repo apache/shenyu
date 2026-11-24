@@ -4,6 +4,26 @@
 
 ## To Shenyu Users
 
+### Admin graph publication in 2.7.3
+
+The `2.7.2-upgrade-2.7.3-<dialect>.sql` scripts create
+`plugin_graph_draft` and `plugin_graph_revision` and seed the graph view and edit
+permissions. The built-in super role receives both grants. Administrators can
+delegate them to other roles using the existing permission management UI.
+
+For an installation that has already applied the preceding changes in the
+2.7.3 script, apply the graph table and permission statements at the end of the
+script once. Fresh installations receive the tables and grants in their
+initialization scripts. Each namespace business ID must identify one namespace. The upgrade rejects
+duplicate IDs and removes grants whose namespace no longer exists. If a business
+ID was reused before upgrading, verify its existing members against the
+intended users before granting graph access. Older membership rows identify
+only the business ID. Future namespace deletions cascade to membership rows.
+
+The graph tables start empty. See the
+[publication contract](../../issue-spec/specs/admin-graph-publication/spec.md)
+for draft, rollback and recovery behavior.
+
 ### API-debug request headers in 2.7.3
 
 Stop Admin writers and back up `mock_request_record` before applying the

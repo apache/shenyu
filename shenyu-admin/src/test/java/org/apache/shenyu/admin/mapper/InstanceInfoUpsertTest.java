@@ -36,6 +36,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -216,7 +217,8 @@ public final class InstanceInfoUpsertTest {
             root = root.getParent();
         }
         assertNotNull(root);
-        new ResourceDatabasePopulator(new FileSystemResource(root.resolve("db/upgrade/2.7.2-upgrade-2.7.3-h2.sql")))
+        new ResourceDatabasePopulator(new ClassPathResource("sql/graph-migration-prerequisites.sql"),
+                new FileSystemResource(root.resolve("db/upgrade/2.7.2-upgrade-2.7.3-h2.sql")))
                 .execute(Objects.requireNonNull(jdbc.getDataSource()));
         assertEquals(Set.of("latest-heartbeat", "tie-z", "other"), mapper.selectAll().stream().map(InstanceInfoDO::getId).collect(Collectors.toSet()));
         InstanceInfoDO retained = mapper.selectById("latest-heartbeat");

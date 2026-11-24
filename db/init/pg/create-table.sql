@@ -2436,6 +2436,9 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343254', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1792779493541343255', '1346358560427216896', '1792749362445840477', '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1792779493541343256', '1346358560427216896', '1792749362445840478', '2024-06-22 17:00:00.000', '2024-06-22 17:00:00.000');
 
+DROP TABLE IF EXISTS "public"."plugin_graph_revision";
+DROP TABLE IF EXISTS "public"."plugin_graph_draft";
+DROP TABLE IF EXISTS "public"."namespace_user_rel";
 DROP TABLE IF EXISTS "public"."namespace";
 CREATE TABLE "public"."namespace" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2444,7 +2447,8 @@ CREATE TABLE "public"."namespace" (
     "description" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(3) NOT NULL DEFAULT now(),
     "date_updated" timestamp(3) NOT NULL DEFAULT now(),
-    PRIMARY KEY ("id")
+    PRIMARY KEY ("id"),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
 );
 COMMENT ON COLUMN "public"."namespace"."id" IS 'Namespace primary key';
 COMMENT ON COLUMN "public"."namespace"."namespace_id" IS 'Namespace ID';
@@ -2605,14 +2609,14 @@ COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
 
 -- ----------------------------
 
-DROP TABLE IF EXISTS "public"."namespace_user_rel";
 CREATE TABLE "public"."namespace_user_rel"
 (
     "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
     "namespace_id"   varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "user_id"        varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES "public"."namespace"(namespace_id) ON DELETE CASCADE
 );
 COMMENT ON COLUMN "public"."namespace_user_rel"."id" IS 'primary key';
 COMMENT ON COLUMN "public"."namespace_user_rel"."namespace_id" IS 'namespace_id';
@@ -2947,3 +2951,39 @@ INSERT INTO "public"."permission" VALUES ('1953049887387303972', '13463585604272
 INSERT INTO "public"."permission" VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."permission" VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
 INSERT INTO "public"."namespace_plugin_rel" VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, '2026-09-21 00:00:00.000', '2026-09-21 00:00:00.000');
+
+CREATE TABLE IF NOT EXISTS "public"."plugin_graph_draft" (
+    "namespace_pk" VARCHAR(128) NOT NULL,
+    "namespace_id" VARCHAR(50) NOT NULL,
+    "graph_id" VARCHAR(128) NOT NULL,
+    "draft_version" BIGINT NOT NULL,
+    "draft_json" TEXT,
+    "published_revision" BIGINT DEFAULT 0 NOT NULL,
+    PRIMARY KEY (namespace_id, graph_id),
+    FOREIGN KEY (namespace_pk) REFERENCES "public"."namespace"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "public"."plugin_graph_revision" (
+    "namespace_id" VARCHAR(50) NOT NULL,
+    "graph_id" VARCHAR(128) NOT NULL,
+    "revision" BIGINT NOT NULL,
+    "graph_json" TEXT,
+    PRIMARY KEY (namespace_id, graph_id, revision),
+    FOREIGN KEY (namespace_id, graph_id) REFERENCES "public"."plugin_graph_draft"("namespace_id", "graph_id") ON DELETE CASCADE
+);
+
+-- Graph permissions are available for explicit role grants.
+INSERT INTO public.resource (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000001', '1346777449787125760', 'View plugin graphs', 2, 10, 1, 0, 'system:graph:view', 1
+WHERE NOT EXISTS (SELECT 1 FROM public.resource WHERE id = '1997997000000000001');
+INSERT INTO public.resource (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000002', '1346777449787125760', 'Manage plugin graphs', 2, 11, 1, 0, 'system:graph:edit', 1
+WHERE NOT EXISTS (SELECT 1 FROM public.resource WHERE id = '1997997000000000002');
+
+-- Match the built-in super role grants for other Admin resources.
+INSERT INTO public.permission (id, object_id, resource_id)
+SELECT '1997997000000000011', '1346358560427216896', '1997997000000000001'
+WHERE NOT EXISTS (SELECT 1 FROM public.permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000001');
+INSERT INTO public.permission (id, object_id, resource_id)
+SELECT '1997997000000000012', '1346358560427216896', '1997997000000000002'
+WHERE NOT EXISTS (SELECT 1 FROM public.permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000002');

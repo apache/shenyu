@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.GraphPublicationMapper">
+    <resultMap id="draft" type="org.apache.shenyu.admin.model.entity.GraphDraftDO">
+        <id column="namespace_id" property="namespaceId"/>
+        <id column="graph_id" property="graphId"/>
+        <result column="draft_json" property="draftJson"/>
+        <result column="draft_version" property="draftVersion"/>
+        <result column="published_revision" property="publishedRevision"/>
+    </resultMap>
+
+    <resultMap id="revision" type="org.apache.shenyu.admin.model.entity.GraphRevisionDO">
+        <id column="namespace_id" property="namespaceId"/>
+        <id column="graph_id" property="graphId"/>
+        <id column="revision" property="revision"/>
+        <result column="graph_json" property="graphJson"/>
+    </resultMap>
+
+    <sql id="jsonParameter">
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                #{${property}, jdbcType=CLOB, typeHandler=org.apache.shenyu.admin.mybatis.oracle.OracleClobStringTypeHandler}
+            </when>
+            <otherwise>
+                #{${property}, jdbcType=VARCHAR}
+            </otherwise>
+        </choose>
+    </sql>
+
+    <!-- Namespace and namespace-plugin tables can use a case-insensitive default collation. -->
+    <sql id="exactNamespace">
+        <choose>
+            <when test="_databaseId == 'mysql' or _databaseId == 'oceanbase'">
+                BINARY #{namespaceId}
+            </when>
+            <otherwise>#{namespaceId}</otherwise>
+        </choose>
+    </sql>
+
+    <select id="findDraft" resultMap="draft">
+        SELECT namespace_id, graph_id, draft_version, draft_json, published_revision
+        FROM plugin_graph_draft
+        WHERE namespace_id = #{namespaceId} AND graph_id = #{graphId}
+    </select>
+
+    <insert id="insertDraft">
+        INSERT INTO plugin_graph_draft (namespace_pk, namespace_id, graph_id, draft_version, draft_json, published_revision)
+        SELECT id, namespace_id, #{graphId}, #{draftVersion},
+            <include refid="jsonParameter"><property name="property" value="draftJson"/></include>,
+            #{publishedRevision}
+        FROM namespace WHERE namespace_id = <include refid="exactNamespace"/>
+    </insert>
+
+    <update id="updateDraft">
+        UPDATE plugin_graph_draft
+        SET draft_json = <include refid="jsonParameter"><property name="property" value="draft.draftJson"/></include>,
+            draft_version = #{draft.draftVersion}, published_revision = #{draft.publishedRevision}
+        WHERE namespace_id = #{draft.namespaceId} AND graph_id = #{draft.graphId}
+          AND draft_version = #{expectedDraftVersion} AND published_revision = #{expectedPublishedRevision}
+    </update>
+
+    <insert id="insertRevision">
+        INSERT INTO plugin_graph_revision (namespace_id, graph_id, revision, graph_json)
+        VALUES (#{namespaceId}, #{graphId}, #{revision},
+            <include refid="jsonParameter"><property name="property" value="graphJson"/></include>)
+    </insert>
+
+    <select id="findRevision" resultMap="revision">
+        SELECT namespace_id, graph_id, revision, graph_json FROM plugin_graph_revision
+        WHERE namespace_id = #{namespaceId} AND graph_id = #{graphId} AND revision = #{revision}
+    </select>
+
+    <select id="listRevisions" resultMap="revision">
+        SELECT namespace_id, graph_id, revision, graph_json FROM plugin_graph_revision
+        WHERE namespace_id = #{namespaceId} AND graph_id = #{graphId} ORDER BY revision
+    </select>
+
+    <select id="listPublished" resultMap="revision">
+        SELECT r.namespace_id, r.graph_id, r.revision, r.graph_json
+        FROM plugin_graph_draft d JOIN plugin_graph_revision r
+          ON r.namespace_id = d.namespace_id AND r.graph_id = d.graph_id AND r.revision = d.published_revision
+        WHERE d.namespace_id = #{namespaceId} ORDER BY r.graph_id
+    </select>
+
+    <select id="listConfiguredPlugins" resultType="org.apache.shenyu.common.dto.PluginData">
+        SELECT p.name, MIN(r.enabled) AS enabled FROM namespace_plugin_rel r JOIN plugin p ON p.id = r.plugin_id
+        WHERE r.namespace_id = <include refid="exactNamespace"/> GROUP BY p.name
+    </select>
+</mapper>

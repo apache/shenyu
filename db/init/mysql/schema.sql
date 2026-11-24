@@ -2200,6 +2200,9 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 -- ----------------------------
 -- Table structure for namespace
 -- ----------------------------
+DROP TABLE IF EXISTS `plugin_graph_revision`;
+DROP TABLE IF EXISTS `plugin_graph_draft`;
+DROP TABLE IF EXISTS `namespace_user_rel`;
 DROP TABLE IF EXISTS `namespace`;
 CREATE TABLE `namespace` (
                              `id` varchar(128) NOT NULL COMMENT 'namespace primary key',
@@ -2208,7 +2211,8 @@ CREATE TABLE `namespace` (
                              `description` varchar(255) DEFAULT NULL COMMENT 'namespace desc',
                              `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
                              `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-                             PRIMARY KEY (`id`)
+                             PRIMARY KEY (`id`),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `namespace` (`id`, `namespace_id`, `name`, `description`, `date_created`, `date_updated`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace', '2024-06-22 20:25:14.359', '2024-06-22 23:27:40.778');
@@ -2355,14 +2359,14 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     PRIMARY KEY (`id`) USING BTREE
     ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
-DROP TABLE IF EXISTS `namespace_user_rel`;
 CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key',
-                                      `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace_id',
+                                      `namespace_id` varchar(50) NOT NULL COMMENT 'namespace_id',
                                       `user_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user_id',
                                       `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
-                                      `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
+                                      `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES `namespace`(namespace_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='namespace user relation ';
 
 INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `logged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
 
@@ -2484,3 +2488,39 @@ CREATE INDEX idx_namespace_user_ns_user ON `namespace_user_rel` (namespace_id, u
 CREATE INDEX idx_namespace_user_user_ns ON `namespace_user_rel` (user_id, namespace_id);
 CREATE INDEX idx_user_role_user_role ON `user_role` (user_id, role_id);
 CREATE INDEX idx_resource_parent ON `resource` (parent_id);
+
+CREATE TABLE IF NOT EXISTS plugin_graph_draft (
+    namespace_pk VARCHAR(128) NOT NULL,
+    namespace_id VARCHAR(50) COLLATE utf8mb4_bin NOT NULL,
+    graph_id VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+    draft_version BIGINT NOT NULL,
+    draft_json LONGTEXT,
+    published_revision BIGINT DEFAULT 0 NOT NULL,
+    PRIMARY KEY (namespace_id, graph_id),
+    FOREIGN KEY (namespace_pk) REFERENCES namespace(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS plugin_graph_revision (
+    namespace_id VARCHAR(50) COLLATE utf8mb4_bin NOT NULL,
+    graph_id VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+    revision BIGINT NOT NULL,
+    graph_json LONGTEXT,
+    PRIMARY KEY (namespace_id, graph_id, revision),
+    FOREIGN KEY (namespace_id, graph_id) REFERENCES plugin_graph_draft(namespace_id, graph_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Graph permissions are available for explicit role grants.
+INSERT INTO `resource` (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000001', '1346777449787125760', 'View plugin graphs', 2, 10, 1, 0, 'system:graph:view', 1
+WHERE NOT EXISTS (SELECT 1 FROM `resource` WHERE id = '1997997000000000001');
+INSERT INTO `resource` (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000002', '1346777449787125760', 'Manage plugin graphs', 2, 11, 1, 0, 'system:graph:edit', 1
+WHERE NOT EXISTS (SELECT 1 FROM `resource` WHERE id = '1997997000000000002');
+
+-- Match the built-in super role grants for other Admin resources.
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000011', '1346358560427216896', '1997997000000000001'
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000001');
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000012', '1346358560427216896', '1997997000000000002'
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000002');

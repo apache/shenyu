@@ -2576,7 +2576,8 @@ CREATE TABLE namespace (
                            description VARCHAR2(255),
                            date_created      timestamp(3) default SYSDATE not null,
                            date_updated      timestamp(3) default SYSDATE not null,
-                           CONSTRAINT pk_namespace PRIMARY KEY (id)
+                           CONSTRAINT pk_namespace PRIMARY KEY (id),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
 );
 
 
@@ -2768,7 +2769,8 @@ create table namespace_user_rel
     user_id        varchar(128) NOT NULL,
     date_created   timestamp(3) default SYSDATE not null,
     date_updated   timestamp(3) default SYSDATE not null,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES namespace(namespace_id) ON DELETE CASCADE
 );
 comment on column NAMESPACE_USER_REL.id
     is 'primary key id';
@@ -3488,3 +3490,39 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, sysdate, sysdate);
+
+CREATE TABLE plugin_graph_draft (
+    namespace_pk VARCHAR2(128) NOT NULL,
+    namespace_id VARCHAR2(50 CHAR) NOT NULL,
+    graph_id VARCHAR2(128 CHAR) NOT NULL,
+    draft_version NUMBER(19) NOT NULL,
+    draft_json CLOB,
+    published_revision NUMBER(19) DEFAULT 0 NOT NULL,
+    PRIMARY KEY (namespace_id, graph_id),
+    FOREIGN KEY (namespace_pk) REFERENCES namespace(id) ON DELETE CASCADE
+);
+
+CREATE TABLE plugin_graph_revision (
+    namespace_id VARCHAR2(50 CHAR) NOT NULL,
+    graph_id VARCHAR2(128 CHAR) NOT NULL,
+    revision NUMBER(19) NOT NULL,
+    graph_json CLOB,
+    PRIMARY KEY (namespace_id, graph_id, revision),
+    FOREIGN KEY (namespace_id, graph_id) REFERENCES plugin_graph_draft(namespace_id, graph_id) ON DELETE CASCADE
+);
+
+-- Graph permissions are available for explicit role grants.
+INSERT INTO "resource" (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000001', '1346777449787125760', 'View plugin graphs', 2, 10, 1, 0, 'system:graph:view', 1 FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM "resource" WHERE id = '1997997000000000001');
+INSERT INTO "resource" (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000002', '1346777449787125760', 'Manage plugin graphs', 2, 11, 1, 0, 'system:graph:edit', 1 FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM "resource" WHERE id = '1997997000000000002');
+
+-- Match the built-in super role grants for other Admin resources.
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000011', '1346358560427216896', '1997997000000000001' FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000001');
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000012', '1346358560427216896', '1997997000000000002' FROM dual
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000002');

@@ -27,6 +27,7 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.transaction.SpringManagedTransactionFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
@@ -74,7 +75,7 @@ public final class MockRequestHeaderMigrationTest {
             statement.execute("CREATE TABLE rule (loged INT)");
             statement.execute("CREATE TABLE instance_info (id VARCHAR(128), namespace_id VARCHAR(50), instance_ip VARCHAR(128),"
                     + "instance_port VARCHAR(128), instance_type VARCHAR(128), last_heart_beat_time BIGINT, date_updated TIMESTAMP, date_created TIMESTAMP)");
-            new ResourceDatabasePopulator(new FileSystemResource(upgradeScript())).execute(dataSource);
+            new ResourceDatabasePopulator(new ClassPathResource("sql/graph-migration-prerequisites.sql"), new FileSystemResource(upgradeScript())).execute(dataSource);
 
             MockRequestRecordDO restored = mapper.queryById("legacy");
             assertEquals(record.getHeader(), restored.getHeader());

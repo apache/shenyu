@@ -553,10 +553,19 @@ def execute_matrix(dialect, root, output):
                 engine.insert_data_permissions(duplicates=True)
                 engine.insert_legacy_mock_header()
                 for step in MIGRATIONS_FROM_BASELINE:
+                    migration = (root / f"db/upgrade/{step}-{dialect}.sql").read_text(encoding="utf-8")
                     if step == "2.7.2-upgrade-2.7.3":
                         engine.insert_instance_observations(duplicates=True)
-                    migration = root / f"db/upgrade/{step}-{dialect}.sql"
-                    engine.sql(migration.read_text(encoding="utf-8"))
+                        if dialect in ("mysql", "ob"):
+                            # Existing keys can predate a change to the server's default collation.
+                            engine.sql("ALTER TABLE namespace MODIFY id VARCHAR(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL;")
+                        elif dialect in ("pg", "og"):
+                            # Run the migration in the deployment user's search path, with a shadow namespace table.
+                            migration = ("CREATE SCHEMA deployer; SET search_path TO deployer, public; "
+                                         "CREATE TABLE deployer.namespace (other_id int);\n" + migration)
+                    engine.sql(migration)
+                if dialect in ("pg", "og"):
+                    engine.sql("SELECT 1 FROM public.plugin_graph_draft JOIN public.plugin_graph_revision USING (namespace_id, graph_id) LIMIT 0;")
             else:
                 engine.insert_data_permissions()
                 engine.insert_instance_observations()

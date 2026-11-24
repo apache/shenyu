@@ -43,6 +43,12 @@
         AND user_id = #{userId, jdbcType=VARCHAR}
     </select>
     
+    <select id="lockMembership" resultType="java.lang.String">
+        SELECT namespace_id FROM namespace_user_rel
+        WHERE namespace_id = #{namespaceId} AND user_id = #{userId}
+        FOR UPDATE
+    </select>
+
     <select id="selectListByUserId" parameterType="java.lang.String"
             resultMap="BaseResultMap">
         SELECT

@@ -1263,8 +1263,9 @@ CREATE TABLE IF NOT EXISTS `namespace` (
     `description` VARCHAR(255) DEFAULT NULL COMMENT 'namespace desc',
     `date_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'update time', -- 注意这里只是默认设置为创建时间
-    PRIMARY KEY (`id`)
-    );
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
+);
 
 INSERT IGNORE INTO `namespace` (`id`, `namespace_id`, `name`, `description`, `date_created`, `date_updated`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace', '2024-06-22 20:25:14.359', '2024-06-22 23:27:40.778');
 
@@ -1402,7 +1403,8 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel`
     `user_id`        varchar(128)  NOT NULL COMMENT 'user_id',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES `namespace`(namespace_id) ON DELETE CASCADE
 );
 
 
@@ -1596,3 +1598,39 @@ CREATE INDEX idx_resource_parent ON `resource` (parent_id);
 -- Plugin snapshot and permission query indexes.
 CREATE INDEX IF NOT EXISTS `idx_selector_plugin_id` ON `selector` (`plugin_id`);
 CREATE INDEX IF NOT EXISTS `idx_permission_resource_id` ON `permission` (`resource_id`);
+
+CREATE TABLE IF NOT EXISTS plugin_graph_draft (
+    namespace_pk VARCHAR(128) NOT NULL,
+    namespace_id VARCHAR(50) NOT NULL,
+    graph_id VARCHAR(128) NOT NULL,
+    draft_version BIGINT NOT NULL,
+    draft_json CLOB,
+    published_revision BIGINT DEFAULT 0 NOT NULL,
+    PRIMARY KEY (namespace_id, graph_id),
+    FOREIGN KEY (namespace_pk) REFERENCES namespace(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS plugin_graph_revision (
+    namespace_id VARCHAR(50) NOT NULL,
+    graph_id VARCHAR(128) NOT NULL,
+    revision BIGINT NOT NULL,
+    graph_json CLOB,
+    PRIMARY KEY (namespace_id, graph_id, revision),
+    FOREIGN KEY (namespace_id, graph_id) REFERENCES plugin_graph_draft(namespace_id, graph_id) ON DELETE CASCADE
+);
+
+-- Graph permissions are available for explicit role grants.
+INSERT INTO `resource` (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000001', '1346777449787125760', 'View plugin graphs', 2, 10, 1, 0, 'system:graph:view', 1
+WHERE NOT EXISTS (SELECT 1 FROM `resource` WHERE id = '1997997000000000001');
+INSERT INTO `resource` (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000002', '1346777449787125760', 'Manage plugin graphs', 2, 11, 1, 0, 'system:graph:edit', 1
+WHERE NOT EXISTS (SELECT 1 FROM `resource` WHERE id = '1997997000000000002');
+
+-- Match the built-in super role grants for other Admin resources.
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000011', '1346358560427216896', '1997997000000000001'
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000001');
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000012', '1346358560427216896', '1997997000000000002'
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000002');
