@@ -19,13 +19,20 @@ package org.apache.shenyu.admin.service.manager.impl;
 
 import com.google.gson.JsonObject;
 import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -122,5 +129,53 @@ public class SwaggerDocParserTest {
         docRoot.addProperty("basePath", "/" + "testClusterName");
         DocInfo docInfo = swaggerDocParser.parseJson(docRoot);
         assert docInfo.getDocModuleList().get(0).getModule().equals("Order API");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"post, false", "get, false", "post, true"})
+    public void testParsePathWithSharedParameters(final String method, final boolean swagger2) {
+        String documentVersion = swagger2 ? "\"swagger\": \"2.0\", \"basePath\": \"/v1\""
+                : "\"openapi\": \"3.0.3\", \"servers\": [{\"url\": \"/v1\"}]";
+        String parameterType = swagger2 ? "\"type\": \"integer\"" : "\"schema\": {\"type\": \"integer\"}";
+        JsonObject docRoot = GsonUtils.getInstance().fromJson("""
+                {
+                  %s,
+                  "info": {"title": "Widgets API", "version": "1.0"},
+                  "paths": {
+                    "/widgets": {
+                      "parameters": [{"name": "limit", "in": "query", %s}],
+                      "%s": {"summary": "Widgets", "responses": {"200": {"description": "OK"}}}
+                    }
+                  }
+                }
+                """.formatted(documentVersion, parameterType, method), JsonObject.class);
+
+        DocInfo docInfo = swaggerDocParser.parseJson(docRoot);
+
+        DocItem item = docInfo.getDocModuleList().get(0).getDocItems().get(0);
+        assertEquals("/v1/widgets", item.getName());
+        assertEquals(List.of(method), item.getHttpMethodList());
+    }
+
+    @Test
+    public void testParsePathKeepsOperationOrder() {
+        JsonObject docRoot = GsonUtils.getInstance().fromJson("""
+                {
+                  "openapi": "3.0.3",
+                  "info": {"title": "Widgets API", "version": "1.0"},
+                  "paths": {
+                    "/widgets": {
+                      "trace": {"summary": "Trace widgets", "responses": {"200": {"description": "OK"}}},
+                      "get": {"summary": "Get widgets", "responses": {"200": {"description": "OK"}}}
+                    }
+                  }
+                }
+                """, JsonObject.class);
+
+        DocInfo docInfo = swaggerDocParser.parseJson(docRoot);
+
+        DocItem item = docInfo.getDocModuleList().get(0).getDocItems().get(0);
+        assertEquals(List.of("get", "trace"), item.getHttpMethodList());
+        assertEquals("Get widgets", item.getSummary());
     }
 }

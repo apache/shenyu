@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
  */
 public class SwaggerDocParser implements DocParser {
 
+    private static final Set<String> PATH_ITEM_OPERATION_KEYS = Set.of("get", "put", "post", "delete", "options", "head", "patch", "trace");
+
     /**
      * parseJson.
      *
@@ -125,10 +127,10 @@ public class SwaggerDocParser implements DocParser {
     }
 
     protected Collection<String> getHttpMethods(final JsonObject pathInfo) {
-        Set<String> httpMethodList = pathInfo.keySet();
-        List<String> retList = new ArrayList<>(httpMethodList);
-        Collections.sort(retList);
-        return retList;
+        return pathInfo.keySet().stream()
+                .filter(PATH_ITEM_OPERATION_KEYS::contains)
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     protected DocItem buildDocItem(final JsonObject docInfo, final JsonObject docRoot, final SwaggerVersion version) {
