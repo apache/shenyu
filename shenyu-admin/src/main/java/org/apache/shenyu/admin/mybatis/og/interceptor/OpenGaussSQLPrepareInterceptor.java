@@ -27,6 +27,7 @@ import org.apache.ibatis.plugin.Signature;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -59,7 +60,7 @@ public class OpenGaussSQLPrepareInterceptor implements Interceptor {
         // reflect modify sql file
         Field field = boundSql.getClass().getDeclaredField("sql");
         field.setAccessible(true);
-        field.set(boundSql, boundSql.getSql().replace("`", "\"").toLowerCase());
+        field.set(boundSql, boundSql.getSql().replace("`", "\"").toLowerCase(Locale.ROOT));
 
         return invocation.proceed();
     }

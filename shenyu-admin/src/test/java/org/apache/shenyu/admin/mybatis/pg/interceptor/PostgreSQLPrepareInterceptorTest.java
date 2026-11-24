@@ -20,9 +20,14 @@ package org.apache.shenyu.admin.mybatis.pg.interceptor;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
+import java.util.Collections;
+import java.util.Locale;
 import java.util.Properties;
 
 import static org.mockito.Mockito.mock;
@@ -43,6 +48,28 @@ public class PostgreSQLPrepareInterceptorTest {
         when(statementHandler.getBoundSql()).thenReturn(boundSql);
         when(boundSql.getSql()).thenReturn("select * from users where name = 1 limit 1");
         Assertions.assertDoesNotThrow(() -> postgreSQLPrepareInterceptor.intercept(invocation));
+    }
+
+    @Test
+    @ResourceLock(Resources.LOCALE)
+    public void testPrepareUsesLocaleIndependentSqlForMultilineInsert() {
+        Locale original = Locale.getDefault();
+        Locale display = Locale.getDefault(Locale.Category.DISPLAY);
+        Locale format = Locale.getDefault(Locale.Category.FORMAT);
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            BoundSql boundSql = new BoundSql(new Configuration(),
+                    "INSERT INTO `ITEMS` (ID)\nVALUES (?), (?)", Collections.emptyList(), null);
+            StatementHandler statementHandler = mock(StatementHandler.class);
+            when(statementHandler.getBoundSql()).thenReturn(boundSql);
+            StatementHandler wrapped = (StatementHandler) new PostgreSQLPrepareInterceptor().plugin(statementHandler);
+            Assertions.assertDoesNotThrow(() -> wrapped.prepare(null, null));
+            Assertions.assertEquals("insert into \"items\" (id)\nvalues (?), (?)", boundSql.getSql());
+        } finally {
+            Locale.setDefault(original);
+            Locale.setDefault(Locale.Category.DISPLAY, display);
+            Locale.setDefault(Locale.Category.FORMAT, format);
+        }
     }
 
     @Test
