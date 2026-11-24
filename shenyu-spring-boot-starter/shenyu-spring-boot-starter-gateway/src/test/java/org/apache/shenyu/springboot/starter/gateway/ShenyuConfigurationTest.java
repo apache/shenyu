@@ -38,7 +38,9 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.WebFilter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test case for {@link ShenyuConfiguration}.
@@ -131,8 +133,21 @@ public class ShenyuConfigurationTest {
         applicationContextRunner.run(context -> {
                 ShenyuConfig config = context.getBean("shenyuConfig", ShenyuConfig.class);
                 assertNotNull(config);
+                assertFalse(config.isMatchSortFirst());
             }
         );
+    }
+
+    @Test
+    public void testSortFirstConfiguration() {
+        applicationContextRunner.withPropertyValues("shenyu.match-sort-first=true")
+                .run(context -> assertTrue(context.getBean(ShenyuConfig.class).isMatchSortFirst()));
+    }
+
+    @Test
+    public void testInvalidSortFirstConfiguration() {
+        applicationContextRunner.withPropertyValues("shenyu.match-sort-first=invalid")
+                .run(context -> assertNotNull(context.getStartupFailure()));
     }
 
     @Test

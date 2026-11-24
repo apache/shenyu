@@ -1,3 +1,16 @@
+## 2.7.3
+
+### Gateway Matching
+
+- Gateway deployments can set `shenyu.match-sort-first: true` to prefer a lower
+  `sort` when multiple selectors or conditional rules match. Equal sort values
+  use the existing condition specificity score. The default is `false`, which
+  gives specificity first priority.
+- Before enabling the option, compare selector, rule and resulting plugin
+  actions for overlapping routes in staging. A different selector can expose a
+  different rule set. Set the same value on all gateway replicas and restart
+  them to apply the change.
+
 ## 2.7.2
 
 ### Dependency Upgrade Notes

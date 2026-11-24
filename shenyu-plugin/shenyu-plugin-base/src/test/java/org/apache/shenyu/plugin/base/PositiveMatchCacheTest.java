@@ -23,11 +23,13 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,12 +65,14 @@ class PositiveMatchCacheTest {
 
     private final StaticApplicationContext context = new StaticApplicationContext();
 
+    private final ShenyuConfig config = new ShenyuConfig();
+
     private ApplicationContext previousContext;
 
     @BeforeEach
     void setUp() {
         previousContext = SpringBeanUtils.getInstance().getApplicationContext();
-        context.getBeanFactory().registerSingleton("shenyuConfig", new ShenyuConfig());
+        context.getBeanFactory().registerSingleton("shenyuConfig", config);
         SpringBeanUtils.getInstance().setApplicationContext(context);
         clearCaches();
         BaseDataCache.getInstance().cachePluginData(PluginData.builder().name(PLUGIN).enabled(true).build());
@@ -124,8 +128,9 @@ class PositiveMatchCacheTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void pathOnlyCandidatesStillCacheWithDisabledDynamicCompetitors(final boolean includeDisabled) {
+    @CsvSource({"false,false", "false,true", "true,false", "true,true"})
+    void pathOnlyCandidatesStillCacheWithDisabledDynamicCompetitors(final boolean sortFirst, final boolean includeDisabled) {
+        config.setMatchSortFirst(sortFirst);
         SelectorData generic = selector("generic", List.of(uriCondition()), true);
         RuleData genericRule = rule("generic", List.of(uriCondition()));
         genericRule.setSelectorId(generic.getId());
@@ -151,6 +156,128 @@ class PositiveMatchCacheTest {
         assertSame(generic, plugin.selector);
         assertSame(genericRule, plugin.rule);
         assertEquals(2, plugin.executions);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,false,false", "false,false,true", "false,true,false", "false,true,true",
+            "true,false,false", "true,false,true", "true,true,false", "true,true,true"})
+    void configuredPrioritySelectsTheWinnerForOverlappingMatches(final boolean sortFirst, final boolean ruleStage, final boolean cacheEnabled) {
+        config.setMatchSortFirst(sortFirst);
+        config.getSelectorMatchCache().getCache().setEnabled(cacheEnabled);
+        config.getRuleMatchCache().getCache().setEnabled(cacheEnabled);
+        prepareStage(ruleStage);
+        addCandidate(ruleStage, "disabled", 0, List.of(uriCondition(), dynamicCondition("header")), false);
+        addCandidate(ruleStage, "unmatched", 1, List.of(condition("uri", "/", "/other")), true);
+        addCandidate(ruleStage, "generic", 10, List.of(uriCondition()), true);
+        addCandidate(ruleStage, "specific", 20, List.of(uriCondition(), dynamicCondition("header")), true);
+
+        assertWinner(ruleStage, false, "generic");
+        assertWinner(ruleStage, true, sortFirst ? "generic" : "specific");
+        assertNull(ruleStage ? MatchDataCache.getInstance().obtainRuleData(PLUGIN, "/x")
+                : MatchDataCache.getInstance().obtainSelectorData(PLUGIN, "/x"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void equalSortUsesSpecificityAndPreservesEncounterOrder(final boolean ruleStage) {
+        config.setMatchSortFirst(true);
+        prepareStage(ruleStage);
+        addCandidate(ruleStage, "generic", 10, List.of(uriCondition()), true);
+        addCandidate(ruleStage, "first", 10, List.of(uriCondition(), dynamicCondition("header")), true);
+        addCandidate(ruleStage, "second", 10, List.of(uriCondition(), dynamicCondition("header")), true);
+
+        assertWinner(ruleStage, true, "first");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void fullFlowStillUsesTheLastEnabledRule(final boolean sortFirst) {
+        config.setMatchSortFirst(sortFirst);
+        SelectorData selector = selector("selector", List.of(), true);
+        selector.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        BaseDataCache.getInstance().cacheSelectData(selector);
+        addCandidate(true, "first", 10, List.of(uriCondition()), true);
+        addCandidate(true, "last-enabled", 20, List.of(), true);
+        addCandidate(true, "disabled", 30, List.of(), false);
+
+        assertWinner(true, false, "last-enabled");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void sortFirstUsesRulesFromTheSelectedSelector(final boolean cacheEnabled) {
+        config.setMatchSortFirst(true);
+        config.getRuleMatchCache().getCache().setEnabled(cacheEnabled);
+        SelectorData fallback = selector("fallback", List.of(uriCondition()), true);
+        fallback.setSort(20);
+        SelectorData special = selector("special", List.of(dynamicCondition("header")), true);
+        special.setMatchMode(MatchModeEnum.OR.getCode());
+        special.setSort(10);
+        BaseDataCache.getInstance().cacheSelectData(fallback);
+        BaseDataCache.getInstance().cacheSelectData(special);
+        RuleData fallbackRule = rule("fallback-rule", List.of(uriCondition()));
+        fallbackRule.setSelectorId(fallback.getId());
+        RuleData specialRule = rule("special-rule", List.of(uriCondition()));
+        specialRule.setSelectorId(special.getId());
+        BaseDataCache.getInstance().cacheRuleData(fallbackRule);
+        BaseDataCache.getInstance().cacheRuleData(specialRule);
+
+        assertWinner(true, false, "fallback-rule");
+        assertWinner(true, true, "special-rule");
+        assertWinner(true, false, "fallback-rule");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false,false", "false,true", "true,false", "true,true"})
+    void sortUpdatesUseTheCurrentPriorityWithOrWithoutCaching(final boolean ruleStage, final boolean cacheEnabled) {
+        config.setMatchSortFirst(true);
+        config.getSelectorMatchCache().getCache().setEnabled(cacheEnabled);
+        config.getRuleMatchCache().getCache().setEnabled(cacheEnabled);
+        prepareStage(ruleStage);
+        ConditionData anyPath = condition("uri", "/", "/**");
+        anyPath.setOperator("match");
+        List<ConditionData> specificConditions = List.of(uriCondition(), anyPath);
+        addCandidate(ruleStage, "generic", 10, List.of(uriCondition()), true);
+        addCandidate(ruleStage, "specific", 20, specificConditions, true);
+        assertWinner(ruleStage, false, "generic");
+        assertWinner(ruleStage, false, "generic");
+
+        CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(List.of(), config.getSelectorMatchCache(), config.getRuleMatchCache());
+        if (ruleStage) {
+            RuleData updated = rule("specific", specificConditions);
+            updated.setSort(5);
+            subscriber.onRuleSubscribe(updated);
+        } else {
+            SelectorData updated = selector("specific", specificConditions, false);
+            updated.setSort(5);
+            subscriber.onSelectorSubscribe(updated);
+        }
+        assertWinner(ruleStage, false, "specific");
+    }
+
+    private void prepareStage(final boolean ruleStage) {
+        if (ruleStage) {
+            BaseDataCache.getInstance().cacheSelectData(selector("selector", List.of(uriCondition()), true));
+        }
+    }
+
+    private void addCandidate(final boolean ruleStage, final String id, final int sort, final List<ConditionData> conditions, final boolean enabled) {
+        if (ruleStage) {
+            RuleData candidate = rule(id, conditions);
+            candidate.setSort(sort);
+            candidate.setEnabled(enabled);
+            BaseDataCache.getInstance().cacheRuleData(candidate);
+        } else {
+            SelectorData candidate = selector(id, conditions, false);
+            candidate.setSort(sort);
+            candidate.setEnabled(enabled);
+            BaseDataCache.getInstance().cacheSelectData(candidate);
+        }
+    }
+
+    private void assertWinner(final boolean ruleStage, final boolean special, final String expected) {
+        execute(special);
+        assertEquals(expected, ruleStage ? plugin.rule.getId() : plugin.selector.getId());
     }
 
     @ParameterizedTest

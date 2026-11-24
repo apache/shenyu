@@ -68,6 +68,8 @@ public class ShenyuConfig {
 
     private TracingConfig tracing = new TracingConfig();
 
+    private boolean matchSortFirst;
+
     private SelectorMatchCache selectorMatchCache = new SelectorMatchCache();
     
     private RuleMatchCache ruleMatchCache = new RuleMatchCache();
@@ -77,6 +79,24 @@ public class ShenyuConfig {
     private AlertConfig alert = new AlertConfig();
 
     private String namespace = Constants.SYS_DEFAULT_NAMESPACE_ID;
+
+    /**
+     * Whether selector and rule matching compares configured sort before specificity.
+     *
+     * @return true when lower sort takes priority over specificity
+     */
+    public boolean isMatchSortFirst() {
+        return matchSortFirst;
+    }
+
+    /**
+     * Configure whether selector and rule matching compares sort before specificity.
+     *
+     * @param matchSortFirst whether to enable sort-first matching
+     */
+    public void setMatchSortFirst(final boolean matchSortFirst) {
+        this.matchSortFirst = matchSortFirst;
+    }
 
     /**
      * shenyu bootstrap namespace.

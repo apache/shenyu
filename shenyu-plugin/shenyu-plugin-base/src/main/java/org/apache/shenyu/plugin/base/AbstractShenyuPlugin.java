@@ -66,6 +66,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     
     private ShenyuConfig.RuleMatchCache ruleMatchConfig;
 
+    private volatile Boolean matchSortFirst;
+
     /**
      * this is Template Method child has implements your own logic.
      *
@@ -87,7 +89,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        initCacheConfig();
+        initMatchConfig();
         final String pluginName = named();
         PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         // early exit
@@ -154,7 +156,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
         // consult the bounded per-path match cache first when it is enabled.
         // on a cache miss, match the current rule list with the default strategy.
-        RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
+        RuleData ruleData = obtainRuleDataCacheIfEnabled(path, selectorData.getId());
         CacheResolution ruleCache = Objects.nonNull(ruleData) ? CacheResolution.POSITIVE_HIT
                 : cacheResolution(ruleMatchConfig.getCache().getEnabled());
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
@@ -224,11 +226,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return RequestUrlUtils.getRewrittenRawPath(exchange);
     }
     
-    private void initCacheConfig() {
-        if (Objects.isNull(selectorMatchConfig) || Objects.isNull(ruleMatchConfig)) {
+    private void initMatchConfig() {
+        if (Objects.isNull(matchSortFirst)) {
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
             selectorMatchConfig = shenyuConfig.getSelectorMatchCache();
             ruleMatchConfig = shenyuConfig.getRuleMatchCache();
+            // Publish both cache settings before marking matching configuration initialized.
+            matchSortFirst = shenyuConfig.isMatchSortFirst();
         }
     }
     
@@ -236,8 +240,16 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return selectorMatchConfig.getCache().getEnabled() ? MatchDataCache.getInstance().obtainSelectorData(named(), path) : null;
     }
     
-    private RuleData obtainRuleDataCacheIfEnabled(final String path) {
-        return ruleMatchConfig.getCache().getEnabled() ? MatchDataCache.getInstance().obtainRuleData(named(), path) : null;
+    private RuleData obtainRuleDataCacheIfEnabled(final String path, final String selectorId) {
+        if (!ruleMatchConfig.getCache().getEnabled()) {
+            return null;
+        }
+        RuleData cachedRule = MatchDataCache.getInstance().obtainRuleData(named(), path);
+        // Positive entries are path-keyed even when request attributes select a different rule set.
+        if (Objects.nonNull(cachedRule) && Objects.nonNull(cachedRule.getId()) && !Objects.equals(selectorId, cachedRule.getSelectorId())) {
+            return null;
+        }
+        return cachedRule;
     }
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
@@ -316,6 +328,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Pair<Boolean, SelectorData> matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
+        final boolean sortFirst = Boolean.TRUE.equals(matchSortFirst);
         SelectorData best = null;
         int bestSpecificity = -1;
         boolean unique = true;
@@ -330,7 +343,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 unique = false;
             }
             int specificity = MatchModeEnum.match(selector.getMatchMode(), MatchModeEnum.AND) ? CollectionUtils.size(selector.getConditionList()) : 0;
-            if (Objects.isNull(best) || specificity > bestSpecificity || specificity == bestSpecificity && selector.getSort() < best.getSort()) {
+            if (Objects.isNull(best) || outranks(sortFirst, selector.getSort(), specificity, best.getSort(), bestSpecificity)) {
                 best = selector;
                 bestSpecificity = specificity;
             }
@@ -349,6 +362,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Pair<Boolean, RuleData> matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
+        final boolean sortFirst = Boolean.TRUE.equals(matchSortFirst);
         RuleData best = null;
         int bestSpecificity = -1;
         boolean unique = true;
@@ -363,12 +377,20 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 unique = false;
             }
             int specificity = MatchModeEnum.match(rule.getMatchMode(), MatchModeEnum.AND) ? CollectionUtils.size(rule.getConditionDataList()) : 0;
-            if (Objects.isNull(best) || specificity > bestSpecificity || specificity == bestSpecificity && rule.getSort() < best.getSort()) {
+            if (Objects.isNull(best) || outranks(sortFirst, rule.getSort(), specificity, best.getSort(), bestSpecificity)) {
                 best = rule;
                 bestSpecificity = specificity;
             }
         }
         return Pair.of(unique, best);
+    }
+
+    private static boolean outranks(final boolean sortFirst, final Integer sort, final int specificity, final Integer bestSort, final int bestSpecificity) {
+        if (sortFirst) {
+            int sortOrder = Integer.compare(sort, bestSort);
+            return sortOrder < 0 || sortOrder == 0 && specificity > bestSpecificity;
+        }
+        return specificity > bestSpecificity || specificity == bestSpecificity && sort < bestSort;
     }
 
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
