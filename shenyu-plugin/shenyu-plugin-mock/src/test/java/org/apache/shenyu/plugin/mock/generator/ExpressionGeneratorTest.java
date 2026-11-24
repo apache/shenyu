@@ -118,6 +118,8 @@ public class ExpressionGeneratorTest {
             Locale.setDefault(Locale.Category.FORMAT, Locale.US);
             time.when(LocalDateTime::now).thenReturn(now);
 
+            assertEquals("\"2025-12-31 13:14:15\"", GeneratorFactory.dealRule("${current}", mockRequest));
+            // With Locale.US, December 31, 2025 belongs to week-based year 2026.
             assertEquals("\"2026-12-31\"", generator.generate("expression|#current('YYYY-MM-dd')", mockRequest));
             assertEquals("\"2025-12-31 13:14:15\"", generator.generate("expression|#current()", mockRequest));
         } finally {
