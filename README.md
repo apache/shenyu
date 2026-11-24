@@ -78,6 +78,8 @@ docker run -d --name shenyu-bootstrap --network shenyu -p 127.0.0.1:9195:9195 \
   apache/shenyu-bootstrap:latest
 ```
 
+Local management controllers are registered only when `SHENYU_LOCAL_ENABLED=true`; omitting it disables the controllers and their dispatch filter together.
+
 Admin listens on `http://localhost:9095`; the gateway listens on `http://localhost:9195`. Wait for both services to start, then check their health endpoints:
 
 ```bash
