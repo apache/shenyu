@@ -110,6 +110,17 @@ public final class AgentRequestContext {
     }
 
     /**
+     * Replace only the logical request id while preserving every other fact.
+     *
+     * @param newRequestId replacement request id
+     * @return context copy carrying the replacement id
+     */
+    public AgentRequestContext withRequestId(final String newRequestId) {
+        return new AgentRequestContext(newRequestId, trafficType, selectorId, ruleId, configurationVersion,
+                tenant, subject, target, operation, protocolVersion, sessionId, apiKeyId);
+    }
+
+    /**
      * Create a copy for the matched observation owner while preserving the logical request id.
      *
      * @param newSelectorId matched selector id
@@ -118,7 +129,7 @@ public final class AgentRequestContext {
      */
     public AgentRequestContext withSelectorAndRule(final String newSelectorId, final String newRuleId) {
         return new AgentRequestContext(requestId, trafficType, newSelectorId, newRuleId, configurationVersion,
-                tenant, subject, target, operation, protocolVersion, sessionId);
+                tenant, subject, target, operation, protocolVersion, sessionId, apiKeyId);
     }
 
     public AgentRequestContext withTarget(final String resolvedTarget, final String resolvedOperation, final String resolvedProtocolVersion) {

@@ -82,4 +82,38 @@ class AgentRequestContextTest {
         assertEquals("tenant", refreshed.getTenant());
         assertEquals("subject", refreshed.getSubject());
     }
+
+    @Test
+    void routeIdentityRefreshPreservesApiKeyAttribution() {
+        AgentRequestContext initial = new AgentRequestContext("request", "llm", "correlation-selector", "correlation-rule")
+                .withIdentity("tenant", "subject")
+                .withApiKeyId("internal-key-id");
+        AgentRequestContext refreshed = initial.withSelectorAndRule("proxy-selector", "proxy-rule");
+        assertNotSame(initial, refreshed);
+        assertEquals("internal-key-id", refreshed.getApiKeyId());
+        assertEquals("tenant", refreshed.getTenant());
+        assertEquals("subject", refreshed.getSubject());
+    }
+
+    @Test
+    void requestIdReplacementPreservesEveryOtherFact() {
+        AgentRequestContext initial = new AgentRequestContext("old", "llm", "selector", "rule")
+                .withIdentity("tenant", "subject")
+                .withTarget("target", "operation", "v1")
+                .withConfigurationVersion(7L)
+                .withApiKeyId("api-key");
+        AgentRequestContext replaced = initial.withRequestId("new");
+        assertNotSame(initial, replaced);
+        assertEquals("new", replaced.getRequestId());
+        assertEquals("llm", replaced.getTrafficType());
+        assertEquals("selector", replaced.getSelectorId());
+        assertEquals("rule", replaced.getRuleId());
+        assertEquals(Long.valueOf(7L), replaced.getConfigurationVersion());
+        assertEquals("tenant", replaced.getTenant());
+        assertEquals("subject", replaced.getSubject());
+        assertEquals("target", replaced.getTarget());
+        assertEquals("operation", replaced.getOperation());
+        assertEquals("v1", replaced.getProtocolVersion());
+        assertEquals("api-key", replaced.getApiKeyId());
+    }
 }

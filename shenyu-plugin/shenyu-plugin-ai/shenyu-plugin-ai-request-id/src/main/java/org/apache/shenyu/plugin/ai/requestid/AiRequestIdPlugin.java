@@ -44,8 +44,9 @@ import java.util.Objects;
  * Establishes one AI logical request id before AI governance and upstream stages.
  * The plugin never reads a request or response body, never creates an
  * {@code AiRequestObservation}, and never accepts a caller-supplied identifier.
- * An existing compatible context is reused as-is so Agent Gateway and AI Proxy
- * cannot replace an identifier initialized here.
+ * An existing compatible context is reused as-is so Agent Gateway's LLM path and
+ * AI Proxy cannot replace an identifier initialized here. Agent Gateway MCP rules
+ * keep their own entry id and are not covered by this reuse.
  */
 public class AiRequestIdPlugin extends AbstractShenyuPlugin {
 
@@ -61,12 +62,10 @@ public class AiRequestIdPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         final AiRequestIdRule requestIdRule = resolveRule(selector, rule);
-        if (!requestIdRule.isValid()) {
-            return reject(exchange, requestIdRule.getErrorMessage());
-        }
         return Mono.deferContextual(view -> {
             final AgentRequestContext existing = existingContext(exchange, view);
-            final boolean reusable = Objects.nonNull(existing) && AiRequestIdFactory.reusable(existing.getRequestId());
+            final boolean reusable = Objects.nonNull(existing)
+                    && AgentRequestContext.isReusableRequestId(existing.getRequestId());
             if (Objects.nonNull(existing) && !reusable) {
                 // Never log the rejected value; it may contain characters unsafe for log output.
                 LOG.warn("Replacing an invalid existing AI request id");
@@ -74,6 +73,13 @@ public class AiRequestIdPlugin extends AbstractShenyuPlugin {
             final AgentRequestContext context = reusable ? existing
                     : new AgentRequestContext(AiRequestIdFactory.generate(), TRAFFIC_TYPE, selector.getId(), rule.getId());
             exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE, context);
+            if (!requestIdRule.isValid()) {
+                // A rejected rule still carries the correlation id so its response header and
+                // access log agree. The invalid handle cannot express responseHeaderEnabled,
+                // so the canonical header is emitted for the rejection instead of omitted.
+                registerResponseHeader(exchange, context.getRequestId());
+                return reject(exchange, requestIdRule.getErrorMessage());
+            }
             if (requestIdRule.isResponseHeaderEnabled()) {
                 registerResponseHeader(exchange, context.getRequestId());
             }

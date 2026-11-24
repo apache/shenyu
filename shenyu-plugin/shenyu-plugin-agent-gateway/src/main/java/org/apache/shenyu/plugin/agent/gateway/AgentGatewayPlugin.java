@@ -96,18 +96,26 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
             // LLM traffic reuses the id established by the AI request id plugin; MCP keeps its own entry.
             final AgentTrafficContext context = new AgentTrafficContext(
                     requestId(exchange, view, handle.getTrafficType()), handle.getTrafficType(), selector.getId(), rule.getId());
+            final AgentRequestContext requestContext = context.toRequestContext(handle.getGeneration());
             final Object previousContext = exchange.getAttributes()
                     .put(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE, context);
+            // Access logging reads this attribute at response time. Install the resolved id even
+            // when aiRequestId is absent or replaced a non-reusable value, then restore ownership.
+            final Object previousRequestContext = exchange.getAttributes()
+                    .put(AgentRequestContext.EXCHANGE_ATTRIBUTE, requestContext);
             if (handle.isResponseRequestId()) {
                 registerResponseRequestId(exchange, context.getRequestId());
             }
             return Mono.defer(() -> "mcp".equals(handle.getTrafficType())
                     ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration(),
                             new AgentHttpToolExecutor(exchange, chain, handle.getMcp().getMaxRequestBytes(), handle.getMcp().getMaxResponseBytes()))
-                    : handleLlm(exchange, chain, context.toRequestContext(handle.getGeneration())))
+                    : handleLlm(exchange, chain, requestContext))
                     .contextWrite(reactorContext -> reactorContext.put(AgentGatewayConstants.REACTOR_CONTEXT_KEY, context)
-                            .put(AgentRequestContext.REACTOR_KEY, context.toRequestContext(handle.getGeneration())))
-                    .doFinally(signal -> restorePreviousContext(exchange, previousContext, context));
+                            .put(AgentRequestContext.REACTOR_KEY, requestContext))
+                    .doFinally(signal -> {
+                        restoreRequestContext(exchange, previousRequestContext, requestContext);
+                        restorePreviousContext(exchange, previousContext, context);
+                    });
         });
     }
 
@@ -137,6 +145,18 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
                     .doFinally(signal -> observation.finish(signal, Objects.isNull(exchange.getResponse().getStatusCode())
                             ? null : exchange.getResponse().getStatusCode().value()));
         });
+    }
+
+    private void restoreRequestContext(final ServerWebExchange exchange, final Object previousContext,
+                                       final AgentRequestContext currentContext) {
+        // Same ownership discipline as the traffic context: never clear a value installed by
+        // another execution on this exchange.
+        if (Objects.isNull(previousContext)) {
+            exchange.getAttributes().remove(AgentRequestContext.EXCHANGE_ATTRIBUTE, currentContext);
+        } else {
+            exchange.getAttributes().replace(AgentRequestContext.EXCHANGE_ATTRIBUTE, currentContext,
+                    previousContext);
+        }
     }
 
     private void restorePreviousContext(final ServerWebExchange exchange, final Object previousContext,

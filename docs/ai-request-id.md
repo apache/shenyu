@@ -89,10 +89,9 @@ Equal sort values do not establish a safe relative order. The required invariant
 for an enabled LLM path is:
 
 ```text
-authentication < aiRequestId < aiPrompt < aiTokenLimiter < aiProxy
+authentication < aiRequestId < agentGateway (LLM rules only) < aiPrompt < aiTokenLimiter < aiProxy
 ```
 
-When Agent Gateway is enabled, it must be between `aiRequestId` and `aiPrompt`.
 See [Agent Gateway governance order](agent-gateway-governance-order.md) for the
 upgrade and inspection procedure.
 
@@ -114,8 +113,10 @@ The legacy Agent Gateway header keeps its existing behavior:
 
 The id is registered before response commitment, including before the first SSE
 byte. If the plugin is not enabled or does not match, no canonical header is
-added. Caller-supplied `X-Shenyu-Ai-Request-Id` values are ignored; the first
-version does not accept inbound ids.
+added. A matched rule that fails validation is still rejected with the canonical
+header and correlation id installed, so the rejection appears in access logs and
+can be correlated. Caller-supplied `X-Shenyu-Ai-Request-Id` values are ignored;
+the first version does not accept inbound ids.
 
 The first delivery covers LLM HTTP requests through standalone AI Proxy and
 Agent Gateway's LLM path. Top-level MCP traffic is not covered by the canonical

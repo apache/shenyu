@@ -17,12 +17,11 @@
 
 package org.apache.shenyu.plugin.ai.requestid;
 
-import org.apache.shenyu.common.dto.AgentRequestContext;
-
 import java.util.UUID;
 
 /**
- * Generates and validates bounded AI request identifiers.
+ * Generates AI request identifiers. Reuse eligibility lives in
+ * {@link org.apache.shenyu.common.dto.AgentRequestContext#isReusableRequestId(String)}.
  */
 public final class AiRequestIdFactory {
 
@@ -36,16 +35,5 @@ public final class AiRequestIdFactory {
      */
     public static String generate() {
         return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Whether an existing context identifier can be reused without rewriting it.
-     * The bounded character set keeps the id safe for response headers and access logs.
-     *
-     * @param requestId existing request id
-     * @return true when the identifier is present and bounded
-     */
-    public static boolean reusable(final String requestId) {
-        return AgentRequestContext.isReusableRequestId(requestId);
     }
 }

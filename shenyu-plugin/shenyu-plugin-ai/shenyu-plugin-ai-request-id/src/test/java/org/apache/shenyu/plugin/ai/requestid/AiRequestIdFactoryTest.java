@@ -17,13 +17,13 @@
 
 package org.apache.shenyu.plugin.ai.requestid;
 
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AiRequestIdFactoryTest {
@@ -32,7 +32,7 @@ class AiRequestIdFactoryTest {
     void shouldGenerateOpaqueUuid() {
         String requestId = AiRequestIdFactory.generate();
 
-        assertTrue(AiRequestIdFactory.reusable(requestId));
+        assertTrue(AgentRequestContext.isReusableRequestId(requestId));
         assertEquals(36, requestId.length());
     }
 
@@ -44,23 +44,5 @@ class AiRequestIdFactoryTest {
         }
 
         assertEquals(100, requestIds.size());
-    }
-
-    @Test
-    void shouldAcceptBoundedIds() {
-        assertTrue(AiRequestIdFactory.reusable("gateway-id"));
-        assertTrue(AiRequestIdFactory.reusable("abc.DEF_123:456-789"));
-        assertTrue(AiRequestIdFactory.reusable("a".repeat(128)));
-    }
-
-    @Test
-    void shouldRejectMissingOrUnsafeIds() {
-        assertFalse(AiRequestIdFactory.reusable(null));
-        assertFalse(AiRequestIdFactory.reusable(""));
-        assertFalse(AiRequestIdFactory.reusable("   "));
-        assertFalse(AiRequestIdFactory.reusable("a".repeat(129)));
-        assertFalse(AiRequestIdFactory.reusable("bad id"));
-        assertFalse(AiRequestIdFactory.reusable("bad\nid"));
-        assertFalse(AiRequestIdFactory.reusable("id/with/slash"));
     }
 }

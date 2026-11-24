@@ -101,7 +101,7 @@ class AiRequestIdPluginTest {
         assertEquals("llm", reactorContext.get().getTrafficType());
         assertEquals("selector-1", reactorContext.get().getSelectorId());
         assertEquals("rule-1", reactorContext.get().getRuleId());
-        assertTrue(AiRequestIdFactory.reusable(reactorContext.get().getRequestId()));
+        assertTrue(AgentRequestContext.isReusableRequestId(reactorContext.get().getRequestId()));
         assertEquals(reactorContext.get().getRequestId(),
                 exchange.getResponse().getHeaders().getFirst(Constants.X_SHENYU_AI_REQUEST_ID));
     }
@@ -179,7 +179,7 @@ class AiRequestIdPluginTest {
 
         assertNotNull(captured.get());
         assertNotEquals("   ", captured.get().getRequestId());
-        assertTrue(AiRequestIdFactory.reusable(captured.get().getRequestId()));
+        assertTrue(AgentRequestContext.isReusableRequestId(captured.get().getRequestId()));
     }
 
     @Test
@@ -198,7 +198,7 @@ class AiRequestIdPluginTest {
 
         assertNotNull(captured.get());
         assertNotEquals("bad id", captured.get().getRequestId());
-        assertTrue(AiRequestIdFactory.reusable(captured.get().getRequestId()));
+        assertTrue(AgentRequestContext.isReusableRequestId(captured.get().getRequestId()));
     }
 
     @Test
@@ -218,7 +218,7 @@ class AiRequestIdPluginTest {
 
         assertNotNull(captured.get());
         assertNotEquals(overlong, captured.get().getRequestId());
-        assertTrue(AiRequestIdFactory.reusable(captured.get().getRequestId()));
+        assertTrue(AgentRequestContext.isReusableRequestId(captured.get().getRequestId()));
     }
 
     @Test
@@ -290,6 +290,11 @@ class AiRequestIdPluginTest {
 
         assertFalse(called.get());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+        AgentRequestContext context = exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE);
+        assertNotNull(context);
+        assertTrue(AgentRequestContext.isReusableRequestId(context.getRequestId()));
+        assertEquals(context.getRequestId(),
+                exchange.getResponse().getHeaders().getFirst(Constants.X_SHENYU_AI_REQUEST_ID));
     }
 
     @Test
@@ -307,6 +312,25 @@ class AiRequestIdPluginTest {
 
         assertFalse(called.get());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+        AgentRequestContext context = exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE);
+        assertNotNull(context);
+        assertEquals(context.getRequestId(),
+                exchange.getResponse().getHeaders().getFirst(Constants.X_SHENYU_AI_REQUEST_ID));
+    }
+
+    @Test
+    void shouldCorrelateInvalidRuleWithExistingContext() {
+        MockServerWebExchange exchange = exchange();
+        AgentRequestContext existing = new AgentRequestContext("existing-id", "llm", "existing-selector", "existing-rule");
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE, existing);
+
+        StepVerifier.create(plugin.doExecute(exchange, next -> Mono.empty(), selector(), rule("not-json")))
+                .verifyComplete();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+        assertEquals(existing, exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+        assertEquals("existing-id",
+                exchange.getResponse().getHeaders().getFirst(Constants.X_SHENYU_AI_REQUEST_ID));
     }
 
     @Test

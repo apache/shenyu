@@ -56,7 +56,10 @@ public final class AiObservationSupport {
             if (!AgentRequestContext.isReusableRequestId(context.getRequestId())) {
                 // Never log the rejected value; it may contain characters unsafe for log output.
                 LOG.warn("Replacing an invalid existing AI request id in AI Proxy");
-                return new AgentRequestContext(UUID.randomUUID().toString(), "llm", selectorId, ruleId);
+                final AgentRequestContext replaced = context.withRequestId(UUID.randomUUID().toString());
+                return Objects.isNull(selectorId) && Objects.isNull(ruleId)
+                        ? replaced
+                        : replaced.withSelectorAndRule(selectorId, ruleId);
             }
             return Objects.isNull(selectorId) && Objects.isNull(ruleId)
                     ? context
