@@ -29,6 +29,7 @@ import org.apache.shiro.subject.Subject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,6 +46,7 @@ import org.springframework.web.server.ResponseStatusException;
  * Manages graph drafts and published desired state within one namespace.
  */
 @RestApi("/graph/{namespaceId}")
+@Transactional
 public class GraphPublicationController {
 
     private static final String VIEW = "system:graph:view";
@@ -232,7 +234,7 @@ public class GraphPublicationController {
         }
         boolean permitted = subject.isPermitted(permission) || (VIEW.equals(permission) && subject.isPermitted(EDIT));
         if (!permitted || (!AdminConstants.ADMIN_NAME.equals(user.getUserName())
-                && !namespaceUsers.listNamespaceIdByUserId(user.getUserId()).contains(namespaceId))) {
+                && !namespaceUsers.lockMembership(namespaceId, user.getUserId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Graph access denied");
         }
     }

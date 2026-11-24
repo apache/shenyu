@@ -37,6 +37,15 @@ public interface NamespaceUserService extends PageService<NamespaceUserQuery, Na
     NamespaceUserRelVO create(String namespaceId, String userId);
     
     /**
+     * Hold the caller's membership until the authorized operation commits.
+     *
+     * @param namespaceId namespace identity
+     * @param userId caller identity
+     * @return whether the caller belongs to this namespace
+     */
+    boolean lockMembership(String namespaceId, String userId);
+
+    /**
      * list namespace id by user id.
      *
      * @param userId userId.

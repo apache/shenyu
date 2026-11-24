@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.GraphBranchData;
 import org.apache.shenyu.common.dto.GraphData;
 import org.apache.shenyu.common.dto.GraphNodeData;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
@@ -116,7 +117,10 @@ class GraphPublicationServiceTest {
         GraphDraftDO head = savedDraft(graph);
         when(mapper.findDraft(NAMESPACE, ID)).thenReturn(head);
         assertFalse(service.validateDraft(NAMESPACE, ID).isEmpty());
-        when(mapper.listEnabledPluginNames(NAMESPACE)).thenReturn(List.of("divide"));
+        PluginData divide = new PluginData();
+        divide.setName("divide");
+        divide.setEnabled(true);
+        when(mapper.listConfiguredPlugins(NAMESPACE)).thenReturn(List.of(divide));
         assertTrue(service.validateDraft(NAMESPACE, ID).isEmpty());
 
         GraphNodeData choice = node("choose", "CHOICE");
@@ -186,7 +190,7 @@ class GraphPublicationServiceTest {
 
         final String savedEdit = head.getDraftJson();
         GraphRevisionDO restored = service.rollback(NAMESPACE, ID, 1, 2);
-        verify(mapper).listEnabledPluginNames(NAMESPACE);
+        verify(mapper).listConfiguredPlugins(NAMESPACE);
         assertEquals(6, restored.getRevision());
         assertEquals(2, head.getDraftVersion());
         assertEquals(savedEdit, head.getDraftJson());

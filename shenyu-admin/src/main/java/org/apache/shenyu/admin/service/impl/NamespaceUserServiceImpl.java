@@ -65,6 +65,11 @@ public class NamespaceUserServiceImpl implements NamespaceUserService {
     }
     
     @Override
+    public boolean lockMembership(final String namespaceId, final String userId) {
+        return namespaceUserRelMapper.lockMembership(namespaceId, userId).contains(namespaceId);
+    }
+
+    @Override
     public List<String> listNamespaceIdByUserId(final String userId) {
         List<NamespaceUserRelDO> namespaceUserRelDOS = namespaceUserRelMapper.selectListByUserId(userId);
         if (Objects.isNull(namespaceUserRelDOS)) {

@@ -16,6 +16,7 @@
 
 -- Prior schema referenced by graph publications and permission seeds.
 CREATE TABLE namespace (id VARCHAR(128) PRIMARY KEY, namespace_id VARCHAR(50) NOT NULL);
+CREATE TABLE namespace_user_rel (id VARCHAR(128) PRIMARY KEY, namespace_id VARCHAR(50) NOT NULL, user_id VARCHAR(128) NOT NULL);
 CREATE TABLE resource (
     id VARCHAR(128) PRIMARY KEY, parent_id VARCHAR(128), title VARCHAR(255),
     resource_type INT, sort INT, is_leaf INT, is_route INT, perms VARCHAR(255), status INT

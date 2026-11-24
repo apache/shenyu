@@ -2438,6 +2438,7 @@ INSERT INTO "public"."permission" VALUES ('1792779493541343256', '13463585604272
 
 DROP TABLE IF EXISTS "public"."plugin_graph_revision";
 DROP TABLE IF EXISTS "public"."plugin_graph_draft";
+DROP TABLE IF EXISTS "public"."namespace_user_rel";
 DROP TABLE IF EXISTS "public"."namespace";
 CREATE TABLE "public"."namespace" (
     "id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
@@ -2446,7 +2447,8 @@ CREATE TABLE "public"."namespace" (
     "description" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created" timestamp(3) NOT NULL DEFAULT now(),
     "date_updated" timestamp(3) NOT NULL DEFAULT now(),
-    PRIMARY KEY ("id")
+    PRIMARY KEY ("id"),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
 );
 COMMENT ON COLUMN "public"."namespace"."id" IS 'Namespace primary key';
 COMMENT ON COLUMN "public"."namespace"."namespace_id" IS 'Namespace ID';
@@ -2607,14 +2609,14 @@ COMMENT ON COLUMN "public"."scale_history"."date_updated" IS 'update time';
 
 -- ----------------------------
 
-DROP TABLE IF EXISTS "public"."namespace_user_rel";
 CREATE TABLE "public"."namespace_user_rel"
 (
     "id"             varchar(128)   COLLATE "pg_catalog"."default" NOT NULL,
     "namespace_id"   varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
     "user_id"        varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
     "date_created"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
-    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone)
+    "date_updated"   timestamp(3)   NOT NULL DEFAULT timezone('UTC-8'::text, (now())::timestamp(0) without time zone),
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES "public"."namespace"(namespace_id) ON DELETE CASCADE
 );
 COMMENT ON COLUMN "public"."namespace_user_rel"."id" IS 'primary key';
 COMMENT ON COLUMN "public"."namespace_user_rel"."namespace_id" IS 'namespace_id';

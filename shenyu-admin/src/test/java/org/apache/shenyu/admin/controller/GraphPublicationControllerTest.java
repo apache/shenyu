@@ -156,6 +156,6 @@ class GraphPublicationControllerTest {
         when(subject.isAuthenticated()).thenReturn(true);
         when(subject.getPrincipal()).thenReturn(UserInfo.builder().userName("operator").userId("alice").build());
         when(subject.isPermitted(permission)).thenReturn(true);
-        when(namespaceUsers.listNamespaceIdByUserId("alice")).thenReturn(List.of("team"));
+        when(namespaceUsers.lockMembership("team", "alice")).thenReturn(true);
     }
 }

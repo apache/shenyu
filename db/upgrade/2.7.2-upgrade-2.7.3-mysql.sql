@@ -44,6 +44,23 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 ALTER TABLE mock_request_record MODIFY COLUMN header TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'the request param in header';
 
 -- Plugin graph drafts, immutable publications and Admin permissions.
+-- Retire orphaned grants and prevent a recreated namespace from inheriting its predecessor's members.
+ALTER TABLE namespace ADD CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id);
+-- The relation and namespace columns historically used different utf8mb4 collations.
+-- Preserve the installed parent column's character set and comparison rules.
+SELECT CONCAT('ALTER TABLE namespace_user_rel MODIFY namespace_id VARCHAR(50) CHARACTER SET ',
+              CHARACTER_SET_NAME, ' COLLATE ', COLLATION_NAME, ' NOT NULL') INTO @align_ns_membership
+FROM information_schema.columns
+WHERE table_schema = DATABASE() AND table_name = 'namespace' AND column_name = 'namespace_id';
+PREPARE align_ns_membership FROM @align_ns_membership;
+EXECUTE align_ns_membership;
+DEALLOCATE PREPARE align_ns_membership;
+DELETE FROM namespace_user_rel WHERE NOT EXISTS (
+    SELECT 1 FROM namespace n WHERE n.namespace_id = namespace_user_rel.namespace_id
+);
+ALTER TABLE namespace_user_rel ADD CONSTRAINT fk_ns_user_namespace
+    FOREIGN KEY (namespace_id) REFERENCES namespace(namespace_id) ON DELETE CASCADE;
+
 CREATE TABLE IF NOT EXISTS plugin_graph_draft (
     namespace_pk VARCHAR(128) NOT NULL,
     namespace_id VARCHAR(50) COLLATE utf8mb4_bin NOT NULL,

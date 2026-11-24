@@ -41,7 +41,11 @@ Draft and revision responses carry the definition as a nested `graph` object.
 The draft starts at `draftVersion: 1` and `publishedRevision: 0`. Validation
 returns a list of violations, with an empty list meaning that the saved draft
 passed Admin's checks. Instance-specific plugin and condition extensions are
-resolved when the gateway binds the graph.
+resolved when the gateway binds the graph. Admin includes the standard gateway
+starter plugins for context, URI resolution, HTTP transport, RPC parameter
+transformation and response writing when they have no namespace configuration.
+Explicit namespace disablement takes precedence. The gateway resolves the
+transport selected by its own HTTP client configuration.
 
 ## Publication and recovery
 
@@ -64,7 +68,8 @@ when a rollback has the same content hash as a previous publication.
 After withdrawal the head retains its write token and the revision has a null
 graph. An editor can submit a replacement draft using that token or restore a
 previously published graph. Deleting the owning namespace removes its graph
-data, so a subsequently created namespace cannot inherit the old revisions.
+data and membership grants. A namespace created later with the same business
+identifier requires fresh grants and starts with its own history.
 
 Publication only reports what Admin committed. An instance separately receives
 the revision, checks its installed plugins, compiles it and reports activation.

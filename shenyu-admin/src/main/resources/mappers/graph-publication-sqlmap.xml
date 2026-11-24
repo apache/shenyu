@@ -99,8 +99,8 @@
         WHERE d.namespace_id = #{namespaceId} ORDER BY r.graph_id
     </select>
 
-    <select id="listEnabledPluginNames" resultType="java.lang.String">
-        SELECT p.name FROM namespace_plugin_rel r JOIN plugin p ON p.id = r.plugin_id
-        WHERE r.namespace_id = <include refid="exactNamespace"/> AND r.enabled = 1
+    <select id="listConfiguredPlugins" resultType="org.apache.shenyu.common.dto.PluginData">
+        SELECT p.name, MIN(r.enabled) AS enabled FROM namespace_plugin_rel r JOIN plugin p ON p.id = r.plugin_id
+        WHERE r.namespace_id = <include refid="exactNamespace"/> GROUP BY p.name
     </select>
 </mapper>

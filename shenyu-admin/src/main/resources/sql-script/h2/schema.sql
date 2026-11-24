@@ -1263,8 +1263,9 @@ CREATE TABLE IF NOT EXISTS `namespace` (
     `description` VARCHAR(255) DEFAULT NULL COMMENT 'namespace desc',
     `date_created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     `date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'update time', -- 注意这里只是默认设置为创建时间
-    PRIMARY KEY (`id`)
-    );
+    PRIMARY KEY (`id`),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
+);
 
 INSERT IGNORE INTO `namespace` (`id`, `namespace_id`, `name`, `description`, `date_created`, `date_updated`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace', '2024-06-22 20:25:14.359', '2024-06-22 23:27:40.778');
 
@@ -1402,7 +1403,8 @@ CREATE TABLE IF NOT EXISTS `namespace_user_rel`
     `user_id`        varchar(128)  NOT NULL COMMENT 'user_id',
     `date_created`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
     `date_updated`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES `namespace`(namespace_id) ON DELETE CASCADE
 );
 
 

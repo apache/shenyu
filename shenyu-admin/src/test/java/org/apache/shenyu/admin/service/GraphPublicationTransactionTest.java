@@ -98,6 +98,19 @@ class GraphPublicationTransactionTest {
     }
 
     @Test
+    void standardGatewayPluginsCanBePublishedUnlessDisabledInTheNamespace() throws Exception {
+        GraphPublicationService writer = service();
+        writer.createDraft(SYS_DEFAULT_NAMESPACE_ID, GRAPH, definition());
+        assertEquals(List.of(), writer.validateDraft(SYS_DEFAULT_NAMESPACE_ID, GRAPH));
+        assertEquals(1L, writer.publish(SYS_DEFAULT_NAMESPACE_ID, GRAPH, 1).getRevision());
+
+        jdbc.update("INSERT INTO plugin (id, name, role, sort, enabled) VALUES ('builtin', 'global', 'system', 0, 1)");
+        jdbc.update("INSERT INTO namespace_plugin_rel (id, namespace_id, plugin_id, sort, enabled) VALUES ('override', ?, 'builtin', 0, 0)", SYS_DEFAULT_NAMESPACE_ID);
+        assertEquals(400, assertThrows(ResponseStatusException.class, () -> writer.publish(SYS_DEFAULT_NAMESPACE_ID, GRAPH, 2)).getStatusCode().value());
+        assertEquals(1L, writer.getDraft(SYS_DEFAULT_NAMESPACE_ID, GRAPH).getPublishedRevision());
+    }
+
+    @Test
     void onlyOneAdminCanPublishTheSameDraftVersion() throws Exception {
         GraphPublicationService first = service();
         GraphPublicationService second = service();
@@ -136,9 +149,20 @@ class GraphPublicationTransactionTest {
         graph.setNamespaceId(SYS_DEFAULT_NAMESPACE_ID);
         graph.setGraphId(GRAPH);
         graph.setDeploymentBinding("canary");
-        graph.setEntryNodeId(end.getNodeId());
-        graph.setNodes(List.of(end));
+        GraphNodeData global = pluginNode("global", "divide");
+        graph.setEntryNodeId(global.getNodeId());
+        graph.setNodes(List.of(global, pluginNode("divide", "uri"), pluginNode("uri", "nettyHttpClient"),
+                pluginNode("nettyHttpClient", "response"), pluginNode("response", "end"), end));
         return graph;
+    }
+
+    private GraphNodeData pluginNode(final String name, final String next) {
+        GraphNodeData node = new GraphNodeData();
+        node.setNodeId(name);
+        node.setType("PLUGIN");
+        node.setPluginName(name);
+        node.setNext(next);
+        return node;
     }
 
     private GraphPublicationService service() throws Exception {

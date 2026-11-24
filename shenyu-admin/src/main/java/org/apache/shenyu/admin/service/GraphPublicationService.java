@@ -29,7 +29,9 @@ import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.GraphBranchData;
 import org.apache.shenyu.common.dto.GraphData;
 import org.apache.shenyu.common.dto.GraphNodeData;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.graph.GraphTopology;
 import org.apache.shenyu.common.graph.GraphValidator;
 import org.springframework.dao.DuplicateKeyException;
@@ -43,6 +45,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Stores namespace-scoped drafts and immutable desired revisions. The draft version
@@ -52,6 +55,11 @@ import java.util.Objects;
 public class GraphPublicationService {
 
     private static final ObjectMapper JSON = JsonMapper.builder().enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).build();
+
+    // These standard gateway starters supply plugin beans independently of Admin plugin rows.
+    // Binding on each gateway resolves the configured HTTP client and the actual installed beans.
+    private static final Set<String> GATEWAY_PLUGIN_NAMES = Set.of(PluginEnum.GLOBAL.getName(), PluginEnum.URI.getName(),
+            PluginEnum.NETTY_HTTP_CLIENT.getName(), PluginEnum.WEB_CLIENT.getName(), PluginEnum.RPC_PARAM_TRANSFORM.getName(), PluginEnum.RESPONSE.getName());
 
     private final GraphPublicationMapper mapper;
 
@@ -300,7 +308,15 @@ public class GraphPublicationService {
     }
 
     private List<String> validate(final GraphData graph) {
-        GraphValidator validator = new GraphValidator(new HashSet<>(mapper.listEnabledPluginNames(graph.getNamespaceId())));
+        Set<String> plugins = new HashSet<>(GATEWAY_PLUGIN_NAMES);
+        for (PluginData configured : mapper.listConfiguredPlugins(graph.getNamespaceId())) {
+            if (Boolean.TRUE.equals(configured.getEnabled())) {
+                plugins.add(configured.getName());
+            } else {
+                plugins.remove(configured.getName());
+            }
+        }
+        GraphValidator validator = new GraphValidator(plugins);
         List<String> errors = new ArrayList<>(validator.validate(graph));
         if (Objects.nonNull(graph.getNodes())) {
             graph.getNodes().stream().filter(GraphTopology::isChoice).forEach(node -> validateConditions(node, errors));

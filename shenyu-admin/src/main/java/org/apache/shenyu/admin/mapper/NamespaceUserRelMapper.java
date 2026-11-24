@@ -38,6 +38,15 @@ public interface NamespaceUserRelMapper {
     NamespaceUserRelDO selectByNamespaceIdAndUserId(String namespaceId, String userId);
 
     /**
+     * Lock matching grants until the end of the current transaction.
+     *
+     * @param namespaceId namespace identity
+     * @param userId caller identity
+     * @return persisted namespace identifiers for matching grants
+     */
+    List<String> lockMembership(String namespaceId, String userId);
+
+    /**
      * select list by userId.
      *
      * @param userId userId

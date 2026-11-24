@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.shenyu.admin.model.entity.GraphDraftDO;
 import org.apache.shenyu.admin.model.entity.GraphRevisionDO;
+import org.apache.shenyu.common.dto.PluginData;
 
 import java.util.List;
 
@@ -97,7 +98,7 @@ public interface GraphPublicationMapper {
      * Find plugin names available to authoring validation in the namespace.
      *
      * @param namespaceId namespace identifier
-     * @return enabled plugin names
+     * @return configured names and their enablement
      */
-    List<String> listEnabledPluginNames(@Param("namespaceId") String namespaceId);
+    List<PluginData> listConfiguredPlugins(@Param("namespaceId") String namespaceId);
 }

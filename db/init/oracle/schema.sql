@@ -2576,7 +2576,8 @@ CREATE TABLE namespace (
                            description VARCHAR2(255),
                            date_created      timestamp(3) default SYSDATE not null,
                            date_updated      timestamp(3) default SYSDATE not null,
-                           CONSTRAINT pk_namespace PRIMARY KEY (id)
+                           CONSTRAINT pk_namespace PRIMARY KEY (id),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
 );
 
 
@@ -2768,7 +2769,8 @@ create table namespace_user_rel
     user_id        varchar(128) NOT NULL,
     date_created   timestamp(3) default SYSDATE not null,
     date_updated   timestamp(3) default SYSDATE not null,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES namespace(namespace_id) ON DELETE CASCADE
 );
 comment on column NAMESPACE_USER_REL.id
     is 'primary key id';

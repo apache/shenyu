@@ -19,6 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.shenyu.admin.model.entity.GraphDraftDO;
 import org.apache.shenyu.admin.model.entity.GraphRevisionDO;
+import org.apache.shenyu.admin.service.impl.NamespaceUserServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,6 +51,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GraphPublicationMapperTest {
 
     private GraphPublicationMapper mapper;
+
+    private NamespaceUserServiceImpl members;
 
     private JdbcTemplate jdbc;
 
@@ -63,8 +67,10 @@ class GraphPublicationMapperTest {
         transactions = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
         SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
         factory.setDataSource(dataSource);
-        factory.setMapperLocations(new ClassPathResource("mappers/graph-publication-sqlmap.xml"));
-        mapper = new SqlSessionTemplate(factory.getObject()).getMapper(GraphPublicationMapper.class);
+        factory.setMapperLocations(new ClassPathResource("mappers/graph-publication-sqlmap.xml"), new ClassPathResource("mappers/namespace-user-rel-sqlmap.xml"));
+        SqlSessionTemplate sessions = new SqlSessionTemplate(factory.getObject());
+        mapper = sessions.getMapper(GraphPublicationMapper.class);
+        members = new NamespaceUserServiceImpl(sessions.getMapper(NamespaceUserRelMapper.class));
         seedNamespace("one", "ns");
     }
 
@@ -130,6 +136,21 @@ class GraphPublicationMapperTest {
         assertNull(mapper.findDraft("ns", "graph"));
         assertTrue(mapper.listRevisions("ns", "graph").isEmpty());
         assertEquals(1L, mapper.findDraft("NS", "graph").getDraftVersion());
+    }
+
+    @Test
+    void recreatedNamespaceRequiresANewMembershipGrant() {
+        members.create("ns", "old-editor");
+        assertThrows(DuplicateKeyException.class, () -> seedNamespace("duplicate", "ns"));
+        transactions.executeWithoutResult(status -> assertTrue(members.lockMembership("ns", "old-editor")));
+
+        jdbc.update("DELETE FROM namespace WHERE id = ?", "one");
+        seedNamespace("new", "ns");
+        members.create("ns", "new-editor");
+        transactions.executeWithoutResult(status -> {
+            assertFalse(members.lockMembership("ns", "old-editor"));
+            assertTrue(members.lockMembership("ns", "new-editor"));
+        });
     }
 
     @Test

@@ -2202,6 +2202,7 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 -- ----------------------------
 DROP TABLE IF EXISTS `plugin_graph_revision`;
 DROP TABLE IF EXISTS `plugin_graph_draft`;
+DROP TABLE IF EXISTS `namespace_user_rel`;
 DROP TABLE IF EXISTS `namespace`;
 CREATE TABLE `namespace` (
                              `id` varchar(128) NOT NULL COMMENT 'namespace primary key',
@@ -2210,7 +2211,8 @@ CREATE TABLE `namespace` (
                              `description` varchar(255) DEFAULT NULL COMMENT 'namespace desc',
                              `date_created` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT 'create time',
                              `date_updated` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
-                             PRIMARY KEY (`id`)
+                             PRIMARY KEY (`id`),
+    CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `namespace` (`id`, `namespace_id`, `name`, `description`, `date_created`, `date_updated`) VALUES ('1', '649330b6-c2d7-4edc-be8e-8a54df9eb385', 'default', 'default-namespace', '2024-06-22 20:25:14.359', '2024-06-22 23:27:40.778');
@@ -2357,14 +2359,14 @@ CREATE TABLE IF NOT EXISTS `scale_history`
     PRIMARY KEY (`id`) USING BTREE
     ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
-DROP TABLE IF EXISTS `namespace_user_rel`;
 CREATE TABLE IF NOT EXISTS `namespace_user_rel` (
                                       `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key',
-                                      `namespace_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'namespace_id',
+                                      `namespace_id` varchar(50) NOT NULL COMMENT 'namespace_id',
                                       `user_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user_id',
                                       `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date_created',
-                                      `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='namespace user relation ';
+                                      `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'date_updated',
+    CONSTRAINT fk_ns_user_namespace FOREIGN KEY (namespace_id) REFERENCES `namespace`(namespace_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='namespace user relation ';
 
 INSERT INTO `selector` (`id`, `plugin_id`, `selector_name`, `match_mode`, `selector_type`, `sort_code`, `handle`, `enabled`, `logged`, `continued`, `match_restful`, `namespace_id`) VALUES ('1913785244204204032', '61', 'mcpServer', 0, 0, 1, NULL, 1, 1, 1, 0, '649330b6-c2d7-4edc-be8e-8a54df9eb385');
 

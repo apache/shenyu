@@ -45,6 +45,14 @@ CREATE UNIQUE INDEX uk_instance_info_identity ON instance_info (namespace_id, in
 ALTER TABLE mock_request_record ALTER COLUMN header CLOB;
 
 -- Plugin graph drafts, immutable publications and Admin permissions.
+-- Retire orphaned grants and prevent a recreated namespace from inheriting its predecessor's members.
+ALTER TABLE namespace ADD CONSTRAINT uk_namespace_business_id UNIQUE (namespace_id);
+DELETE FROM namespace_user_rel WHERE NOT EXISTS (
+    SELECT 1 FROM namespace n WHERE n.namespace_id = namespace_user_rel.namespace_id
+);
+ALTER TABLE namespace_user_rel ADD CONSTRAINT fk_ns_user_namespace
+    FOREIGN KEY (namespace_id) REFERENCES namespace(namespace_id) ON DELETE CASCADE;
+
 CREATE TABLE IF NOT EXISTS plugin_graph_draft (
     namespace_pk VARCHAR(128) NOT NULL,
     namespace_id VARCHAR(50) NOT NULL,
