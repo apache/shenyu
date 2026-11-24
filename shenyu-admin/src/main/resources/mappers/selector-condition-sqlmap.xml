@@ -72,7 +72,6 @@
         <include refid="Conditions_By_Selector_Ids"/>
     </select>
 
-    <!-- 按选择器 ID 查询匹配条件，并用 FOR UPDATE 锁住结果行。 -->
     <select id="selectBySelectorIdsForUpdate" resultMap="BaseResultMap">
         <include refid="Conditions_By_Selector_Ids"/>
         FOR UPDATE

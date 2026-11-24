@@ -78,7 +78,6 @@ public class AiPromptPlugin extends AbstractShenyuPlugin {
             aiPromptConfig.setAppend(aiPromptHandle.getAppend());
         }
         
-        // 在改写提示词之前，为当前请求设置透传冲突标记。
         AiPassthroughPolicy.markIncompatible(exchange);
         final AiPromptConfig finalAiPromptConfig = aiPromptConfig;
         return ServerWebExchangeUtils.rewriteRequestBody(exchange,

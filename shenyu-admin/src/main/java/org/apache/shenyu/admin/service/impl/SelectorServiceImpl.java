@@ -212,7 +212,6 @@ public class SelectorServiceImpl implements SelectorService {
     @Transactional(rollbackFor = Exception.class)
     public String registerDefault(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        // 在注册默认选择器前校验配置和匹配条件。
         aiPassthroughSelectorGuard.validate(selectorDO, selectorDO, selectorDTO.getSelectorConditions());
         if (StringUtils.isEmpty(selectorDTO.getId())) {
             selectorMapper.insertSelective(selectorDO);
@@ -259,7 +258,6 @@ public class SelectorServiceImpl implements SelectorService {
     @Transactional(rollbackFor = Exception.class)
     public int create(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        // 用新选择器及其待保存的条件检查与现有路由的冲突。
         aiPassthroughSelectorGuard.validate(selectorDO, selectorDO, selectorDTO.getSelectorConditions());
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
         selectorDTO.setId(selectorDO.getId());
@@ -286,7 +284,6 @@ public class SelectorServiceImpl implements SelectorService {
         }
 
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        // 仅当更新前后的命名空间相同时校验选择器冲突。
         if (Objects.equals(before.getNamespaceId(), selectorDO.getNamespaceId())) {
             aiPassthroughSelectorGuard.validate(selectorDO, before, selectorDTO.getSelectorConditions());
         }
@@ -335,7 +332,6 @@ public class SelectorServiceImpl implements SelectorService {
     public int updateSelective(final SelectorDO selectorDO) {
         registrationFencingGuard.assertSelectorWriteAllowed(selectorDO.getId());
         final SelectorDO before = selectorMapper.selectById(selectorDO.getId());
-        // 更新部分字段时，使用数据库中已有的匹配条件校验。
         aiPassthroughSelectorGuard.validate(selectorDO, before, null);
         final int updateCount = selectorMapper.updateSelective(selectorDO);
         if (updateCount > 0) {
@@ -354,7 +350,6 @@ public class SelectorServiceImpl implements SelectorService {
         if (Objects.isNull(before)) {
             return 0;
         }
-        // 根据锁定的选择器及其现有条件校验注册更新。
         aiPassthroughSelectorGuard.validate(selectorDO, before, null);
         final int updateCount = selectorMapper.updateSelective(selectorDO);
         if (updateCount > 0) {
@@ -741,7 +736,6 @@ public class SelectorServiceImpl implements SelectorService {
             registrationFencingGuard.assertSelectorWriteAllowed(selectorDO.getId());
             SelectorDO before = JsonUtils.jsonToObject(JsonUtils.toJson(selectorDO), SelectorDO.class);
             selectorDO.setEnabled(enabled);
-            // 按新的启用状态校验选择器，再写入开关值。
             aiPassthroughSelectorGuard.validate(SelectorDO.builder().id(id).enabled(enabled).build(), before, null);
             if (selectorMapper.updateEnable(id, enabled) > 0) {
                 List<SelectorConditionDO> conditionList = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId()));
@@ -802,7 +796,6 @@ public class SelectorServiceImpl implements SelectorService {
 
     private int createForImport(final SelectorDTO selectorDTO, final List<SelectorData> importedSelectors) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
-        // 在写入导入的选择器之前校验它的配置和匹配条件。
         aiPassthroughSelectorGuard.validate(selectorDO, selectorDO, selectorDTO.getSelectorConditions());
         final int selectorCount = selectorMapper.insertSelective(selectorDO);
         selectorDTO.setId(selectorDO.getId());

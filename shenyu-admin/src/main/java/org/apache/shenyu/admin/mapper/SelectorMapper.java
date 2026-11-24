@@ -102,7 +102,6 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> findByPluginIdsAndNamespaceId(@Param("list") List<String> pluginIds, String namespaceId);
 
     /**
-     * 查询并锁定指定命名空间内属于这些插件的选择器。
      * Read the current selectors while validating related AI policy changes.
      *
      * @param pluginIds plugin ids

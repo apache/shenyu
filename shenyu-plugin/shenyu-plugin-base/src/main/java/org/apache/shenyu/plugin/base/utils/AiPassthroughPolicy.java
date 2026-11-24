@@ -24,7 +24,6 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public final class AiPassthroughPolicy {
 
-    // 保存当前 exchange 上的内容处理标记所使用的属性名。
     private static final String ATTRIBUTE = AiPassthroughPolicy.class.getName();
 
     private AiPassthroughPolicy() {

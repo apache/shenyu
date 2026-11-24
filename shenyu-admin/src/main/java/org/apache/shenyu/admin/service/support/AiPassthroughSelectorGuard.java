@@ -55,7 +55,6 @@ public final class AiPassthroughSelectorGuard {
 
     private static final String PROXY = PluginEnum.AI_PROXY.getName();
 
-    // 列出会改变后续请求路径的插件。
     private static final Set<String> PATH_REWRITERS = Set.of(PluginEnum.CONTEXT_PATH.getName(), PluginEnum.REWRITE.getName(),
             PluginEnum.REDIRECT.getName(), PluginEnum.RESILIENCE4J.getName(), PluginEnum.SENTINEL.getName());
 
@@ -98,13 +97,11 @@ public final class AiPassthroughSelectorGuard {
             return;
         }
         AiProxySelectorValidation.validateHandle(owner.getName(), change.getHandle());
-        // 停用选择器时跳过路径冲突检查。
         if (Boolean.FALSE.equals(change.getEnabled())) {
             return;
         }
         // The common row serializes opposite-side edits even when neither selector exists yet.
         // Locking reads below also see those commits under MySQL's repeatable-read isolation.
-        // 锁定 aiProxy 插件记录，串行校验透传路由和内容策略的并发更新。
         if (Objects.isNull(plugins.selectByNameForUpdate(PROXY))) {
             return;
         }
@@ -115,7 +112,6 @@ public final class AiPassthroughSelectorGuard {
         Map<String, SelectorDO> rows = selectors.findByPluginIdsAndNamespaceIdForUpdate(new ArrayList<>(names.keySet()), namespace).stream()
                 .collect(Collectors.toMap(SelectorDO::getId, Function.identity()));
         SelectorDO stored = rows.getOrDefault(change.getId(), before);
-        // 用本次提交的字段覆盖已锁定记录中的对应值，构造待校验的选择器。
         SelectorDO candidate = SelectorDO.builder().id(change.getId()).pluginId(pluginId)
                 .enabled(Objects.nonNull(change.getEnabled()) ? change.getEnabled() : stored.getEnabled())
                 .handle(Objects.nonNull(change.getHandle()) ? change.getHandle() : stored.getHandle())
@@ -125,7 +121,6 @@ public final class AiPassthroughSelectorGuard {
             AiProxySelectorValidation.validateHandle(owner.getName(), candidate.getHandle());
         }
         rows.put(candidate.getId(), candidate);
-        // 筛选当前命名空间中已启用的透传路由和内容策略。
         List<SelectorDO> enabled = rows.values().stream().filter(row -> !Boolean.FALSE.equals(row.getEnabled())).toList();
         List<SelectorDO> nativeRoutes = enabled.stream().filter(row -> PROXY.equals(names.get(row.getPluginId())) && isPassthrough(row)).toList();
         if (nativeRoutes.isEmpty()) {
@@ -139,7 +134,6 @@ public final class AiPassthroughSelectorGuard {
             return;
         }
         Map<String, List<ConditionData>> predicates = new HashMap<>();
-        // 分批读取并锁定已有条件。候选选择器传入了替换条件时，直接使用新条件。
         List<String> conditionIds = Stream.concat(nativeRoutes.stream(), bodyPolicies.stream()).map(SelectorDO::getId)
                 .filter(id -> Objects.isNull(replacement) || !id.equals(candidate.getId())).toList();
         for (List<String> batch : Lists.partition(conditionIds, CONDITION_BATCH_SIZE)) {
@@ -148,7 +142,6 @@ public final class AiPassthroughSelectorGuard {
         if (Objects.nonNull(replacement)) {
             predicates.put(candidate.getId(), replacement.stream().map(ConditionTransfer.INSTANCE::mapToSelectorDTO).toList());
         }
-        // 检查是否启用了路径改写插件或 AI 请求转换插件。
         boolean stablePath = enabled.stream().map(row -> names.get(row.getPluginId()))
                 .noneMatch(name -> PATH_REWRITERS.contains(name) || PluginEnum.AI_REQUEST_TRANSFORMER.getName().equals(name));
         assertDisjoint(stablePath, bodyPolicies, nativeRoutes, names, predicates);
@@ -160,7 +153,6 @@ public final class AiPassthroughSelectorGuard {
             String policyPrefix = literalPathPrefix(policy, predicates);
             for (SelectorDO route : nativeRoutes) {
                 String routePrefix = literalPathPrefix(route, predicates);
-                // 固定前缀相同或一方包含另一方时，两条路由仍可能匹配同一请求。
                 if (!stablePath || routePrefix.startsWith(policyPrefix) || policyPrefix.startsWith(routePrefix)) {
                     throw new ShenyuAdminException("AI passthrough selector " + route.getId() + " may overlap " + names.get(policy.getPluginId()) + " selector " + policy.getId());
                 }
@@ -185,7 +177,6 @@ public final class AiPassthroughSelectorGuard {
     }
 
     private static String literalPathPrefix(final SelectorDO selector, final Map<String, List<ConditionData>> predicates) {
-        // 无法提取固定路径时返回根前缀，它与任何路径都有交集。
         List<ConditionData> list = predicates.getOrDefault(selector.getId(), List.of());
         if (!Objects.equals(selector.getSelectorType(), SelectorTypeEnum.CUSTOM_FLOW.getCode()) || Boolean.TRUE.equals(selector.getMatchRestful()) || list.size() != 1) {
             return "/";
@@ -197,7 +188,6 @@ public final class AiPassthroughSelectorGuard {
         String path = condition.getParamValue().trim();
         String operator = condition.getOperator();
         if (OperatorEnum.STARTS_WITH.getAlias().equals(operator)) {
-            // startsWith 按字符匹配，最后一个斜杠之后的内容可能只是路径段的一部分。
             path = StringUtils.substringBeforeLast(path, "/");
         } else if (!OperatorEnum.EQ.getAlias().equals(operator) && !OperatorEnum.MATCH.getAlias().equals(operator)) {
             return "/";
@@ -208,7 +198,6 @@ public final class AiPassthroughSelectorGuard {
                 if (!LITERAL_PATH_SEGMENT.matcher(segment).matches()) {
                     break;
                 }
-                // 保留分隔符，让 /a/ 与 /ab/ 可以区分。
                 prefix.append(segment).append('/');
             }
         }

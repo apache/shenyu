@@ -33,14 +33,12 @@ import java.util.regex.Pattern;
  */
 public class AiProxyHandle {
 
-    // 匹配由非空字面路径段组成的前缀，排除点段、转义字符和通配符。
     private static final Pattern PATH_PREFIX = Pattern.compile("(?:/(?!\\.{1,2}(?:/|$))[a-zA-Z0-9._~-]++)++");
 
     private String mode;
 
     private String stripPrefix;
 
-    // 保存缓存对象对应的原始选择器配置，序列化时忽略该字段。
     private transient String selectorSource;
 
     /**
@@ -144,7 +142,6 @@ public class AiProxyHandle {
         if (Objects.isNull(handle)) {
             throw new IllegalArgumentException("selector.invalidHandle");
         }
-        // 校验模式和透传参数，然后记录原始配置。
         handle.validateMode();
         handle.selectorSource = source;
         return handle;
@@ -164,7 +161,6 @@ public class AiProxyHandle {
      * Check the opt-in and fields used to route caller credentials.
      */
     public void validateMode() {
-        // 缺省模式及 converted 模式跳过透传基址和前缀校验。
         if (Objects.isNull(mode) || "converted".equals(mode)) {
             return;
         }

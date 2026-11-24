@@ -287,7 +287,6 @@ public class AiProxyPluginConfiguration {
                         new ReactorClientHttpConnector(resources.getHttpClient()))
                 .build();
 
-        // 复用 HTTP 客户端资源，关闭底层自动重试、自动重定向和自动解压。
         WebClient streamingClient = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(resources.getHttpClient()
                         .disableRetry(true).followRedirect(false).compress(false)))

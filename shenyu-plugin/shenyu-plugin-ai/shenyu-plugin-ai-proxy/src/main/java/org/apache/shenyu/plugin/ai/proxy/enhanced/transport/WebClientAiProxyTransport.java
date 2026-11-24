@@ -133,28 +133,23 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
 
     @Override
     public Mono<AiUpstreamResponse> prepareStreaming(final AiUpstreamRequest request, final Flux<DataBuffer> body) {
-        // 未配置流式客户端时，调用接口的默认实现。
         if (Objects.isNull(streamingClient)) {
             return AiProxyTransport.super.prepareStreaming(request, body);
         }
-        // 取透传上限与已配置正数限额中的较小值，未配置正数限额时使用透传上限。
         final long limit = maxRequestBytes > 0 ? Math.min(AiProxyBodies.MAX_BODY_BYTES, maxRequestBytes) : AiProxyBodies.MAX_BODY_BYTES;
         final HttpHeaders headers = new HttpHeaders();
         request.getHeaders().forEach(headers::put);
-        // 读取 Content-Length 声明的字节数，缺失时取 -1，超限时拒绝上传。
         final long length = uploadLength(headers);
         if (length > limit) {
             throw requestTooLarge();
         }
         final AtomicBoolean sent = new AtomicBoolean();
         return Mono.defer(() -> {
-            // 拒绝对同一次厂商发送操作的重复订阅。
             if (!sent.compareAndSet(false, true)) {
                 return Mono.error(new IllegalStateException("AI passthrough requests cannot be replayed"));
             }
             final Flux<byte[]> upload = uploadChunks(body, limit, length);
             final WebClient.RequestBodySpec spec = prepare(streamingClient, request);
-            // 将上传的每个字节块写入出站请求并刷新。
             return exchange(spec.body((output, ignored) -> output.writeAndFlushWith(upload.map(bytes ->
                     Mono.fromSupplier(() -> output.bufferFactory().wrap(bytes)).doOnDiscard(DataBuffer.class, DataBufferUtils::release)))))
                     .onErrorMap(error -> !(error instanceof AiTransportException) && !(error instanceof AiProxyException), this::uploadFailure);
@@ -162,7 +157,6 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
     }
 
     private static WebClient withoutDefaultTrace(final WebClient client) {
-        // 清除 WebClient 默认配置中的追踪头。
         return client.mutate().defaultHeaders(headers -> {
             headers.remove("traceparent");
             headers.remove("tracestate");
@@ -177,7 +171,6 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
     }
 
     private Mono<AiUpstreamResponse> exchange(final WebClient.RequestHeadersSpec<?> headersSpec) {
-        // 取得厂商状态码和响应头，并以字节流返回响应正文。
         return headersSpec
                 .retrieve()
                 .onRawStatus(status -> status >= 400, response -> Mono.empty())
@@ -220,7 +213,6 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
     }
 
     private Throwable uploadFailure(final Throwable failure) {
-        // 沿异常原因链查找原始上传异常并保留其错误分类。
         for (Throwable cause = failure.getCause(); Objects.nonNull(cause) && cause != cause.getCause(); cause = cause.getCause()) {
             if (cause instanceof AiTransportException || cause instanceof AiProxyException) {
                 return cause;
@@ -233,23 +225,19 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
         final AtomicBoolean subscribed = new AtomicBoolean();
         final AtomicLong received = new AtomicLong();
         return Flux.defer(() -> {
-            // 拒绝对同一次上传正文的重复订阅。
             if (!subscribed.compareAndSet(false, true)) {
                 return Flux.error(new IllegalStateException("AI passthrough uploads cannot be replayed"));
             }
             return body.map(buffer -> {
                 try {
                     final int size = buffer.readableByteCount();
-                    // 按累计接收量检查当前块是否超过上传限额。
                     if (size > limit - received.get()) {
                         throw requestTooLarge();
                     }
-                    // 逐块检查实收长度是否超过声明值，流结束时校验总长度是否相等。
                     final long total = received.addAndGet(size);
                     if (length >= 0 && total > length) {
                         throw invalidUploadLength();
                     }
-                    // 复制当前块的有效字节，并在读取结束后释放入站缓冲区。
                     final byte[] bytes = new byte[size];
                     buffer.read(bytes);
                     return bytes;
@@ -266,7 +254,6 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
         if (Objects.isNull(values)) {
             return -1L;
         }
-        // 校验 Content-Length 只有一个值，且由非空十进制数字组成。
         if (values.size() != 1 || values.get(0).isEmpty() || !values.get(0).chars().allMatch(character -> character >= '0' && character <= '9')) {
             throw invalidUploadLength();
         }

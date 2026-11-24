@@ -214,7 +214,6 @@ class AiProxyFallbackAuthorizationTest {
             handler.handlerSelector(selector);
             AiProxyPlugin plugin = plugin(handler);
             MockServerWebExchange allowed = exchange("{\"target\":\"backup\"}", "");
-            // 使用同一选择器分别执行授权和撤权后的请求，检查备用目标的访问结果。
             StepVerifier.create(plugin.doExecute(allowed, mock(ShenyuPluginChain.class), selector, new RuleData())).expectComplete().verify(TIMEOUT);
             assertEquals(200, allowed.getResponse().getStatusCode().value());
             handle.setDynamicFallbackEnabled(false);

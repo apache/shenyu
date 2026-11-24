@@ -63,7 +63,6 @@ public final class AiProxyConfigValidator {
      * @throws IllegalArgumentException with a fixed, input-free reason if the endpoint is invalid
      */
     public static URI parseBaseUrl(final String baseUrl) {
-        // 调用共享校验器解析厂商 HTTP(S) 基址。
         return UriUtils.parseHttpEndpoint(baseUrl);
     }
 }

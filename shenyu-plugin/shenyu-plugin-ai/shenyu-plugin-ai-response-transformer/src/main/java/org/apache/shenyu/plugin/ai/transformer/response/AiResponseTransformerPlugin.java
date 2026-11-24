@@ -134,7 +134,6 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
         String clientKey = Objects.isNull(aiResponseTransformerHandle) ? "default" : rule.getId();
         ChatClient finalClient = ChatClientCache.getInstance().getOrCreate(clientKey, effectiveConfig,
                 () -> aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(provider)).createAiModel(effectiveConfig));
-        // 在安装响应转换装饰器前，为当前请求设置透传冲突标记。
         AiPassthroughPolicy.markIncompatible(exchange);
         CachedRequestBodyDecorator requestBodySnapshot = new CachedRequestBodyDecorator(exchange.getRequest());
         AiResponseTransformerTemplate aiResponseTransformerTemplate =

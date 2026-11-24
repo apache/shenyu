@@ -348,7 +348,6 @@ public final class AiRequestObservation {
          * @param eventStream whether the response is an SSE stream
          */
         public void response(final int value, final boolean eventStream) {
-            // 为尚未结束的调用尝试记录厂商状态码和 SSE 标记。
             synchronized (owner) {
                 if (!completed) {
                     status = value;

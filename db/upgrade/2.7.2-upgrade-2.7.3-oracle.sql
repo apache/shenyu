@@ -107,13 +107,11 @@ CREATE INDEX idx_fencing_domain_session ON registration_fencing_target (domain_i
 ALTER TABLE dashboard_user ADD token_version NUMBER(10) DEFAULT 0 NOT NULL;
 COMMENT ON COLUMN dashboard_user.token_version IS 'token version used to revoke issued JWTs';
 
--- 为 AI Proxy 选择器表单添加 mode 和 stripPrefix 两个字段，mode 默认值为 converted。
 -- Add AI Proxy selector fields for vendor-native requests.
 INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj)
 VALUES ('1898454000000000001', '50', 'mode', 'mode', 2, 1, 16, '{"required":"0","defaultValue":"converted","placeholder":"converted / passthrough","rule":""}');
 INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj)
 VALUES ('1898454000000000002', '50', 'stripPrefix', 'stripPrefix', 2, 1, 17, '{"required":"0","placeholder":"/claude","rule":""}');
--- 仅将仍使用出厂配置的 provider、model 和 apiKey 字段改为选填。
 -- Only relax each shipped selector field if it still has its original metadata.
 UPDATE plugin_handle SET ext_obj = REPLACE(ext_obj, '"required":"1"', '"required":"0"')
 WHERE plugin_id = '50' AND type = 1 AND (

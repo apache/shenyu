@@ -36,7 +36,6 @@ class AiProxySelectorValidationTest {
         "{\"mode\":\"passthrough\",\"baseUrl\":\"https://vendor.example:8443/common/v1\",\"stripPrefix\":\"/ai/native-v1\"}",
         "{\"mode\":\"passthrough\",\"baseUrl\":\"http://localhost:8080\",\"stripPrefix\":\"\"}"})
     void acceptsExistingSelectorsAndNativeRoutesWithoutAStoredKey(final String handle) {
-        // 验证旧选择器和未配置厂商密钥的透传选择器均可通过校验。
         assertDoesNotThrow(() -> AiProxySelectorValidation.validateHandle(PluginEnum.AI_PROXY.getName(), handle));
     }
 
@@ -52,7 +51,6 @@ class AiProxySelectorValidationTest {
     void rejectsInvalidDestinationsWithoutReportingCredentials(final String url) {
         String handle = "{\"mode\":\"passthrough\",\"baseUrl\":\"" + url + "\"}";
         ShenyuAdminException error = assertThrows(ShenyuAdminException.class, () -> AiProxySelectorValidation.validateHandle(PluginEnum.AI_PROXY.getName(), handle));
-        // 检查错误消息中未包含原始 URL 或其中的凭证。
         assertFalse(error.getMessage().contains(url));
         assertFalse(error.getMessage().contains("secret"));
     }
@@ -60,7 +58,6 @@ class AiProxySelectorValidationTest {
     @ParameterizedTest
     @ValueSource(strings = {"claude", "/", "/vendor/", "/vendor//v1", "/vendor/..", "/./vendor", "/vendor%2Fv1", "/vendor/*", "/a?x", "/a#x"})
     void rejectsNonliteralPathPrefixes(final String prefix) {
-        // 验证含编码斜杠、点段、通配符或空段的前缀被拒绝。
         String handle = "{\"mode\":\"passthrough\",\"baseUrl\":\"https://vendor.example\",\"stripPrefix\":\"" + prefix + "\"}";
         assertThrows(ShenyuAdminException.class, () -> AiProxySelectorValidation.validateHandle(PluginEnum.AI_PROXY.getName(), handle));
     }
@@ -69,7 +66,6 @@ class AiProxySelectorValidationTest {
     void malformedNumericFieldsAreNotIncludedInValidationErrors() {
         String handle = "{\"mode\":\"converted\",\"temperature\":\"secret\"}";
         ShenyuAdminException error = assertThrows(ShenyuAdminException.class, () -> AiProxySelectorValidation.validateHandle(PluginEnum.AI_PROXY.getName(), handle));
-        // 检查校验错误消息未包含数值字段的原始输入。
         assertFalse(error.getMessage().contains("secret"));
     }
 

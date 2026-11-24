@@ -185,7 +185,6 @@
         <include refid="Selectors_By_Plugin_Ids_And_Namespace"/>
     </select>
 
-    <!-- 按插件 ID 和命名空间查询选择器，并用 FOR UPDATE 锁住结果行。 -->
     <select id="findByPluginIdsAndNamespaceIdForUpdate" resultMap="BaseResultMap">
         <include refid="Selectors_By_Plugin_Ids_And_Namespace"/>
         FOR UPDATE

@@ -119,7 +119,6 @@ public class SensitiveWordPlugin extends AbstractShenyuPlugin {
         if (isOversized(handle, declaredSize)) {
             return oversized(exchange, chain, handle, declaredSize);
         }
-        // 在读取正文进行敏感词检查前，为当前请求设置透传冲突标记。
         AiPassthroughPolicy.markIncompatible(exchange);
         return ServerWebExchangeUtils.rewriteRequestBody(exchange, readers,
                         body -> check(exchange, redisTemplate, handle, body))

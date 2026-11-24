@@ -44,27 +44,21 @@ record AiPassthroughRequest(AiUpstreamRequest upstream, String protocol) {
             "te", "trailer", "transfer-encoding", "upgrade");
 
     static AiPassthroughRequest from(final ServerHttpRequest client, final AiProxyHandle selector) {
-        // 拒绝 CONNECT 请求和带 Upgrade 头的请求。
         if ("CONNECT".equals(client.getMethod().name()) || client.getHeaders().containsKey(HttpHeaders.UPGRADE)) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI passthrough does not support protocol upgrades or tunnels", null);
         }
-        // 从保留原始编码的请求路径中裁剪选择器前缀。
         String path = vendorPath(client.getURI().getRawPath(), selector.getStripPrefix());
         URI base = AiProxyConfigValidator.parseBaseUrl(selector.getBaseUrl());
-        // 读取厂商基址的目录，并移除末尾的一个斜杠。
         String directory = base.getRawPath();
         if (directory.endsWith("/")) {
             directory = directory.substring(0, directory.length() - 1);
         }
         String query = client.getURI().getRawQuery();
         AiUpstreamRequest request = new AiUpstreamRequest();
-        // 用厂商基址、裁剪后的路径和客户端原始查询串拼出目标 URI。
         request.setUri(URI.create(base.getScheme() + "://" + base.getRawAuthority() + directory + path + (Objects.isNull(query) ? "" : "?" + query)));
-        // 将客户端的 HTTP 方法设为厂商请求的方法。
         request.setMethod(client.getMethod().name());
         HttpHeaders headers = new HttpHeaders();
         copyEndToEndHeaders(client.getHeaders(), headers);
-        // 移除客户端传入的 Host，出站 Host 由厂商地址决定。
         headers.remove(HttpHeaders.HOST);
         request.setHeaders(headers);
         return new AiPassthroughRequest(request, protocol(path));
@@ -77,7 +71,6 @@ record AiPassthroughRequest(AiUpstreamRequest upstream, String protocol) {
         if (Objects.isNull(prefix) || prefix.isEmpty()) {
             return rawPath.isEmpty() ? "/" : rawPath;
         }
-        // 路径与前缀完全相同时返回根路径，否则只在完整路径段边界裁剪。
         if (rawPath.equals(prefix)) {
             return "/";
         }
@@ -88,7 +81,6 @@ record AiPassthroughRequest(AiUpstreamRequest upstream, String protocol) {
     }
 
     private static String protocol(final String path) {
-        // 按厂商路径识别 Chat 或 Responses 协议，其他路径返回 unknown。
         return switch (path) {
             case "/v1/chat/completions" -> OpenAiChat.NAME;
             case "/v1/responses" -> OpenAiResponses.NAME;
@@ -97,10 +89,8 @@ record AiPassthroughRequest(AiUpstreamRequest upstream, String protocol) {
     }
 
     static void copyEndToEndHeaders(final Map<String, List<String>> source, final HttpHeaders target) {
-        // 收集逐跳请求头，再逐项复制其余头及其全部值。
         Set<String> excluded = new HashSet<>(HOP_HEADERS);
         source.forEach((name, values) -> {
-            // 将 Connection 列出的头名加入排除集合。
             if (HttpHeaders.CONNECTION.equalsIgnoreCase(name)) {
                 values.forEach(value -> {
                     for (String token : value.split(",")) {

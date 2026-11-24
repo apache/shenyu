@@ -75,7 +75,6 @@ class WebClientAiProxyTransportIntegrationTest {
 
     @Test
     void testUpstreamReceivesFirstChunkBeforeUploadCompletes() {
-        // 厂商读到第一块后才允许发送第二块，验证首块在上传结束前到达。
         final Sinks.Empty<Void> firstChunkReceived = Sinks.empty();
         server = HttpServer.create()
                 .host("127.0.0.1")

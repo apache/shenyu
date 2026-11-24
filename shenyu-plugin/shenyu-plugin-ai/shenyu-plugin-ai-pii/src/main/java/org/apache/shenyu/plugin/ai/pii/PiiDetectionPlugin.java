@@ -114,7 +114,6 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
             }
             return chain.execute(exchange);
         }
-        // 在扫描请求或装饰响应之前，为当前请求设置透传冲突标记。
         AiPassthroughPolicy.markIncompatible(exchange);
         ServerWebExchange mutated = exchange;
         if (piiRule.scansResponse()) {

@@ -76,7 +76,6 @@ class WebClientAiProxyTransportTest {
                     written.add(buffer.toString(StandardCharsets.UTF_8));
                     DataBufferUtils.release(buffer);
                 }).then());
-        // 对同一发送对象订阅两次，验证第二次被拒且正文只读取一次。
         final Mono<AiUpstreamResponse> exchange = transport.prepareStreaming(createRequest(), upload.flux());
         StepVerifier.create(exchange)
                 .then(() -> upload.next(dataBuffer(" { ")))
@@ -91,7 +90,6 @@ class WebClientAiProxyTransportTest {
 
     @Test
     void cancellingStreamingUploadCancelsOriginalBody() {
-        // 发出第一块后取消，验证原始上传流收到取消信号且只被订阅一次。
         final TestPublisher<DataBuffer> upload = TestPublisher.create();
         final WebClientAiProxyTransport transport = streamingTransport(new AiProxyTransportProperties(),
                 buffers -> buffers.doOnNext(DataBufferUtils::release).then());
@@ -126,7 +124,6 @@ class WebClientAiProxyTransportTest {
                 .expectErrorSatisfies(WebClientAiProxyTransportTest::assertUploadOverflow).verify();
         assertEquals(List.of("ab"), written);
         assertEquals(0, first.getNativeBuffer().refCnt());
-        // 验证触发超限的缓冲区已释放，引用计数为零。
         assertEquals(0, rejected.getNativeBuffer().refCnt());
         upload.assertCancelled();
     }
@@ -139,7 +136,6 @@ class WebClientAiProxyTransportTest {
         for (List<String> values : List.of(List.of("-1"), List.of("1", "3"), List.of("invalid"))) {
             request.setHeaders(Map.of(HttpHeaders.CONTENT_LENGTH, values));
             final TestPublisher<DataBuffer> upload = TestPublisher.create();
-            // 检查非法声明长度和实收长度不符时返回的错误。
             assertInvalidLength(assertThrows(AiProxyException.class, () -> transport.prepareStreaming(request, upload.flux())));
             upload.assertWasNotSubscribed();
         }
@@ -154,7 +150,6 @@ class WebClientAiProxyTransportTest {
     void bufferedOnlyTransportRefusesCallerBodyWithoutContactingUpstream() {
         final AiProxyTransport custom = request -> Mono.error(new AssertionError("Buffered transport called"));
         final TestPublisher<DataBuffer> upload = TestPublisher.create();
-        // 验证仅支持聚合发送的实现拒绝流式上传且未订阅请求体。
         assertEquals(AiProxyException.Kind.PROVIDER, assertThrows(AiProxyException.class, () -> custom.prepareStreaming(createRequest(), upload.flux())).getKind());
         upload.assertWasNotSubscribed();
     }

@@ -67,7 +67,6 @@ class AiProxyHttpClientResourcesTest {
         final DisposableServer server = HttpServer.create().host("127.0.0.1").port(0)
                 .handle((request, response) -> {
                     attempts.incrementAndGet();
-                    // 校验厂商只被调用一次，客户端收到原始 307 状态、gzip 响应头和压缩字节。
                     return response.status(307)
                             .header(HttpHeaders.LOCATION, "/redirected")
                             .header(HttpHeaders.CONTENT_ENCODING, "gzip")

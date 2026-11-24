@@ -149,7 +149,6 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
-        // 在读取并转换入站正文前，为当前请求设置透传冲突标记。
         AiPassthroughPolicy.markIncompatible(exchange);
         ChatClient finalClient = client;
         AiRequestTransformerConfig finalConfig = aiRequestTransformerConfig;

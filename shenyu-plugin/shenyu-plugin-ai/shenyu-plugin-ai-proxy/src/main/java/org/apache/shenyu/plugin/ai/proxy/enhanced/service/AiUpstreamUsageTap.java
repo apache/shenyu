@@ -201,7 +201,6 @@ final class AiUpstreamUsageTap {
                 }
             }
         }
-        // 从 Responses 流事件的 response.usage 或其他响应的顶层 usage 读取用量。
         JsonNode usage = responses && streaming ? root.path("response").get("usage") : root.get("usage");
         if (Objects.isNull(usage) || usage.isNull()) {
             return;
@@ -210,7 +209,6 @@ final class AiUpstreamUsageTap {
             observation.usage(new AiUsage(null, null, null, AiUsage.Status.INVALID));
             return;
         }
-        // 将 Responses 和 Chat 各自的输入、输出 token 字段映射到用量记录。
         JsonNode input = usage.get(responses ? "input_tokens" : "prompt_tokens");
         JsonNode output = usage.get(responses ? "output_tokens" : "completion_tokens");
         Long prompt = count(input);

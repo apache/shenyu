@@ -48,7 +48,6 @@ public interface AiProxyTransport {
      * @throws AiTransportException when the declared size exceeds the upload budget
      */
     default Mono<AiUpstreamResponse> prepareStreaming(final AiUpstreamRequest request, final Flux<DataBuffer> body) {
-        // 默认实现抛出不支持透传上传的异常。
         throw new AiProxyException(AiProxyException.Kind.PROVIDER, "AI transport does not support passthrough uploads", null);
     }
 }

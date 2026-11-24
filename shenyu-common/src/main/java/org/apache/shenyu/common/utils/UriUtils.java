@@ -48,7 +48,6 @@ public class UriUtils {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("baseUrl.invalidSyntax");
         }
-        // 校验 HTTP(S) 基址的主机和端口，拒绝用户信息、查询串和片段。
         if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
                 || Objects.isNull(uri.getHost()) || Objects.nonNull(uri.getRawUserInfo())
                 || Objects.nonNull(uri.getRawQuery()) || Objects.nonNull(uri.getRawFragment()) || uri.getPort() == 0 || uri.getPort() > MAX_PORT) {

@@ -86,7 +86,6 @@ class AiProxyPassthroughTest {
 
     @Test
     void vendorReceivesOriginalBytesAndCredentialsAndItsErrorIsForwardedOnce() {
-        // 逐字节核对含空白、中文和厂商扩展字段的请求正文。
         String body = "{ \"messages\" : [], \"vendorExtension\" : \"你好\", \"fallbackConfig\" : {} }\n";
         String error = "{\"error\":\"vendor rejected credential\"}\n";
         URI uri = URI.create("https://client.example/native/v1/models/a%2Fb?key=client%2Bkey&k=1&k=&x");
@@ -130,7 +129,6 @@ class AiProxyPassthroughTest {
 
     @Test
     void retriesRateLimitedUploadFromOriginalBytesAndReturnsOnlyVendorSse() {
-        // 厂商首次返回 429，再次接收正文后返回 SSE，验证客户端收到最终响应。
         List<String> uploads = new CopyOnWriteArrayList<>();
         String first = ": heartbeat\r\n\r\ndata: 你好\n\n";
         String last = "event: stop\ndata: {}\n\n";
@@ -147,7 +145,6 @@ class AiProxyPassthroughTest {
             WebClient client = WebClient.builder().build();
             AtomicInteger subscriptions = new AtomicInteger();
             Flux<DataBuffer> upload = Flux.defer(() -> {
-                // 验证两次厂商调用只订阅一次客户端上传流。
                 assertEquals(1, subscriptions.incrementAndGet());
                 return Flux.just(" {", "\"message\":\"你好\"}\n")
                         .map(chunk -> DefaultDataBufferFactory.sharedInstance.wrap(chunk.getBytes(StandardCharsets.UTF_8)));
@@ -180,7 +177,6 @@ class AiProxyPassthroughTest {
                 return upload.doOnNext(DataBufferUtils::release).then(Mono.just(new AiUpstreamResponse(429, Map.of("Retry-After", List.of("10")), Flux.empty())));
             }
         };
-        // 在 Retry-After 等待期间取消请求，验证厂商只被调用一次。
         StepVerifier.withVirtualTime(() -> plugin(transport).doExecute(exchange, unused -> Mono.empty(), selector, new RuleData()))
                 .expectSubscription().expectNoEvent(Duration.ofSeconds(9)).thenCancel().verify();
         assertEquals(1, sent.size());
@@ -200,7 +196,6 @@ class AiProxyPassthroughTest {
             @Override
             public Mono<AiUpstreamResponse> prepareStreaming(final AiUpstreamRequest request, final Flux<DataBuffer> upload) {
                 sent.add(request);
-                // 分别模拟厂商读取完整正文和仅读取首块，再检查各自的重试次数。
                 Flux<DataBuffer> consumed = completeUpload ? upload : upload.take(1);
                 return consumed.doOnNext(DataBufferUtils::release).then(Mono.just(new AiUpstreamResponse(status, Map.of("Retry-After", List.of(retryAfter)),
                         Flux.just(("error " + sent.size()).getBytes(StandardCharsets.UTF_8)))));
@@ -217,7 +212,6 @@ class AiProxyPassthroughTest {
     void rejectsBeforeUploading(final String path, final boolean incompatible, final int status) {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post(path)
                 .body(Flux.error(new AssertionError("upload subscribed"))));
-        // 设置前置插件的冲突标记，检查返回状态和厂商调用次数。
         if (incompatible) {
             AiPassthroughPolicy.markIncompatible(exchange);
         }
@@ -231,7 +225,6 @@ class AiProxyPassthroughTest {
     void declaredUploadOverflowRecordsNoVendorAttempt() {
         final WebClient client = WebClient.builder().exchangeFunction(request -> Mono.error(new AssertionError("vendor contacted"))).build();
         final AiProxyTransportProperties properties = new AiProxyTransportProperties();
-        // 设置 16 字节上限，验证声明长度超限时网关直接拒绝上传。
         properties.setMaxRequestBytes(16);
         final MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/native/v1/messages")
                 .contentLength(17).body(Flux.error(new AssertionError("upload subscribed"))));
@@ -244,7 +237,6 @@ class AiProxyPassthroughTest {
 
     @Test
     void recordsResponsesUsageFromFragmentedSseWithoutRewritingTheBody() {
-        // 将同一 SSE 事件拆成两块，分别核对解析出的用量和返回的原始正文。
         String first = "event: response.completed\ndata: {\"response\":{\"usage\":{\"input_tokens\":3,";
         String last = "\"output_tokens\":2,\"total_tokens\":5}}}\n\n";
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/native/v1/responses").body("ignored by observer"));
@@ -273,7 +265,6 @@ class AiProxyPassthroughTest {
         "/native//more/parts,https://vendor.example:9443/api//more/parts"
     })
     void removesOnePrefixAndKeepsTheConfiguredAuthority(final String path, final String target) {
-        // 核对裁剪一次前缀后的厂商 URI 和出站 HTTP 方法。
         AiPassthroughRequest request = AiPassthroughRequest.from(MockServerHttpRequest.method(HttpMethod.PUT, URI.create(path)).build(), AiProxyHandle.fromSelectorHandle(HANDLE));
         assertEquals(target, request.upstream().getUri().toString());
         assertEquals("PUT", request.upstream().getMethod());
@@ -283,7 +274,6 @@ class AiProxyPassthroughTest {
     @CsvSource({"CONNECT,/native/v1,false", "OPTIONS,*,false", "GET,/native/v1,true"})
     void rejectsUnsupportedRequestTargetsBeforeOpeningAConnection(final String method, final String target, final boolean upgrade) {
         MockServerHttpRequest.BodyBuilder request = MockServerHttpRequest.method(HttpMethod.valueOf(method), URI.create(target));
-        // 添加 WebSocket Upgrade 头，验证构造厂商请求时拒绝协议升级。
         if (upgrade) {
             request.header(HttpHeaders.UPGRADE, "websocket");
         }
@@ -325,7 +315,6 @@ class AiProxyPassthroughTest {
         StepVerifier.create(plugin(transport).doExecute(exchange, unused -> Mono.empty(), selector, new RuleData())).verifyComplete();
         assertEquals(body, exchange.getResponse().getBodyAsString().block());
         AiUsage usage = expected == AiUsage.Status.REPORTED ? new AiUsage(1L, 2L, 3L, expected) : new AiUsage(null, null, null, expected);
-        // 核对已识别协议的 token 数和未知协议的用量状态。
         assertEquals(usage, events.get(0).usage());
     }
 }

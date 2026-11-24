@@ -217,7 +217,6 @@ class AgentGovernanceHttpTest {
             fixture.useNativeSelector();
             fixture.request().expectStatus().isEqualTo(503).expectBody().isEmpty();
             assertEquals(0, fixture.upstreamCalls.get());
-            // 验证被网关拒绝的请求没有产生厂商调用记录。
             assertTrue(fixture.attempts.isEmpty());
         }
     }
@@ -234,7 +233,6 @@ class AgentGovernanceHttpTest {
             assertEquals(fixture.requestBody(), fixture.upstreamBody.get());
             assertEquals("fixture-key", fixture.upstreamHeaders.get().get("X-Api-Key"));
             fixture.request("fixture-key", path).expectStatus().isEqualTo(429).expectBody().consumeWith(ignored -> { });
-            // 核对额度扣减、厂商调用和正文订阅次数，并验证额度用尽时拒绝后续上传。
             assertEquals(List.of(2L), List.copyOf(fixture.charges));
             assertEquals(1, fixture.upstreamCalls.get());
             assertEquals(1, fixture.bodySubscriptions.get());
@@ -410,7 +408,6 @@ class AgentGovernanceHttpTest {
         }
 
         private void useNativeSelector() {
-            // 将测试网关的选择器切换为透传模式。
             SelectorData selector = BaseDataCache.getInstance().obtainSelectorData("aiProxy").get(0);
             selector.setHandle("{\"mode\":\"passthrough\",\"baseUrl\":\"http://127.0.0.1:" + upstream.port() + "\"}");
             BaseDataCache.getInstance().cacheSelectData(selector);

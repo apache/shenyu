@@ -106,7 +106,6 @@ public final class PiiDetectionRequestFlowTest {
         PiiDetectionPlugin plugin = new PiiDetectionPlugin(ServerCodecConfigurer.create().getReaders(), audits::add);
         MockServerWebExchange exchange = jsonRequest(CHAT_BODY);
         plugin.doExecute(exchange, chain, null, ruleData).block();
-        // 验证经过 PII 处理的请求带有透传冲突标记。
         assertTrue(AiPassthroughPolicy.isIncompatible(exchange));
         assertTrue(probe.body.contains("<PHONE_CN>"), "the phone must be redacted: " + probe.body);
         assertFalse(probe.body.contains("13800138000"), "the phone must not survive");

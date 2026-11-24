@@ -34,11 +34,9 @@ final class AiUploadReplayBuffer {
 
     private int size;
 
-    // 标记上传副本是否已经完整接收。
     private volatile boolean complete;
 
     Flux<DataBuffer> capture(final Flux<DataBuffer> upload) {
-        // 转发每块上传数据时复制其内容，在上传流正常结束时标记副本完整。
         return upload.doOnNext(this::append).doOnComplete(this::finish);
     }
 
@@ -47,7 +45,6 @@ final class AiUploadReplayBuffer {
         if (size < 0) {
             return;
         }
-        // 超出副本容量上限时丢弃已缓存的数据。
         if (length > AiProxyBodies.MAX_BODY_BYTES - size) {
             discard();
             return;
@@ -56,7 +53,6 @@ final class AiUploadReplayBuffer {
         if (required > bytes.length) {
             bytes = Arrays.copyOf(bytes, Math.min(AiProxyBodies.MAX_BODY_BYTES, Math.max(required, 2 * bytes.length)));
         }
-        // 从当前读位置复制有效字节，保留原缓冲区的读位置。
         chunk.toByteBuffer(chunk.readPosition(), ByteBuffer.wrap(bytes), size, length);
         size = required;
     }
@@ -66,7 +62,6 @@ final class AiUploadReplayBuffer {
     }
 
     synchronized void discard() {
-        // 将大小置为负值以停止后续复制，并清空已保存的字节。
         size = -1;
         bytes = new byte[0];
         complete = false;
@@ -77,7 +72,6 @@ final class AiUploadReplayBuffer {
     }
 
     synchronized Flux<DataBuffer> replay() {
-        // 空副本返回空流，有内容的副本按有效长度包装成只读数据块。
         return size == 0 ? Flux.empty() : Flux.just(DefaultDataBufferFactory.sharedInstance.wrap(ByteBuffer.wrap(bytes, 0, size).asReadOnlyBuffer()));
     }
 }

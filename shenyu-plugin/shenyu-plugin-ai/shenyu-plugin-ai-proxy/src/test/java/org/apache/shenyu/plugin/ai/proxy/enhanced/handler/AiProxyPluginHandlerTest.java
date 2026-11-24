@@ -121,7 +121,6 @@ class AiProxyPluginHandlerTest {
         updated.setHandle("{\"mode\":\"converted\"}");
         handler.handlerSelector(updated);
 
-        // 更新缓存后，分别检查新旧请求取得的模式、厂商地址和路径前缀。
         AiProxyHandle original = handler.resolveSelectorHandle(matched);
         assertTrue(original.isPassthrough());
         assertEquals("https://vendor.example", original.getBaseUrl());
@@ -139,7 +138,6 @@ class AiProxyPluginHandlerTest {
         selector.setHandle("{\"provider\":\"open_ai\"}");
         handler.handlerSelector(selector);
 
-        // 写入无效配置，验证解析被拒且旧缓存已清除。
         selector.setHandle(invalid);
         assertThrows(IllegalArgumentException.class, () -> handler.resolveSelectorHandle(selector));
         handler.handlerSelector(selector);

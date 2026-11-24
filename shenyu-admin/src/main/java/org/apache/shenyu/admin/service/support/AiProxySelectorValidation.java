@@ -37,14 +37,12 @@ public final class AiProxySelectorValidation {
      * @param serializedHandle selector handle JSON
      */
     public static void validateHandle(final String pluginName, final String serializedHandle) {
-        // 仅校验 AI Proxy 选择器的非空 handle。
         if (!PluginEnum.AI_PROXY.getName().equals(pluginName) || StringUtils.isEmpty(serializedHandle)) {
             return;
         }
         try {
             AiProxyHandle.fromSelectorHandle(serializedHandle);
         } catch (IllegalArgumentException e) {
-            // 将校验错误原因包装为管理端异常。
             throw new ShenyuAdminException("Invalid AI Proxy selector: " + e.getMessage());
         }
     }

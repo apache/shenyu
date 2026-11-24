@@ -114,7 +114,6 @@ class AiPassthroughSelectorGuardTest {
         assertEquals(1, service.create(prompt));
         assertEquals(1, service.create(nativeRoute));
 
-        // 分别更新 Prompt 选择器和透传选择器的路径，校验两种更新产生的冲突。
         prompt.setSelectorConditions(conditions("/claude/**"));
         assertConflict(() -> service.update(prompt), prompt, nativeRoute);
         SelectorDTO pii = selector("piiDetection", "/claude/**");
@@ -122,7 +121,6 @@ class AiPassthroughSelectorGuardTest {
         nativeRoute.setSelectorConditions(conditions("/chat/**"));
         assertConflict(() -> service.update(nativeRoute), prompt, nativeRoute);
 
-        // 创建路径改写策略，检查冲突被拒后数据库中的选择器数量。
         SelectorDTO rewrite = selector("rewrite", "/whatever/**");
         assertConflict(() -> service.create(rewrite), prompt, nativeRoute);
         SelectorDTO transformer = selector("aiRequestTransformer", "/elsewhere/**");
@@ -160,7 +158,6 @@ class AiPassthroughSelectorGuardTest {
         SelectorDTO nativeRoute = selector("aiProxy", "/claude/**");
         assertEquals(1, service.create(nativeRoute));
         SelectorDTO prompt = selector("aiPrompt", "/claude/**");
-        // 保存已停用的 Prompt 选择器，验证启用冲突被拒后开关仍关闭。
         prompt.setEnabled(false);
         assertEquals(1, service.create(prompt));
         assertConflict(() -> service.enabledByIdsAndNamespaceId(List.of(prompt.getId()), true, NAMESPACE), prompt, nativeRoute);
@@ -186,7 +183,6 @@ class AiPassthroughSelectorGuardTest {
         jdbc.update("INSERT INTO selector_condition (id, selector_id, param_type, operator, param_name, param_value)"
                 + " SELECT CONCAT('condition-', x), CONCAT('body-', x), 'uri', 'match', '/', '/chat/**' FROM SYSTEM_RANGE(1, 1001)");
         assertEquals(1, service.create(route));
-        // 核对 1001 条策略条件按 500、500、1 分批查询，且每个 ID 只出现一次。
         ArgumentCaptor<List<String>> batches = ArgumentCaptor.forClass(List.class);
         verify(conditionMapper, times(3)).selectBySelectorIdsForUpdate(batches.capture());
         assertEquals(List.of(500, 500, 1), batches.getAllValues().stream().map(List::size).toList());
@@ -197,7 +193,6 @@ class AiPassthroughSelectorGuardTest {
     void simultaneousOverlappingCreatesOnlyCommitOneSelector() throws Exception {
         ExecutorService workers = Executors.newFixedThreadPool(2);
         try {
-            // 并发创建两个路径重叠的选择器，验证只有一个成功写入。
             CyclicBarrier start = new CyclicBarrier(2);
             SelectorDTO route = selector("aiProxy", "/claude/**");
             SelectorDTO prompt = selector("aiPrompt", "/claude/**");

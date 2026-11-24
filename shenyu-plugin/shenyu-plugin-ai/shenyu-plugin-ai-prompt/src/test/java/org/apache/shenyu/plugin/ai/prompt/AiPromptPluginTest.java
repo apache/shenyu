@@ -88,7 +88,6 @@ class AiPromptPluginTest {
         AiPromptPlugin requestPlugin = new AiPromptPlugin(readers);
         List<Object> results = new ArrayList<>();
         ShenyuPluginChain chain = exchange -> {
-            // 检查传给下一插件的冲突标记，并读取改写后的 messages。
             assertTrue(AiPassthroughPolicy.isIncompatible(exchange));
             return ServerRequest.create(exchange, readers).bodyToMono(String.class)
                     .doOnNext(body -> results.add(GsonUtils.getInstance().convertToMap(body).get("messages"))).then();

@@ -86,7 +86,6 @@ class AiOutboundTraceContextTest {
                         "Baggage", List.of("one=a", "two=b"))
                 : Map.of();
         request.setHeaders(headers);
-        // 在网关已有追踪上下文时检查厂商请求中三个追踪头的实际值。
         new WebClientAiProxyTransport(client, new AiProxyTransportProperties(), client).prepareStreaming(request, Flux.empty())
                 .flatMap(response -> response.getBody().then())
                 .contextWrite(context -> context.put(AgentTraceContext.GATEWAY_REACTOR_CONTEXT_KEY, parent(SPAN))).block();

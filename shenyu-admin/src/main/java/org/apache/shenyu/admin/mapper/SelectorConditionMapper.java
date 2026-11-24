@@ -55,7 +55,6 @@ public interface SelectorConditionMapper {
     List<SelectorConditionDO> selectBySelectorIds(@Param("selectorIds") Set<String> selectorIds);
 
     /**
-     * 按选择器 ID 查询并锁定匹配条件。
      * Read current selector conditions during AI selector validation.
      *
      * @param selectorIds selector ids

@@ -136,7 +136,6 @@ class AiProxyPluginTest {
 
     @Test
     void nativeClientCredentialsDoNotEnablePassthroughOnAnExistingSelector() {
-        // 验证带厂商凭证的请求命中旧选择器时仍使用配置的主端点和密钥。
         exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/vendor/v1/messages?key=client-query-key")
                 .header("Authorization", "Bearer client-key").header("x-api-key", "client-header-key").body(REQUEST_BODY));
         StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "{}"))))).verifyComplete();

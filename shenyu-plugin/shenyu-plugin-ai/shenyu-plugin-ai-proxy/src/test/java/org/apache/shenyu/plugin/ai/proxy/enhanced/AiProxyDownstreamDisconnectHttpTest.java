@@ -113,7 +113,6 @@ class AiProxyDownstreamDisconnectHttpTest {
             probe.disconnectBeforeFirstChunk();
             assertSingleObservation(probe);
             assertEquals(AiCallOutcome.CANCELLED, probe.terminal().outcome());
-            // 验证客户端断开后，原厂商请求收到取消信号且连接关闭。
             assertTrue(probe.awaitUpstreamCancelled(), "the original pending vendor call must be cancelled");
             assertTrue(Probe.await(probe.vendorConnectionClosed), "the gateway must release its original vendor connection");
             assertEquals(1, probe.upstreamCalls());
@@ -122,7 +121,6 @@ class AiProxyDownstreamDisconnectHttpTest {
 
     @Test
     void nativeDisconnectCancelsTheOpenResponseBody() {
-        // 客户端读到首块 SSE 后断开，验证厂商连接随之关闭。
         try (Probe probe = new Probe(Flux.just(FIRST_CHUNK).concatWith(Flux.never()), new AiProxyTransportProperties())) {
             probe.disconnectAfterFirstChunk();
             assertInterrupted(probe);
@@ -132,7 +130,6 @@ class AiProxyDownstreamDisconnectHttpTest {
 
     @Test
     void nativeClientReceivesFirstEventBeforeVendorDisconnectsWithoutReplay() {
-        // 客户端收到首条 SSE 后触发厂商断开，检查收到的字节和厂商调用次数。
         Sinks.Empty<Void> disconnect = Sinks.empty();
         Flux<String> stream = Flux.just(FIRST_CHUNK).concatWith(disconnect.asMono().then(Mono.error(new IOException("vendor disconnected"))));
         try (Probe probe = new Probe(stream, new AiProxyTransportProperties())) {
@@ -159,7 +156,6 @@ class AiProxyDownstreamDisconnectHttpTest {
         final AiProxyTransportProperties properties = new AiProxyTransportProperties();
         properties.setMaxRequestBytes(3);
         try (Probe probe = new Probe(Flux.never(), properties)) {
-            // 验证分块上传超限时返回 413，并记录一次厂商调用。
             assertEquals(413, probe.statusForChunkedUpload());
             probe.awaitTerminal();
             assertEquals(1, probe.terminal().attemptCount(), "a streaming overflow stops an attempt already in progress");
