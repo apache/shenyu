@@ -10,7 +10,9 @@ path identify the resource on every operation.
 Use `/graph/{namespaceId}` as the base path. Graph editing and publication
 require graph edit permission. Reading drafts, history, validation results
 and published snapshots requires graph view or edit permission. A delegated
-dashboard user must also belong to the namespace.
+dashboard user must also belong to the namespace. When the dashboard password
+policy protects `system:graph:edit`, it checks the super administrator's password
+before creating or replacing a draft, publishing, rolling back or withdrawing a graph.
 
 | Method and path | Operation |
 | --- | --- |

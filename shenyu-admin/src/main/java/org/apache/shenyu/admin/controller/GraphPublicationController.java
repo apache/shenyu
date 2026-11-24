@@ -25,6 +25,8 @@ import org.apache.shenyu.admin.service.NamespaceUserService;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.dto.GraphData;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.AuthorizationException;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +73,7 @@ public class GraphPublicationController {
      * @return the operation result
      */
     @PostMapping("/{graphId}/draft")
+    @RequiresPermissions(EDIT)
     public ShenyuAdminResult createDraft(@PathVariable("namespaceId") final String namespaceId,
                                          @PathVariable("graphId") final String graphId,
                                          @RequestBody final GraphData graph) {
@@ -102,6 +105,7 @@ public class GraphPublicationController {
      * @return the operation result
      */
     @PutMapping("/{graphId}/draft")
+    @RequiresPermissions(EDIT)
     public ShenyuAdminResult updateDraft(@PathVariable("namespaceId") final String namespaceId,
                                          @PathVariable("graphId") final String graphId,
                                          @RequestParam("expectedDraftVersion") final long expectedDraftVersion,
@@ -133,6 +137,7 @@ public class GraphPublicationController {
      * @return the operation result
      */
     @PostMapping("/{graphId}/publish")
+    @RequiresPermissions(EDIT)
     public ShenyuAdminResult publish(@PathVariable("namespaceId") final String namespaceId,
                                      @PathVariable("graphId") final String graphId,
                                      @RequestParam("expectedDraftVersion") final long expectedDraftVersion) {
@@ -180,6 +185,7 @@ public class GraphPublicationController {
      * @return the operation result
      */
     @PostMapping("/{graphId}/revisions/{revision}/rollback")
+    @RequiresPermissions(EDIT)
     public ShenyuAdminResult rollback(@PathVariable("namespaceId") final String namespaceId,
                                       @PathVariable("graphId") final String graphId,
                                       @RequestParam("expectedDraftVersion") final long expectedDraftVersion,
@@ -197,6 +203,7 @@ public class GraphPublicationController {
      * @return the operation result
      */
     @DeleteMapping("/{graphId}")
+    @RequiresPermissions(EDIT)
     public ShenyuAdminResult delete(@PathVariable("namespaceId") final String namespaceId,
                                     @PathVariable("graphId") final String graphId,
                                     @RequestParam("expectedDraftVersion") final long expectedDraftVersion) {
@@ -214,6 +221,12 @@ public class GraphPublicationController {
     public ShenyuAdminResult snapshot(@PathVariable("namespaceId") final String namespaceId) {
         requireAccess(namespaceId, VIEW);
         return ShenyuAdminResult.success(graphs.snapshot(namespaceId));
+    }
+
+    @ExceptionHandler(AuthorizationException.class)
+    ResponseEntity<ShenyuAdminResult> handlePermissionDenied() {
+        HttpStatus status = SecurityUtils.getSubject().isAuthenticated() ? HttpStatus.FORBIDDEN : HttpStatus.UNAUTHORIZED;
+        return ResponseEntity.status(status).body(ShenyuAdminResult.error(status.value(), "Graph access denied"));
     }
 
     @ExceptionHandler(ResponseStatusException.class)

@@ -61,8 +61,9 @@ DELETE FROM namespace_user_rel WHERE NOT EXISTS (
 ALTER TABLE namespace_user_rel ADD CONSTRAINT fk_ns_user_namespace
     FOREIGN KEY (namespace_id) REFERENCES namespace(namespace_id) ON DELETE CASCADE;
 
-CREATE TABLE IF NOT EXISTS plugin_graph_draft (
-    namespace_pk VARCHAR(128) NOT NULL,
+-- Bind the foreign key to the installed namespace.id collation, including after a server upgrade.
+SELECT CONCAT('CREATE TABLE IF NOT EXISTS plugin_graph_draft (
+    namespace_pk VARCHAR(128) CHARACTER SET ', CHARACTER_SET_NAME, ' COLLATE ', COLLATION_NAME, ' NOT NULL,
     namespace_id VARCHAR(50) COLLATE utf8mb4_bin NOT NULL,
     graph_id VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
     draft_version BIGINT NOT NULL,
@@ -70,7 +71,12 @@ CREATE TABLE IF NOT EXISTS plugin_graph_draft (
     published_revision BIGINT DEFAULT 0 NOT NULL,
     PRIMARY KEY (namespace_id, graph_id),
     FOREIGN KEY (namespace_pk) REFERENCES namespace(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4') INTO @create_graph_draft
+FROM information_schema.columns
+WHERE table_schema = DATABASE() AND table_name = 'namespace' AND column_name = 'id';
+PREPARE create_graph_draft FROM @create_graph_draft;
+EXECUTE create_graph_draft;
+DEALLOCATE PREPARE create_graph_draft;
 
 CREATE TABLE IF NOT EXISTS plugin_graph_revision (
     namespace_id VARCHAR(50) COLLATE utf8mb4_bin NOT NULL,

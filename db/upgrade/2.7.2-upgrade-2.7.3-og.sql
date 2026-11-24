@@ -54,7 +54,7 @@ DELETE FROM public.namespace_user_rel WHERE NOT EXISTS (
 ALTER TABLE public.namespace_user_rel ADD CONSTRAINT fk_ns_user_namespace
     FOREIGN KEY (namespace_id) REFERENCES public.namespace(namespace_id) ON DELETE CASCADE;
 
-CREATE TABLE IF NOT EXISTS plugin_graph_draft (
+CREATE TABLE IF NOT EXISTS public.plugin_graph_draft (
     namespace_pk VARCHAR(128) NOT NULL,
     namespace_id VARCHAR(50) NOT NULL,
     graph_id VARCHAR(128) NOT NULL,
@@ -62,16 +62,16 @@ CREATE TABLE IF NOT EXISTS plugin_graph_draft (
     draft_json TEXT,
     published_revision BIGINT DEFAULT 0 NOT NULL,
     PRIMARY KEY (namespace_id, graph_id),
-    FOREIGN KEY (namespace_pk) REFERENCES namespace(id) ON DELETE CASCADE
+    FOREIGN KEY (namespace_pk) REFERENCES public.namespace(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS plugin_graph_revision (
+CREATE TABLE IF NOT EXISTS public.plugin_graph_revision (
     namespace_id VARCHAR(50) NOT NULL,
     graph_id VARCHAR(128) NOT NULL,
     revision BIGINT NOT NULL,
     graph_json TEXT,
     PRIMARY KEY (namespace_id, graph_id, revision),
-    FOREIGN KEY (namespace_id, graph_id) REFERENCES plugin_graph_draft(namespace_id, graph_id) ON DELETE CASCADE
+    FOREIGN KEY (namespace_id, graph_id) REFERENCES public.plugin_graph_draft(namespace_id, graph_id) ON DELETE CASCADE
 );
 
 -- Graph permissions are available for explicit role grants.

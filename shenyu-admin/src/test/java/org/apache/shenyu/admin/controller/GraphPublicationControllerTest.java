@@ -18,13 +18,20 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.aspect.controller.RestControllerAspect;
+import org.apache.shenyu.admin.aspect.controller.SuperAdminPasswordSafeAdvice;
+import org.apache.shenyu.admin.config.properties.DashboardProperties;
 import org.apache.shenyu.admin.exception.ExceptionHandlers;
+import org.apache.shenyu.admin.exception.WebI18nException;
 import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.model.entity.GraphDraftDO;
 import org.apache.shenyu.admin.model.entity.GraphRevisionDO;
+import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.GraphPublicationService;
 import org.apache.shenyu.admin.service.NamespaceUserService;
+import org.apache.shenyu.admin.utils.FailI18nMessage;
 import org.apache.shenyu.common.dto.GraphData;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +42,7 @@ import org.springframework.context.support.StaticMessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,7 +50,9 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -65,6 +75,10 @@ class GraphPublicationControllerTest {
 
     private final NamespaceUserService namespaceUsers = mock(NamespaceUserService.class);
 
+    private final DashboardUserService users = mock(DashboardUserService.class);
+
+    private final DashboardProperties policy = new DashboardProperties();
+
     private MockMvc mvc;
 
     @BeforeEach
@@ -72,9 +86,12 @@ class GraphPublicationControllerTest {
         ThreadContext.bind(subject);
         GraphPublicationController controller = new GraphPublicationController(graphs, namespaceUsers);
         AspectJProxyFactory factory = new AspectJProxyFactory(controller);
-        factory.addAspect(new RestControllerAspect(List.of()));
+        factory.addAdvisor(new AuthorizationAttributeSourceAdvisor());
+        factory.addAspect(new RestControllerAspect(List.of(new SuperAdminPasswordSafeAdvice(policy, users))));
         GraphPublicationController proxy = factory.getProxy();
-        mvc = MockMvcBuilders.standaloneSetup(proxy).setControllerAdvice(new ExceptionHandlers(new StaticMessageSource())).build();
+        StaticMessageSource messages = new StaticMessageSource();
+        messages.setUseCodeAsDefaultMessage(true);
+        mvc = MockMvcBuilders.standaloneSetup(proxy).setControllerAdvice(new ExceptionHandlers(messages)).build();
     }
 
     @AfterEach
@@ -94,6 +111,8 @@ class GraphPublicationControllerTest {
 
     @Test
     void viewersCanReadAndValidateButCannotChangeGraphs() throws Exception {
+        doThrow(new UnauthorizedException()).when(subject).checkPermission("system:graph:edit");
+        mvc.perform(post(GRAPH + "/publish").param(VERSION, "1")).andExpect(status().isUnauthorized());
         signIn("system:graph:view");
         mvc.perform(post(GRAPH + "/draft").contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isForbidden());
         mvc.perform(put(GRAPH + "/draft").param(VERSION, "1").contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isForbidden());
@@ -134,6 +153,31 @@ class GraphPublicationControllerTest {
         verify(graphs).publish("team", "g", 2L);
         verify(graphs).rollback("team", "g", 7L, 1L);
         verify(graphs).delete("team", "g", 8L);
+    }
+
+    @Test
+    void protectedGraphWritesRequireTheSuperAdminPasswordCheck() throws Exception {
+        policy.setEnableOnlySuperAdminPermission(true);
+        policy.setEnableSuperAdminPasswordSafe(true);
+        policy.setOnlySuperAdminPermission(List.of("system:graph:edit"));
+        when(subject.isAuthenticated()).thenReturn(true);
+        when(subject.getPrincipal()).thenReturn(UserInfo.builder().userName("admin").userId("super").build());
+        when(subject.isPermitted("system:graph:edit")).thenReturn(true);
+        when(users.checkUserPassword("super")).thenThrow(new WebI18nException(FailI18nMessage.PASSWORD_USED_FOR_LONG_TIME));
+
+        List<MockHttpServletRequestBuilder> writes = List.of(
+                post(GRAPH + "/draft").contentType(MediaType.APPLICATION_JSON).content("{}"),
+                put(GRAPH + "/draft").param(VERSION, "1").contentType(MediaType.APPLICATION_JSON).content("{}"),
+                post(GRAPH + "/publish").param(VERSION, "1"),
+                post(GRAPH + "/revisions/1/rollback").param(VERSION, "1"),
+                delete(GRAPH).param(VERSION, "1"));
+        for (MockHttpServletRequestBuilder write : writes) {
+            mvc.perform(write).andExpect(jsonPath("$.message").value(FailI18nMessage.PASSWORD_USED_FOR_LONG_TIME));
+        }
+        verifyNoInteractions(graphs);
+        mvc.perform(post(GRAPH + "/validate")).andExpect(status().isOk());
+        verify(graphs).validateDraft("team", "g");
+        verify(users, times(writes.size())).checkUserPassword("super");
     }
 
     @Test
