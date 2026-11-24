@@ -2200,6 +2200,8 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 -- ----------------------------
 -- Table structure for namespace
 -- ----------------------------
+DROP TABLE IF EXISTS `plugin_graph_revision`;
+DROP TABLE IF EXISTS `plugin_graph_draft`;
 DROP TABLE IF EXISTS `namespace`;
 CREATE TABLE `namespace` (
                              `id` varchar(128) NOT NULL COMMENT 'namespace primary key',
@@ -2484,3 +2486,39 @@ CREATE INDEX idx_namespace_user_ns_user ON `namespace_user_rel` (namespace_id, u
 CREATE INDEX idx_namespace_user_user_ns ON `namespace_user_rel` (user_id, namespace_id);
 CREATE INDEX idx_user_role_user_role ON `user_role` (user_id, role_id);
 CREATE INDEX idx_resource_parent ON `resource` (parent_id);
+
+CREATE TABLE IF NOT EXISTS plugin_graph_draft (
+    namespace_pk VARCHAR(128) NOT NULL,
+    namespace_id VARCHAR(50) COLLATE utf8mb4_bin NOT NULL,
+    graph_id VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+    draft_version BIGINT NOT NULL,
+    draft_json LONGTEXT,
+    published_revision BIGINT DEFAULT 0 NOT NULL,
+    PRIMARY KEY (namespace_id, graph_id),
+    FOREIGN KEY (namespace_pk) REFERENCES namespace(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS plugin_graph_revision (
+    namespace_id VARCHAR(50) COLLATE utf8mb4_bin NOT NULL,
+    graph_id VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+    revision BIGINT NOT NULL,
+    graph_json LONGTEXT,
+    PRIMARY KEY (namespace_id, graph_id, revision),
+    FOREIGN KEY (namespace_id, graph_id) REFERENCES plugin_graph_draft(namespace_id, graph_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Graph permissions are available for explicit role grants.
+INSERT INTO `resource` (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000001', '1346777449787125760', 'View plugin graphs', 2, 10, 1, 0, 'system:graph:view', 1
+WHERE NOT EXISTS (SELECT 1 FROM `resource` WHERE id = '1997997000000000001');
+INSERT INTO `resource` (id, parent_id, title, resource_type, sort, is_leaf, is_route, perms, status)
+SELECT '1997997000000000002', '1346777449787125760', 'Manage plugin graphs', 2, 11, 1, 0, 'system:graph:edit', 1
+WHERE NOT EXISTS (SELECT 1 FROM `resource` WHERE id = '1997997000000000002');
+
+-- Match the built-in super role grants for other Admin resources.
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000011', '1346358560427216896', '1997997000000000001'
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000001');
+INSERT INTO permission (id, object_id, resource_id)
+SELECT '1997997000000000012', '1346358560427216896', '1997997000000000002'
+WHERE NOT EXISTS (SELECT 1 FROM permission WHERE object_id = '1346358560427216896' AND resource_id = '1997997000000000002');
