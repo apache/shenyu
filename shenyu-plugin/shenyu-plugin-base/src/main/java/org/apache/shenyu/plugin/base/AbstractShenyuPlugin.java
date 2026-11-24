@@ -180,7 +180,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, selectors, rules, path);
+            ruleData = defaultMatchRule(exchange, selectors, selectorData.getId(), rules, path);
             if (Objects.isNull(ruleData)) {
                 reportDecision(Decision.RULE_UNMATCHED, selectorData, null, false,
                         selectorCache, ruleCache);
@@ -269,7 +269,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 : MatchDataCache.getInstance().obtainRuleData(named(), path);
     }
 
-    private void cacheSelectorData(final String path, final SelectorData selectorData) {
+    private void cacheSelectorData(final String path, final SelectorData selectorData, final List<SelectorData> selectors) {
         if (Boolean.FALSE.equals(selectorMatchConfig.getCache().getEnabled()) || Objects.isNull(selectorData)
                 || Boolean.TRUE.equals(selectorData.getMatchRestful())) {
             return;
@@ -278,19 +278,20 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         long maximumSize = selectorMatchConfig.getCache().getMaximumSize();
         long ttl = selectorMatchConfig.getCache().getTtl();
         if (StringUtils.isBlank(selectorData.getId())) {
-            storeSelectorMatch(path, selectorData, initialCapacity, maximumSize, ttl);
+            storeSelectorMatch(path, selectorData, selectors, initialCapacity, maximumSize, ttl);
             return;
         }
         List<ConditionData> conditionList = selectorData.getConditionList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                storeSelectorMatch(path, selectorData, initialCapacity, maximumSize, ttl);
+                storeSelectorMatch(path, selectorData, selectors, initialCapacity, maximumSize, ttl);
             }
         }
     }
     
-    private void cacheRuleData(final String path, final RuleData ruleData) {
+    private void cacheRuleData(final String path, final RuleData ruleData, final List<SelectorData> selectors,
+                               final String selectorId, final List<RuleData> rules) {
         // if the ruleCache is disabled or rule data is null, not cache rule data.
         if (Boolean.FALSE.equals(ruleMatchConfig.getCache().getEnabled()) || Objects.isNull(ruleData)
                 || Boolean.TRUE.equals(ruleData.getMatchRestful())) {
@@ -300,29 +301,31 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         long maximumSize = ruleMatchConfig.getCache().getMaximumSize();
         long ttl = ruleMatchConfig.getCache().getTtl();
         if (StringUtils.isBlank(ruleData.getId())) {
-            storeRuleMatch(path, ruleData, initialCapacity, maximumSize, ttl);
+            storeRuleMatch(path, ruleData, selectors, selectorId, rules, initialCapacity, maximumSize, ttl);
             return;
         }
         List<ConditionData> conditionList = ruleData.getConditionDataList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                storeRuleMatch(path, ruleData, initialCapacity, maximumSize, ttl);
+                storeRuleMatch(path, ruleData, selectors, selectorId, rules, initialCapacity, maximumSize, ttl);
             }
         }
     }
 
-    private void storeSelectorMatch(final String path, final SelectorData data, final int capacity, final long maximum, final long ttl) {
+    private void storeSelectorMatch(final String path, final SelectorData data, final List<SelectorData> selectors,
+                                    final int capacity, final long maximum, final long ttl) {
         if (useReadOnlyConfiguration()) {
-            MatchDataCache.getInstance().readOnly().cacheSelectorData(path, data, capacity, maximum, ttl);
+            MatchDataCache.getInstance().readOnly().cacheSelectorData(path, data, selectors, capacity, maximum, ttl);
         } else {
             MatchDataCache.getInstance().cacheSelectorData(path, data, capacity, maximum, ttl);
         }
     }
 
-    private void storeRuleMatch(final String path, final RuleData data, final int capacity, final long maximum, final long ttl) {
+    private void storeRuleMatch(final String path, final RuleData data, final List<SelectorData> selectors,
+                                final String selectorId, final List<RuleData> rules, final int capacity, final long maximum, final long ttl) {
         if (useReadOnlyConfiguration()) {
-            MatchDataCache.getInstance().readOnly().cacheRuleData(path, data, capacity, maximum, ttl);
+            MatchDataCache.getInstance().readOnly().cacheRuleData(path, data, selectors, selectorId, rules, capacity, maximum, ttl);
         } else {
             MatchDataCache.getInstance().cacheRuleData(path, data, capacity, maximum, ttl);
         }
@@ -427,7 +430,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // cache selector data
             if (matchSelectorPair.getLeft() && selectors.stream().filter(SelectorData::getEnabled)
                     .allMatch(selector -> !Boolean.TRUE.equals(selector.getMatchRestful()) && pathOnlyConditions(selector.getConditionList()))) {
-                cacheSelectorData(path, selectorData);
+                cacheSelectorData(path, selectorData, selectors);
             }
             return selectorData;
         } else {
@@ -435,13 +438,13 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // enabled candidate is decided by the path.
             if (matchSelectorPair.getLeft() && pathOnlySelectorSet(selectors)) {
                 SelectorData emptySelectorData = useReadOnlyConfiguration() ? frozenEmptySelector : SelectorData.builder().pluginName(named()).build();
-                cacheSelectorData(path, emptySelectorData);
+                cacheSelectorData(path, emptySelectorData, selectors);
             }
             return null;
         }
     }
     
-    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors,
+    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors, final String selectorId,
                                       final List<RuleData> rules, final String path) {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
@@ -449,7 +452,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // cache rule data
             if (matchRulePair.getLeft() && rules.stream().filter(RuleData::getEnabled)
                     .allMatch(rule -> !Boolean.TRUE.equals(rule.getMatchRestful()) && pathOnlyConditions(rule.getConditionDataList()))) {
-                cacheRuleData(path, ruleData);
+                cacheRuleData(path, ruleData, selectors, selectorId, rules);
             }
             return ruleData;
         } else {
@@ -457,7 +460,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             // requires the whole selector set to be decided by the path.
             if (matchRulePair.getLeft() && pathOnlySelectorSet(selectors) && pathOnlyRuleSet(rules)) {
                 RuleData emptyRuleData = useReadOnlyConfiguration() ? frozenEmptyRule : RuleData.builder().pluginName(named()).build();
-                cacheRuleData(path, emptyRuleData);
+                cacheRuleData(path, emptyRuleData, selectors, selectorId, rules);
             }
             return null;
         }

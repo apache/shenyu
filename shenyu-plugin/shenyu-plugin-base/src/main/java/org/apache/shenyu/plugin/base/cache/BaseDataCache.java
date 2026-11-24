@@ -85,6 +85,15 @@ public final class BaseDataCache {
     }
     
     /**
+     * Monitor shared by publication, derived-cache invalidation and conditional stores.
+     * Callers must not acquire the legacy base-cache monitor while holding it.
+     * @return published base-cache monitor
+     */
+    static Object publishedMonitor() {
+        return PUBLISHED;
+    }
+
+    /**
      * Gets instance.
      *
      * @return the instance
