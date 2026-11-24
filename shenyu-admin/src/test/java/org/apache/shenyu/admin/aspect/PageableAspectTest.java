@@ -80,7 +80,6 @@ public class PageableAspectTest {
         when(point.getArgs()).thenReturn(metaDataQueries);
         pageParameter.setCurrentPage(1);
         pageParameter.setPageSize(50);
-        pageParameter.setOffset(50);
         try {
             when(point.proceed()).thenReturn(commonPager);
         } catch (Throwable throwable) {
@@ -96,9 +95,7 @@ public class PageableAspectTest {
     @Test
     public void testConvert() {
         final PageParameter pageParameter = new PageParameter();
-        Page page = new Page();
-        page.setPageNum(1);
-        page.setPageSize(50);
+        Page<?> page = new Page<>(3, 50);
         page.setPages(20);
         page.setTotal(1000);
         pageableAspect.convert(page, pageParameter);
@@ -106,7 +103,7 @@ public class PageableAspectTest {
         assertEquals(page.getPageSize(), pageParameter.getPageSize());
         assertEquals(page.getPages(), pageParameter.getTotalPage());
         assertEquals(page.getTotal(), pageParameter.getTotalCount());
-        assertEquals(page.getPageSize(), pageParameter.getOffset());
+        assertEquals(100, pageParameter.getOffset());
     }
 
     @Test
