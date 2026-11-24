@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.disruptor;
 
 import org.apache.shenyu.admin.service.DiscoveryService;
+import org.apache.shenyu.admin.service.register.ClientRegisterProvisioner;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
@@ -42,7 +43,9 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -104,6 +107,26 @@ class RegisterClientServerDisruptorPublisherTest {
         publisher.start(serviceMap, discoveryService);
 
         assertNotNull(getProviderManage());
+    }
+
+    @Test
+    void testStartWithProvisioners() {
+        ClientRegisterProvisioner provisioner = mock(ClientRegisterProvisioner.class);
+        when(provisioner.supports(any())).thenReturn(true);
+
+        publisher.start(serviceMap, discoveryService, List.of(provisioner));
+
+        MetaDataRegisterDTO metaDTO = MetaDataRegisterDTO.builder()
+                .appName("testApp")
+                .path("/test/path")
+                .ruleName("testRule")
+                .rpcType("http")
+                .namespaceId("default")
+                .build();
+        publisher.publish(metaDTO);
+
+        verify(shenyuClientRegisterService, timeout(3000L)).register(metaDTO);
+        verify(provisioner, timeout(3000L)).provision(metaDTO);
     }
 
     @Test

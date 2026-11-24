@@ -112,14 +112,44 @@ public class MetadataExecutorSubscriberTest {
     }
 
     @Test
-    public void testUnknownRpcTypeSkipsRegisterAndProvisioners() {
+    public void testProvisionerLinkageErrorIsolated() {
+        ClientRegisterProvisioner failing = mock(ClientRegisterProvisioner.class);
+        when(failing.pluginName()).thenReturn("broken");
+        doThrow(new NoClassDefFoundError("missing plugin class")).when(failing).provision(any());
+        ClientRegisterProvisioner healthy = mock(ClientRegisterProvisioner.class);
+        when(healthy.pluginName()).thenReturn("healthy");
+        when(healthy.supports(any())).thenReturn(true);
+        MetadataExecutorSubscriber subscriber =
+                new MetadataExecutorSubscriber(registerServiceMap, List.of(failing, healthy));
+        subscriber.executor(Collections.singletonList(buildMetaData()));
+        verify(healthy).provision(any());
+    }
+
+    @Test
+    public void testBrokenPluginNameDoesNotAbortProvisioners() {
+        ClientRegisterProvisioner failing = mock(ClientRegisterProvisioner.class);
+        when(failing.pluginName()).thenThrow(new IllegalStateException("name resolution failed"));
+        when(failing.supports(any())).thenReturn(true);
+        doThrow(new IllegalStateException("provision failed")).when(failing).provision(any());
+        ClientRegisterProvisioner healthy = mock(ClientRegisterProvisioner.class);
+        when(healthy.pluginName()).thenReturn("healthy");
+        when(healthy.supports(any())).thenReturn(true);
+        MetadataExecutorSubscriber subscriber =
+                new MetadataExecutorSubscriber(registerServiceMap, List.of(failing, healthy));
+        subscriber.executor(Collections.singletonList(buildMetaData()));
+        verify(healthy).provision(any());
+    }
+
+    @Test
+    public void testUnknownRpcTypeStillInvokesProvisioners() {
         ClientRegisterProvisioner provisioner = mock(ClientRegisterProvisioner.class);
+        when(provisioner.supports(any())).thenReturn(true);
         MetadataExecutorSubscriber subscriber =
                 new MetadataExecutorSubscriber(registerServiceMap, List.of(provisioner));
         MetaDataRegisterDTO metaDataRegisterDTO = buildMetaData();
         metaDataRegisterDTO.setRpcType("websocket");
         subscriber.executor(Collections.singletonList(metaDataRegisterDTO));
         verify(registerService, never()).register(any());
-        verify(provisioner, never()).provision(any());
+        verify(provisioner).provision(metaDataRegisterDTO);
     }
 }

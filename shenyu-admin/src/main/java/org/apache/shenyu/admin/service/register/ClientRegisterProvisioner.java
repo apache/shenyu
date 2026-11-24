@@ -20,18 +20,20 @@ package org.apache.shenyu.admin.service.register;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 
 /**
- * Extension point invoked after shenyu admin has processed a client registration
- * through the matching {@link ShenyuClientRegisterService}.
+ * Extension point invoked for shenyu admin client metadata registrations.
  *
- * <p>Out-of-tree plugins (loaded through the gateway ext-plugin mechanism or
- * registered through the admin plugin management) can implement this hook to
- * provision the admin-side artifacts they require — for example the selector and
- * rule that make the gateway execute the plugin for the registered paths —
- * without patching the shenyu source code.</p>
+ * <p>Out-of-tree plugins can implement this hook to provision the admin-side
+ * artifacts they require, for example the selector and rule that make the
+ * gateway execute the plugin for the registered paths. When a matching
+ * {@link ShenyuClientRegisterService} exists, the hook runs after that service
+ * returns successfully. Otherwise, the hook still runs so a plugin can handle
+ * its own rpcType without patching shenyu.</p>
  *
- * <p>Implementations must be idempotent, must be fast (the callback runs on the
- * register center disruptor thread) and must never throw; failures are logged
- * and isolated so that the built-in registration flow is never affected.</p>
+ * <p>The callback runs on the register center disruptor thread. Implementations
+ * must therefore be idempotent, thread-safe and fast. Failures are logged and
+ * isolated so that built-in registration and the remaining provisioners are
+ * never affected. See {@code docs/client-register-provisioner.md} for the
+ * supported bean registration paths.</p>
  */
 public interface ClientRegisterProvisioner {
 

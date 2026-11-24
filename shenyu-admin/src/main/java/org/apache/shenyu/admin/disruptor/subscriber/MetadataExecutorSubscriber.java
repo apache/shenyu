@@ -26,10 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -44,14 +42,13 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
     private final List<ClientRegisterProvisioner> clientRegisterProvisioners;
 
     public MetadataExecutorSubscriber(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService) {
-        this(shenyuClientRegisterService, Collections.emptyList());
+        this(shenyuClientRegisterService, List.of());
     }
 
     public MetadataExecutorSubscriber(final Map<String, ShenyuClientRegisterService> shenyuClientRegisterService,
                                       final List<ClientRegisterProvisioner> clientRegisterProvisioners) {
         this.shenyuClientRegisterService = shenyuClientRegisterService;
-        this.clientRegisterProvisioners = Objects.isNull(clientRegisterProvisioners)
-                ? Collections.emptyList() : clientRegisterProvisioners;
+        this.clientRegisterProvisioners = List.copyOf(clientRegisterProvisioners);
     }
 
     @Override
@@ -61,25 +58,36 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
 
     @Override
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
-        metaDataRegisterDTOList.forEach(meta -> Optional.ofNullable(this.shenyuClientRegisterService.get(meta.getRpcType()))
+        metaDataRegisterDTOList.forEach(meta -> {
+            Optional.ofNullable(this.shenyuClientRegisterService.get(meta.getRpcType()))
                 .ifPresent(shenyuClientRegisterService -> {
                     synchronized (shenyuClientRegisterService) {
                         shenyuClientRegisterService.register(meta);
                     }
-                    runProvisioners(meta);
-                }));
+                });
+            runProvisioners(meta);
+        });
     }
 
     private void runProvisioners(final MetaDataRegisterDTO metaDataRegisterDTO) {
         for (ClientRegisterProvisioner provisioner : clientRegisterProvisioners) {
+            String pluginName = resolvePluginName(provisioner);
             try {
                 if (provisioner.supports(metaDataRegisterDTO)) {
                     provisioner.provision(metaDataRegisterDTO);
                 }
-            } catch (Exception ex) {
-                LOG.warn("client register provisioner [{}] failed: {}",
-                        provisioner.pluginName(), ex.getMessage(), ex);
+            } catch (Exception | LinkageError ex) {
+                LOG.warn("client register provisioner [{}] failed", pluginName, ex);
             }
+        }
+    }
+
+    private String resolvePluginName(final ClientRegisterProvisioner provisioner) {
+        try {
+            return provisioner.pluginName();
+        } catch (Exception | LinkageError ex) {
+            LOG.warn("client register provisioner name resolution failed", ex);
+            return provisioner.getClass().getName();
         }
     }
 }
