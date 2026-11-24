@@ -66,6 +66,10 @@ public class ShenyuGrpcClient implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuGrpcClient.class);
     
     private final ManagedChannel channel;
+
+    private final Object admissionLock = new Object();
+
+    private boolean retired;
     
     public ShenyuGrpcClient(final ManagedChannel channel) {
         this.channel = channel;
@@ -153,6 +157,15 @@ public class ShenyuGrpcClient implements Closeable {
      * @return ListenableFuture future
      */
     public ListenableFuture<Void> invoke(final ShenyuGrpcCallRequest callParams) {
+        synchronized (admissionLock) {
+            if (retired) {
+                return Futures.immediateFailedFuture(new ShenyuGrpcException("gRPC client is retired"));
+            }
+            return startInvocation(callParams);
+        }
+    }
+
+    private ListenableFuture<Void> startInvocation(final ShenyuGrpcCallRequest callParams) {
         MethodDescriptor.MethodType methodType = callParams.getMethodDescriptor().getType();
         List<DynamicMessage> requestList = callParams.getRequests();
         
@@ -237,7 +250,14 @@ public class ShenyuGrpcClient implements Closeable {
     
     @Override
     public void close() {
-        this.channel.shutdown();
+        synchronized (admissionLock) {
+            if (retired) {
+                return;
+            }
+            retired = true;
+        }
+        // ManagedChannel drains calls already started before retirement.
+        channel.shutdown();
     }
     
     private ClientCall<DynamicMessage, DynamicMessage> createCall(final ShenyuGrpcCallRequest callParams) {

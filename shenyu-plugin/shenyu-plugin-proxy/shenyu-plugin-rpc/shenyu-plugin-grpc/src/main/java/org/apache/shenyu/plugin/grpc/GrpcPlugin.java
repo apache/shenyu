@@ -89,35 +89,48 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
 
-        final ShenyuGrpcClient client = GrpcClientCache.getGrpcClient(selector.getId());
+        return Mono.defer(() -> invoke(exchange, chain, selector, rule, metaData));
+    }
+
+    private Mono<Void> invoke(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
+                              final RuleData rule, final MetaData metaData) {
+        ShenyuGrpcClient client = GrpcClientCache.getGrpcClient(selector.getId());
         if (Objects.isNull(client)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.GRPC_CLIENT_NULL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        // load balance context
-        Context.current().withValue(GrpcConstants.GRPC_SELECTOR_ID, selector.getId()).attach();
-        Context.current().withValue(GrpcConstants.GRPC_RULE_ID, rule.getId()).attach();
-        Context.current().withValue(GrpcConstants.GRPC_REMOTE_ADDRESS,
-                Optional.ofNullable(exchange.getRequest().getRemoteAddress())
-                        .map(InetSocketAddress::getAddress)
-                        .map(InetAddress::getHostAddress)
-                        .orElse(StringUtils.EMPTY)).attach();
 
         GrpcExtInfo extInfo = ApplicationConfigCache.getInstance().obtainGrpcExtInfo(metaData);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.getTimeout(), TimeUnit.MILLISECONDS);
-        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
-        Optional.ofNullable(rpcContext).map(context -> context.get(PluginEnum.GRPC.getName())).ifPresent(
-            context -> Context.current().withValue(RPC_CONTEXT_KEY, context).attach());
-        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.getMethodType());
-        Context.current().detach(Context.ROOT);
+        Context context = invocationContext(exchange, selector, rule);
+        Context previous = context.attach();
+        CompletableFuture<ShenyuGrpcResponse> result;
+        try {
+            result = client.call(metaData, callOptions, exchange.getAttribute(Constants.PARAM_TRANSFORM), extInfo.getMethodType());
+        } finally {
+            context.detach(previous);
+        }
 
-        return Mono.fromFuture(result.thenApply(ret -> {
-            exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return ret;
-        })).doOnCancel(() -> result.cancel(true))
-                .onErrorMap(ShenyuException::new).then(chain.execute(exchange));
+        return Mono.fromFuture(result)
+                .doOnNext(response -> {
+                    exchange.getAttributes().put(Constants.RPC_RESULT, response.getResults());
+                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
+                })
+                .onErrorMap(ShenyuException::new)
+                .then(Mono.defer(() -> chain.execute(exchange)));
+    }
+
+    private Context invocationContext(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
+        String remoteAddress = Optional.ofNullable(exchange.getRequest().getRemoteAddress())
+                .map(InetSocketAddress::getAddress)
+                .map(InetAddress::getHostAddress)
+                .orElse(StringUtils.EMPTY);
+        Context context = Context.current().withValues(GrpcConstants.GRPC_SELECTOR_ID, selector.getId(),
+                GrpcConstants.GRPC_RULE_ID, rule.getId(), GrpcConstants.GRPC_REMOTE_ADDRESS, remoteAddress);
+        Map<String, Map<String, String>> rpcContext = exchange.getAttribute(Constants.GENERAL_CONTEXT);
+        return Optional.ofNullable(rpcContext).map(values -> values.get(PluginEnum.GRPC.getName()))
+                .map(values -> context.withValue(RPC_CONTEXT_KEY, values)).orElse(context);
     }
 
     /**

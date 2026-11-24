@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.google.common.util.concurrent.Futures;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
+import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.ClientCallStreamObserver;
@@ -42,15 +43,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -119,6 +128,62 @@ public final class ShenyuGrpcClientTest {
         ArgumentCaptor<ShenyuGrpcCallRequest> requestCaptor = ArgumentCaptor.forClass(ShenyuGrpcCallRequest.class);
         verify(client).invoke(requestCaptor.capture());
         assertEquals(1, requestCaptor.getValue().getRequests().size());
+    }
+
+    @Test
+    public void testRetiredClientRejectsInvocationBeforeCreatingTransportCall() {
+        ManagedChannel channel = mock(ManagedChannel.class);
+        final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
+        ShenyuGrpcCallRequest request = newCallParams(MethodDescriptor.MethodType.UNARY, newRequestList());
+        request.setChannel(channel);
+
+        client.close();
+        client.close();
+
+        ExecutionException failure = assertThrows(ExecutionException.class,
+                () -> client.invoke(request).get(5, TimeUnit.SECONDS));
+        assertEquals("gRPC client is retired", failure.getCause().getMessage());
+        verify(channel).shutdown();
+        verify(channel, never()).newCall(any(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testRetirementWaitsUntilAdmittedCallHasStarted() throws Exception {
+        ManagedChannel channel = mock(ManagedChannel.class);
+        ClientCall<DynamicMessage, DynamicMessage> transport = mock(ClientCall.class);
+        final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
+        ShenyuGrpcCallRequest request = newCallParams(MethodDescriptor.MethodType.UNARY, newRequestList());
+        request.setChannel(channel);
+        CountDownLatch enteringStart = new CountDownLatch(1);
+        CountDownLatch finishStart = new CountDownLatch(1);
+        doReturn(transport).when(channel).newCall(any(), any());
+        doAnswer(invocation -> {
+            enteringStart.countDown();
+            assertTrue(finishStart.await(5, TimeUnit.SECONDS));
+            return null;
+        }).when(transport).start(any(), any());
+        FutureTask<ListenableFuture<Void>> start = new FutureTask<>(() -> client.invoke(request));
+        FutureTask<Void> retire = new FutureTask<>(client::close, null);
+        Thread caller = new Thread(start, "grpc-test-caller");
+        Thread closer = new Thread(retire, "grpc-test-retirement");
+
+        caller.start();
+        try {
+            assertTrue(enteringStart.await(5, TimeUnit.SECONDS));
+            closer.start();
+            await().atMost(Duration.ofSeconds(5)).until(() -> closer.getState() == Thread.State.BLOCKED || retire.isDone());
+            assertFalse(retire.isDone());
+            verify(channel, never()).shutdown();
+        } finally {
+            finishStart.countDown();
+        }
+
+        ListenableFuture<Void> invocation = start.get(5, TimeUnit.SECONDS);
+        retire.get(5, TimeUnit.SECONDS);
+        verify(channel).shutdown();
+        assertFalse(invocation.isDone());
+        invocation.cancel(true);
     }
 
     @Test
