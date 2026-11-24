@@ -85,7 +85,7 @@ final class AiAttemptOrchestrator {
     private Mono<Void> attempt(final AiAttemptPlan plan) {
         AiExecutionState execution = plan.execution();
         final int currentAttempt = execution.attemptIndex().getAndIncrement();
-        if (hasRequestDeadlineExpired(execution.deadlineNanos())) {
+        if (execution.requestDeadline().expired()) {
             emit(execution.invocationId(), currentAttempt, plan.phase(),
                     AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
             return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
@@ -179,7 +179,7 @@ final class AiAttemptOrchestrator {
                                    final AiGeneratedContentInspector.AiContentInspection inspection,
                                    final int currentAttempt) {
         AiExecutionState execution = plan.execution();
-        long remainingNanos = execution.deadlineNanos() - System.nanoTime();
+        long remainingNanos = execution.requestDeadline().remaining().toNanos();
         if (remainingNanos <= 0L) {
             emit(execution.invocationId(), currentAttempt, plan.phase(),
                     AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
@@ -342,7 +342,7 @@ final class AiAttemptOrchestrator {
             if (Objects.nonNull(retryAfter) && retryAfter.compareTo(delay) > 0) {
                 delay = retryAfter;
             }
-            Duration remaining = Duration.ofNanos(plan.execution().deadlineNanos() - System.nanoTime());
+            Duration remaining = plan.execution().requestDeadline().remaining();
             if (remaining.isNegative() || remaining.isZero() || delay.compareTo(remaining) >= 0) {
                 emit(plan.execution().invocationId(), currentAttempt, plan.phase(),
                         AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, retryAfter);
@@ -360,7 +360,7 @@ final class AiAttemptOrchestrator {
     private Mono<Void> fallback(final Throwable error, final AiAttemptPlan plan, final int currentAttempt,
                                 final Map<String, List<String>> responseHeaders) {
         return Mono.defer(() -> {
-            Duration remaining = Duration.ofNanos(plan.execution().deadlineNanos() - System.nanoTime());
+            Duration remaining = plan.execution().requestDeadline().remaining();
             if (remaining.isNegative() || remaining.isZero()) {
                 emit(plan.execution().invocationId(), currentAttempt, plan.phase(),
                         AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED,
@@ -418,7 +418,4 @@ final class AiAttemptOrchestrator {
         }
     }
 
-    private static boolean hasRequestDeadlineExpired(final long deadlineNanos) {
-        return deadlineNanos - System.nanoTime() <= 0L;
-    }
 }

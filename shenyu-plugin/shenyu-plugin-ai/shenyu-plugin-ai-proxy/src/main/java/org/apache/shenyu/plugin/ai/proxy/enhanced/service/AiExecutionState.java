@@ -20,8 +20,10 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,7 +37,7 @@ import java.util.function.Function;
  * @param emitted whether response bytes have reached the client
  * @param attemptIndex attempt sequence shared by primary and fallback
  * @param invocationId opaque logical invocation identifier
- * @param deadlineNanos absolute shared request deadline
+ * @param requestDeadline absolute shared request deadline
  * @param observation subscription-local terminal observation
  * @param structuredOutputPolicy request-level structured output policy
  * @param repairsRemaining bounded structured output regeneration budget
@@ -47,9 +49,38 @@ record AiExecutionState(
         AtomicBoolean emitted,
         AtomicInteger attemptIndex,
         String invocationId,
-        long deadlineNanos,
+        RequestDeadline requestDeadline,
         AiRequestObservation observation,
         AiStructuredOutputPolicy structuredOutputPolicy,
         AtomicInteger repairsRemaining,
         AtomicReference<AiCommonConfig> activeConfig) {
+
+    /**
+     * Shared request deadline and its terminal transport failure.
+     *
+     * @param deadlineNanos absolute deadline from the monotonic clock
+     */
+    record RequestDeadline(long deadlineNanos) {
+
+        Duration remaining() {
+            return Duration.ofNanos(remainingNanos());
+        }
+
+        Duration remainingTimeout() {
+            return Duration.ofNanos(Math.max(1L, remainingNanos()));
+        }
+
+        boolean expired() {
+            return remainingNanos() <= 0L;
+        }
+
+        AiTransportException timeoutException() {
+            return new AiTransportException(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
+                    "AI proxy request deadline exceeded", null);
+        }
+
+        private long remainingNanos() {
+            return deadlineNanos - System.nanoTime();
+        }
+    }
 }

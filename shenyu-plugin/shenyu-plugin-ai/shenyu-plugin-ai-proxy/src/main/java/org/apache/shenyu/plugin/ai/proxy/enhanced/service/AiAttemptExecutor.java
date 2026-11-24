@@ -24,11 +24,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiObservationSupport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 
-import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -54,10 +52,8 @@ final class AiAttemptExecutor {
                     prepared.clientProtocol(), prepared.stream());
             return transport.execute(prepared.request())
                     .flatMap(response -> handleResponse(response, prepared, observation, responseHandler))
-                    .timeout(remainingRequestTimeout(execution.deadlineNanos()),
-                            Mono.error(new AiTransportException(
-                                    AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
-                                    "AI proxy request deadline exceeded", null)))
+                    .timeout(execution.requestDeadline().remainingTimeout(),
+                            Mono.error(execution.requestDeadline().timeoutException()))
                     .doOnSuccess(ignored -> observation.finish(SignalType.ON_COMPLETE, null))
                     .doOnError(error -> observation.finish(SignalType.ON_ERROR, AiObservationSupport.outcome(error)))
                     .doFinally(signal -> {
@@ -88,10 +84,6 @@ final class AiAttemptExecutor {
             return AiAttemptEvent.Kind.REPAIR;
         }
         return attemptIndex == 0 ? AiAttemptEvent.Kind.PRIMARY : AiAttemptEvent.Kind.RETRY;
-    }
-
-    private static Duration remainingRequestTimeout(final long deadlineNanos) {
-        return Duration.ofNanos(Math.max(1L, deadlineNanos - System.nanoTime()));
     }
 
 }

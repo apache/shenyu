@@ -21,10 +21,8 @@ import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -61,8 +59,8 @@ final class AiExecutionCoordinator {
             AiRequestObservation observation = Objects.requireNonNull(
                     view.getOrDefault(AiRequestObservation.REACTOR_KEY, null),
                     "AI request observation must be established");
-            long deadlineNanos = System.nanoTime()
-                    + retryProperties.getRequestDeadline().toNanos();
+            AiExecutionState.RequestDeadline requestDeadline = new AiExecutionState.RequestDeadline(
+                    System.nanoTime() + retryProperties.getRequestDeadline().toNanos());
             String invocationId = UUID.randomUUID().toString();
             AiStructuredOutputPolicy structuredOutputPolicy =
                     AiStructuredOutputPolicy.of(primaryConfig.getStructuredOutput());
@@ -82,7 +80,7 @@ final class AiExecutionCoordinator {
                         new AtomicBoolean(),
                         new AtomicInteger(),
                         invocationId,
-                        deadlineNanos,
+                        requestDeadline,
                         observation,
                         structuredOutputPolicy,
                         new AtomicInteger(structuredOutputPolicy.repairMaxAttempts()),
@@ -102,13 +100,8 @@ final class AiExecutionCoordinator {
                                 primary.cacheCompatible(),
                                 responseConsumer,
                                 upstream)
-                        .timeout(
-                                Duration.ofNanos(Math.max(
-                                        1L, deadlineNanos - System.nanoTime())),
-                                Mono.error(new AiTransportException(
-                                        AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
-                                        "AI proxy request deadline exceeded",
-                                        null)));
+                        .timeout(requestDeadline.remainingTimeout(),
+                                Mono.error(requestDeadline.timeoutException()));
             }
 
             return upstream.apply(responseConsumer);

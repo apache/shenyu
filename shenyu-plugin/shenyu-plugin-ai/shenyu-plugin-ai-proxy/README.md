@@ -140,6 +140,7 @@ artifact:
 | --- | --- |
 | `AiProxyProvider.buildRequest(request, config)` | Implement `capabilities()` and `prepareRequest(request, config)`; return `PreparedAiRequest.identity(upstreamRequest)` when no response adaptation is required |
 | Public `AiProxyEngine` constructor overloads | `AiProxyEngine.builder(protocols, providers, routeResolver, transport)`, optional policy setters, then `build()` |
+| `service.AiProxyConfigService` | `service.config.AiProxyConfigService` |
 | `service.AiProxyAttemptEvent` | `service.event.AiProxyAttemptEvent` |
 | `service.AiProxyAttemptListener` | `service.event.AiProxyAttemptListener` |
 | `service.AiObservationSupport` | `service.observation.AiObservationSupport` |
@@ -149,11 +150,12 @@ The `OpenAi(ProviderProfile)` constructor remains available. This does not retai
 source or binary compatibility for implementations of the old Provider interface
 or callers of the removed Engine constructors.
 
-Exact response caching is also an explicit extension opt-in. A custom Provider
-must override `isExactResponseCacheCompatible(targetProtocol)` for every native
-target protocol it approves; the default is `false`. Protocol compatibility,
-route eligibility, request shape and cache authorization are still checked
-independently, so this hook alone never authorizes reuse.
+Exact response caching is also an explicit extension opt-in. An independent
+custom Provider must override `isExactResponseCacheCompatible(targetProtocol)`
+for every native target protocol it approves; the default is `false`.
+`OpenAiCompatible` delegates this decision to its wrapped `OpenAi` profile.
+Protocol compatibility, route eligibility, request shape and cache authorization
+are still checked independently, so this hook alone never authorizes reuse.
 
 Use the built-in tests as verification references:
 [OpenAiResponsesTest](src/test/java/org/apache/shenyu/plugin/ai/proxy/enhanced/protocol/OpenAiResponsesTest.java),
@@ -278,7 +280,10 @@ application-owned cache authorization adapter; diagnostic identity and client
 headers do not authorize reuse. Streams, tools, sessions, fallback and unsupported
 payloads bypass. Custom Providers default to ineligible and must override
 `isExactResponseCacheCompatible(targetProtocol)` to opt in for an approved native
-protocol. See [configuration, isolation and lifecycle limits](../../../docs/ai-exact-response-cache.md).
+protocol. When the cache component is configured, `Snapshot.bypasses` counts every
+request forwarded without a cache lookup or fill, including requests rejected by
+these eligibility checks and requests bypassed because fill capacity is exhausted.
+See [configuration, isolation and lifecycle limits](../../../docs/ai-exact-response-cache.md).
 
 ## Configuration and use
 

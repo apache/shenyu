@@ -46,12 +46,17 @@ The AI Proxy MUST separate request planning from reactive attempt execution, MUS
 #### Scenario: migrate Java extension implementations explicitly
 
 - **WHEN** an implementation migrates from the previous experimental Java API
-- **THEN** it replaces Provider `buildRequest` with explicit `capabilities` and `prepareRequest`, replaces Engine constructor overloads with the builder, and updates event and observation imports to their focused packages
+- **THEN** it replaces Provider `buildRequest` with explicit `capabilities` and `prepareRequest`, replaces Engine constructor overloads with the builder, moves `service.AiProxyConfigService` to `service.config.AiProxyConfigService`, and updates event and observation imports to their focused packages
 
 #### Scenario: deny exact caching by default
 
 - **WHEN** a custom Protocol or Provider does not explicitly declare exact-response-cache compatibility for the target protocol
 - **THEN** the prepared exchange is not eligible for exact response caching
+
+#### Scenario: count cache bypasses at the configured cache boundary
+
+- **WHEN** the exact response cache component is configured and a request is forwarded without a cache lookup or fill
+- **THEN** the cache bypass counter increases, including for requests rejected by stream, fallback, Protocol, Provider, route, request-shape, authorization, or fill-capacity eligibility checks
 
 #### Scenario: keep built-in compatibility during Java API consolidation
 

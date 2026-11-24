@@ -122,7 +122,8 @@ class AiAttemptExecutorTest {
             }
         };
         return new AiExecutionState("{}", response -> Mono.empty(), new AtomicBoolean(),
-                new AtomicInteger(), "invocation", System.nanoTime() + Duration.ofSeconds(5).toNanos(),
+                new AtomicInteger(), "invocation", new AiExecutionState.RequestDeadline(
+                        System.nanoTime() + Duration.ofSeconds(5).toNanos()),
                 new AiRequestObservation(observer, context), AiStructuredOutputPolicy.of(null),
                 new AtomicInteger(), new AtomicReference<>(new AiCommonConfig()));
     }
