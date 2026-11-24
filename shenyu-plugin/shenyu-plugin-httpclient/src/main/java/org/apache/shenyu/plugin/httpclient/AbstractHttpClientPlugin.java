@@ -39,6 +39,7 @@ import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.exception.StreamIdleTimeoutException;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -49,6 +50,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
 import org.apache.shenyu.plugin.api.tracing.TraceContextPropagator;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
@@ -99,6 +101,16 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
+        Long idleMillis = exchange.getAttribute(Constants.STREAM_IDLE_TIMEOUT);
+        return Objects.isNull(idleMillis) ? execute(exchange, chain, uri, null)
+                : Mono.defer(() -> execute(exchange, chain, uri, new ResponseBodyIdleTimeout(idleMillis)));
+    }
+
+    private Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final URI uri,
+                               final ResponseBodyIdleTimeout idleTimeout) {
+        if (Objects.nonNull(idleTimeout)) {
+            exchange.getAttributes().computeIfAbsent(HttpRouteResponseHeaders.ATTRIBUTE, key -> new HttpRouteResponseHeaders());
+        }
         final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         final Duration duration = Duration.ofMillis(timeout);
         // A probe must describe one attempt against its recovering target.
@@ -119,7 +131,9 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         final Mono<R> retriedResponse = retryTimes <= 0
                 ? response
                 : executeWithRetry(response, exchange, duration, retryTimes);
-        final Mono<Void> result = retriedResponse
+        Mono<Void> result = retriedResponse
+                .contextWrite(context -> Objects.isNull(idleTimeout) ? context.delete(ResponseBodyIdleTimeout.class)
+                        : context.put(ResponseBodyIdleTimeout.class, idleTimeout))
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(AbstractHttpClientPlugin::mapUpstreamTimeout)
@@ -131,10 +145,20 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                             : attempt.finish(Mono.defer(() -> chain.execute(exchange)))
                                     .onErrorMap(TimeoutException.class, HttpRouteDeadline::gatewayTimeout);
                 });
+        if (Objects.nonNull(idleTimeout)) {
+            result = idleTimeout.watch(result).onErrorMap(StreamIdleTimeoutException.class, error -> {
+                LOG.warn("{} {}", exchange.getLogPrefix(), error.getMessage());
+                if (exchange.getResponse().isCommitted()) {
+                    return error;
+                }
+                exchange.<HttpRouteResponseHeaders>getRequiredAttribute(HttpRouteResponseHeaders.ATTRIBUTE).restore(exchange);
+                return new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, error.getMessage(), error);
+            });
+        }
         // The aggregation subscription intentionally outlives individual retry attempts: a timed out
         // attempt must not discard the body that a later retry still needs. It is disposed when the
         // logical request terminates, which also releases the buffers accumulated so far.
-        Mono<Void> owned = exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST)
+        Mono<Void> owned = Objects.nonNull(idleTimeout) || exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST)
                 ? result.doFinally(signal -> {
                     if (exchange.getAttributes().remove(HttpRouteDeadline.ATTEMPT) instanceof HttpRouteDeadline attempt) {
                         attempt.abandon();
@@ -145,19 +169,25 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
 
     static <T> Mono<T> withAttemptTimeout(final ServerWebExchange exchange, final Duration duration, final Supplier<Mono<T>> send) {
         HttpRouteDeadline request = exchange.getAttribute(HttpRouteDeadline.REQUEST);
-        if (Objects.isNull(request)) {
-            return send.get()
-                    .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)));
+        if (Objects.isNull(request) && !exchange.getAttributes().containsKey(Constants.STREAM_IDLE_TIMEOUT)) {
+            return limitHeaders(send.get(), duration);
         }
-        return Mono.defer(() -> {
-            if (request.expired()) {
+        return Mono.deferContextual(context -> {
+            if (Objects.nonNull(request) && request.expired()) {
                 return Mono.error(HttpRouteDeadline.gatewayTimeout(null));
             }
-            HttpRouteDeadline attempt = new HttpRouteDeadline(duration.toMillis());
+            // An opted-in legacy request needs the same response ownership, but only headers have an absolute budget.
+            HttpRouteDeadline attempt = new HttpRouteDeadline(Objects.isNull(request) ? 0 : duration.toMillis());
             exchange.getAttributes().put(HttpRouteDeadline.ATTEMPT, attempt);
-            return attempt.limit(send.get())
-                    .doOnError(error -> attempt.abandon()).doOnCancel(attempt::abandon);
+            ResponseBodyIdleTimeout idle = context.getOrDefault(ResponseBodyIdleTimeout.class, null);
+            Mono<T> sendAttempt = Objects.isNull(idle) ? send.get() : idle.bindAttempt(send.get());
+            Mono<T> response = Objects.isNull(request) ? limitHeaders(sendAttempt, duration) : attempt.limit(sendAttempt);
+            return response.doOnError(error -> attempt.abandon()).doOnCancel(attempt::abandon);
         });
+    }
+
+    private static <T> Mono<T> limitHeaders(final Mono<T> response, final Duration duration) {
+        return response.timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)));
     }
 
     private static Throwable mapUpstreamTimeout(final Throwable throwable) {

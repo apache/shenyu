@@ -1599,6 +1599,8 @@ values ('1518229897210273839', '5', 'retry', 'retryCount', 1, 2, 1, null);
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273840', '5', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}');
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1890000000000000004', '5', 'streamIdleTimeout', 'streamIdleTimeout (ms)', 1, 2, 5, '{"required":"0","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273841', '5', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null);

@@ -134,6 +134,9 @@ public interface Constants {
      */
     String HTTP_TIME_OUT = "httpTimeOut";
 
+    /** Divide rule response-body idle timeout snapshot, in milliseconds. */
+    String STREAM_IDLE_TIMEOUT = "streamIdleTimeout";
+
     /**
      * The constant HTTP_POOL_GROUP: optional named upstream connection-pool group
      * chosen by the divide rule handle; absent means the default shared pool.

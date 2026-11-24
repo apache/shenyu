@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.handler;
 
+import org.apache.shenyu.common.exception.StreamIdleTimeoutException;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
@@ -55,8 +56,12 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @Override
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
+        if (throwable instanceof StreamIdleTimeoutException && exchange.getResponse().isCommitted()) {
+            return Mono.error(throwable);
+        }
         LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
-        if (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.REQUEST)) && throwable instanceof ResponseStatusException status
+        if (throwable instanceof ResponseStatusException status
+                && (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.REQUEST)) || status.getCause() instanceof StreamIdleTimeoutException)
                 && HttpStatus.GATEWAY_TIMEOUT.equals(status.getStatusCode())) {
             if (exchange.getResponse().isCommitted()) {
                 return Mono.error(throwable);

@@ -39,9 +39,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.reactivestreams.Subscription;
+import reactor.core.Disposable;
+import reactor.core.Disposables;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.Connection;
 
 import java.net.URI;
 import java.util.Objects;
@@ -136,6 +139,22 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                     // gateway wins and the upstream continues the trace of the gateway span
                     this.injectTraceContext(exchange, new HttpHeadersTraceContextCarrier(headers));
                 });
+        HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
+        Disposable.Swap operation = Objects.nonNull(attempt) && exchange.getAttributes().containsKey(Constants.STREAM_IDLE_TIMEOUT)
+                ? Disposables.swap() : null;
+        if (Objects.nonNull(operation)) {
+            requestBodySpec.httpRequest(httpRequest -> {
+                if (httpRequest.getNativeRequest() instanceof Connection connection) {
+                    // Spring may already subscribe to drain the body on cancellation. Dispose the
+                    // original operation instead of racing it with a second inbound subscription.
+                    if (Objects.isNull(operation.get())) {
+                        attempt.onAbandon(operation::dispose);
+                    }
+                    // Reactor Netty can transparently retry a connection reset before headers.
+                    operation.replace(connection);
+                }
+            });
+        }
         WebClient.RequestHeadersSpec<?> requestHeadersSpec = requestBodySpec;
         // Do not attach a request body for GET/HEAD to avoid unexpected transfer encoding.
         if (isRequestBodyRequired(httpMethod)) {
@@ -154,9 +173,8 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                         .thenReturn(new ShenyuUpstreamStatusException(clientResponse.statusCode().value())))
                 // cover DefaultResponseSpec#DEFAULT_STATUS_HANDLER
                 .onRawStatus(httpStatus -> httpStatus >= 400, clientResponse -> Mono.empty());
-        HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
         return responseSpec.toEntityFlux(DataBuffer.class)
-                .map(entity -> Objects.isNull(attempt) ? entity : ownResponse(entity, attempt))
+                .map(entity -> Objects.isNull(attempt) ? entity : ownResponse(entity, attempt, Objects.nonNull(operation) && Objects.nonNull(operation.get())))
                 .flatMap(fluxResponseEntity -> {
                     if (fluxResponseEntity.getStatusCode().is2xxSuccessful()) {
                         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
@@ -174,11 +192,15 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
                 });
     }
 
-    private ResponseEntity<Flux<DataBuffer>> ownResponse(final ResponseEntity<Flux<DataBuffer>> entity, final HttpRouteDeadline attempt) {
+    private ResponseEntity<Flux<DataBuffer>> ownResponse(final ResponseEntity<Flux<DataBuffer>> entity, final HttpRouteDeadline attempt,
+                                                         final boolean ownsConnection) {
         Flux<DataBuffer> body = entity.getBody();
         if (Objects.isNull(body)) {
             attempt.received();
             return entity;
+        }
+        if (ownsConnection) {
+            return new ResponseEntity<>(body.doOnComplete(attempt::received), entity.getHeaders(), entity.getStatusCode());
         }
         AtomicBoolean claimed = new AtomicBoolean();
         attempt.onAbandon(() -> {

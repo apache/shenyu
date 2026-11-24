@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto.convert.rule.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
+import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfigValidator;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
@@ -27,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -64,6 +67,22 @@ public class DivideRuleHandleTest {
         DivideRuleHandle handle2 = new DivideRuleHandle();
         
         assertThat(ImmutableSet.of(handle1, handle2), hasSize(1));
+    }
+
+    @Test
+    public void testStreamIdleTimeoutValue() {
+        DivideRuleHandle handle = new DivideRuleHandle();
+        DivideRuleHandle parsed = CanaryConfigValidator.parseHandle("{\"streamIdleTimeout\":10000}");
+        assertNotEquals(parsed, handle);
+        handle.setStreamIdleTimeout(10000L);
+        assertEquals(10000L, parsed.getStreamIdleTimeout());
+        assertEquals(parsed, handle);
+        assertEquals(parsed.hashCode(), handle.hashCode());
+        assertThat(handle.toString().contains("streamIdleTimeout=10000"), is(true));
+        assertThrows(IllegalArgumentException.class, () -> handle.setStreamIdleTimeout(0L));
+        assertThrows(IllegalArgumentException.class, () -> handle.setStreamIdleTimeout(Long.MAX_VALUE));
+        handle.setStreamIdleTimeout(null);
+        assertEquals(CanaryConfigValidator.parseHandle("{\"streamIdleTimeout\":null}"), handle);
     }
     
     @Test

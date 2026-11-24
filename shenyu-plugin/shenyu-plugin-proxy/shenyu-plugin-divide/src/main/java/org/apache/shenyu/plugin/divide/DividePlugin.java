@@ -144,6 +144,11 @@ public class DividePlugin extends AbstractShenyuPlugin {
         exchange.getAttributes().remove(UpstreamAttemptOwner.ATTRIBUTE);
         exchange.getAttributes().remove(Constants.SHENYU_CANARY_CONTEXT);
         exchange.getAttributes().remove(Constants.HTTP_POOL_GROUP);
+        if (Objects.isNull(ruleHandle.getStreamIdleTimeout())) {
+            exchange.getAttributes().remove(Constants.STREAM_IDLE_TIMEOUT);
+        } else {
+            exchange.getAttributes().put(Constants.STREAM_IDLE_TIMEOUT, ruleHandle.getStreamIdleTimeout());
+        }
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         final ServerWebExchange effectiveExchange = limitChunkedRequestBody(exchange, ruleHandle);

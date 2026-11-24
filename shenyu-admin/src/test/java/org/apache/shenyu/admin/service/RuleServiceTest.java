@@ -95,7 +95,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -718,8 +717,7 @@ public final class RuleServiceTest {
         given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
         given(ruleMapper.updateSelective(any())).willReturn(1);
         assertEquals(1, ruleService.createOrUpdate(dto));
-        // one lookup each from validateRuleHandle and validateCanaryConfig; the plugin comparison adds none
-        verify(selectorMapper, times(2)).selectById("456");
+        verify(selectorMapper).selectById("456");
         verify(ruleMapper).updateSelective(any());
     }
 
@@ -733,6 +731,44 @@ public final class RuleServiceTest {
             jwt.when(JwtUtils::getUserInfo).thenReturn(UserInfo.builder().userId("1").userName("admin").build());
             assertEquals(1, ruleService.createOrUpdate(dto));
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"streamIdleTimeout\":null}", "{\"streamIdleTimeout\":1}", "{\"streamIdleTimeout\":300000}",
+        "{\"streamIdleTimeout\":\"10000\"}"})
+    public void testStreamIdleTimeoutRoundTripsThroughAdmin(final String handle) {
+        configureDivideSelector();
+        RuleDTO dto = buildRuleDTO("123");
+        dto.setHandle(handle);
+        given(ruleMapper.selectById("123")).willReturn(buildRuleDO("123"));
+        given(ruleMapper.updateSelective(any())).willReturn(1);
+        assertEquals(1, ruleService.createOrUpdate(dto));
+        ArgumentCaptor<RuleDO> saved = ArgumentCaptor.forClass(RuleDO.class);
+        verify(ruleMapper).updateSelective(saved.capture());
+        assertEquals(handle, saved.getValue().getHandle());
+        verify(ruleEventPublisher).onUpdated(any(), any(), any(), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "-1", "300001", "10.5", "9223372036854775808", "18446744073709551617",
+        "\"bad\"", "\"\"", "\" 5\"", "\"1.5\"", "\"1e2\"", "true", "{}", "[]"})
+    public void testInvalidStreamIdleTimeoutRejectedBeforeWrites(final String value) {
+        configureDivideSelector();
+        RuleDTO invalid = buildRuleDTO("");
+        invalid.setHandle("{\"streamIdleTimeout\":" + value + "}");
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(invalid));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.registerDefault(invalid));
+        invalid.setId("123");
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(invalid));
+        List<RuleDTO> rules = Arrays.asList(buildRuleDTO(""), invalid);
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(rules));
+        ConfigsImportContext context = new ConfigsImportContext();
+        context.getSelectorIdMapping().put("source", "456");
+        rules.forEach(rule -> rule.setSelectorId("source"));
+        assertThrows(ShenyuAdminException.class, () -> ruleService.importData(SYS_DEFAULT_NAMESPACE_ID, rules, context));
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleMapper, never()).updateSelective(any());
+        verifyNoInteractions(ruleConditionMapper, ruleEventPublisher);
     }
 
     @ParameterizedTest

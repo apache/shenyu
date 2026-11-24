@@ -18,6 +18,7 @@
 package org.apache.shenyu.web.handler;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
+import org.apache.shenyu.common.exception.StreamIdleTimeoutException;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
@@ -52,7 +53,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 /**
  * test for GlobalErrorHandler.
@@ -83,7 +83,7 @@ public final class GlobalErrorHandlerTest {
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setApplicationContext(context);
-        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() {
+        lenient().when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult() {
         });
         lenient().when(context.getBean(AlarmService.class)).thenReturn(content -> {
         });
@@ -104,6 +104,27 @@ public final class GlobalErrorHandlerTest {
         assertTrue(exchange.getResponse().getHeaders().getOrEmpty("Content-Encoding").isEmpty());
         assertTrue(exchange.getResponse().isCommitted());
         StepVerifier.create(globalErrorHandler.handle(exchange, failure)).expectErrorMatches(error -> error == failure).verify();
+    }
+
+    @Test
+    public void testRuleBodyIdleTimeoutPreservesCommittedResponse() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getResponse().setStatusCode(HttpStatus.OK);
+        exchange.getResponse().setComplete().block();
+        StreamIdleTimeoutException failure = new StreamIdleTimeoutException(100);
+        StepVerifier.create(globalErrorHandler.handle(exchange, failure)).expectErrorMatches(error -> error == failure).verify();
+        assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void testUncommittedRuleBodyIdleTimeoutWrites504() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        exchange.getResponse().getHeaders().set("Content-Encoding", "gzip");
+        StreamIdleTimeoutException failure = new StreamIdleTimeoutException(100);
+        globalErrorHandler.handle(exchange, new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, failure.getMessage(), failure)).block();
+        assertEquals(HttpStatus.GATEWAY_TIMEOUT, exchange.getResponse().getStatusCode());
+        assertTrue(exchange.getResponse().getHeaders().getOrEmpty("Content-Encoding").isEmpty());
+        assertTrue(exchange.getResponse().getBodyAsString().block().contains("idle timeout"));
     }
 
     @Test

@@ -20,7 +20,6 @@ package org.apache.shenyu.springboot.starter.plugin.httpclient;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -165,9 +164,12 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
             connection.addHandlerLast(new IdleStateHandler(properties.getReaderIdleTime(), properties.getWriterIdleTime(), properties.getAllIdleTime(), TimeUnit.MILLISECONDS));
             connection.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
             if (properties.getReadTimeout() > 0) {
-                connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+                ResponseBodyIdleTimeoutHandler.addReadTimeout(connection, properties.getReadTimeout());
             }
-        });
+        }).doOnResponse(ResponseBodyIdleTimeoutHandler::onResponse);
+        if (properties.getReadTimeout() > 0) {
+            httpClient = httpClient.doOnRequest((request, connection) -> Http2ReadTimeoutHandler.registerStream(connection));
+        }
         if (Objects.nonNull(loopResources)) {
             httpClient = httpClient.runOn(loopResources);
         }
