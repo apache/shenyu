@@ -45,6 +45,21 @@ import static org.hamcrest.Matchers.nullValue;
 public class OpenApiUtilsTest {
 
     @Test
+    void testParseReturnTypeDateUsesOpenApiStringType() throws Exception {
+        Method method = DubboTestService.class.getMethod("updatedAt");
+        ResponseType returnType = OpenApiUtils.parseReturnType(method);
+        assertThat(returnType.getType(), is("string"));
+    }
+
+    @Test
+    void testParseReturnTypeRawCollectionUsesArrayType() throws Exception {
+        Method method = DubboTestService.class.getMethod("rawIds");
+        ResponseType returnType = OpenApiUtils.parseReturnType(method);
+        assertThat(returnType.getType(), is("array"));
+        assertThat(returnType.getRefs(), nullValue());
+    }
+
+    @Test
     void testGenerateRpcDocumentResponse() throws Exception {
         Method method = DubboTestService.class.getMethod("findById", String.class);
         Map<String, Object> response = OpenApiUtils.generateRpcDocumentResponse("/dubbo/findById", method);
@@ -453,6 +468,15 @@ public class OpenApiUtilsTest {
         }
 
         public List<DubboTest> findAll() {
+            return null;
+        }
+
+        public java.util.Date updatedAt() {
+            return null;
+        }
+
+        @SuppressWarnings("rawtypes")
+        public java.util.List rawIds() {
             return null;
         }
     }

@@ -677,10 +677,16 @@ public class OpenApiUtils {
             responseType.setType("string");
             return responseType;
         } else if (isDateType(clazz)) {
-            responseType.setType("date");
+            // OpenAPI has no "date" type: dates are strings with a date format
+            responseType.setType("string");
             return responseType;
         } else if (isProtobufMessage(clazz)) {
             return parseProtobufClass(responseType, clazz, depth);
+        } else if (Collection.class.isAssignableFrom(clazz)) {
+            // a raw (non-parameterized) collection is an array of unknown items,
+            // not an object built from the collection's internal fields
+            responseType.setType("array");
+            return responseType;
         } else {
             List<ResponseType> refs = new ArrayList<>();
             for (Field field : collectInstanceFields(clazz)) {
