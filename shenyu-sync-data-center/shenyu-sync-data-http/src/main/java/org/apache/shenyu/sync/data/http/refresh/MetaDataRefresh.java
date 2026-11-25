@@ -19,7 +19,7 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The type meta data refresh.
@@ -40,6 +42,8 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
     private static final Logger LOG = LoggerFactory.getLogger(MetaDataRefresh.class);
 
     private final List<MetaDataSubscriber> metaDataSubscribers;
+
+    private List<MetaData> appliedMetadata = List.of();
 
     public MetaDataRefresh(final List<MetaDataSubscriber> metaDataSubscribers) {
         this.metaDataSubscribers = metaDataSubscribers;
@@ -67,12 +71,30 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
     }
 
     @Override
+    public synchronized Boolean refresh(final JsonObject data) {
+        // Multiple Admin connections can deliver snapshots. Keep the version check and subscriber updates ordered together.
+        return super.refresh(data);
+    }
+
+    @Override
     protected void refresh(final List<MetaData> data) {
-        if (CollectionUtils.isEmpty(data)) {
+        List<MetaData> snapshot = ListUtils.emptyIfNull(data);
+        unsubscribeMissingMetadata(snapshot);
+        if (snapshot.isEmpty()) {
             LOG.info("clear all metaData cache");
             metaDataSubscribers.forEach(MetaDataSubscriber::refresh);
         } else {
-            data.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));
+            snapshot.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));
         }
+        appliedMetadata = snapshot;
+    }
+
+    private void unsubscribeMissingMetadata(final List<MetaData> snapshot) {
+        if (appliedMetadata.isEmpty()) {
+            return;
+        }
+        Set<String> currentIds = snapshot.stream().map(MetaData::getId).collect(Collectors.toSet());
+        appliedMetadata.stream().filter(metaData -> !currentIds.contains(metaData.getId()))
+                .forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(metaData)));
     }
 }

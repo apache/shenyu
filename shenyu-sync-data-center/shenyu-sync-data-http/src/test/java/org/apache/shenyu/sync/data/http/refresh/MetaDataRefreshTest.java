@@ -23,7 +23,10 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,10 +34,22 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public final class MetaDataRefreshTest {
 
     private final MetaDataRefresh mockMetaDataRefresh = this.buildMockMetaDataRefresh();
+
+    @BeforeEach
+    @AfterEach
+    public void clearGroupCache() {
+        AbstractDataRefresh.GROUP_CACHE.remove(ConfigGroupEnum.META_DATA);
+    }
 
     @Test
     public void testConvert() {
@@ -71,6 +86,53 @@ public final class MetaDataRefreshTest {
         metaDataRefresh.refresh(metaDataList);
         metaDataList.add(metaData);
         metaDataRefresh.refresh(metaDataList);
+    }
+
+    @Test
+    public void testNewSnapshotUnsubscribesOnlyDeletedMetadata() {
+        MetaDataSubscriber subscriber = mock(MetaDataSubscriber.class);
+        MetaDataRefresh refresh = new MetaDataRefresh(List.of(subscriber));
+        MetaData deleted = metadata("old-id", "/old");
+        MetaData retained = metadata("retained-id", "/retained");
+
+        assertTrue(refresh.refresh(snapshot("first", 1, List.of(deleted, retained))));
+        assertTrue(refresh.refresh(snapshot("second", 2, List.of(retained))));
+        assertFalse(refresh.refresh(snapshot("late", 1, List.of(deleted, retained))));
+
+        InOrder calls = inOrder(subscriber);
+        calls.verify(subscriber).onSubscribe(deleted);
+        calls.verify(subscriber).onSubscribe(retained);
+        calls.verify(subscriber).unSubscribe(deleted);
+        calls.verify(subscriber).onSubscribe(retained);
+        calls.verifyNoMoreInteractions();
+        verify(subscriber, never()).refresh();
+    }
+
+    @Test
+    public void testEmptySnapshotUnsubscribesTheLastMetadataBeforeRefresh() {
+        MetaDataSubscriber subscriber = mock(MetaDataSubscriber.class);
+        MetaDataRefresh refresh = new MetaDataRefresh(List.of(subscriber));
+        MetaData deleted = metadata("old-id", "/old");
+
+        assertTrue(refresh.refresh(snapshot("first", 1, List.of(deleted))));
+        assertTrue(refresh.refresh(snapshot("empty", 2, List.of())));
+        assertFalse(refresh.refresh(snapshot("empty", 2, List.of())));
+
+        InOrder calls = inOrder(subscriber);
+        calls.verify(subscriber).onSubscribe(deleted);
+        calls.verify(subscriber).unSubscribe(deleted);
+        calls.verify(subscriber).refresh();
+        calls.verifyNoMoreInteractions();
+    }
+
+    private static MetaData metadata(final String id, final String path) {
+        return MetaData.builder().id(id).path(path).rpcType("dubbo").enabled(true).build();
+    }
+
+    private static JsonObject snapshot(final String md5, final long revision, final List<MetaData> data) {
+        JsonObject json = new JsonObject();
+        json.add(ConfigGroupEnum.META_DATA.name(), GsonUtils.getGson().toJsonTree(new ConfigData<>(md5, revision, data)));
+        return json;
     }
 
     private MetaDataRefresh buildMockMetaDataRefresh() {
