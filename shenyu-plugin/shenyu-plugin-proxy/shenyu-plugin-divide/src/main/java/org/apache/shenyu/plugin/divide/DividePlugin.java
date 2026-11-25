@@ -49,7 +49,6 @@ import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamAttemptOwner;
-import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamRoutingContext;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
