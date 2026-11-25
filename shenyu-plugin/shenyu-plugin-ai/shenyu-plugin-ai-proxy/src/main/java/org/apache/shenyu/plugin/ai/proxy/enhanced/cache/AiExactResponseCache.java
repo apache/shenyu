@@ -109,34 +109,28 @@ public final class AiExactResponseCache {
     /**
      * Execute against the cache after authentication, routing and request preparation.
      *
-     * @param originalBody original client JSON
-     * @param prepared actual upstream request
-     * @param provider native provider identifier, independently verified by the engine
-     * @param clientProtocol client protocol
-     * @param targetProtocol actual upstream protocol
-     * @param stream whether streaming was requested
-     * @param hasFallback whether the request may fall back
-     * @param compatible whether the protocol and provider explicitly support this cache contract
+     * @param request prepared cache request and independently verified identity
      * @param consumer downstream response writer
      * @param upstream original transport operation accepting a response writer
      * @return lazy response completion
      */
-    public Mono<Void> execute(final String originalBody, final AiUpstreamRequest prepared, final String provider,
-                              final String clientProtocol, final String targetProtocol, final boolean stream, final boolean hasFallback,
-                              final boolean compatible,
+    public Mono<Void> execute(final CacheRequest request,
                               final Function<AiUpstreamResponse, Mono<Void>> consumer,
                               final Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream) {
         return Mono.deferContextual(context -> {
             final long epoch = generation.get();
             Object scope = context.getOrDefault(AiResponseCacheScope.REACTOR_KEY, null);
-            if (!properties.isEnabled() || stream || hasFallback || !compatible
+            if (!properties.isEnabled() || !request.eligible()
                     || !(scope instanceof AiResponseCacheScope)) {
                 return bypass(consumer, upstream);
             }
             String key;
             Entry entry;
             try {
-                key = key(originalBody, prepared, (AiResponseCacheScope) scope, provider, clientProtocol, targetProtocol);
+                key = key(request.keySource().originalBody(), request.keySource().preparedRequest(),
+                        (AiResponseCacheScope) scope,
+                        request.identity().provider(), request.identity().clientProtocol(),
+                        request.identity().targetProtocol());
                 if (Objects.isNull(key)) {
                     return bypass(consumer, upstream);
                 }
@@ -395,6 +389,43 @@ public final class AiExactResponseCache {
             }
         }
         return true;
+    }
+
+    /**
+     * Cache input prepared by the execution coordinator.
+     *
+     * @param keySource original and effective request representations used to derive the key
+     * @param identity independently verified provider and protocol identity
+     * @param eligible whether the complete execution profile permits exact caching
+     */
+    public record CacheRequest(
+            CacheKeySource keySource,
+            CacheIdentity identity,
+            boolean eligible) {
+
+        public CacheRequest {
+            Objects.requireNonNull(keySource, "keySource must not be null");
+            Objects.requireNonNull(identity, "identity must not be null");
+        }
+    }
+
+    /**
+     * Original and prepared request representations used to derive an exact cache key.
+     *
+     * @param originalBody original client JSON
+     * @param preparedRequest actual upstream request
+     */
+    public record CacheKeySource(String originalBody, AiUpstreamRequest preparedRequest) {
+    }
+
+    /**
+     * Stable identity dimensions used to partition exact cache entries.
+     *
+     * @param provider native provider identifier
+     * @param clientProtocol client protocol
+     * @param targetProtocol actual upstream protocol
+     */
+    public record CacheIdentity(String provider, String clientProtocol, String targetProtocol) {
     }
 
     /**

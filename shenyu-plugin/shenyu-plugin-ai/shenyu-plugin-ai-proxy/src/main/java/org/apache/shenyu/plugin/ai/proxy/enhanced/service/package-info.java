@@ -18,9 +18,16 @@
 /**
  * Public AI Proxy execution facade and policy configuration.
  *
- * <p>The terminal plugin invokes AiProxyEngine for both response modes. Internal
- * planning and execution collaborators are package-private so the engine remains
- * the only public execution entry point. The engine discovers the configured or detected Protocol, validates its Provider,
+ * <p>Start at {@link org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine}.
+ * The implementation follows four stages: {@code planning} builds a provider-ready
+ * exchange, {@code orchestration} owns primary/retry/fallback/repair transitions,
+ * {@code execution} performs one attempt and consumes successful responses,
+ * {@code failure} classifies upstream failures, and {@code structured} evaluates
+ * generated content and repair requirements. These collaborators
+ * are public only where package boundaries require it; the engine remains the public
+ * execution entry point for callers and extensions.
+ *
+ * <p>The engine discovers the configured or detected Protocol, validates its Provider,
  * decodes and adapts the request, executes Transport, adapts the Provider response,
  * and encodes the Protocol response. The response consumer belongs to the plugin
  * and writes status, end-to-end headers and byte chunks to WebFlux.

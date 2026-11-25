@@ -507,7 +507,7 @@ public final class DiscoveryServiceImplTest {
         when(discoveryMapper.insert(any())).thenReturn(0);
         assertNull(discoveryService.createOrUpdate(dto));
         discoveryService.discovery("divide", "plugin", SYS_DEFAULT_NAMESPACE_ID);
-        verify(discoveryMapper).selectByPluginNameAndLevelAndNamespaceId("divide", "plugin", SYS_DEFAULT_NAMESPACE_ID);
+        verify(discoveryMapper).selectByPluginNameAndLevelAndNamespaceId("divide", "plugin", SYS_DEFAULT_NAMESPACE_ID, null, null);
     }
 
     @Test
@@ -690,7 +690,7 @@ public final class DiscoveryServiceImplTest {
     public void testDiscoveryLookupMapsRecord() {
         DiscoveryDO discovery = DiscoveryDO.builder().id("d").discoveryType("local")
                 .pluginName("divide").namespaceId("ns").discoveryLevel("0").serverList("localhost:8848").props("{}").build();
-        when(discoveryMapper.selectByPluginNameAndLevelAndNamespaceId("divide", "0", "ns")).thenReturn(discovery);
+        when(discoveryMapper.selectByPluginNameAndLevelAndNamespaceId("divide", "0", "ns", null, null)).thenReturn(List.of(discovery));
         DiscoveryVO result = discoveryService.discovery("divide", "0", "ns");
         assertEquals("d", result.getId());
         assertEquals("local", result.getDiscoveryType());

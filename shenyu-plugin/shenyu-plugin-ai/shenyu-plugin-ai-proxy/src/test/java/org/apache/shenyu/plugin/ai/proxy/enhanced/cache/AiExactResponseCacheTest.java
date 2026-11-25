@@ -158,15 +158,15 @@ class AiExactResponseCacheTest {
         complete(call(disabled, REQUEST, request(REQUEST), SCOPE, success(), DRAIN, calls));
         assertEquals(2, disabled.stats().bypasses());
         AiExactResponseCache cache = new AiExactResponseCache(enabled());
-        complete(cache.execute(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-chat", true, false, true, DRAIN,
+        complete(cache.execute(cacheRequest(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-chat", false), DRAIN,
                 upstream(success(), calls)).contextWrite(Context.of(AiResponseCacheScope.REACTOR_KEY, SCOPE)));
-        complete(cache.execute(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-chat", false, true, true, DRAIN,
+        complete(cache.execute(cacheRequest(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-chat", false), DRAIN,
                 upstream(success(), calls)).contextWrite(Context.of(AiResponseCacheScope.REACTOR_KEY, SCOPE)));
-        complete(cache.execute(REQUEST, request(REQUEST), "custom", "openai-chat", "openai-chat", false, false, false, DRAIN,
+        complete(cache.execute(cacheRequest(REQUEST, request(REQUEST), "custom", "openai-chat", "openai-chat", false), DRAIN,
                 upstream(success(), calls)).contextWrite(Context.of(AiResponseCacheScope.REACTOR_KEY, SCOPE)));
-        complete(cache.execute(REQUEST, request(REQUEST), "OpenAI", "openai-responses", "openai-chat", false, false, false, DRAIN,
+        complete(cache.execute(cacheRequest(REQUEST, request(REQUEST), "OpenAI", "openai-responses", "openai-chat", false), DRAIN,
                 upstream(success(), calls)).contextWrite(Context.of(AiResponseCacheScope.REACTOR_KEY, SCOPE)));
-        complete(cache.execute(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-responses", false, false, false, DRAIN,
+        complete(cache.execute(cacheRequest(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-responses", false), DRAIN,
                 upstream(success(), calls)).contextWrite(Context.of(AiResponseCacheScope.REACTOR_KEY, SCOPE)));
         assertEquals(5, cache.stats().bypasses());
         assertEquals(0, cache.stats().writes());
@@ -274,7 +274,8 @@ class AiExactResponseCacheTest {
         StepVerifier.create(call(cache, REQUEST, request(REQUEST), SCOPE, success(), brokenWriter, calls)).expectErrorMessage("writer").verify();
         assertEquals(1, calls.get());
         assertEquals(0, cache.stats().writes());
-        Mono<Void> outerError = cache.execute(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-chat", false, false, true, DRAIN,
+        Mono<Void> outerError = cache.execute(
+                cacheRequest(REQUEST, request(REQUEST), "OpenAI", "openai-chat", "openai-chat", true), DRAIN,
                 consumer -> consumer.apply(success()).then(Mono.error(new IllegalStateException("transport"))))
                 .contextWrite(Context.of(AiResponseCacheScope.REACTOR_KEY, SCOPE));
         StepVerifier.create(outerError).expectErrorMessage("transport").verify();
@@ -489,9 +490,21 @@ class AiExactResponseCacheTest {
     private Mono<Void> call(final AiExactResponseCache cache, final String original, final AiUpstreamRequest prepared,
                             final AiResponseCacheScope scope, final AiUpstreamResponse response,
                             final Function<AiUpstreamResponse, Mono<Void>> consumer, final AtomicInteger calls) {
-        Mono<Void> operation = cache.execute(original, prepared, "OpenAI", "openai-chat", "openai-chat", false, false, true,
+        Mono<Void> operation = cache.execute(
+                cacheRequest(original, prepared, "OpenAI", "openai-chat", "openai-chat", true),
                 consumer, upstream(response, calls));
         return Objects.isNull(scope) ? operation : operation.contextWrite(Context.of(AiResponseCacheScope.REACTOR_KEY, scope));
+    }
+
+    private AiExactResponseCache.CacheRequest cacheRequest(final String original,
+                                                           final AiUpstreamRequest prepared,
+                                                           final String provider,
+                                                           final String clientProtocol,
+                                                           final String targetProtocol,
+                                                           final boolean eligible) {
+        return new AiExactResponseCache.CacheRequest(
+                new AiExactResponseCache.CacheKeySource(original, prepared),
+                new AiExactResponseCache.CacheIdentity(provider, clientProtocol, targetProtocol), eligible);
     }
 
     private void complete(final Mono<Void> operation) {

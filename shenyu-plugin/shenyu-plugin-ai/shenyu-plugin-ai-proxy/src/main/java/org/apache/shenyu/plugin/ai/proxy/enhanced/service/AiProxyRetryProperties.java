@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Map;
 
@@ -44,6 +45,8 @@ public final class AiProxyRetryProperties {
     private Duration requestDeadline = Duration.ofMinutes(5);
 
     private ReplayProperties replay = new ReplayProperties();
+
+    private CredentialFailureFallbackProperties credentialFailureFallback = new CredentialFailureFallbackProperties();
 
     /**
      * Create retry properties with defaults.
@@ -84,6 +87,24 @@ public final class AiProxyRetryProperties {
         setJitterFraction(jitterFraction);
         setMaxRetryAfter(maxRetryAfter);
         setRequestDeadline(requestDeadline);
+    }
+
+    /**
+     * Get the startup-scoped credential failure declarations.
+     *
+     * @return credential failure fallback settings
+     */
+    public CredentialFailureFallbackProperties getCredentialFailureFallback() {
+        return credentialFailureFallback;
+    }
+
+    /**
+     * Set credential failure fallback settings, validated together when the engine is created.
+     *
+     * @param credentialFailureFallback settings
+     */
+    public void setCredentialFailureFallback(final CredentialFailureFallbackProperties credentialFailureFallback) {
+        this.credentialFailureFallback = Objects.requireNonNull(credentialFailureFallback, "credentialFailureFallback must not be null");
     }
 
     /**
@@ -309,6 +330,88 @@ public final class AiProxyRetryProperties {
             this.operations = new LinkedHashMap<>(operations);
         }
 
+    }
+
+    /**
+     * Opt-in declarations compiled into an immutable policy when the engine is created.
+     */
+    public static final class CredentialFailureFallbackProperties {
+
+        private boolean enabled;
+
+        private List<CredentialFailureDeclaration> declarations = List.of();
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public List<CredentialFailureDeclaration> getDeclarations() {
+            return declarations;
+        }
+
+        public void setDeclarations(final List<CredentialFailureDeclaration> declarations) {
+            this.declarations = Objects.requireNonNull(declarations, "credential failure declarations must not be null");
+        }
+    }
+
+    /**
+     * Operator assertion that one exact upstream error field value denotes a credential failure.
+     */
+    public static final class CredentialFailureDeclaration {
+
+        private String endpoint;
+
+        private String protocol;
+
+        private int status;
+
+        private String type = "error.code";
+
+        private String value;
+
+        public String getEndpoint() {
+            return endpoint;
+        }
+
+        public void setEndpoint(final String endpoint) {
+            this.endpoint = endpoint;
+        }
+
+        public String getProtocol() {
+            return protocol;
+        }
+
+        public void setProtocol(final String protocol) {
+            this.protocol = protocol;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(final int status) {
+            this.status = status;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(final String type) {
+            this.type = type;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(final String value) {
+            this.value = value;
+        }
     }
 
     /**

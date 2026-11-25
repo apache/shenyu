@@ -250,6 +250,54 @@ class AiProxyFallbackAuthorizationTest {
         }
     }
 
+    @Test
+    void credentialFallbackDoesNotBypassGatewayOrManagedTargetAuthorization() {
+        for (String scenario : List.of("missing-key", "disabled-key", "wrong-selector", "disabled-selection", "unknown-target", "inline-target")) {
+            final boolean clientAuth = scenario.endsWith("key") || "wrong-selector".equals(scenario);
+            final AiProxyHandle handle = GsonUtils.getInstance().fromJson("{\"provider\":\"OpenAI\",\"baseUrl\":\"https://primary.example\","
+                    + "\"apiKey\":\"primary-fixture-key\",\"model\":\"primary\",\"stream\":false,\"proxyEnabled\":\"" + clientAuth
+                    + "\",\"dynamicFallbackEnabled\":" + !"disabled-selection".equals(scenario)
+                    + ",\"fallbackTargets\":{\"backup\":{\"baseUrl\":\"https://backup.example\",\"apiKey\":\"backup-fixture-key\"}}}", AiProxyHandle.class);
+            final AiProxyPluginHandler handler = new AiProxyPluginHandler();
+            handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(SELECTOR_ID, Constants.DEFAULT_RULE), handle);
+            final AiProxyRetryProperties properties = new AiProxyRetryProperties();
+            final AiProxyRetryProperties.CredentialFailureDeclaration declaration = new AiProxyRetryProperties.CredentialFailureDeclaration();
+            declaration.setEndpoint("https://primary.example/v1/chat/completions");
+            declaration.setProtocol(OpenAiChat.NAME);
+            declaration.setStatus(401);
+            declaration.setValue("credential_revoked");
+            properties.getCredentialFailureFallback().setEnabled(true);
+            properties.getCredentialFailureFallback().setDeclarations(List.of(declaration));
+            final AtomicInteger calls = new AtomicInteger();
+            final AiProxyEngine engine = AiProxyEngine.builder(
+                            new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                            new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), request -> {
+                                calls.incrementAndGet();
+                                return Mono.error(new AssertionError("authorization must precede upstream calls"));
+                            })
+                    .retryProperties(properties)
+                    .build();
+            final ProxyApiKeyData key = mapping("credential-fixture-client", "mapped-fixture-key");
+            key.setEnabled(!"disabled-key".equals(scenario));
+            if ("wrong-selector".equals(scenario)) {
+                key.setSelectorId("different-selector");
+            }
+            if (!"missing-key".equals(scenario)) {
+                AiProxyApiKeyCache.getInstance().cache(key);
+            }
+            try {
+                final String selection = "inline-target".equals(scenario) ? "{\"baseUrl\":\"https://untrusted.example\"}"
+                        : "{\"target\":\"" + ("unknown-target".equals(scenario) ? "unknown" : "backup") + "\"}";
+                final MockServerWebExchange exchange = exchange(selection, "credential-fixture-client");
+                StepVerifier.create(run(new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler), exchange)).verifyComplete();
+                assertEquals(clientAuth ? 401 : 400, exchange.getResponse().getStatusCode().value(), scenario);
+                assertEquals(0, calls.get(), scenario);
+            } finally {
+                AiProxyApiKeyCache.getInstance().remove(key);
+            }
+        }
+    }
+
     private AiProxyHandle handle(final Upstream primary, final String extra) {
         return GsonUtils.getInstance().fromJson("{\"provider\":\"OpenAI\",\"baseUrl\":\"" + primary.url()
                 + "\",\"apiKey\":\"primary-fixture-key\",\"model\":\"primary\",\"stream\":false" + extra + "}", AiProxyHandle.class);

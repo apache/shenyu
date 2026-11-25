@@ -38,10 +38,20 @@ The AI Proxy MUST separate request planning from reactive attempt execution, MUS
 - **WHEN** the Engine plans and executes one logical request
 - **THEN** `AiExchangePlanner` owns decoding, routing, conversion, Provider preparation and prepared metadata; `AiExecutionCoordinator` owns subscription-local execution and caching; and the attempt orchestrator, executor and response consumer own retry/fallback transitions, one upstream subscription, response commitment, backpressure and cancellation
 
-#### Scenario: construct the Engine through one public contract
+#### Scenario: organize implementation types by responsibility
+
+- **WHEN** planning and execution implementation types are organized into focused packages
+- **THEN** request preparation belongs to `service.planning`, logical-call coordination and retry/fallback/repair transitions belong to `service.orchestration`, one-attempt transport and response ownership belong to `service.execution`, failure detection and classification belong to `service.failure`, and structured-output classification and repair-request construction belong to `service.structured`
+
+#### Scenario: construct the Engine through one supported public contract
 
 - **WHEN** a programmatic integration constructs an `AiProxyEngine`
-- **THEN** it uses `AiProxyEngine.builder(protocols, providers, routeResolver, transport)` and optional policy setters while the planner, coordinator and attempt implementation types remain package-private
+- **THEN** it uses `AiProxyEngine.builder(protocols, providers, routeResolver, transport)` and optional policy setters without requiring direct construction of planning, orchestration, execution, or failure implementation types
+
+#### Scenario: allow internal collaboration across focused packages
+
+- **WHEN** planning, orchestration, execution, or failure implementation types must collaborate across Java package boundaries
+- **THEN** those types may use Java `public` visibility only as needed for internal composition, while remaining implementation details rather than supported SPI, extension points, or compatibility contracts
 
 #### Scenario: migrate Java extension implementations explicitly
 

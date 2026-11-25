@@ -34,11 +34,19 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderRequestTran
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.execution.AiAttemptExecutor;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure.AiCredentialFailureDetector;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure.AiStatusFailureClassifier;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiExecutionCoordinator;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiStatusOutcomeResolver;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.planning.AiExchangePlanner;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.structured.AiStructuredOutputEvaluator;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
@@ -50,11 +58,36 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AiProxyExtensionContractTest {
 
     private static final String PROTOCOL = "fixture-protocol";
+
+    @Test
+    void testExecutionResponsibilitiesUseDedicatedPackages() throws ClassNotFoundException {
+        assertEquals("planning", packageRole(AiExchangePlanner.class));
+        assertEquals("orchestration", packageRole(AiExecutionCoordinator.class));
+        assertEquals("orchestration", packageRole(AiStatusOutcomeResolver.class));
+        assertEquals("execution", packageRole(AiAttemptExecutor.class));
+        assertEquals("failure", packageRole(AiStatusFailureClassifier.class));
+        assertEquals("failure", packageRole(AiCredentialFailureDetector.class));
+        assertEquals("structured", packageRole(AiStructuredOutputEvaluator.class));
+        assertTrue(Modifier.isPublic(AiCredentialFailureDetector.class.getModifiers()));
+        List<String> failureTypes = List.of(
+                "AiProxyCredentialFailureClassifier",
+                "AiProxyCredentialFailureInspector");
+        for (String type : failureTypes) {
+            Class<?> failureType = Class.forName(AiCredentialFailureDetector.class.getPackageName() + "." + type);
+            assertFalse(Modifier.isPublic(failureType.getModifiers()), failureType.getName());
+        }
+    }
+
+    private static String packageRole(final Class<?> type) {
+        String packageName = type.getPackageName();
+        return packageName.substring(packageName.lastIndexOf('.') + 1);
+    }
 
     @Test
     void testNewNativeProtocolAndProviderDoNotChangeEngineFlow() {

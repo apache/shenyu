@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
+
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
@@ -26,6 +27,18 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolver;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptListener;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.execution.AiAttemptExecutor;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.execution.AiCallObservationScope;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.execution.AiExecutionState;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure.AiStatusFailureClassifier;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiAttemptEventEmitter;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiAttemptOrchestrator;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiExecutionCoordinator;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiExecutionRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiRetrySettings;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiStatusOutcomeResolver;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.planning.AiExchangePlanner;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.planning.AiPreparedExchange;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import reactor.core.publisher.Mono;
 
@@ -41,10 +54,10 @@ import java.util.function.Function;
  * Response flow: raw target-protocol inspection, provider adaptation, optional
  * reverse conversion, then client protocol encoding and response consumption.</p>
  *
- * <p>The execution pipeline owns observation, caching and primary/retry/fallback
- * lifetimes. Protocol and provider extensions register through their factories
- * without changing this flow. Start with OpenAiResponses and OpenAi for native
- * extension implementations, and OpenAiChat for stream framing.</p>
+ * <p>The Engine composes focused collaborators for observation, caching and
+ * primary/retry/fallback lifetimes. Protocol and provider extensions register
+ * through their factories without changing this flow. Start with OpenAiResponses
+ * and OpenAi for native extension implementations, and OpenAiChat for stream framing.</p>
  */
 public final class AiProxyEngine {
 
@@ -58,8 +71,14 @@ public final class AiProxyEngine {
         this.exchangePlanner = new AiExchangePlanner(
                 builder.protocols, builder.providers, builder.routeResolver);
         AiAttemptExecutor attemptExecutor = new AiAttemptExecutor(builder.transport);
+        AiRetrySettings retrySettings = new AiRetrySettings(builder.retryProperties);
+        AiAttemptEventEmitter eventEmitter = new AiAttemptEventEmitter(builder.attemptListener);
+        AiStatusFailureClassifier statusFailureClassifier = new AiStatusFailureClassifier(
+                builder.retryProperties.getCredentialFailureFallback(), builder.protocols);
+        AiStatusOutcomeResolver statusOutcomeResolver = new AiStatusOutcomeResolver(
+                retrySettings, statusFailureClassifier, eventEmitter);
         AiAttemptOrchestrator attemptOrchestrator = new AiAttemptOrchestrator(
-                exchangePlanner, attemptExecutor, builder.retryProperties, builder.attemptListener);
+                exchangePlanner, attemptExecutor, retrySettings, eventEmitter, statusOutcomeResolver);
         this.executionCoordinator = new AiExecutionCoordinator(
                 attemptOrchestrator, builder.retryProperties, builder.responseCache);
         this.observationScope = new AiCallObservationScope(builder.observer);
@@ -96,8 +115,9 @@ public final class AiProxyEngine {
         return observationScope.observe(responseConsumer, observedConsumer -> Mono.defer(() -> {
             AiCommonConfig resolvedPrimary = new AiCommonConfig(primaryConfig);
             AiPreparedExchange primary = exchangePlanner.prepare(requestBody, resolvedPrimary);
-            return executionCoordinator.execute(
-                    requestBody, resolvedPrimary, primary, fallbackConfig, observedConsumer);
+            AiExecutionRequest executionRequest = new AiExecutionRequest(
+                    new AiExecutionState.RequestPayload(requestBody), resolvedPrimary, primary, fallbackConfig);
+            return executionCoordinator.execute(executionRequest, observedConsumer);
         }));
     }
 

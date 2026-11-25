@@ -27,6 +27,7 @@ import org.apache.ibatis.plugin.Signature;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -63,7 +64,7 @@ public class OracleSQLPrepareInterceptor implements Interceptor {
         Field field = boundSql.getClass().getDeclaredField("sql");
         field.setAccessible(true);
         // replace desc and true
-        String replaceSql = boundSql.getSql().toLowerCase()
+        String replaceSql = boundSql.getSql().toLowerCase(Locale.ROOT)
                 .replace("`desc`", "\"desc\"")
                 .replace("true", "'true'");
         // replace`
