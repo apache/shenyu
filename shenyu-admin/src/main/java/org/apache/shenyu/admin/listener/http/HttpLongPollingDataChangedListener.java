@@ -341,6 +341,10 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
+        return compareChangedGroup(request, true);
+    }
+
+    private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request, final boolean refreshStaleCache) {
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
         String namespaceId = getNamespaceId(request);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
@@ -350,11 +354,12 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
-            long clientModifyTime = NumberUtils.toLong(params[1]);
 
             ConfigDataCache serverCache = CACHE.get(buildCacheKey(namespaceId, group.name()));
-            // do check.
-            if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
+            boolean changed = refreshStaleCache
+                    ? this.checkCacheDelayAndUpdate(serverCache, clientMd5, NumberUtils.toLong(params[1]))
+                    : !StringUtils.equals(clientMd5, serverCache.getMd5());
+            if (changed) {
                 changedGroup.add(group);
             }
         }
@@ -611,8 +616,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             }
             try {
                 // Publication may race the request thread's first comparison. Registration and
-                // notification share this scheduler, so recheck before entering the wait queue.
-                List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
+                // notification share this scheduler, so recheck the published MD5s before waiting.
+                List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest(), false);
                 if (CollectionUtils.isNotEmpty(changedGroups)) {
                     sendResponse(changedGroups);
                     return;

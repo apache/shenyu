@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.listener.ConfigDataCache;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.listener.DataChangedEventDispatcher;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.service.NamespacePluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.common.dto.RuleData;
@@ -35,7 +36,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -69,6 +70,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -292,12 +294,19 @@ class HttpCacheRebuildTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void registrationRechecksChangesPublishedAfterTheInitialComparison(final boolean coalescing) throws Exception {
+    @CsvSource({"false, false", "true, false", "false, true", "true, true"})
+    void registrationRechecksChangesPublishedAfterTheInitialComparison(final boolean coalescing, final boolean clientClockAhead) throws Exception {
         if (!coalescing) {
             disableCoalescing();
         }
         MockHttpServletRequest request = spy(requestWithCurrentConfig("a"));
+        if (clientClockAhead) {
+            long clientModifyTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(2);
+            request.setParameter(ConfigGroupEnum.RULE.name(), "seed," + clientModifyTime);
+        }
+        NamespacePluginService namespacePlugins = mock(NamespacePluginService.class);
+        when(namespacePlugins.listAll("a")).thenThrow(new IllegalStateException("namespace refresh unavailable"));
+        ReflectionTestUtils.setField(listener, "namespacePluginService", namespacePlugins);
         MockHttpServletResponse response = new MockHttpServletResponse();
         AsyncContext context = mock(AsyncContext.class);
         when(context.getRequest()).thenReturn(request);
@@ -314,6 +323,7 @@ class HttpCacheRebuildTest {
         scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
         verify(context).complete();
         assertTrue(response.getContentAsString().contains("RULE"));
+        verifyNoInteractions(namespacePlugins);
     }
 
     private void disableCoalescing() {
