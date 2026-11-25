@@ -78,7 +78,7 @@ public final class InitialSyncApplication {
 
     /**
      * Register deferred configuration application during the subscriber callback.
-     * Outside an application scope this leaves the existing asynchronous behavior unchanged.
+     * Both {@link #run(Runnable)} and {@link #observe(Runnable)} include the registered work in their completion.
      * @param completion completion stage for the deferred application
      */
     public static void register(final CompletionStage<?> completion) {

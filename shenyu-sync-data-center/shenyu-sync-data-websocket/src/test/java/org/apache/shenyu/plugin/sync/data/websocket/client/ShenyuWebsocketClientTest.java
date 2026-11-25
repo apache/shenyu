@@ -165,6 +165,25 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
+    void testRejectedRuleUpdateReplaysWithoutClosingConnection() {
+        ShenyuWebsocketClient client = spy(shenyuWebsocketClient);
+        doAnswer(invocation -> {
+            InitialSyncApplication.reportFailure(new IllegalStateException("rule rejected"));
+            return null;
+        }).doNothing().when(pluginDataSubscriber).onRuleSubscribe(any(RuleData.class));
+        RuleData rule = RuleData.builder().id("replayed-rule").selectorId("selector").pluginName("divide").build();
+        WebsocketData<RuleData> update = new WebsocketData<>(ConfigGroupEnum.RULE.name(), DataEventTypeEnum.UPDATE.name(), List.of(rule));
+        String json = GsonUtils.getInstance().toJson(update);
+
+        client.onMessage(json);
+        client.onMessage(json);
+        client.onMessage(json);
+
+        verify(client, never()).close();
+        verify(pluginDataSubscriber, times(2)).onRuleSubscribe(rule);
+    }
+
+    @Test
     public void testOnMessage() {
         doNothing().when(pluginDataSubscriber).onPluginRefresh(any());
         String json = GsonUtils.getInstance().toJson(websocketData);

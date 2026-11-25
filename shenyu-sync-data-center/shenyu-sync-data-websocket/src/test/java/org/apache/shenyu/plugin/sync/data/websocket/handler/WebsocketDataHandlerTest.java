@@ -17,15 +17,14 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
@@ -167,8 +166,7 @@ public final class WebsocketDataHandlerTest {
 
     @Test
     public void testFailedScopedRefreshIsNotDeduplicated() {
-        final org.apache.shenyu.plugin.base.handler.PluginDataHandler pluginHandler =
-                mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
+        final var pluginHandler = mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
         Mockito.when(pluginHandler.pluginNamed()).thenReturn("divide");
         final CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.singletonList(pluginHandler),
                 mock(ApplicationEventPublisher.class), new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
@@ -199,8 +197,7 @@ public final class WebsocketDataHandlerTest {
 
     @Test
     public void testRejectedRuleUpdateRetriedWithoutSkippingOtherRows() {
-        final org.apache.shenyu.plugin.base.handler.PluginDataHandler pluginHandler =
-                mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
+        final var pluginHandler = mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
         Mockito.when(pluginHandler.pluginNamed()).thenReturn("divide");
         Mockito.doThrow(new IllegalStateException("rule rejected")).doNothing().when(pluginHandler)
                 .handlerRule(Mockito.argThat(rule -> "rejected-rule".equals(rule.getId())));
@@ -211,7 +208,7 @@ public final class WebsocketDataHandlerTest {
         RuleData accepted = ruleUpdate("accepted-rule");
         final String json = GsonUtils.getInstance().toJson(List.of(rejected, accepted));
         try {
-            assertThrows(CompletionException.class, () -> handler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name()));
+            handler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
             verify(pluginHandler).handlerRule(accepted);
 
             handler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
@@ -241,6 +238,21 @@ public final class WebsocketDataHandlerTest {
         websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
         websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
         verify(pluginDataSubscriber, Mockito.times(2)).onRuleSubscribe(Mockito.any(RuleData.class));
+    }
+
+    @Test
+    public void testThrownRuleUpdateFailureInvalidatesPreviousPayload() {
+        RuleData applied = ruleUpdate("applied-rule");
+        RuleData rejected = ruleUpdate("unexpected-failure");
+        Mockito.doThrow(new IllegalStateException("application failed")).when(pluginDataSubscriber).onRuleSubscribe(rejected);
+        String previous = GsonUtils.getInstance().toJson(List.of(applied));
+        String invalid = GsonUtils.getInstance().toJson(List.of(ruleUpdate("partial-update"), rejected));
+
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, previous, DataEventTypeEnum.UPDATE.name());
+        assertThrows(IllegalStateException.class, () -> websocketDataHandler.executor(ConfigGroupEnum.RULE, invalid, DataEventTypeEnum.UPDATE.name()));
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, previous, DataEventTypeEnum.UPDATE.name());
+
+        verify(pluginDataSubscriber, Mockito.times(2)).onRuleSubscribe(applied);
     }
 
     private RuleData ruleUpdate(final String ruleId) {
