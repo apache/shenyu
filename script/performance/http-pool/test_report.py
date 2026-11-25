@@ -65,6 +65,42 @@ class ComparisonTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "measurementSeconds"):
             validate_comparison(self.before, self.after)
 
+    def test_mismatched_runtime_metadata(self):
+        for field, value in (
+            ("javaVersion", "OpenJDK 17.0.19"),
+            ("k6Version", "k6 v1.1.0"),
+            ("jfrRuntimeVersion", "OpenJDK 17.0.19 for linux-amd64"),
+        ):
+            with self.subTest(field=field):
+                after = {**self.after, field: value}
+                with self.assertRaisesRegex(ValueError, field):
+                    validate_comparison(self.before, after)
+
+    def test_mismatched_build_metadata(self):
+        for field, value in (
+            ("java", "17.0.19"),
+            ("os", "Linux"),
+            ("hostLogicalCpus", 16),
+            ("jvmFlags", ["-Xms128m", "-Xmx512m", "-XX:MaxDirectMemorySize=64m", "-XX:ActiveProcessorCount=2"]),
+        ):
+            with self.subTest(field=field):
+                after = {**self.after, "build": {**self.after["build"], field: value}}
+                with self.assertRaisesRegex(ValueError, rf"build\.{field}"):
+                    validate_comparison(self.before, after)
+
+    def test_optional_jfr_metadata_does_not_prevent_comparison(self):
+        del self.after["jfrRuntimeVersion"]
+        result, output = self.render()
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn("verified in both JFR recordings", output["http-pool-results.md"])
+
+    def test_runtime_mismatch_preserves_existing_artifacts(self):
+        self.after["javaVersion"] = "OpenJDK 17.0.19"
+        result, output = self.render(retained=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("javaVersion", result.stderr)
+        self.assertEqual({"http-pool-samples.json": "retained", "http-pool-results.md": "retained"}, output)
+
     def test_invalid_settings(self):
         for field in ("repetitions", "measurementSeconds", "warmupSeconds"):
             for value in (0, -1, True, 1.5):

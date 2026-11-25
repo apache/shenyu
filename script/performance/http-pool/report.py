@@ -134,9 +134,16 @@ def validate_comparison(before, after):
                 validate_measurements(run)
             except (KeyError, TypeError, ValueError) as error:
                 raise ValueError(f"{label}/{run['case']}/{run['repeat']}: invalid measurements: {error}") from error
-    for field in ("repetitions", "warmupSeconds", "measurementSeconds"):
+    for field in ("repetitions", "warmupSeconds", "measurementSeconds", "javaVersion", "k6Version"):
         if before[field] != after[field]:
             raise ValueError(f"Mismatched benchmark setting: {field}")
+    before_build, after_build = before["build"], after["build"]
+    for field in ("java", "os", "hostLogicalCpus", "jvmFlags"):
+        if before_build[field] != after_build[field]:
+            raise ValueError(f"Mismatched benchmark setting: build.{field}")
+    before_jfr, after_jfr = before.get("jfrRuntimeVersion"), after.get("jfrRuntimeVersion")
+    if before_jfr and after_jfr and before_jfr != after_jfr:
+        raise ValueError("Mismatched benchmark setting: jfrRuntimeVersion")
     # Queue capacity is the intended experimental variable; workload identity is not.
     workload = ("rate", "poolType", "keepAlive", "aiClientControl", "directUpstream")
     reference = {}
