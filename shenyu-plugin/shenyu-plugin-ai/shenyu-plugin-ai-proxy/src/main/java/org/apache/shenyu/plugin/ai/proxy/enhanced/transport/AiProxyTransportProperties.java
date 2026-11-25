@@ -36,7 +36,7 @@ public class AiProxyTransportProperties {
     private Duration responseHeaderTimeout = Duration.ofSeconds(30);
 
     /**
-     * Maximum idle duration allowed between upstream response body chunks.
+     * Maximum wait for an upstream response body chunk while there is demand.
      */
     private Duration streamingIdleTimeout = Duration.ofSeconds(60);
 

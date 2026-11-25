@@ -30,6 +30,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Operators;
+import reactor.core.publisher.Sinks;
 import reactor.netty.http.client.PrematureCloseException;
 
 import javax.net.ssl.SSLException;
@@ -142,12 +144,7 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                         return rawBody.take(0, false).then(Mono.error(responseTooLarge()));
                     }
 
-                    final Flux<DataBuffer> dataBuffers = enforceTotalStreamDuration(
-                            rawBody.timeout(
-                                    streamingIdleTimeout,
-                                    timeoutFailure(
-                                            AiTransportException.Kind.STREAM_IDLE_TIMEOUT,
-                                            "AI upstream response body became idle")));
+                    final Flux<DataBuffer> dataBuffers = enforceTotalStreamDuration(enforceStreamingIdleTimeout(rawBody));
                     final Flux<byte[]> bytes = dataBuffers
                             .map(buffer -> {
                                 try {
@@ -175,6 +172,27 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                 kind,
                 message,
                 new TimeoutException(message))));
+    }
+
+    private Flux<DataBuffer> enforceStreamingIdleTimeout(final Flux<DataBuffer> body) {
+        return Flux.defer(() -> {
+            final AtomicLong outstandingDemand = new AtomicLong();
+            final Sinks.Many<Boolean> demandStarted = Sinks.many().replay().latest();
+            // Demand may arrive before Reactor subscribes to the timer for the next chunk.
+            final Mono<Long> idleTimer = demandStarted.asFlux()
+                    .filter(ignored -> outstandingDemand.get() > 0)
+                    .next()
+                    .then(Mono.delay(streamingIdleTimeout));
+            return body
+                    .doOnNext(ignored -> outstandingDemand.updateAndGet(remaining -> remaining == Long.MAX_VALUE ? remaining : remaining - 1))
+                    .timeout(idleTimer, ignored -> idleTimer, timeoutFailure(
+                            AiTransportException.Kind.STREAM_IDLE_TIMEOUT, "AI upstream response body became idle"))
+                    .doOnRequest(requested -> {
+                        if (outstandingDemand.getAndAccumulate(requested, Operators::addCap) == 0) {
+                            demandStarted.tryEmitNext(Boolean.TRUE);
+                        }
+                    });
+        });
     }
 
     private Flux<DataBuffer> enforceTotalStreamDuration(final Flux<DataBuffer> body) {
