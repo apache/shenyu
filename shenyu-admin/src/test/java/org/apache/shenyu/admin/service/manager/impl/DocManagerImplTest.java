@@ -29,6 +29,8 @@ import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.enums.EventType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -56,12 +58,14 @@ public class DocManagerImplTest {
     @Mock
     private RegisterApiDocService registerApiDocService;
 
-    @Test
-    public void testAddDocInfo() {
+    @ParameterizedTest
+    @ValueSource(strings = {"http", "https"})
+    public void testAddDocInfo(final String scheme) {
         UpstreamInstance instance = new UpstreamInstance();
         instance.setContextPath("/testClusterName");
         instance.setIp("127.0.0.1");
         instance.setPort(8190);
+        instance.setScheme(scheme);
         AtomicBoolean atomicBoolean = new AtomicBoolean(false);
         docManager.addDocInfo(instance, SwaggerDocParserTest.DOC_INFO_JSON, "", docInfo -> {
             Assertions.assertEquals(docInfo.getTitle(), "shenyu-examples-http-swagger3 API");
@@ -87,6 +91,7 @@ public class DocManagerImplTest {
         ApiDocRegisterDTO.ApiExt ext = GsonUtils.getInstance().fromJson(document.getExt(), ApiDocRegisterDTO.ApiExt.class);
         Assertions.assertEquals("127.0.0.1", ext.getHost());
         Assertions.assertEquals(8190, ext.getPort());
+        Assertions.assertEquals(scheme + "://", ext.getProtocol());
         Assertions.assertEquals("testClusterName", ext.getServiceName());
     }
 

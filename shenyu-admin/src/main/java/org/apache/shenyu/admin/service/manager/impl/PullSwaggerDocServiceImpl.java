@@ -232,7 +232,7 @@ public class PullSwaggerDocServiceImpl implements PullSwaggerDocService {
 
     private String buildSwaggerRequestUrl(final UpstreamInstance instance, final boolean includeContextPath) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.newInstance();
-        uriComponentsBuilder.scheme("http");
+        uriComponentsBuilder.scheme(instance.getScheme());
         uriComponentsBuilder.host(instance.getIp());
         uriComponentsBuilder.port(instance.getPort());
         if (includeContextPath) {

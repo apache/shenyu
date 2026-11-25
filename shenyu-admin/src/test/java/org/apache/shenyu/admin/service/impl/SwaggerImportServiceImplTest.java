@@ -113,6 +113,8 @@ public class SwaggerImportServiceImplTest {
 
         assertEquals("Import successful, supports Swagger 2.0 and OpenAPI 3.0 formats", result);
         assertEquals(SWAGGER_JSON, docManager.getDocJson());
+        assertEquals("https", docManager.instance.getScheme());
+        assertEquals(443, docManager.instance.getPort());
     }
 
     @Test
@@ -247,10 +249,13 @@ public class SwaggerImportServiceImplTest {
 
         private String docJson;
 
+        private UpstreamInstance instance;
+
         @Override
         public void addDocInfo(final UpstreamInstance instance, final String docJson, final String oldMd5,
                                final Consumer<DocInfo> callback) {
             this.docJson = docJson;
+            this.instance = instance;
         }
 
         private String getDocJson() {
