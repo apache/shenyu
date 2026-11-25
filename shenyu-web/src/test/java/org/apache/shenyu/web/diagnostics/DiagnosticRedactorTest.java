@@ -100,6 +100,8 @@ public final class DiagnosticRedactorTest {
     @ResourceLock(Resources.LOCALE)
     public void isSecretKeyIsLocaleIndependent() {
         Locale original = Locale.getDefault();
+        Locale display = Locale.getDefault(Locale.Category.DISPLAY);
+        Locale format = Locale.getDefault(Locale.Category.FORMAT);
         try {
             Locale.setDefault(Locale.forLanguageTag("tr-TR"));
             assertTrue(redactor.isSecretKey("X-API-KEY"),
@@ -107,6 +109,8 @@ public final class DiagnosticRedactorTest {
             assertTrue(redactor.isSecretKey("SESSION_ID"));
         } finally {
             Locale.setDefault(original);
+            Locale.setDefault(Locale.Category.DISPLAY, display);
+            Locale.setDefault(Locale.Category.FORMAT, format);
         }
     }
 }

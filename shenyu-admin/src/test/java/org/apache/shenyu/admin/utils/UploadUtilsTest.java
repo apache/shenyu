@@ -59,6 +59,8 @@ public class UploadUtilsTest {
         fileMultiValueMap.add("file", mock(MultipartFile.class));
         when(httpServletRequest.getMultiFileMap()).thenReturn(fileMultiValueMap);
         Locale original = Locale.getDefault();
+        Locale display = Locale.getDefault(Locale.Category.DISPLAY);
+        Locale format = Locale.getDefault(Locale.Category.FORMAT);
         try {
             Locale.setDefault(Locale.forLanguageTag("tr-TR"));
             final Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(httpServletRequest);
@@ -66,6 +68,8 @@ public class UploadUtilsTest {
                     "multipart detection must not depend on the default locale");
         } finally {
             Locale.setDefault(original);
+            Locale.setDefault(Locale.Category.DISPLAY, display);
+            Locale.setDefault(Locale.Category.FORMAT, format);
         }
     }
 }

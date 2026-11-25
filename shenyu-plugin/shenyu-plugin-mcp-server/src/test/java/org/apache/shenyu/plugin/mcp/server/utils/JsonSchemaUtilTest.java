@@ -311,6 +311,8 @@ class JsonSchemaUtilTest {
         param.setType("integer");
         param.setDescription("The count");
         Locale original = Locale.getDefault();
+        Locale display = Locale.getDefault(Locale.Category.DISPLAY);
+        Locale format = Locale.getDefault(Locale.Category.FORMAT);
         try {
             Locale.setDefault(Locale.forLanguageTag("tr-TR"));
             String schema = JsonSchemaUtil.createParameterSchema(Collections.singletonList(param),
@@ -319,6 +321,8 @@ class JsonSchemaUtilTest {
             assertFalse(schema.contains("İNTEGER"), "schema type must not depend on the default locale");
         } finally {
             Locale.setDefault(original);
+            Locale.setDefault(Locale.Category.DISPLAY, display);
+            Locale.setDefault(Locale.Category.FORMAT, format);
         }
     }
 }
