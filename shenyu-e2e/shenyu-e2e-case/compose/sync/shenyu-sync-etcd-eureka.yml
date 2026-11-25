@@ -18,18 +18,17 @@ version: '3.9'
 
 services:
   shenyu-etcd:
-    image: rancher/hardened-etcd:v3.5.21-k3s1-build20250910
+    image: gcr.io/etcd-development/etcd:v3.5.34
     container_name: shenyu-etcd
-    command: ["etcd"]
-    environment:
-      - ALLOW_NONE_AUTHENTICATION=yes
-      - ETCD_ADVERTISE_CLIENT_URLS=http://shenyu-etcd:2379
-      - TZ=Asia/Shanghai
+    command:
+      - /usr/local/bin/etcd
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://shenyu-etcd:2379
     ports:
       - "32379:2379"
       - "2380:2380"
     healthcheck:
-      test: ["CMD", "etcdctl", "endpoint", "health"]
+      test: ["CMD", "/usr/local/bin/etcdctl", "--endpoints=http://shenyu-etcd:2379", "endpoint", "health"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -82,6 +81,7 @@ services:
       - spring.datasource.password=shenyue2e
       - spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
       - shenyu.sync.etcd.url=http://shenyu-etcd:2379
+      - shenyu.sync.websocket.enabled=false
       - shenyu.jwt.secretKey=shenyu-e2e-jwt-secret-key-2024
     volumes:
       - /tmp/shenyu-e2e/mysql/driver:/opt/shenyu-admin/ext-lib
@@ -108,6 +108,7 @@ services:
     environment:
       - TZ=Asia/Beijing
       - shenyu.sync.etcd.url=http://shenyu-etcd:2379
+      - shenyu.sync.websocket.urls=false
       - spring.cloud.discovery.enabled=true
       - eureka.client.enabled=true
       - eureka.client.serviceUrl.defaultZone=http://shenyu-examples-eureka:8761/eureka/

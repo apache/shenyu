@@ -499,6 +499,8 @@ data:
   application-admin-sync-etcd.yml: |
     shenyu:
       sync:
+        websocket:
+          enabled: false
         etcd:
           url: http://shenyu-etcd:2379
 
@@ -557,6 +559,8 @@ data:
   application-bootstrap-sync-etcd.yml: |
     shenyu:
       sync:
+        websocket:
+          urls: "false"
         etcd:
           url: http://shenyu-etcd:2379
 
