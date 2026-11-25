@@ -235,10 +235,14 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheSelectorData(final String removeKey) {
+        final String[] selectorKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(selectorKeys) || selectorKeys.length < 4) {
+            LOG.warn("AbstractNodeDataSyncService invalid selector data remove key: {}", removeKey);
+            return;
+        }
         final SelectorData selectorData = new SelectorData();
-        final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
-        selectorData.setPluginName(ruleKeys[2]);
-        selectorData.setId(ruleKeys[3]);
+        selectorData.setPluginName(selectorKeys[2]);
+        selectorData.setId(selectorKeys[3]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
         removeListener(removeKey);
     }
@@ -250,8 +254,12 @@ public abstract class AbstractNodeDataSyncService {
     }
 
     protected void unCacheRuleData(final String removeKey) {
-        final RuleData ruleData = new RuleData();
         final String[] ruleKeys = StringUtils.split(removeKey, DefaultNodeConstants.JOIN_POINT);
+        if (Objects.isNull(ruleKeys) || ruleKeys.length < 5) {
+            LOG.warn("AbstractNodeDataSyncService invalid rule data remove key: {}", removeKey);
+            return;
+        }
+        final RuleData ruleData = new RuleData();
         ruleData.setPluginName(ruleKeys[2]);
         ruleData.setSelectorId(ruleKeys[3]);
         ruleData.setId(ruleKeys[4]);
