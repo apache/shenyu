@@ -33,6 +33,7 @@ import org.apache.shenyu.plugin.base.cache.CommonPluginDataSubscriber;
 import org.apache.shenyu.plugin.base.cache.MatchDataCache;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -253,6 +254,55 @@ class PositiveMatchCacheTest {
             subscriber.onSelectorSubscribe(updated);
         }
         assertWinner(ruleStage, false, "specific");
+    }
+
+    @Test
+    void selectorSortUpdateInvalidatesWarmedCache() {
+        config.setMatchSortFirst(true);
+        config.getSelectorMatchCache().getCache().setEnabled(true);
+        List<ConditionData> conditions = List.of(uriCondition());
+        SelectorData original = selector("selector", conditions, false);
+        original.setSort(10);
+        BaseDataCache.getInstance().cacheSelectData(original);
+        MatchDataCache cache = MatchDataCache.getInstance();
+
+        execute(false);
+        assertSame(original, cache.obtainSelectorData(PLUGIN, "/x"));
+
+        SelectorData updated = selector(original.getId(), conditions, false);
+        updated.setSort(5);
+        CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(List.of(), config.getSelectorMatchCache(), config.getRuleMatchCache());
+        subscriber.onSelectorSubscribe(updated);
+        assertNull(cache.obtainSelectorData(PLUGIN, "/x"));
+
+        execute(false);
+        assertSame(updated, plugin.selector);
+        assertSame(updated, cache.obtainSelectorData(PLUGIN, "/x"));
+    }
+
+    @Test
+    void ruleSortUpdateInvalidatesWarmedCache() {
+        config.setMatchSortFirst(true);
+        config.getRuleMatchCache().getCache().setEnabled(true);
+        List<ConditionData> conditions = List.of(uriCondition());
+        BaseDataCache.getInstance().cacheSelectData(selector("selector", conditions, true));
+        RuleData original = rule("rule", conditions);
+        original.setSort(10);
+        BaseDataCache.getInstance().cacheRuleData(original);
+        MatchDataCache cache = MatchDataCache.getInstance();
+
+        execute(false);
+        assertSame(original, cache.obtainRuleData(PLUGIN, "/x"));
+
+        RuleData updated = rule(original.getId(), conditions);
+        updated.setSort(5);
+        CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(List.of(), config.getSelectorMatchCache(), config.getRuleMatchCache());
+        subscriber.onRuleSubscribe(updated);
+        assertNull(cache.obtainRuleData(PLUGIN, "/x"));
+
+        execute(false);
+        assertSame(updated, plugin.rule);
+        assertSame(updated, cache.obtainRuleData(PLUGIN, "/x"));
     }
 
     private void prepareStage(final boolean ruleStage) {
