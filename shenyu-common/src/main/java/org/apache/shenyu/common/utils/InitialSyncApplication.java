@@ -31,7 +31,7 @@ import java.util.concurrent.CompletionStage;
  */
 public final class InitialSyncApplication {
 
-    private static final ThreadLocal<List<CompletableFuture<?>>> ACTIVE = new ThreadLocal<>();
+    private static final ThreadLocal<Application> ACTIVE = new ThreadLocal<>();
 
     private InitialSyncApplication() {
     }
@@ -42,14 +42,29 @@ public final class InitialSyncApplication {
      * @return completion of the callback and all registered application work
      */
     public static CompletableFuture<Void> run(final Runnable action) {
-        List<CompletableFuture<?>> previous = ACTIVE.get();
-        List<CompletableFuture<?>> pending = new ArrayList<>();
-        ACTIVE.set(pending);
+        return collect(action, true);
+    }
+
+    /**
+     * Observe a best-effort apply without stopping a batch at its first rejected row.
+     * An enclosing initial synchronization keeps its fail-fast behavior.
+     *
+     * @param action callback
+     * @return completion of the callback work, including failures reported by subscribers
+     */
+    public static CompletableFuture<Void> observe(final Runnable action) {
+        return collect(action, isActive());
+    }
+
+    private static CompletableFuture<Void> collect(final Runnable action, final boolean failFast) {
+        Application previous = ACTIVE.get();
+        Application application = new Application(failFast);
+        ACTIVE.set(application);
         try {
             action.run();
-            CompletableFuture<Void> completion = CompletableFuture.allOf(pending.toArray(new CompletableFuture<?>[0]));
+            CompletableFuture<Void> completion = application.completion();
             if (Objects.nonNull(previous)) {
-                previous.add(completion);
+                previous.pending.add(completion);
             }
             return completion;
         } finally {
@@ -63,21 +78,54 @@ public final class InitialSyncApplication {
 
     /**
      * Register deferred configuration application during the subscriber callback.
-     * Outside initial synchronization this leaves the existing asynchronous behavior unchanged.
-     * @param completion completion stage, exceptional completion prevents readiness
+     * Outside an application scope this leaves the existing asynchronous behavior unchanged.
+     * @param completion completion stage for the deferred application
      */
     public static void register(final CompletionStage<?> completion) {
-        List<CompletableFuture<?>> pending = ACTIVE.get();
-        if (Objects.nonNull(pending)) {
-            pending.add(Objects.requireNonNull(completion).toCompletableFuture());
+        Application application = ACTIVE.get();
+        if (Objects.nonNull(application)) {
+            application.pending.add(Objects.requireNonNull(completion).toCompletableFuture());
         }
     }
 
     /**
-     * Whether failures must propagate to the synchronization caller.
+     * Report a logged failure while the subscriber continues applying the remaining rows.
+     *
+     * @param failure rejection from the subscriber or its handler
+     */
+    public static void reportFailure(final Throwable failure) {
+        Application application = ACTIVE.get();
+        if (Objects.nonNull(application) && Objects.isNull(application.failure)) {
+            application.failure = Objects.requireNonNull(failure);
+        }
+    }
+
+    /**
+     * Whether failures must propagate synchronously to the initial synchronization caller.
      * @return active
      */
     public static boolean isActive() {
-        return Objects.nonNull(ACTIVE.get());
+        Application application = ACTIVE.get();
+        return Objects.nonNull(application) && application.failFast;
+    }
+
+    private static final class Application {
+
+        private final boolean failFast;
+
+        private final List<CompletableFuture<?>> pending = new ArrayList<>();
+
+        private Throwable failure;
+
+        private Application(final boolean failFast) {
+            this.failFast = failFast;
+        }
+
+        private CompletableFuture<Void> completion() {
+            if (Objects.nonNull(failure)) {
+                pending.add(CompletableFuture.failedFuture(failure));
+            }
+            return CompletableFuture.allOf(pending.toArray(new CompletableFuture<?>[0]));
+        }
     }
 }

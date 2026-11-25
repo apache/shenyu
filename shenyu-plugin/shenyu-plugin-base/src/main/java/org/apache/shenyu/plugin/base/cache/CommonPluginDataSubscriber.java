@@ -457,6 +457,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             if (InitialSyncApplication.isActive()) {
                 throw new IllegalStateException("Initial configuration application failed", e);
             }
+            InitialSyncApplication.reportFailure(e);
             LOG.error("subscribe data handler error, classData: {}, dataType: {}", JsonUtils.toJson(classData), dataType, e);
         }
     }

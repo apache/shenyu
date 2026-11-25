@@ -21,9 +21,12 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.DigestUtils;
+import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -40,14 +43,14 @@ public class WebsocketDataHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketDataHandler.class);
 
+    private static final CompletableFuture<Void> APPLIED = CompletableFuture.completedFuture(null);
+
     private final EnumMap<ConfigGroupEnum, DataHandler> handlers = new EnumMap<>(ConfigGroupEnum.class);
 
     /**
-     * Fingerprint of the payload that was applied last for each group. Admin re-sends the whole
-     * group payload on every change of that group, so an unchanged payload means the gateway has
-     * already applied exactly this state and re-caching it only burns CPU on the sync thread.
+     * Latest payload per group. Pending or rejected rule updates must remain eligible for replay.
      */
-    private final Map<ConfigGroupEnum, String> lastAppliedFingerprints = new ConcurrentHashMap<>();
+    private final Map<ConfigGroupEnum, PayloadApplication> lastApplications = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Websocket data handler.
@@ -81,12 +84,28 @@ public class WebsocketDataHandler {
      */
     public void executor(final ConfigGroupEnum type, final String json, final String eventType) {
         final String fingerprint = fingerprintOf(json, eventType);
-        if (Objects.equals(fingerprint, lastAppliedFingerprints.get(type))) {
+        PayloadApplication previous = lastApplications.get(type);
+        if (Objects.nonNull(previous) && previous.hasApplied(fingerprint)) {
             LOG.info("ignore duplicated {} event of group {}, this payload has already been applied", eventType, type);
             return;
         }
-        handlers.get(type).handle(json, eventType);
-        lastAppliedFingerprints.put(type, fingerprint);
+        // A different payload can partly update the cache before failing.
+        lastApplications.remove(type);
+        CompletableFuture<Void> completion = apply(type, json, eventType);
+        lastApplications.put(type, new PayloadApplication(fingerprint, completion));
+        if (completion.isCompletedExceptionally()) {
+            // Surface an already known rejection through the existing sync failure path.
+            completion.join();
+        }
+    }
+
+    private CompletableFuture<Void> apply(final ConfigGroupEnum type, final String json, final String eventType) {
+        DataHandler handler = handlers.get(type);
+        if (ConfigGroupEnum.RULE == type && DataEventTypeEnum.UPDATE.name().equals(eventType)) {
+            return InitialSyncApplication.observe(() -> handler.handle(json, eventType));
+        }
+        handler.handle(json, eventType);
+        return APPLIED;
     }
 
     private static String fingerprintOf(final String json, final String eventType) {
@@ -106,10 +125,15 @@ public class WebsocketDataHandler {
                 || !snapshotNamespace.equals(connectionNamespace)) {
             throw new IllegalArgumentException("Snapshot namespace does not match the connection");
         }
+        // Even a partially applied snapshot can invalidate the previous payload.
+        lastApplications.remove(type);
         ((AbstractDataHandler<?>) handlers.get(type)).handleSnapshot(json, snapshotNamespace);
-        // a snapshot replaces the whole group, so the next payload must be applied even if it
-        // happens to be identical to the payload applied before the snapshot
-        lastAppliedFingerprints.remove(type);
     }
 
+    private record PayloadApplication(String fingerprint, CompletableFuture<Void> completion) {
+
+        private boolean hasApplied(final String candidate) {
+            return fingerprint.equals(candidate) && completion.isDone() && !completion.isCompletedExceptionally();
+        }
+    }
 }
