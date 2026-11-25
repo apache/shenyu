@@ -187,6 +187,72 @@ public final class ShenyuGrpcClientTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    public void testBlockedSendDoesNotDelayAnotherCallStart() throws Exception {
+        final ManagedChannel channel = mock(ManagedChannel.class);
+        final ClientCall<DynamicMessage, DynamicMessage> firstTransport = mock(ClientCall.class);
+        final ClientCall<DynamicMessage, DynamicMessage> secondTransport = mock(ClientCall.class);
+        final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
+        final ShenyuGrpcCallRequest firstRequest = newCallParams(MethodDescriptor.MethodType.UNARY, newRequestList());
+        final ShenyuGrpcCallRequest secondRequest = newCallParams(MethodDescriptor.MethodType.UNARY, newRequestList());
+        firstRequest.setChannel(channel);
+        secondRequest.setChannel(channel);
+        final CountDownLatch sending = new CountDownLatch(1);
+        final CountDownLatch releaseSend = new CountDownLatch(1);
+        doReturn(firstTransport, secondTransport).when(channel).newCall(any(), any());
+        doAnswer(invocation -> {
+            sending.countDown();
+            assertTrue(releaseSend.await(15, TimeUnit.SECONDS));
+            return null;
+        }).when(firstTransport).sendMessage(any());
+        final FutureTask<ListenableFuture<Void>> first = new FutureTask<>(() -> client.invoke(firstRequest));
+        final FutureTask<ListenableFuture<Void>> second = new FutureTask<>(() -> client.invoke(secondRequest));
+
+        new Thread(first, "grpc-test-blocked-send").start();
+        try {
+            assertTrue(sending.await(5, TimeUnit.SECONDS));
+            new Thread(second, "grpc-test-second-call").start();
+            second.get(5, TimeUnit.SECONDS).cancel(true);
+            verify(secondTransport).start(any(), any());
+            assertFalse(first.isDone());
+        } finally {
+            releaseSend.countDown();
+        }
+        first.get(5, TimeUnit.SECONDS).cancel(true);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testRetirementRejectsPreparedCallBeforeItStarts() throws Exception {
+        final ManagedChannel channel = mock(ManagedChannel.class);
+        final ClientCall<DynamicMessage, DynamicMessage> transport = mock(ClientCall.class);
+        final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
+        final ShenyuGrpcCallRequest request = newCallParams(MethodDescriptor.MethodType.UNARY, newRequestList());
+        final CountDownLatch preparing = new CountDownLatch(1);
+        final CountDownLatch releasePreparation = new CountDownLatch(1);
+        request.setChannel(channel);
+        doAnswer(invocation -> {
+            preparing.countDown();
+            assertTrue(releasePreparation.await(15, TimeUnit.SECONDS));
+            return transport;
+        }).when(channel).newCall(any(), any());
+        final FutureTask<ListenableFuture<Void>> start = new FutureTask<>(() -> client.invoke(request));
+
+        new Thread(start, "grpc-test-preparing-call").start();
+        try {
+            assertTrue(preparing.await(5, TimeUnit.SECONDS));
+            client.close();
+        } finally {
+            releasePreparation.countDown();
+        }
+        final ListenableFuture<Void> result = start.get(5, TimeUnit.SECONDS);
+        final ExecutionException failure = assertThrows(ExecutionException.class, () -> result.get(5, TimeUnit.SECONDS));
+        assertEquals("gRPC client is retired", failure.getCause().getMessage());
+        verify(transport, never()).start(any(), any());
+        verify(transport, never()).sendMessage(any());
+    }
+
+    @Test
     public void testClientStreamingDrainsAccordingToReadiness() {
         assertStreamingDrains(MethodDescriptor.MethodType.CLIENT_STREAMING);
     }
