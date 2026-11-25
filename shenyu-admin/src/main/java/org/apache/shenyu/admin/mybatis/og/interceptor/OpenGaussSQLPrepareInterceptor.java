@@ -24,6 +24,7 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
+import org.apache.shenyu.admin.mybatis.PostgreSqlNormalizer;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -59,7 +60,7 @@ public class OpenGaussSQLPrepareInterceptor implements Interceptor {
         // reflect modify sql file
         Field field = boundSql.getClass().getDeclaredField("sql");
         field.setAccessible(true);
-        field.set(boundSql, boundSql.getSql().replace("`", "\"").toLowerCase());
+        field.set(boundSql, PostgreSqlNormalizer.normalize(boundSql.getSql()));
 
         return invocation.proceed();
     }

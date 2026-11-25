@@ -20,9 +20,11 @@ package org.apache.shenyu.admin.mybatis.og.interceptor;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Properties;
 
 import static org.mockito.Mockito.mock;
@@ -43,6 +45,19 @@ public class OpenGaussSQLPrepareInterceptorTest {
         when(statementHandler.getBoundSql()).thenReturn(boundSql);
         when(boundSql.getSql()).thenReturn("select * from users where name = 1 limit 1");
         Assertions.assertDoesNotThrow(() -> openGaussSQLPrepareInterceptor.intercept(invocation));
+    }
+
+    @Test
+    public void interceptPreservesStringLiterals() {
+        final Invocation invocation = mock(Invocation.class);
+        final StatementHandler statementHandler = mock(StatementHandler.class);
+        final String sql = "SELECT `ID` FROM Sample WHERE Category = 'Example' AND Note = 'It''s a `Tag`'";
+        final BoundSql boundSql = new BoundSql(new Configuration(), sql, List.of(), null);
+        when(invocation.getTarget()).thenReturn(statementHandler);
+        when(statementHandler.getBoundSql()).thenReturn(boundSql);
+
+        Assertions.assertDoesNotThrow(() -> new OpenGaussSQLPrepareInterceptor().intercept(invocation));
+        Assertions.assertEquals("select \"id\" from sample where category = 'Example' and note = 'It''s a `Tag`'", boundSql.getSql());
     }
 
     @Test
