@@ -300,6 +300,7 @@ jobs:
           echo 'MAVEN_USER_HOME=/tmp/shenyu-e2e-maven/maven-user-home' >> "$GITHUB_ENV"
 
       - name: Build examples with Maven
+        if: matrix.example_projects != ''
         shell: bash
         env:
           EXAMPLE_PROJECTS: ${{ matrix.example_projects }}

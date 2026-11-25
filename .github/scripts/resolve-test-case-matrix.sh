@@ -532,11 +532,11 @@ e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
       },
       "e2e-cluster-jdbc-compose": {
         case: "shenyu-e2e-case-cluster",
-        example_projects: ":shenyu-examples-http"
+        example_projects: ""
       },
       "e2e-cluster-zookeeper-compose": {
         case: "shenyu-e2e-case-cluster",
-        example_projects: ":shenyu-examples-http"
+        example_projects: ""
       }
     }[.];
 
