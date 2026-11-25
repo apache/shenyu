@@ -26,6 +26,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
+from psutil import NoSuchProcess
 from websockets.sync.client import connect
 
 from benchmark import error_code, load
@@ -139,6 +140,18 @@ class LoadResultTest(unittest.TestCase):
     def test_generator_failure_without_summary_reports_exit_code(self):
         with self.assertRaisesRegex(RuntimeError, "k6.*104.*k6.log"):
             self.run_load(None, 104)
+
+    def test_generator_is_reaped_if_gateway_exits_before_initial_sample(self):
+        gateway = SimpleNamespace(pid=12345)
+        generator = Mock(poll=Mock(return_value=None))
+        with tempfile.TemporaryDirectory() as temp, \
+                patch("benchmark.subprocess.Popen", return_value=generator), \
+                patch("benchmark.psutil.Process", side_effect=NoSuchProcess(gateway.pid)), \
+                self.assertRaises(NoSuchProcess):
+            load(SimpleNamespace(k6="k6", p99_ms=100), "http://127.0.0.1/bench/ok",
+                 b"upstream-a", 100, 20, Path(temp) / "load", gateway)
+        generator.kill.assert_called_once_with()
+        generator.wait.assert_called_once_with(timeout=5)
 
     def test_missing_counter_is_not_silently_treated_as_zero(self):
         for name in ("http_reqs", "successful_requests"):

@@ -185,10 +185,10 @@ def load(args, url, body, rate, duration, output, gateway=None):
     command = [args.k6, "run", "--quiet", "--out", f"json={output / 'samples.json'}", str(HERE / "load.js")]
     with (output / "k6.log").open("w", encoding="utf-8") as log:
         process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=env)
-        target = psutil.Process(gateway.pid) if gateway else None
-        cpu_before = sum(target.cpu_times()[:2]) if target else 0
-        started, samples = time.monotonic(), []
         try:
+            target = psutil.Process(gateway.pid) if gateway else None
+            cpu_before = sum(target.cpu_times()[:2]) if target else 0
+            started, samples = time.monotonic(), []
             while process.poll() is None:
                 if target:
                     samples.append(target.memory_info().rss)
