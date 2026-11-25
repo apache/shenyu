@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.grpc.proto;
 
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Objects;
@@ -24,11 +25,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.metrics.GrpcAggregationMetrics;
+import org.apache.shenyu.common.metrics.GrpcAggregationMetrics.Outcome;
 import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Utf8;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.protobuf.DynamicMessage;
@@ -60,6 +64,9 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
 
     private static final Gson GSON = new Gson();
 
+    private static final Type RESPONSE_OBJECT_TYPE = new TypeToken<HashMap<String, Object>>() {
+    }.getType();
+
     private final ShenyuGrpcResponse grpcResponse;
 
     private final long maxResultCount;
@@ -73,8 +80,6 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
     private long currentCount;
 
     private long currentBytes;
-
-    private boolean overflowed;
 
     private boolean terminated;
 
@@ -142,42 +147,64 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
         grpcResponse.getResults().clear();
     }
 
+    /**
+     * Record the admitted aggregate once the call has reached its terminal outcome.
+     *
+     * @param outcome outcome selected by the call result
+     */
+    public synchronized void recordMetrics(final Outcome outcome) {
+        GrpcAggregationMetrics.record(outcome, currentCount, currentBytes);
+    }
+
     @Override
     public synchronized void onNext(final T value) {
-        if (overflowed || terminated) {
+        if (terminated) {
             return;
         }
-        String respData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) value);
-        if (StringUtils.isBlank(respData)) {
-            if (wouldExceedCount()) {
-                currentCount++;
-                triggerOverflow();
-                return;
-            }
-            grpcResponse.getResults().add(respData);
-            currentCount++;
+        String payload = JsonMessage.getDataFromDynamicMessage((DynamicMessage) value);
+        if (StringUtils.isBlank(payload)) {
+            appendWithinBudget(payload, 0, payload.length(), true);
             return;
         }
-        respData = respData.trim();
-        if (!StringUtils.startsWith(respData, "{") || !StringUtils.endsWith(respData, "}")) {
-            // non-json, non-blank payloads are not retained by the aggregate contract.
+        appendJson(payload);
+    }
+
+    private void appendJson(final String payload) {
+        int start = 0;
+        int end = payload.length();
+        // Use the same delimiters as String.trim() without copying a payload that may be rejected.
+        while (start < end && payload.charAt(start) <= ' ') {
+            start++;
+        }
+        while (start < end && payload.charAt(end - 1) <= ' ') {
+            end--;
+        }
+        if (start == end || payload.charAt(start) != '{' || payload.charAt(end - 1) != '}') {
             return;
         }
-        long payloadBytes = respData.getBytes(StandardCharsets.UTF_8).length;
+        appendWithinBudget(payload, start, end, false);
+    }
+
+    private void appendWithinBudget(final String payload, final int start, final int end, final boolean blank) {
+        // Characters skipped by the trim bounds each occupy one UTF-8 byte.
+        long payloadBytes = utf8Length(payload) - start - (payload.length() - end);
         if (wouldExceedCount() || wouldExceedBytes(payloadBytes)) {
-            // Account for the rejected item so the failure reports the attempted aggregate size,
-            // but do not parse it into a retained map before enforcing the budget.
-            currentCount++;
-            currentBytes += payloadBytes;
-            triggerOverflow();
+            triggerOverflow(payloadBytes);
             return;
         }
-        // standardized json output.
-        grpcResponse.getResults().add(GSON.fromJson(respData,
-                new TypeToken<HashMap<String, Object>>() {
-                }.getType()));
+        Object result = blank ? payload : GSON.fromJson(payload.substring(start, end), RESPONSE_OBJECT_TYPE);
+        grpcResponse.getResults().add(result);
         currentCount++;
         currentBytes += payloadBytes;
+    }
+
+    private static int utf8Length(final String payload) {
+        try {
+            return Utf8.encodedLength(payload);
+        } catch (IllegalArgumentException ignored) {
+            // Keep the JDK replacement semantics for malformed UTF-16 strings constructed in-process.
+            return payload.getBytes(StandardCharsets.UTF_8).length;
+        }
     }
 
     @Override
@@ -199,24 +226,18 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
     }
 
     private boolean wouldExceedCount() {
-        return maxResultCount > 0 && currentCount + 1 > maxResultCount;
+        return maxResultCount > 0 && currentCount >= maxResultCount;
     }
 
     private boolean wouldExceedBytes(final long payloadBytes) {
-        return maxResultBytes > 0 && currentBytes + payloadBytes > maxResultBytes;
+        return maxResultBytes > 0 && payloadBytes > maxResultBytes - currentBytes;
     }
 
-    private void triggerOverflow() {
-        if (overflowed) {
-            return;
-        }
-        overflowed = true;
+    private void triggerOverflow(final long payloadBytes) {
         String reason = String.format(
-                "gRPC aggregated response exceeded budget: retainedCount=%d (max=%d), retainedBytes=%d (max=%d)",
-                currentCount, maxResultCount, currentBytes, maxResultBytes);
-        // release retained results so the memory can be reclaimed before the RPC terminates.
-        grpcResponse.getResults().clear();
-        currentBytes = 0L;
+                "gRPC aggregated response exceeded budget: retainedCount=%d (max=%d), retainedBytes=%d (max=%d), rejectedBytes=%d",
+                currentCount, maxResultCount, currentBytes, maxResultBytes, payloadBytes);
+        discardResults();
         ShenyuGrpcException failure = new ShenyuGrpcException(reason);
         overflowFuture.complete(failure);
         LOG.warn(reason);

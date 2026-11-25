@@ -27,11 +27,13 @@ import io.grpc.ClientCall;
 import io.grpc.ForwardingClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
+import org.apache.shenyu.common.metrics.GrpcAggregationMetrics.Outcome;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
@@ -51,7 +53,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 
 import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
@@ -99,8 +100,10 @@ public class ShenyuGrpcClient implements Closeable {
                 jsonResponse);
         
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
+        Optional<GrpcRegisterConfig> budget = Optional.ofNullable(Singleton.INST.get(GrpcRegisterConfig.class));
         MessageWriter<DynamicMessage> streamObserver = MessageWriter.newInstance(shenyuGrpcResponse,
-                resolveMaxAggregatedResultCount(), resolveMaxAggregatedResultBytes());
+                budget.map(GrpcRegisterConfig::getMaxAggregatedResultCount).orElse(0L),
+                budget.map(GrpcRegisterConfig::getMaxAggregatedResultBytes).orElse(0L));
         
         ShenyuGrpcCallRequest callParams = new ShenyuGrpcCallRequest();
         callParams.setMethodDescriptor(jsonMarshallerMethodDescriptor);
@@ -141,8 +144,11 @@ public class ShenyuGrpcClient implements Closeable {
         result.whenComplete((ignored, throwable) -> {
             if (result.isCancelled()) {
                 streamObserver.discardResults();
+                streamObserver.recordMetrics(Outcome.CANCELLED);
                 invocation.cancel(true);
+                return;
             }
+            streamObserver.recordMetrics(terminalOutcome(throwable, streamObserver.getOverflowFuture().getNow(null)));
         });
         return result;
     }
@@ -208,20 +214,14 @@ public class ShenyuGrpcClient implements Closeable {
         }
     }
 
-    private long resolveMaxAggregatedResultCount() {
-        return resolveBudget(config -> config.getMaxAggregatedResultCount());
-    }
-
-    private long resolveMaxAggregatedResultBytes() {
-        return resolveBudget(config -> config.getMaxAggregatedResultBytes());
-    }
-
-    private long resolveBudget(final Function<GrpcRegisterConfig, Long> getter) {
-        GrpcRegisterConfig config = Singleton.INST.get(GrpcRegisterConfig.class);
-        if (Objects.isNull(config)) {
-            return 0L;
+    private static Outcome terminalOutcome(final Throwable error, final ShenyuGrpcException overflow) {
+        if (Objects.isNull(error)) {
+            return Outcome.SUCCESS;
         }
-        return Optional.ofNullable(getter.apply(config)).orElse(0L);
+        if (error == overflow) {
+            return Outcome.OVERFLOW;
+        }
+        return Status.fromThrowable(error).getCode() == Status.Code.DEADLINE_EXCEEDED ? Outcome.DEADLINE : Outcome.ERROR;
     }
 
     private void startStreaming(final CompleteObserver<DynamicMessage> doneObserver,
