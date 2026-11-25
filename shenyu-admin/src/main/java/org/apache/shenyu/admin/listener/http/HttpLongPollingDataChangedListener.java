@@ -610,21 +610,19 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 return;
             }
             try {
-                if (Objects.nonNull(cacheRebuildCoordinator)) {
-                    // Publication may race the request thread's first comparison. Registration and
-                    // notification share this scheduler, so recheck before entering the wait queue.
-                    List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
-                    if (CollectionUtils.isNotEmpty(changedGroups)) {
-                        sendResponse(changedGroups);
-                        return;
-                    }
+                // Publication may race the request thread's first comparison. Registration and
+                // notification share this scheduler, so recheck before entering the wait queue.
+                List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
+                if (CollectionUtils.isNotEmpty(changedGroups)) {
+                    sendResponse(changedGroups);
+                    return;
                 }
                 BlockingQueue<LongPollingClient> namespaceClients = clientsMap.computeIfAbsent(
                         namespaceId, k -> new ArrayBlockingQueue<>(1024));
                 this.asyncTimeoutFuture = scheduler.schedule(() -> {
-                    List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
-                    sendResponse(changedGroups);
-                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
+                    List<ConfigGroupEnum> groupsAtTimeout = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
+                    sendResponse(groupsAtTimeout);
+                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(groupsAtTimeout));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 if (shouldReportInstance(port)) {
                     long interval = Objects.nonNull(httpSyncProperties) && httpSyncProperties.getHeartbeatInterval() > 0

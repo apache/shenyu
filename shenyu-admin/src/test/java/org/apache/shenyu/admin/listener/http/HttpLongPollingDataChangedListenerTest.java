@@ -60,6 +60,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
@@ -72,6 +73,7 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -518,6 +520,7 @@ public final class HttpLongPollingDataChangedListenerTest {
 
         Mockito.verify(mockRequest).startAsync();
 
+        cleanUpHeldDefaultNamespaceClient();
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
     }
 
@@ -548,7 +551,6 @@ public final class HttpLongPollingDataChangedListenerTest {
         final String group = ConfigGroupEnum.PLUGIN.name();
         populateAllGroupsInCache(namespaceId, "serverMd5");
 
-        this.httpServletRequest.setParameter("namespaceId", namespaceId);
         setAllGroupParamsForNamespace(this.httpServletRequest, namespaceId);
         this.httpServletRequest.setParameter(group, "clientMd5,500");
 
@@ -812,6 +814,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         // Without held refresh, the instance is falsely marked OFFLINE
         assertEquals(InstanceStatusEnum.OFFLINE.getCode(), vo.getInstanceState());
 
+        cleanUpHeldDefaultNamespaceClient();
         clearAllGroupsInCache(DEFAULT_NAMESPACE);
     }
 
@@ -1022,6 +1025,15 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     // ---- helper methods ----
 
+    private void cleanUpHeldDefaultNamespaceClient() throws Exception {
+        ScheduledExecutorService scheduler = (ScheduledExecutorService) ReflectionTestUtils.getField(listener, "scheduler");
+        scheduler.submit(() -> { }).get(5, TimeUnit.SECONDS);
+        BlockingQueue<HttpLongPollingDataChangedListener.LongPollingClient> clients = listener.getClientsMap().get(DEFAULT_NAMESPACE);
+        assertNotNull(clients);
+        assertEquals(1, clients.size());
+        clients.element().cleanUp();
+    }
+
     private void populateAllGroupsInCache(final String namespaceId, final String md5) throws Exception {
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name());
@@ -1041,6 +1053,7 @@ public final class HttpLongPollingDataChangedListenerTest {
     }
 
     private void setAllGroupParamsForNamespace(final MockHttpServletRequest request, final String namespaceId) {
+        request.setParameter("namespaceId", namespaceId);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name());
             ConfigDataCache existing = getUncheckedCache().get(cacheKey);
