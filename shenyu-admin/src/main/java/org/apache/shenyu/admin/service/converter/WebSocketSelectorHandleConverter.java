@@ -44,8 +44,8 @@ public class WebSocketSelectorHandleConverter extends AbstractSelectorHandleConv
 
     @Override
     protected Object doHandle(final String handle, final List<CommonUpstream> aliveList) {
+        // Keep selector settings available for recovery. Discovery filters unhealthy upstreams for routing.
         List<WebSocketUpstream> remaining = updateStatusAndFilter(convert(handle), aliveList);
-        remaining.removeIf(upstream -> !upstream.isStatus());
         aliveList.stream().filter(alive -> remaining.stream().noneMatch(upstream -> alive.getUpstreamUrl().equals(upstream.getUpstreamUrl())))
                 .forEach(alive -> remaining.add(CommonUpstreamUtils.buildAliveWebSocketUpstream(alive)));
         return remaining;
