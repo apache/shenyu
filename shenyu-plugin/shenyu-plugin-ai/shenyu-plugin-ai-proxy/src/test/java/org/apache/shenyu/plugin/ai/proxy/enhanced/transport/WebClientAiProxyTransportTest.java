@@ -414,6 +414,25 @@ class WebClientAiProxyTransportTest {
     }
 
     @Test
+    void testPausedDemandEndsAtTotalStreamDuration() {
+        final AtomicBoolean cancelled = new AtomicBoolean();
+        final Flux<DataBuffer> body = Flux.just(dataBuffer("data: first\n\n"))
+                .concatWith(Flux.never()).doOnCancel(() -> cancelled.set(true));
+        final WebClientAiProxyTransport transport = new WebClientAiProxyTransport(webClientWithBody(body),
+                properties(Duration.ofSeconds(5), Duration.ofSeconds(10), Duration.ofSeconds(20)));
+
+        StepVerifier.withVirtualTime(() -> transport.execute(createRequest()).flatMapMany(AiUpstreamResponse::getBody)
+                        .map(bytes -> new String(bytes, StandardCharsets.UTF_8)), 1)
+                .expectNext("data: first\n\n")
+                .expectNoEvent(Duration.ofSeconds(19))
+                .thenAwait(Duration.ofSeconds(1))
+                .expectErrorSatisfies(error -> assertEquals(AiTransportException.Kind.STREAM_DURATION_TIMEOUT,
+                        assertInstanceOf(AiTransportException.class, error).getKind()))
+                .verify(Duration.ofSeconds(5));
+        assertTrue(cancelled.get());
+    }
+
+    @Test
     void testTotalStreamDurationCancelsActiveStream() {
         final AtomicBoolean cancelled = new AtomicBoolean();
         final Flux<DataBuffer> body = Flux.defer(() -> Flux.interval(Duration.ofSeconds(1))
