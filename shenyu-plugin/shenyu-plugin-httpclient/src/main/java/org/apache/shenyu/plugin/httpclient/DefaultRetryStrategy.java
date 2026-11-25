@@ -122,7 +122,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         // failure: failover must not consume a retry on it and the exhausted-retries
         // mapping must not replace it with a 503 that would count toward the breaker
         final Predicate<Throwable> retryable = th -> !(th instanceof ShenyuLocalRejectException) && retryFilter.test(th);
-        Mono<R> result = clientResponse.onErrorResume(ShenyuLocalRejectException.class, th -> Mono.error(th));
+        Mono<R> result = clientResponse;
         if (Objects.nonNull(owner)) {
             // Bind the release to the initial attempt itself, not to the composed failover chain:
             // onErrorResume below consumes the initial error, so a chain-level doFinally would only

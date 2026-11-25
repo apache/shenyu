@@ -261,6 +261,32 @@ public final class UpstreamCircuitBreakerTest {
     }
 
     @Test
+    public void testLocalRejectReleasesProbeWithoutConsumingWaitWindow() throws Exception {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.reset(KEY);
+        try {
+            for (int index = 0; index < 3; index++) {
+                breaker.recordFailure(KEY);
+            }
+            elapseWaitWindow(breaker);
+            assertTrue(breaker.tryAcquireHalfOpenProbe(KEY));
+            // an invalid probe: the gateway rejected the request before it reached the
+            // upstream, so the slot is released and the breaker re-opens with the wait
+            // window already elapsed
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                            Mono.error(new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")),
+                            KEY, true))
+                    .expectError(ShenyuLocalRejectException.class)
+                    .verify();
+            // a fresh probe is granted immediately, without waiting another window
+            assertTrue(breaker.tryAcquireHalfOpenProbe(KEY),
+                    "a gateway-local probe rejection must release the slot without consuming the wait window");
+        } finally {
+            breaker.reset(KEY);
+        }
+    }
+
+    @Test
     public void testGrantedProbeOutcomeCannotResolveReplacementProbe() throws Exception {
         UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
         breaker.reset(KEY);
