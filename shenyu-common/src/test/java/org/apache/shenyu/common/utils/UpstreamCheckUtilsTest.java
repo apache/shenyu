@@ -17,26 +17,23 @@
 
 package org.apache.shenyu.common.utils;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ProxySelector;
 import java.net.ServerSocket;
-import java.net.Socket;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * Test cases for UpstreamCheckUtils.
  */
 public final class UpstreamCheckUtilsTest {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(UpstreamCheckUtilsTest.class);
-
-    private volatile int port = -1;
 
     @Test
     public void testBlank() {
@@ -44,28 +41,23 @@ public final class UpstreamCheckUtilsTest {
     }
 
     @Test
-    @Disabled
-    public void testSocketConnect() {
-        Runnable runnable = () -> {
-            ServerSocket serverSocket;
-            try {
-                serverSocket = new ServerSocket(0);
-                port = serverSocket.getLocalPort();
-                Socket socket = serverSocket.accept();
-                socket.close();
-            } catch (IOException e) {
-                LOG.error(e.getMessage());
+    @ResourceLock("java.net.ProxySelector")
+    public void testSocketConnectIgnoresDefaultProxy() throws IOException {
+        ProxySelector original = ProxySelector.getDefault();
+        ProxySelector proxySelector = mock(ProxySelector.class);
+        try {
+            ProxySelector.setDefault(proxySelector);
+            String upstream;
+            try (ServerSocket server = new ServerSocket(0, 0, InetAddress.getByName("127.0.0.1"))) {
+                upstream = "127.0.0.1:" + server.getLocalPort();
+                assertTrue(UpstreamCheckUtils.checkUrl(upstream));
+                assertTrue(UpstreamCheckUtils.checkUrl("http://" + upstream));
+                assertTrue(UpstreamCheckUtils.checkUrl("https://" + upstream));
             }
-        };
-        new Thread(runnable).start();
-
-        while (port == -1) {
-            Thread.yield();
+            assertFalse(UpstreamCheckUtils.checkUrl(upstream));
+            verifyNoInteractions(proxySelector);
+        } finally {
+            ProxySelector.setDefault(original);
         }
-
-        assertTrue(UpstreamCheckUtils.checkUrl("127.0.0.1:" + port));
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + (port == 0 ? port + 1 : port - 1)));
-        assertTrue(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + port));
-        assertTrue(UpstreamCheckUtils.checkUrl("https://shenyu.apache.org"));
     }
 }

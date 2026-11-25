@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 
 /**
@@ -75,7 +76,8 @@ public class UpstreamCheckUtils {
     }
 
     private static boolean isHostConnector(final String host, final int port, final int timeout) {
-        try (Socket socket = new Socket()) {
+        // Measure direct reachability from the node that runs the health probe.
+        try (Socket socket = new Socket(Proxy.NO_PROXY)) {
             socket.connect(new InetSocketAddress(host, port), timeout);
         } catch (Exception e) {
             LOG.error("socket connect is error. host:{} port:{} timeout:{}", host, port, timeout, e);
