@@ -23,10 +23,12 @@ import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
-import java.util.Properties;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Properties;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -66,6 +68,24 @@ public class OracleSQLPrepareInterceptorTest {
         BoundSql boundSql = prepare("INSERT INTO example (id, value) VALUES (?, ?), (?, ?)");
         Assertions.assertTrue(boundSql.getSql().contains("UNION ALL"));
         Assertions.assertTrue(boundSql.getSql().contains("FROM dual"));
+    }
+
+    @Test
+    @ResourceLock(Resources.LOCALE)
+    public void testMultiRowInsertUsesOracleSelectSyntaxWithTurkishLocale() {
+        Locale original = Locale.getDefault();
+        Locale display = Locale.getDefault(Locale.Category.DISPLAY);
+        Locale format = Locale.getDefault(Locale.Category.FORMAT);
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            BoundSql boundSql = prepare("INSERT INTO example (id, value) VALUES (?, ?), (?, ?)");
+            Assertions.assertEquals("insert into example(id,value) SELECT * FROM ( SELECT ?,? FROM dual UNION ALL SELECT ?, ? FROM dual)",
+                    boundSql.getSql());
+        } finally {
+            Locale.setDefault(original);
+            Locale.setDefault(Locale.Category.DISPLAY, display);
+            Locale.setDefault(Locale.Category.FORMAT, format);
+        }
     }
 
     private BoundSql prepare(final String sql) {
