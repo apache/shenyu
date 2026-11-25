@@ -314,16 +314,17 @@ public final class AiProxyEngine {
                                final Optional<AiCommonConfig> fallback, final int maxRetries, final int retriesRemaining,
                                final AiProxyAttemptEvent.Phase phase,
                                final boolean fallbackProviderDeclaredReplaySafe) {
-        final int currentAttempt = execution.attemptIndex().getAndIncrement();
-        long deadlineStartNanos = System.nanoTime();
-        long remainingNanos = execution.deadlineNanos() - deadlineStartNanos;
-        if (remainingNanos <= 0L) {
-            emit(execution.invocationId(), currentAttempt, phase,
-                    AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
-            return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
-                    "AI proxy request deadline exceeded before attempt", null));
-        }
         return Mono.defer(() -> {
+            // A retry can be assembled before backoff but subscribed after the deadline.
+            final int currentAttempt = execution.attemptIndex().getAndIncrement();
+            long deadlineStartNanos = System.nanoTime();
+            long remainingNanos = execution.deadlineNanos() - deadlineStartNanos;
+            if (remainingNanos <= 0L) {
+                emit(execution.invocationId(), currentAttempt, phase,
+                        AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
+                return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
+                        "AI proxy request deadline exceeded before attempt", null));
+            }
             // A configured protocol identifier is not a negotiated protocol version.
             AgentRequestContext target = execution.observation().getContext()
                     .withTarget(selectedModel(prepared.request()), prepared.operation().name(), null);

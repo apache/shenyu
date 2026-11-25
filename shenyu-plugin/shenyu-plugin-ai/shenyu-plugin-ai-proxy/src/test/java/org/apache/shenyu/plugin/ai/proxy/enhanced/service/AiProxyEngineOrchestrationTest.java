@@ -224,6 +224,37 @@ class AiProxyEngineOrchestrationTest {
     }
 
     @Test
+    void retryDelayedPastTheSharedDeadlineDoesNotStartUpstream() {
+        AtomicInteger calls = new AtomicInteger();
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        Duration backoff = Duration.ofMillis(25);
+        Duration requestDeadline = Duration.ofSeconds(2);
+        AiProxyEngine engine = engine(request -> calls.incrementAndGet() == 1
+                        ? Mono.just(response(503, Flux.just(bytes("busy"))))
+                        : Mono.just(response(200, Flux.just(bytes("ok")))),
+                retryProperties(backoff, requestDeadline), events::add);
+
+        StepVerifier.withVirtualTime(() -> engine.execute(BODY, config(false, "main"), Optional.empty(),
+                        response -> response.getBody().then()))
+                .expectSubscription()
+                .then(() -> {
+                    assertEquals(1, calls.get());
+                    assertEquals(AiProxyAttemptEvent.Reason.RETRY_STATUS, events.get(0).reason());
+                    // Hold the virtual backoff timer while the engine's monotonic deadline elapses.
+                    long queuedAt = System.nanoTime();
+                    await().pollInterval(Duration.ofMillis(25)).atMost(requestDeadline.plusSeconds(1))
+                            .until(() -> System.nanoTime() - queuedAt >= requestDeadline.toNanos());
+                })
+                .thenAwait(backoff)
+                .expectErrorSatisfies(error -> assertEquals("AI proxy request deadline exceeded before attempt",
+                        assertInstanceOf(AiProxyException.class, error).getMessage()))
+                .verify(Duration.ofSeconds(8));
+        assertEquals(1, calls.get());
+        assertEquals(List.of(AiProxyAttemptEvent.Reason.RETRY_STATUS, AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED),
+                events.stream().map(AiProxyAttemptEvent::reason).toList());
+    }
+
+    @Test
     void excessiveRetryAfterDoesNotRetryEarlierThanTheUpstreamHint() {
         AtomicInteger calls = new AtomicInteger();
         AiProxyEngine engine = engine(request -> {
