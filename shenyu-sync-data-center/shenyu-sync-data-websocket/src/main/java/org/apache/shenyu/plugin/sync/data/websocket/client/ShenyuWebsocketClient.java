@@ -304,6 +304,7 @@ public final class ShenyuWebsocketClient extends WebSocketClient {
         runningMode = null;
         masterUrl = null;
         isConnectedToMaster = false;
+        websocketDataHandler.resetApplications();
         LOG.info("websocket connection server[{}] is opened, sending sync msg", this.getURI().toString());
         send(DataEventTypeEnum.RUNNING_MODE.name());
         if (!alreadySync) {

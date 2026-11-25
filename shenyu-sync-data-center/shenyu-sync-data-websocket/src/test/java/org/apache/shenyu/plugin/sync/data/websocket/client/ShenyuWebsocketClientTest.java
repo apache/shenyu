@@ -143,6 +143,28 @@ public class ShenyuWebsocketClientTest {
     }
 
     @Test
+    void testReconnectReappliesTheSameRuleUpdate() {
+        ShenyuWebsocketClient client = spy(shenyuWebsocketClient);
+        doNothing().when(client).send(anyString());
+        WebsocketData<RuleData> update = new WebsocketData<>();
+        update.setEventType(DataEventTypeEnum.UPDATE.name());
+        update.setGroupType(ConfigGroupEnum.RULE.name());
+        update.setData(List.of(RuleData.builder().id("rule-before-reconnect").selectorId("selector").pluginName("divide").build()));
+        String json = GsonUtils.getInstance().toJson(update);
+
+        ServerHandshake handshake = mock(ServerHandshake.class);
+        client.onOpen(handshake);
+        client.onMessage(json);
+        client.onMessage(json);
+        verify(pluginDataSubscriber).onRuleSubscribe(any(RuleData.class));
+
+        client.onClose(1006, "disconnected", true);
+        client.onOpen(handshake);
+        client.onMessage(json);
+        verify(pluginDataSubscriber, times(2)).onRuleSubscribe(any(RuleData.class));
+    }
+
+    @Test
     public void testOnMessage() {
         doNothing().when(pluginDataSubscriber).onPluginRefresh(any());
         String json = GsonUtils.getInstance().toJson(websocketData);

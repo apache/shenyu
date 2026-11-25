@@ -225,7 +225,7 @@ public final class WebsocketDataHandlerTest {
     }
 
     @Test
-    public void testRuleUpdateWithFailedDeferredApplicationIsRetried() {
+    public void testPendingRuleUpdateIsCoalescedAndRetriedAfterFailure() {
         CompletableFuture<Void> deferred = new CompletableFuture<>();
         Mockito.doAnswer(invocation -> {
             InitialSyncApplication.register(deferred);
@@ -234,6 +234,9 @@ public final class WebsocketDataHandlerTest {
         final String json = GsonUtils.getInstance().toJson(List.of(ruleUpdate("deferred-rule")));
 
         websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+        verify(pluginDataSubscriber).onRuleSubscribe(Mockito.any(RuleData.class));
+
         deferred.completeExceptionally(new IllegalStateException("deferred rule rejected"));
         websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
         websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());

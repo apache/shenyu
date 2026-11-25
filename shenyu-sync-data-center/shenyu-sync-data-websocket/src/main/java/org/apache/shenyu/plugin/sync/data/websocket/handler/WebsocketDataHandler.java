@@ -43,12 +43,12 @@ public class WebsocketDataHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketDataHandler.class);
 
-    private static final CompletableFuture<Void> APPLIED = CompletableFuture.completedFuture(null);
+    private static final CompletableFuture<Boolean> APPLIED = CompletableFuture.completedFuture(true);
 
     private final EnumMap<ConfigGroupEnum, DataHandler> handlers = new EnumMap<>(ConfigGroupEnum.class);
 
     /**
-     * Latest payload per group. Pending or rejected rule updates must remain eligible for replay.
+     * Latest payload per group for the current connection.
      */
     private final Map<ConfigGroupEnum, PayloadApplication> lastApplications = new ConcurrentHashMap<>();
 
@@ -76,6 +76,13 @@ public class WebsocketDataHandler {
     }
 
     /**
+     * Discard payload application results when a new connection opens.
+     */
+    public void resetApplications() {
+        lastApplications.clear();
+    }
+
+    /**
      * Executor.
      *
      * @param type      the type
@@ -85,24 +92,24 @@ public class WebsocketDataHandler {
     public void executor(final ConfigGroupEnum type, final String json, final String eventType) {
         final String fingerprint = fingerprintOf(json, eventType);
         PayloadApplication previous = lastApplications.get(type);
-        if (Objects.nonNull(previous) && previous.hasApplied(fingerprint)) {
-            LOG.info("ignore duplicated {} event of group {}, this payload has already been applied", eventType, type);
+        if (Objects.nonNull(previous) && previous.isDuplicate(fingerprint)) {
+            LOG.info("ignore duplicated {} event of group {}", eventType, type);
             return;
         }
         // A different payload can partly update the cache before failing.
         lastApplications.remove(type);
-        CompletableFuture<Void> completion = apply(type, json, eventType);
-        lastApplications.put(type, new PayloadApplication(fingerprint, completion));
-        if (completion.isCompletedExceptionally()) {
-            // Surface an already known rejection through the existing sync failure path.
-            completion.join();
-        }
+        lastApplications.put(type, new PayloadApplication(fingerprint, apply(type, json, eventType)));
     }
 
-    private CompletableFuture<Void> apply(final ConfigGroupEnum type, final String json, final String eventType) {
+    private CompletableFuture<Boolean> apply(final ConfigGroupEnum type, final String json, final String eventType) {
         DataHandler handler = handlers.get(type);
         if (ConfigGroupEnum.RULE == type && DataEventTypeEnum.UPDATE.name().equals(eventType)) {
-            return InitialSyncApplication.observe(() -> handler.handle(json, eventType));
+            CompletableFuture<Void> completion = InitialSyncApplication.observe(() -> handler.handle(json, eventType));
+            if (completion.isCompletedExceptionally()) {
+                // Surface an already known rejection through the existing sync failure path.
+                completion.join();
+            }
+            return completion.handle((ignored, failure) -> Objects.isNull(failure));
         }
         handler.handle(json, eventType);
         return APPLIED;
@@ -130,10 +137,11 @@ public class WebsocketDataHandler {
         ((AbstractDataHandler<?>) handlers.get(type)).handleSnapshot(json, snapshotNamespace);
     }
 
-    private record PayloadApplication(String fingerprint, CompletableFuture<Void> completion) {
+    private record PayloadApplication(String fingerprint, CompletableFuture<Boolean> applied) {
 
-        private boolean hasApplied(final String candidate) {
-            return fingerprint.equals(candidate) && completion.isDone() && !completion.isCompletedExceptionally();
+        private boolean isDuplicate(final String candidate) {
+            // Identical payloads share the pending application.
+            return fingerprint.equals(candidate) && applied.getNow(true);
         }
     }
 }
