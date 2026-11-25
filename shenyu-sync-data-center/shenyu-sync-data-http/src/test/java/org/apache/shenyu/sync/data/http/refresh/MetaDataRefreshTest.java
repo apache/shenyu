@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -106,6 +107,43 @@ public final class MetaDataRefreshTest {
         calls.verify(subscriber).onSubscribe(retained);
         calls.verifyNoMoreInteractions();
         verify(subscriber, never()).refresh();
+    }
+
+    @Test
+    public void testNullRowDoesNotInterruptSnapshotReconciliation() {
+        MetaDataSubscriber subscriber = mock(MetaDataSubscriber.class);
+        MetaDataRefresh refresh = new MetaDataRefresh(List.of(subscriber));
+        MetaData deleted = metadata("old-id", "/old");
+        MetaData retained = metadata("retained-id", "/retained");
+
+        assertTrue(refresh.refresh(snapshot("first", 1, List.of(deleted, retained))));
+        assertTrue(refresh.refresh(snapshot("with-null", 2, Arrays.asList(null, retained))));
+        assertTrue(refresh.refresh(snapshot("empty", 3, List.of())));
+
+        InOrder calls = inOrder(subscriber);
+        calls.verify(subscriber).onSubscribe(deleted);
+        calls.verify(subscriber).onSubscribe(retained);
+        calls.verify(subscriber).unSubscribe(deleted);
+        calls.verify(subscriber).onSubscribe(retained);
+        calls.verify(subscriber).unSubscribe(retained);
+        calls.verify(subscriber).refresh();
+        calls.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSnapshotWithOnlyNullRowsDoesNotClearMetadata() {
+        MetaDataSubscriber subscriber = mock(MetaDataSubscriber.class);
+        MetaDataRefresh refresh = new MetaDataRefresh(List.of(subscriber));
+        MetaData retained = metadata("retained-id", "/retained");
+
+        assertTrue(refresh.refresh(snapshot("first", 1, List.of(retained))));
+        refresh.refresh(snapshot("malformed", 2, Collections.singletonList(null)));
+        verify(subscriber, never()).unSubscribe(retained);
+        verify(subscriber, never()).refresh();
+
+        assertTrue(refresh.refresh(snapshot("empty", 3, List.of())));
+        verify(subscriber).unSubscribe(retained);
+        verify(subscriber).refresh();
     }
 
     @Test

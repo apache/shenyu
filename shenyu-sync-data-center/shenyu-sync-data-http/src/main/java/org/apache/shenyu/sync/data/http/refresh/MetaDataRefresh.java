@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,7 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
 
     private final List<MetaDataSubscriber> metaDataSubscribers;
 
+    // The refresh instance's monitor guards the last snapshot applied to the subscribers.
     private List<MetaData> appliedMetadata = List.of();
 
     public MetaDataRefresh(final List<MetaDataSubscriber> metaDataSubscribers) {
@@ -77,8 +79,16 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
     }
 
     @Override
-    protected void refresh(final List<MetaData> data) {
-        List<MetaData> snapshot = ListUtils.emptyIfNull(data);
+    protected synchronized void refresh(final List<MetaData> data) {
+        List<MetaData> rows = ListUtils.emptyIfNull(data);
+        List<MetaData> snapshot = rows.stream().filter(Objects::nonNull).toList();
+        if (snapshot.size() != rows.size()) {
+            LOG.warn("ignore null item in HTTP metadata snapshot");
+            // A malformed frame with no usable rows must not clear an applied snapshot.
+            if (snapshot.isEmpty()) {
+                return;
+            }
+        }
         unsubscribeMissingMetadata(snapshot);
         if (snapshot.isEmpty()) {
             LOG.info("clear all metaData cache");
