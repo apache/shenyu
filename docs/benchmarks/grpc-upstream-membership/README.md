@@ -12,30 +12,55 @@ decoded notification. `same` preserves order; `reversed` changes order without
 changing membership. Set construction and its allocations are timed. This
 benchmark covers unchanged membership; size changes already return immediately.
 
-## Reproduce (PowerShell, from repository root)
+## Reproduce (from repository root)
 
-Requires a JDK 17 `java` and `javac` on PATH. No Maven project configuration or
-runtime dependencies are changed. Dependencies below are fetched from Maven Central.
+Requires JDK 17. The isolated benchmark POM resolves JMH through the
+repository Maven wrapper and compiles the two production DTO source files directly.
+It is not a module of the gateway reactor and adds no gateway runtime dependencies.
+
+POSIX shell (Linux/macOS):
+
+```sh
+./mvnw -B -f docs/benchmarks/grpc-upstream-membership/pom.xml clean package &&
+java -jar docs/benchmarks/grpc-upstream-membership/target/benchmarks.jar \
+  UpstreamMembershipBenchmark -f 2 -wi 3 -i 5 -w 1s -r 1s \
+  -jvmArgs '-Xms256m -Xmx256m' -prof gc -rf json \
+  -rff docs/benchmarks/grpc-upstream-membership/target/results.json
+```
+
+PowerShell:
 
 ```powershell
-$bench = 'docs/benchmarks/grpc-upstream-membership'
-$out = Join-Path $env:TEMP 'shenyu-grpc-membership-benchmark'
-New-Item -ItemType Directory -Force "$out/lib", "$out/classes" | Out-Null
-$artifacts = @{
-  'jmh-core.jar' = 'org/openjdk/jmh/jmh-core/1.37/jmh-core-1.37.jar'
-  'jmh-annprocess.jar' = 'org/openjdk/jmh/jmh-generator-annprocess/1.37/jmh-generator-annprocess-1.37.jar'
-  'jopt-simple.jar' = 'net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar'
-  'commons-math3.jar' = 'org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
-}
-foreach ($entry in $artifacts.GetEnumerator()) {
-  Invoke-WebRequest "https://repo.maven.apache.org/maven2/$($entry.Value)" -OutFile "$out/lib/$($entry.Key)"
-}
-$cp = "$out/classes;$out/lib/*"
-$dto = 'shenyu-common/src/main/java/org/apache/shenyu/common/dto/convert/selector'
-javac -cp $cp -d "$out/classes" "$dto/CommonUpstream.java" "$dto/GrpcUpstream.java" "$bench/UpstreamMembershipBenchmark.java"
-if ($LASTEXITCODE -ne 0) { throw 'Benchmark compilation failed' }
-java -cp $cp org.openjdk.jmh.Main UpstreamMembershipBenchmark -f 2 -wi 3 -i 5 -w 1s -r 1s -p size=8,1024,4096 -jvmArgs '-Xms256m -Xmx256m' -prof gc -rf json -rff "$out/results.json"
+.\mvnw.cmd -B -f docs/benchmarks/grpc-upstream-membership/pom.xml clean package
+if ($LASTEXITCODE -ne 0) { throw 'Benchmark build failed' }
+java -jar docs/benchmarks/grpc-upstream-membership/target/benchmarks.jar UpstreamMembershipBenchmark -f 2 -wi 3 -i 5 -w 1s -r 1s -jvmArgs '-Xms256m -Xmx256m' -prof gc -rf json -rff docs/benchmarks/grpc-upstream-membership/target/results.json
 ```
+
+The default sizes are 8, 1024, and 4096, matching the recorded table and JSON.
+For a packaging smoke test, override the measurement options with
+`-f 1 -wi 0 -i 1 -r 100ms`; smoke results are not performance evidence.
+The commands can be used on Linux CI, but this PR does not add a timing gate or
+claim that the benchmark has run in the project's Linux CI.
+
+## Keeping the harness aligned
+
+The predicates are copied, not invoked through `ShenyuNameResolver`, so they can
+silently drift when production changes. Before interpreting a new run, compare
+`baseline()` against the pre-optimization revision below and `optimized()` against
+`ShenyuNameResolver.Resolve.needsToUpdateConnections` in the checkout. Review the
+size guard, equal-list fast path, membership direction, and DTO `equals/hashCode`.
+Both harness variants use a primitive size comparison instead of production's
+boxed `Objects.equals` size guard; the copied predicates are not byte-for-byte
+resolver measurements.
+The setup assertion checks the unchanged-membership fixtures only; it cannot
+establish equivalence with the resolver. Keep resolver behavior covered by
+`ShenyuNameResolverTest`; the large-list test checks publication behavior, not
+execution time or algorithmic complexity.
+
+`GrpcUpstream.equals` ignores `weight` and `status`. Updates limited to these
+fields do not cause this predicate to publish when list size and equality fields
+are unchanged. This preserves the previous comparison semantics, not a complete
+snapshot comparison.
 
 ## Recorded run
 
@@ -54,8 +79,12 @@ five 1-second measurements per fork, 256 MiB heap. Base revision:
 | Reversed | 4096 | 79393.927 | 626.701 | 426064 |
 
 Raw measurements, JMH error estimates and allocation metrics are in
-`results.json`. This was a shared development machine with dependency downloads
-running concurrently. Variance is substantial, particularly for the 4096-entry
+`results.json`. These historical results retain the original `benchmark` package
+name; the harness now uses `org.apache.shenyu.benchmark`. The recorded data has
+not been relabeled or replaced by packaging smoke-test results.
+
+This was a shared development machine with dependency downloads running
+concurrently. Variance is substantial, particularly for the 4096-entry
 reversed optimized case (626.701 +/- 1039.937 us/op); do not treat these numbers
 as stable production speedup ratios. They demonstrate the scaling issue and the
 allocation tradeoff: the equal-list fast path avoids allocation, while reordered

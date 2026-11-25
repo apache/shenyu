@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package benchmark;
+package org.apache.shenyu.benchmark;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +37,7 @@ import org.openjdk.jmh.annotations.State;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class UpstreamMembershipBenchmark {
-    @Param({"8", "128", "1024", "4096"})
+    @Param({"8", "1024", "4096"})
     public int size;
     @Param({"same", "reversed"})
     public String order;

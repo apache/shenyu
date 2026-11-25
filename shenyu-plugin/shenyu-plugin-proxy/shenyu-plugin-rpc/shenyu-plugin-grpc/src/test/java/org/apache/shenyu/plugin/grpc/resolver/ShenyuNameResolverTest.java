@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -86,8 +87,7 @@ public class ShenyuNameResolverTest {
         updateUpstream("127.0.0.1:8080");
         resolver.refresh();
 
-        verify(listener, times(1)).onResult(any(NameResolver.ResolutionResult.class));
-        verify(listener, never()).onError(any(Status.class));
+        verifySuccessfulResults(1);
     }
 
     @Test
@@ -100,10 +100,8 @@ public class ShenyuNameResolverTest {
         updateUpstream("127.0.0.1:8081");
         updateUpstream("127.0.0.1:8081");
 
-        ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
-        verify(listener, times(2)).onResult(results.capture());
+        ArgumentCaptor<NameResolver.ResolutionResult> results = verifySuccessfulResults(2);
         assertEquals(new InetSocketAddress("127.0.0.1", 8081), results.getValue().getAddresses().get(0).getAddresses().get(0));
-        verify(listener, never()).onError(any(Status.class));
     }
 
     @Test
@@ -153,8 +151,7 @@ public class ShenyuNameResolverTest {
         cache.handlerUpstream(APP_NAME, reordered);
         resolver.refresh();
 
-        verify(listener, times(1)).onResult(any(NameResolver.ResolutionResult.class));
-        verify(listener, never()).onError(any(Status.class));
+        verifySuccessfulResults(1);
     }
 
     @Test
@@ -165,13 +162,11 @@ public class ShenyuNameResolverTest {
         changed.set(1, GrpcUpstream.builder().upstreamUrl("127.0.0.1:9000").weight(50).status(true).build());
         cache.handlerUpstream(APP_NAME, changed);
 
-        ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
-        verify(listener, times(2)).onResult(results.capture());
+        ArgumentCaptor<NameResolver.ResolutionResult> results = verifySuccessfulResults(2);
         assertEquals(3, results.getValue().getAddresses().size());
         assertEquals(new InetSocketAddress("127.0.0.1", 8080), results.getValue().getAddresses().get(0).getAddresses().get(0));
         assertEquals(new InetSocketAddress("127.0.0.1", 9000), results.getValue().getAddresses().get(1).getAddresses().get(0));
         assertEquals(new InetSocketAddress("127.0.0.1", 8082), results.getValue().getAddresses().get(2).getAddresses().get(0));
-        verify(listener, never()).onError(any(Status.class));
     }
 
     @Test
@@ -181,11 +176,9 @@ public class ShenyuNameResolverTest {
         cache.handlerUpstream(APP_NAME, upstreams(3));
         cache.handlerUpstream(APP_NAME, upstreams(1));
 
-        ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
-        verify(listener, times(3)).onResult(results.capture());
+        ArgumentCaptor<NameResolver.ResolutionResult> results = verifySuccessfulResults(3);
         assertEquals(3, results.getAllValues().get(1).getAddresses().size());
         assertEquals(1, results.getAllValues().get(2).getAddresses().size());
-        verify(listener, never()).onError(any(Status.class));
     }
 
     @Test
@@ -196,18 +189,17 @@ public class ShenyuNameResolverTest {
         List<GrpcUpstream> updated = upstreams(2);
         cache.handlerUpstream(APP_NAME, Arrays.asList(updated.get(0), updated.get(1), updated.get(1)));
 
-        verify(listener, times(1)).onResult(any(NameResolver.ResolutionResult.class));
-        verify(listener, never()).onError(any(Status.class));
+        verifySuccessfulResults(1);
     }
 
+    // Behavioral regression at larger input size; timing and scaling are evaluated by JMH, not this test.
     @Test
     public void testLargeUnchangedUpstreamListDoesNotPublishAnotherResult() {
         cache.handlerUpstream(APP_NAME, upstreams(1024));
         resolver.start(listener);
         cache.handlerUpstream(APP_NAME, upstreams(1024));
 
-        verify(listener, times(1)).onResult(any(NameResolver.ResolutionResult.class));
-        verify(listener, never()).onError(any(Status.class));
+        verifySuccessfulResults(1);
     }
 
     @Test
@@ -218,8 +210,15 @@ public class ShenyuNameResolverTest {
         changed.get(1).setNamespaceId("another-namespace");
         cache.handlerUpstream(APP_NAME, changed);
 
-        verify(listener, times(2)).onResult(any(NameResolver.ResolutionResult.class));
+        verifySuccessfulResults(2);
+    }
+
+    private ArgumentCaptor<NameResolver.ResolutionResult> verifySuccessfulResults(final int count) {
+        ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
+        verify(listener, times(count)).onResult(results.capture());
         verify(listener, never()).onError(any(Status.class));
+        results.getAllValues().forEach(result -> assertNotNull(result));
+        return results;
     }
 
     private List<GrpcUpstream> upstreams(final int size) {
