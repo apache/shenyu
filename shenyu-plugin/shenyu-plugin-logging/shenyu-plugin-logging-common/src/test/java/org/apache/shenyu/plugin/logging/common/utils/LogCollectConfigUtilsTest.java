@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.logging.common.utils;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.logging.common.config.GenericGlobalConfig;
 import org.apache.shenyu.plugin.logging.common.handler.AbstractLogPluginDataHandler;
@@ -102,6 +103,14 @@ public class LogCollectConfigUtilsTest {
         GenericGlobalConfig missing = LogCollectConfigUtils.getGlobalConfig(null);
         assertEquals(524288, missing.getMaxRequestBody());
         assertEquals(524288, missing.getMaxResponseBody());
+    }
+
+    @Test
+    public void testSamplingWithoutPluginIdUsesDefault() {
+        SelectorData selector = SelectorData.builder().id("local-logging-selector").build();
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/logged"));
+
+        assertTrue(LogCollectConfigUtils.isSampled(exchange, selector));
     }
 
     @Test

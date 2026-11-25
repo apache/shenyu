@@ -116,7 +116,8 @@ public final class LogCollectConfigUtils {
         return Optional.ofNullable(AbstractLogPluginDataHandler.getSelectApiConfigMap().get(selectorData.getId()))
                 .map(GenericApiConfig::getSampler)
                 .map(sampler -> sampler.isSampled(exchange, selectorData))
-                .orElseGet(() -> Optional.ofNullable(AbstractLogPluginDataHandler.getPluginGlobalConfigMap().get(selectorData.getPluginId()))
+                .orElseGet(() -> Optional.ofNullable(selectorData.getPluginId())
+                        .map(AbstractLogPluginDataHandler.getPluginGlobalConfigMap()::get)
                         .map(GenericGlobalConfig::getSampler)
                         .map(sampler -> sampler.isSampled(exchange, selectorData))
                         .orElse(true));
