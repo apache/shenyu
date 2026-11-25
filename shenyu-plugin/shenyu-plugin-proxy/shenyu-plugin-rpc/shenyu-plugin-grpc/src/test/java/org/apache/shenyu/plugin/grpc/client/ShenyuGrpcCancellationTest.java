@@ -36,6 +36,8 @@ import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
+import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -51,6 +53,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -80,6 +84,32 @@ class ShenyuGrpcCancellationTest {
         result.cancel(false);
         assertEquals(1, call.cancellations.get());
         assertTrue(call.serverCancelled.isDone());
+    }
+
+    @Test
+    void cancellationDiscardsAggregateBeforeTransportCloses() {
+        RecordingCall call = new RecordingCall();
+        call.closeOnCancel = false;
+        ShenyuGrpcClient grpcClient = spy(client(call));
+        final CompletableFuture<ShenyuGrpcResponse> result = grpcClient.call(
+                MetaData.builder().serviceName("cancel.Service").methodName("stream").build(),
+                CallOptions.DEFAULT, "{\"data\":[{}]}", MethodDescriptor.MethodType.SERVER_STREAMING);
+        ArgumentCaptor<ShenyuGrpcCallRequest> invocation = ArgumentCaptor.forClass(ShenyuGrpcCallRequest.class);
+        verify(grpcClient).invoke(invocation.capture());
+        ShenyuGrpcResponse response = (ShenyuGrpcResponse) ReflectionTestUtils.getField(invocation.getValue().getResponseObserver(), "grpcResponse");
+        DynamicMessage message = JsonMessage.buildJsonMessage("{\"value\":1}");
+        call.listener.onMessage(message);
+        assertEquals(1, response.getResults().size());
+
+        assertTrue(result.cancel(true));
+        assertEquals(1, call.cancellations.get());
+        assertTrue(response.getResults().isEmpty(), "Cancellation must discard retained results before transport close");
+
+        call.listener.onMessage(message);
+        call.listener.onClose(Status.OK, new Metadata());
+        assertTrue(response.getResults().isEmpty(), "Late callbacks must not retain results after cancellation");
+        assertTrue(result.isCancelled());
+        assertEquals(1, call.cancellations.get());
     }
 
     @Test

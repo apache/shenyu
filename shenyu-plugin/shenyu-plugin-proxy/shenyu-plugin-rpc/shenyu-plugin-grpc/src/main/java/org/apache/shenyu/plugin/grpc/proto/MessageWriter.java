@@ -134,6 +134,14 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
         return overflowFuture;
     }
 
+    /**
+     * Stops aggregation and releases retained results before the transport closes.
+     */
+    public synchronized void discardResults() {
+        terminated = true;
+        grpcResponse.getResults().clear();
+    }
+
     @Override
     public synchronized void onNext(final T value) {
         if (overflowed || terminated) {
@@ -177,9 +185,7 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
         if (terminated) {
             return;
         }
-        terminated = true;
-        // The owning client fails the call, so a partial aggregate must not stay reachable.
-        grpcResponse.getResults().clear();
+        discardResults();
         LOG.error("Messages write occur errors", t);
     }
 

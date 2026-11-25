@@ -140,6 +140,7 @@ public class ShenyuGrpcClient implements Closeable {
         }, MoreExecutors.directExecutor());
         result.whenComplete((ignored, throwable) -> {
             if (result.isCancelled()) {
+                streamObserver.discardResults();
                 invocation.cancel(true);
             }
         });
