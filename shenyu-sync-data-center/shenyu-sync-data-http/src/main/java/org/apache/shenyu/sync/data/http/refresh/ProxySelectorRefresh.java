@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -70,18 +71,22 @@ public class ProxySelectorRefresh extends AbstractDataRefresh<ProxySelectorData>
             previousSnapshot.clear();
             return;
         }
-        Map<SelectorKey, ProxySelectorData> currentSnapshot = new HashMap<>();
+        Map<SelectorKey, ProxySelectorData> currentSnapshot = new LinkedHashMap<>();
         for (ProxySelectorData selector : data) {
-            if (Objects.nonNull(selector.getId()) && Objects.nonNull(selector.getPluginName())) {
-                currentSnapshot.put(new SelectorKey(selector.getPluginName(), selector.getId()), selector);
+            if (Objects.isNull(selector) || Objects.isNull(selector.getId()) || Objects.isNull(selector.getPluginName())) {
+                LOG.warn("ignore proxy selector snapshot item without pluginName or id");
+                continue;
             }
+            currentSnapshot.put(new SelectorKey(selector.getPluginName(), selector.getId()), selector);
         }
         previousSnapshot.forEach((key, selector) -> {
-            if (!currentSnapshot.containsKey(key)) {
+            ProxySelectorData current = currentSnapshot.get(key);
+            // Handlers are keyed by name; remove the old name before publishing updates.
+            if (Objects.isNull(current) || !Objects.equals(selector.getName(), current.getName())) {
                 proxySelectorDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(selector));
             }
         });
-        data.forEach(d -> proxySelectorDataSubscribers.forEach(pss -> pss.onSubscribe(d)));
+        currentSnapshot.values().forEach(selector -> proxySelectorDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(selector)));
         previousSnapshot.clear();
         previousSnapshot.putAll(currentSnapshot);
     }

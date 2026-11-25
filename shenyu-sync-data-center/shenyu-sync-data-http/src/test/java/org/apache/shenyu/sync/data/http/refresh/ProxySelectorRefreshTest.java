@@ -18,6 +18,7 @@
 package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.common.dto.ProxySelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -54,6 +55,10 @@ public final class ProxySelectorRefreshTest {
             new ProxySelectorRefresh(Collections.singletonList(subscriber));
 
     @BeforeEach
+    public void resetProxySelectorGroup() {
+        AbstractDataRefresh.GROUP_CACHE.remove(ConfigGroupEnum.PROXY_SELECTOR);
+    }
+
     @AfterEach
     public void clearProxySelectorGroup() {
         AbstractDataRefresh.GROUP_CACHE.remove(ConfigGroupEnum.PROXY_SELECTOR);
@@ -69,7 +74,7 @@ public final class ProxySelectorRefreshTest {
 
     @Test
     public void testRefreshWithDataShouldSubscribe() {
-        proxySelectorRefresh.refresh(Collections.singletonList(new ProxySelectorData()));
+        assertTrue(proxySelectorRefresh.refresh(snapshot(1, "alpha")));
         assertTrue(subscriber.subscribed);
     }
 
@@ -87,6 +92,47 @@ public final class ProxySelectorRefreshTest {
         assertTrue(proxySelectorRefresh.refresh(snapshot(3)));
         assertTrue(subscriber.names.isEmpty());
         assertTrue(subscriber.refreshed);
+    }
+
+    @Test
+    public void testNullSnapshotElementDoesNotPreventValidSelectorRefresh() {
+        JsonArray entries = new JsonArray();
+        entries.add(JsonNull.INSTANCE);
+        entries.add(selector("alpha", "alpha"));
+        assertTrue(proxySelectorRefresh.refresh(snapshot(1, entries)));
+
+        assertEquals(Set.of("alpha"), subscriber.names);
+    }
+
+    @Test
+    public void testUntrackableEntriesAreNotSubscribed() {
+        JsonArray entries = new JsonArray();
+        entries.add(selector("alpha", "alpha"));
+        JsonObject missingId = selector("bad-id", "bad-id");
+        missingId.remove("id");
+        entries.add(missingId);
+        JsonObject missingPlugin = selector("bad-plugin", "bad-plugin");
+        missingPlugin.remove("pluginName");
+        entries.add(missingPlugin);
+
+        assertTrue(proxySelectorRefresh.refresh(snapshot(1, entries)));
+
+        assertEquals(Set.of("alpha"), subscriber.names);
+        assertFalse(subscriber.refreshed);
+    }
+
+    @Test
+    public void testRenameRemovesTheOldNameBeforeSubscribingTheNewName() {
+        assertTrue(proxySelectorRefresh.refresh(snapshot(1, "alpha", "beta")));
+        JsonArray entries = new JsonArray();
+        entries.add(selector("alpha", "renamed"));
+        entries.add(selector("beta", "beta"));
+
+        assertTrue(proxySelectorRefresh.refresh(snapshot(2, entries)));
+
+        assertEquals(Set.of("renamed", "beta"), subscriber.names);
+        assertEquals(List.of("alpha"), subscriber.removed);
+        assertFalse(subscriber.refreshed);
     }
 
     @Test
@@ -117,12 +163,12 @@ public final class ProxySelectorRefreshTest {
     private JsonObject snapshot(final int version, final String... names) {
         JsonArray entries = new JsonArray();
         for (String name : names) {
-            JsonObject selector = new JsonObject();
-            selector.addProperty("id", name);
-            selector.addProperty("name", name);
-            selector.addProperty("pluginName", "tcp");
-            entries.add(selector);
+            entries.add(selector(name, name));
         }
+        return snapshot(version, entries);
+    }
+
+    private JsonObject snapshot(final int version, final JsonArray entries) {
         JsonObject group = new JsonObject();
         group.addProperty("md5", "v" + version);
         group.addProperty("lastModifyTime", version);
@@ -130,6 +176,14 @@ public final class ProxySelectorRefreshTest {
         JsonObject response = new JsonObject();
         response.add(ConfigGroupEnum.PROXY_SELECTOR.name(), group);
         return response;
+    }
+
+    private JsonObject selector(final String id, final String name) {
+        JsonObject item = new JsonObject();
+        item.addProperty("id", id);
+        item.addProperty("name", name);
+        item.addProperty("pluginName", "tcp");
+        return item;
     }
 
     private static final class StubProxySelectorDataSubscriber implements ProxySelectorDataSubscriber {
