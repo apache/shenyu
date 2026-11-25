@@ -31,7 +31,9 @@ import org.apache.rocketmq.common.protocol.route.BrokerData;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
 import org.apache.shenyu.e2e.engine.scenario.specification.ScenarioSpec;
+import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuAfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec;
+import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuBeforeEachSpec.ShenYuBeforeEachSpecBuilder;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuCaseSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.MatchMode;
@@ -47,10 +49,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.notExists;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newBindingData;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newDivideRuleHandle;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newUpstreamsBuilder;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
 
@@ -60,7 +67,9 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private static final String TOPIC = "shenyu-access-logging";
 
-    private static final String TEST = "/http/order/findById?id=123";
+    private static final String ROUTE = "/anything/rocketmq";
+
+    private static final String UPSTREAM = "httpbin.org";
 
     private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofSeconds(60);
 
@@ -76,14 +85,31 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private ShenYuScenarioSpec testDivideHello() {
         return ShenYuScenarioSpec.builder()
-                .name("http client hello1")
-                .beforeEachSpec(ShenYuBeforeEachSpec.builder()
-                        .waiting(Method.GET, TEST, new ResponseSpecBuilder().expectStatusCode(200).build())
-                        .build())
+                .name("route a request to the HTTP fixture")
+                .beforeEachSpec(fixtureRoute().build())
                 .caseSpec(ShenYuCaseSpec.builder()
-                        .addExists("/http/order/findById?id=123")
+                        .add(request -> request.request(Method.GET, ROUTE).then()
+                                .statusCode(200).body("method", equalTo("GET"), "url", equalTo(ROUTE)))
                         .build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(ROUTE)).build())
                 .build();
+    }
+
+    private ShenYuBeforeEachSpecBuilder fixtureRoute() {
+        return ShenYuBeforeEachSpec.builder()
+                .addSelectorAndRule(
+                        newSelectorBuilder("rocketmq-fixture", Plugin.DIVIDE)
+                                .handle(newUpstreamsBuilder(UPSTREAM))
+                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, ROUTE))
+                                .build(),
+                        newBindingData("rocketmq-fixture", Plugin.DIVIDE.getAlias(), UPSTREAM),
+                        newRuleBuilder("rocketmq-fixture")
+                                .handle(newDivideRuleHandle())
+                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, ROUTE))
+                                .build())
+                .checker(notExists(ROUTE))
+                .waiting(Method.GET, ROUTE, new ResponseSpecBuilder()
+                        .expectStatusCode(200).expectBody("url", equalTo(ROUTE)).build());
     }
 
     static void initializeTopic() throws Exception {
@@ -144,27 +170,26 @@ public class DividePluginCases implements ShenYuScenarioProvider {
         return ShenYuScenarioSpec.builder()
                 .name("testRocketMQHello")
                 .beforeEachSpec(
-                        ShenYuBeforeEachSpec.builder()
+                        fixtureRoute()
                                 .addSelectorAndRule(
                                         newSelectorBuilder("selector", Plugin.LOGGING_ROCKETMQ)
                                                 .name("1")
                                                 .matchMode(MatchMode.OR)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, ROUTE))
                                                 .build(),
                                         newRuleBuilder("rule")
                                                 .name("1")
                                                 .matchMode(MatchMode.OR)
-                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.STARTS_WITH, "/http"))
+                                                .conditionList(newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, ROUTE))
                                                 .build()
                                 )
-                                .waiting(Method.GET, TEST, new ResponseSpecBuilder().expectStatusCode(200).build())
                                 .build()
                 )
                 .caseSpec(
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
                                     String requestId = UUID.randomUUID().toString();
-                                    String endpoint = "/http/order/findById?id=23&e2e=" + requestId;
+                                    String endpoint = ROUTE + "?e2e=" + requestId;
                                     DefaultLitePullConsumer consumer = new DefaultLitePullConsumer(CONSUMERGROUP + "-" + requestId);
                                     try {
                                         consumer.setNamesrvAddr(NAMESERVER);
@@ -173,7 +198,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                         consumer.start();
                                         LOG.info("RocketMQ consumer started");
                                         prepareConsumer(consumer);
-                                        request.request(Method.GET, endpoint).then().statusCode(200);
+                                        request.request(Method.GET, endpoint).then().statusCode(200)
+                                                .body("args.e2e[0]", equalTo(requestId));
                                         awaitRequestLog(consumer, endpoint);
                                     } catch (Exception e) {
                                         LOG.error("error", e);
@@ -184,8 +210,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                 })
                                 .build()
                 )
-//                .afterEachSpec(ShenYuAfterEachSpec.builder()
-//                        .deleteWaiting(notExists(TEST)).build())
+                .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(ROUTE)).build())
                 .build();
     }
 }

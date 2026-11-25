@@ -128,7 +128,7 @@ readonly CLUSTER_SERVICE="shenyu-admin/src/main/java/org/apache/shenyu/admin/mod
 readonly ALL_K8S_INGRESS_MATRIX='{"include":[{"case":"shenyu-integrated-test-k8s-ingress-http"},{"case":"shenyu-integrated-test-k8s-ingress-apache-dubbo"},{"case":"shenyu-integrated-test-k8s-ingress-websocket"},{"case":"shenyu-integrated-test-k8s-ingress-grpc"}]}'
 readonly CLUSTER_E2E_MATRIX='{"include":[{"script":"e2e-cluster-jdbc-compose","case":"shenyu-e2e-case-cluster","example_projects":""},{"script":"e2e-cluster-zookeeper-compose","case":"shenyu-e2e-case-cluster","example_projects":""}]}'
 readonly ADMIN_REGISTER_E2E_MATRIX='{"include":[{"script":"e2e-http-sync-compose","case":"shenyu-e2e-case-http","example_projects":":shenyu-examples-http"},{"script":"e2e-springcloud-sync-compose","case":"shenyu-e2e-case-spring-cloud","example_projects":":shenyu-examples-eureka,:shenyu-examples-springcloud"},{"script":"e2e-apache-dubbo-sync-compose","case":"shenyu-e2e-case-apache-dubbo","example_projects":":shenyu-examples-apache-dubbo-service"},{"script":"e2e-grpc-sync-compose","case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"},{"script":"e2e-websocket-sync-compose","case":"shenyu-e2e-case-websocket","example_projects":":shenyu-example-spring-native-websocket"}]}'
-ALL_E2E_MATRIX="$(jq -c '.include += [{script:"e2e-logging-rocketmq-compose",case:"shenyu-e2e-case-logging-rocketmq",example_projects:":shenyu-examples-http"},{script:"e2e-cluster-jdbc-compose",case:"shenyu-e2e-case-cluster",example_projects:""},{script:"e2e-cluster-zookeeper-compose",case:"shenyu-e2e-case-cluster",example_projects:""}]' <<< "${ADMIN_REGISTER_E2E_MATRIX}")"
+ALL_E2E_MATRIX="$(jq -c '.include += [{script:"e2e-logging-rocketmq-compose",case:"shenyu-e2e-case-logging-rocketmq",example_projects:""},{script:"e2e-cluster-jdbc-compose",case:"shenyu-e2e-case-cluster",example_projects:""},{script:"e2e-cluster-zookeeper-compose",case:"shenyu-e2e-case-cluster",example_projects:""}]' <<< "${ADMIN_REGISTER_E2E_MATRIX}")"
 readonly ALL_E2E_MATRIX
 for e2e_ci_file in .github/workflows/e2e-k8s.yml \
   .github/scripts/resolve-test-case-matrix.sh .github/scripts/resolve-test-case-matrix-test.sh; do
@@ -201,9 +201,9 @@ assert_ci_ignored "${E2E_CLUSTER}"
 assert_file_output "e2e" "${E2E_CLUSTER}" "e2e_matrix" "${CLUSTER_E2E_MATRIX}"
 assert_file_output "e2e" "${CLUSTER_SERVICE}" "e2e_matrix" "${CLUSTER_SERVICE_E2E_MATRIX}"
 assert_file_output "e2e" "${E2E_RABBITMQ}" "e2e_matrix" \
-  '{"include":[{"script":"e2e-logging-rocketmq-compose","case":"shenyu-e2e-case-logging-rocketmq","example_projects":":shenyu-examples-http"}]}'
+  '{"include":[{"script":"e2e-logging-rocketmq-compose","case":"shenyu-e2e-case-logging-rocketmq","example_projects":""}]}'
 assert_file_output "e2e" "${E2E_RABBITMQ_CASE}" "e2e_matrix" \
-  '{"include":[{"script":"e2e-logging-rocketmq-compose","case":"shenyu-e2e-case-logging-rocketmq","example_projects":":shenyu-examples-http"}]}'
+  '{"include":[{"script":"e2e-logging-rocketmq-compose","case":"shenyu-e2e-case-logging-rocketmq","example_projects":""}]}'
 assert_file_output "e2e" "pom.xml" "e2e_matrix" "${ALL_E2E_MATRIX}"
 assert_file_output "e2e" "shenyu-e2e/shenyu-e2e-case/pom.xml" "e2e_matrix" "${ALL_E2E_MATRIX}"
 assert_file_output "e2e" "shenyu-common/pom.xml" "e2e_matrix" "${ALL_E2E_MATRIX}"

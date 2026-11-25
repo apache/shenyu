@@ -55,11 +55,9 @@ for sync in "${SYNC_ARRAY[@]}"; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health || exit 1
   docker compose -f "${sync_compose_file}" up -d shenyu-bootstrap
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health || exit 1
-  docker compose -f "${PRGDIR}"/shenyu-rocketmq-compose.yml up -d --quiet-pull
+  docker compose -f "${PRGDIR}"/shenyu-rocketmq-compose.yml up --wait --quiet-pull || exit 1
   wait_for_port localhost 31876 || exit 1
   wait_for_port localhost 10911 || exit 1
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/actuator/health || exit 1
   docker ps -a
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-logging-rocketmq -am test
@@ -73,13 +71,12 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "shenyu-bootstrap log:"
     echo "------------------"
     docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-bootstrap
-    echo "shenyu-rocketmq log:"
+    echo "shenyu-rocketmq and HTTP fixture logs:"
     echo "------------------"
     docker compose -f "${PRGDIR}"/shenyu-rocketmq-compose.yml logs
     exit 1
   fi
   docker compose -f "${sync_compose_file}" down
   docker compose -f "${PRGDIR}"/shenyu-rocketmq-compose.yml down
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done
