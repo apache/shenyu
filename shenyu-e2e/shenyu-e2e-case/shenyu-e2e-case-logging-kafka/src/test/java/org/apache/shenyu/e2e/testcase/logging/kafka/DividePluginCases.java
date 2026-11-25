@@ -17,11 +17,13 @@
 
 package org.apache.shenyu.e2e.testcase.logging.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import io.restassured.http.Method;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
@@ -32,21 +34,22 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.MatchMode;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
-import org.junit.jupiter.api.Assertions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.UUID;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
 
@@ -56,7 +59,7 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final Logger LOG = LoggerFactory.getLogger(DividePluginCases.class);
+    private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofSeconds(60);
 
     @Override
     public List<ScenarioSpec> get() {
@@ -76,6 +79,19 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         .addExists(TEST)
                         .build())
                 .build();
+    }
+
+    static Optional<JsonNode> findRequestLog(final Iterable<ConsumerRecord<String, String>> records,
+                                             final URI endpoint) throws JsonProcessingException {
+        for (var record : records) {
+            JsonNode log = MAPPER.readTree(record.value());
+            URI requestUri = URI.create(log.path("requestUri").asText());
+            if (Objects.equals(endpoint.getRawPath(), requestUri.getRawPath())
+                    && Objects.equals(endpoint.getRawQuery(), requestUri.getRawQuery())) {
+                return Optional.of(log);
+            }
+        }
+        return Optional.empty();
     }
 
     private ShenYuScenarioSpec testKafkaHello() {
@@ -101,57 +117,30 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                 .caseSpec(
                         ShenYuCaseSpec.builder()
                                 .add(request -> {
-                                    AtomicBoolean messageFound = new AtomicBoolean(false);
-                                    try {
-                                        // Send request first
-                                        request.request(Method.GET, "/http/order/findById?id=23");
-
-                                        Properties properties = new Properties();
-                                        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-                                        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "shenyu-consumer-group");
-                                        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-                                        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-                                        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-                                        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-                                        properties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "10000");
-                                        properties.put(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG, "5000");
-
-                                        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
-                                            consumer.subscribe(Arrays.asList(TOPIC));
-
-                                            Instant start = Instant.now();
-                                            // Set timeout to 30 seconds
-                                            while (Duration.between(start, Instant.now()).getSeconds() < 60 * 5) {
-                                                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
-                                                LOG.info("records.count:{}", records.count());
-
-                                                for (var record : records) {
-                                                    String message = record.value();
-                                                    LOG.info("kafka message:{}", message);
-                                                    if (message.contains("/http/order/findById")) {
-                                                        messageFound.set(true);
-                                                        consumer.commitSync();
-                                                        break;
-                                                    }
-                                                }
-
-                                                if (messageFound.get()) {
-                                                    break;
-                                                }
-                                            }
-
-                                            if (!messageFound.get()) {
-                                                LOG.error("Timeout waiting for kafka message");
-                                                Assertions.fail("Did not receive expected message within timeout period");
-                                            }
-
-                                            Assertions.assertTrue(messageFound.get(), "Expected message was not found in Kafka topic");
-                                        }
-                                    } catch (Exception e) {
-                                        LOG.error("Error during kafka message consumption", e);
-                                        throw new RuntimeException("Failed to consume kafka message", e);
+                                    String requestId = UUID.randomUUID().toString();
+                                    URI endpoint = URI.create("/http/order/findById?id=23&e2e=" + requestId);
+                                    try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties(requestId))) {
+                                        consumer.subscribe(List.of(TOPIC));
+                                        request.request(Method.GET, endpoint.toString()).then().statusCode(200).body("id", equalTo("23"));
+                                        JsonNode log = await().alias("Kafka access log for " + endpoint)
+                                                .pollInSameThread().atMost(LOG_CONSUME_TIMEOUT)
+                                                .until(() -> findRequestLog(consumer.poll(Duration.ofMillis(200)), endpoint), Optional::isPresent)
+                                                .orElseThrow();
+                                        assertEquals(Method.GET.name(), log.path("requestMethod").asText());
+                                        assertEquals(200, log.path("status").asInt());
                                     }
                                 }).build()
                 ).build();
+    }
+
+    private Properties consumerProperties(final String requestId) {
+        Properties properties = new Properties();
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "shenyu-logging-kafka-e2e-" + requestId);
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        return properties;
     }
 }
