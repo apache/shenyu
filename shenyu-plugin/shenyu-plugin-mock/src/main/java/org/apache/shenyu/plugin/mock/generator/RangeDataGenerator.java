@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.apache.shenyu.plugin.mock.util.MockUtil;
 import org.apache.shenyu.spi.Join;
@@ -43,6 +44,11 @@ public class RangeDataGenerator implements Generator<String> {
                 .toArray(String[]::new);
 
         return MockUtil.oneOf(data).toString();
+    }
+
+    @Override
+    public String render(final String rule, final MockRequest mockRequest) {
+        return JsonUtils.toJson(generate(rule, mockRequest));
     }
 
     @Override

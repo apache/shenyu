@@ -17,10 +17,13 @@
 
 package org.apache.shenyu.plugin.mock.generator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * The test case for {@link RangeDataGenerator}.
  */
 public final class RangeDataGeneratorTest {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final RangeDataGenerator generator = new RangeDataGenerator();
 
@@ -44,6 +49,21 @@ public final class RangeDataGeneratorTest {
     }
 
     @Test
+    public void testRenderListValueWithQuotes() throws JsonProcessingException {
+        assertRenderedValue("say \"hello\"", "say \"hello\"");
+    }
+
+    @Test
+    public void testRenderListValueWithBackslash() throws JsonProcessingException {
+        assertRenderedValue("C:\\temp", "C:\\temp");
+    }
+
+    @Test
+    public void testRenderListValueWithEscapedComma() throws JsonProcessingException {
+        assertRenderedValue("shen\\,yu", "shen,yu");
+    }
+
+    @Test
     public void match() {
         assertTrue(generator.match("list|[shen\\,yu,gate\\,way]"));
         assertTrue(generator.match("list|[shenyu,gateway]"));
@@ -51,5 +71,10 @@ public final class RangeDataGeneratorTest {
         assertFalse(generator.match("list|[]"));
         assertFalse(generator.match("list|[ ]"));
 
+    }
+
+    private void assertRenderedValue(final String listValue, final String expected) throws JsonProcessingException {
+        String response = GeneratorFactory.dealRule("{\"value\":${list|[" + listValue + "]}}", null);
+        assertEquals(expected, MAPPER.readTree(response).get("value").textValue());
     }
 }

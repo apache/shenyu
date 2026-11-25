@@ -51,6 +51,19 @@ public interface Generator<T> {
     }
 
     /**
+     * Render a generator result for insertion into a mock response.
+     *
+     * @param rule rule
+     * @param mockRequest request
+     * @return rendered value
+     */
+    default String render(final String rule, final MockRequest mockRequest) {
+        String[] prefixAndSuffix = getPrefixAndSuffix();
+        T value = generate(rule, mockRequest);
+        return String.join("", prefixAndSuffix[0], value.toString(), prefixAndSuffix[1]);
+    }
+
+    /**
      * generate mock data.
      *
      * @param params params
