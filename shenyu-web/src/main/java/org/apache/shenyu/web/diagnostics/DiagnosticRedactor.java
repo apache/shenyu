@@ -29,6 +29,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -76,7 +77,7 @@ public final class DiagnosticRedactor {
         if (Objects.isNull(key)) {
             return false;
         }
-        String normalized = key.toLowerCase().replaceAll("[^a-z0-9]", "");
+        String normalized = key.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
         return SECRET_KEY_TOKENS.stream().anyMatch(normalized::contains);
     }
 

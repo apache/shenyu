@@ -19,12 +19,15 @@ package org.apache.shenyu.plugin.mcp.server.utils;
 
 import org.apache.shenyu.plugin.mcp.server.model.McpServerToolParameter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -298,5 +301,24 @@ class JsonSchemaUtilTest {
         assertTrue(schema.contains("\"studentName\""));
         assertTrue(schema.contains("\"studentAge\""));
         assertTrue(schema.contains("The student age"));
+    }
+
+    @Test
+    @ResourceLock(Resources.LOCALE)
+    void testCreateParameterSchemaIsLocaleIndependent() {
+        McpServerToolParameter param = new McpServerToolParameter();
+        param.setName("count");
+        param.setType("integer");
+        param.setDescription("The count");
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            String schema = JsonSchemaUtil.createParameterSchema(Collections.singletonList(param),
+                    org.springframework.ai.util.json.schema.JsonSchemaGenerator.SchemaOption.UPPER_CASE_TYPE_VALUES);
+            assertTrue(schema.contains("\"type\" : \"INTEGER\""), schema);
+            assertFalse(schema.contains("İNTEGER"), "schema type must not depend on the default locale");
+        } finally {
+            Locale.setDefault(original);
+        }
     }
 }

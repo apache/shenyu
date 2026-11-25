@@ -20,12 +20,15 @@ package org.apache.shenyu.admin.utils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.util.Collection;
+import java.util.Locale;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,5 +48,24 @@ public class UploadUtilsTest {
         when(httpServletRequest.getMultiFileMap()).thenReturn(fileMultiValueMap);
         final Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(httpServletRequest);
         Assertions.assertTrue(CollectionUtils.isNotEmpty(uploadFiles));
+    }
+
+    @Test
+    @ResourceLock(Resources.LOCALE)
+    public void testGetUploadFilesIsLocaleIndependent() {
+        final MultipartHttpServletRequest httpServletRequest = mock(MultipartHttpServletRequest.class);
+        when(httpServletRequest.getContentType()).thenReturn("MULTIPART/FORM-DATA; charset=UTF-8");
+        final MultiValueMap<String, MultipartFile> fileMultiValueMap = new LinkedMultiValueMap<>();
+        fileMultiValueMap.add("file", mock(MultipartFile.class));
+        when(httpServletRequest.getMultiFileMap()).thenReturn(fileMultiValueMap);
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            final Collection<MultipartFile> uploadFiles = UploadUtils.getUploadFiles(httpServletRequest);
+            Assertions.assertTrue(CollectionUtils.isNotEmpty(uploadFiles),
+                    "multipart detection must not depend on the default locale");
+        } finally {
+            Locale.setDefault(original);
+        }
     }
 }
