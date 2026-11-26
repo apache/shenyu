@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.event;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -96,6 +96,8 @@ public record AiProxyAttemptEvent(
         CONTENT_VALIDATED,
         CONTENT_REJECTED,
         CONTENT_REPAIR,
-        CONTENT_REPAIR_FAILED
+        CONTENT_REPAIR_FAILED,
+        CREDENTIAL_FAILURE,
+        FALLBACK_CREDENTIAL
     }
 }

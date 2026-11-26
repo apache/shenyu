@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration;
+
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure.AiCredentialFailureDetector;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiAttemptOutcome.Decision;
 
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
@@ -32,7 +36,7 @@ import java.util.Set;
  * Decides whether an AI upstream failure may be replayed, switched to fallback,
  * forwarded to the client, or propagated.
  */
-final class AiProxyRetryPolicy {
+public final class AiProxyRetryPolicy {
 
     private static final Set<AiTransportException.Kind> AMBIGUOUS_FAILURES =
             Set.of(AiTransportException.Kind.RESPONSE_HEADER_TIMEOUT,
@@ -41,14 +45,21 @@ final class AiProxyRetryPolicy {
                     AiTransportException.Kind.CONNECTION_RESET,
                     AiTransportException.Kind.IO_FAILURE);
 
-    Decision decideStatus(final FailureContext context) {
+    public AiProxyRetryPolicy() {
+    }
+
+    public Decision decideStatus(final FailureContext context) {
+        if (context.credentialFailure() && context.hasStatus()
+                && AiCredentialFailureDetector.supportsStatus(context.status())) {
+            return decideReplayableFailure(context, false, true);
+        }
         if (!retryableStatus(context.status())) {
             return Decision.FORWARD_RESPONSE;
         }
         return decideReplayableFailure(context, true, context.fallbackAvailable());
     }
 
-    Decision decideTransport(final FailureContext context) {
+    public Decision decideTransport(final FailureContext context) {
         boolean retryEligible = retryableTransportFailure(context.kind());
         boolean fallbackEligible = fallbackEligibleTransportFailure(context.kind());
         if (!retryEligible && !fallbackEligible) {
@@ -59,8 +70,8 @@ final class AiProxyRetryPolicy {
 
     private Decision decideReplayableFailure(final FailureContext context, final boolean retryEligible,
                                              final boolean fallbackEligible) {
-        AiProxyRetryProperties.ReplayMode mode = context.replayPolicy()
-                .mode(context.operation(), context.executionAmbiguous(), !context.hasStatus());
+        AiProxyRetryProperties.ReplayMode mode = context.retrySettings()
+                .replayMode(context.operation(), context.executionAmbiguous(), !context.hasStatus());
         if (retryEligible && context.retriesRemaining() > 0
                 && replayAllowed(mode, context.providerDeclaredReplaySafe(), context)) {
             return Decision.RETRY;
@@ -104,24 +115,7 @@ final class AiProxyRetryPolicy {
         };
     }
 
-    /**
-     * Whether the request can be replayed under ShenYu's conservative default.
-     * Provider-specific idempotency must be declared by provider capabilities;
-     * the gateway does not infer application idempotency from payloads.
-     *
-     * @param request final decoded request
-     * @return true when the request has no tool-bearing fields
-     */
-    static boolean replaySafe(final ShenyuAiRequest request) {
-        return request.getRawPayload().path("tools").isEmpty()
-                && request.getRawPayload().path("functions").isEmpty()
-                && !"required".equalsIgnoreCase(request.getRawPayload().path("tool_choice").asText())
-                && !"auto".equalsIgnoreCase(request.getRawPayload().path("tool_choice").asText())
-                && !"required".equalsIgnoreCase(request.getRawPayload().path("function_call").asText())
-                && !"auto".equalsIgnoreCase(request.getRawPayload().path("function_call").asText());
-    }
-
-    static Duration retryAfter(final Map<String, ?> headers, final AiProxyRetryProperties properties) {
+    public static Duration retryAfter(final Map<String, ?> headers, final AiRetrySettings retrySettings) {
         Object value = null;
         for (Map.Entry<String, ?> entry : headers.entrySet()) {
             if (HttpHeaders.RETRY_AFTER.equalsIgnoreCase(entry.getKey())) {
@@ -137,11 +131,11 @@ final class AiProxyRetryPolicy {
         } else {
             return null;
         }
-        long seconds = properties.parseRetryAfter(text, Clock.systemUTC());
-        return seconds < 0 ? null : properties.clampRetryAfter(Duration.ofSeconds(seconds));
+        long seconds = retrySettings.parseRetryAfter(text, Clock.systemUTC());
+        return seconds < 0 ? null : retrySettings.clampRetryAfter(Duration.ofSeconds(seconds));
     }
 
-    static boolean hasRetryAfter(final Map<String, ?> headers) {
+    public static boolean hasRetryAfter(final Map<String, ?> headers) {
         for (Map.Entry<String, ?> entry : headers.entrySet()) {
             if (HttpHeaders.RETRY_AFTER.equalsIgnoreCase(entry.getKey())) {
                 return Objects.nonNull(entry.getValue())
@@ -161,11 +155,12 @@ final class AiProxyRetryPolicy {
      * @param fallbackAvailable whether a fallback upstream is configured
      * @param conservativeReplaySafe whether the final payload has no tool-bearing fields
      * @param operation final AI operation
-     * @param replayPolicy configured replay policy
+     * @param retrySettings configured retry and replay settings
      * @param providerDeclaredReplaySafe whether the current provider explicitly declared replay safety
      * @param fallbackProviderDeclaredReplaySafe whether the fallback provider explicitly declared replay safety
+     * @param credentialFailure whether the upstream response matched a trusted credential failure declaration
      */
-    record FailureContext(
+    public record FailureContext(
             AiTransportException.Kind kind,
             Integer status,
             Map<String, ?> headers,
@@ -173,14 +168,23 @@ final class AiProxyRetryPolicy {
             boolean fallbackAvailable,
             boolean conservativeReplaySafe,
             ShenyuAiRequest.Operation operation,
-            AiProxyRetryProperties.ReplayProperties replayPolicy,
+            AiRetrySettings retrySettings,
             boolean providerDeclaredReplaySafe,
-            boolean fallbackProviderDeclaredReplaySafe) {
+            boolean fallbackProviderDeclaredReplaySafe,
+            boolean credentialFailure) {
 
-        FailureContext {
+        public FailureContext(final AiTransportException.Kind kind, final Integer status, final Map<String, ?> headers,
+                       final int retriesRemaining, final boolean fallbackAvailable, final boolean conservativeReplaySafe,
+                       final ShenyuAiRequest.Operation operation, final AiRetrySettings retrySettings,
+                       final boolean providerDeclaredReplaySafe, final boolean fallbackProviderDeclaredReplaySafe) {
+            this(kind, status, headers, retriesRemaining, fallbackAvailable, conservativeReplaySafe,
+                    operation, retrySettings, providerDeclaredReplaySafe, fallbackProviderDeclaredReplaySafe, false);
+        }
+
+        public FailureContext {
             Objects.requireNonNull(headers, "headers must not be null");
             Objects.requireNonNull(operation, "operation must not be null");
-            Objects.requireNonNull(replayPolicy, "replayPolicy must not be null");
+            Objects.requireNonNull(retrySettings, "retrySettings must not be null");
             if ((Objects.isNull(kind)) == (Objects.isNull(status))) {
                 throw new IllegalArgumentException("exactly one transport kind or status is required");
             }
@@ -190,15 +194,14 @@ final class AiProxyRetryPolicy {
             return Objects.nonNull(status);
         }
 
+        public FailureContext withCredentialFailure(final boolean classified) {
+            return new FailureContext(kind, status, headers, retriesRemaining, fallbackAvailable, conservativeReplaySafe,
+                    operation, retrySettings, providerDeclaredReplaySafe, fallbackProviderDeclaredReplaySafe, classified);
+        }
+
         boolean executionAmbiguous() {
             return Objects.nonNull(kind) && AMBIGUOUS_FAILURES.contains(kind);
         }
     }
 
-    enum Decision {
-        RETRY,
-        FALLBACK,
-        FORWARD_RESPONSE,
-        PROPAGATE_ERROR
-    }
 }
