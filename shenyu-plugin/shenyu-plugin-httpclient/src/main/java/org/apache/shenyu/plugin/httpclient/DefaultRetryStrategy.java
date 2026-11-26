@@ -26,6 +26,7 @@ import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.LocalPoolRejectionException;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.base.utils.UpstreamAttemptOwner;
@@ -157,7 +158,8 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
     }
 
     private Mono<R> rememberPrimaryFailure(final Mono<R> primary, final ServerWebExchange exchange) {
-        return primary.doOnError(error -> exchange.getAttributes().put(UpstreamCircuitBreaker.INITIAL_FAILOVER_ERROR, error));
+        return primary.doOnError(error -> exchange.getAttributes().put(UpstreamCircuitBreaker.INITIAL_FAILOVER_LOCAL_REJECTION,
+                LocalPoolRejectionException.isLocalRejection(error)));
     }
 
     private Mono<R> mapFailoverErrors(final Mono<R> response) {

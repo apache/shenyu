@@ -297,11 +297,10 @@ public final class UpstreamCircuitBreakerTest {
         try {
             breaker.recordFailure(KEY);
             breaker.recordFailure(KEY);
-            final LocalPoolRejectionException rejection = new LocalPoolRejectionException(new RuntimeException("pool full"));
-            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new IllegalStateException("standby down")), KEY, () -> rejection))
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new IllegalStateException("standby down")), KEY, () -> true))
                     .expectError(IllegalStateException.class).verify();
             assertTrue(breaker.isRequestAllowed(KEY));
-            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.empty(), KEY, () -> rejection)).verifyComplete();
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.empty(), KEY, () -> true)).verifyComplete();
             breaker.recordFailure(KEY);
             assertTrue(breaker.isBlocking(KEY));
         } finally {
@@ -318,9 +317,25 @@ public final class UpstreamCircuitBreakerTest {
             breaker.recordFailure(KEY);
             StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
                             Mono.error(new LocalPoolRejectionException(new RuntimeException("standby pool full"))), KEY,
-                            () -> new IllegalStateException("primary down")))
+                            () -> false))
                     .expectError(LocalPoolRejectionException.class).verify();
             assertTrue(breaker.isBlocking(KEY));
+        } finally {
+            breaker.reset(KEY);
+        }
+    }
+
+    @Test
+    public void testWrappedLocalRejectionIsNeutralWithoutFailover() {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.reset(KEY);
+        try {
+            breaker.recordFailure(KEY);
+            breaker.recordFailure(KEY);
+            RuntimeException wrapped = new IllegalStateException(new LocalPoolRejectionException(new RuntimeException("pool full")));
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(wrapped), KEY))
+                    .expectErrorMatches(error -> error == wrapped).verify();
+            assertFalse(breaker.isBlocking(KEY));
         } finally {
             breaker.reset(KEY);
         }

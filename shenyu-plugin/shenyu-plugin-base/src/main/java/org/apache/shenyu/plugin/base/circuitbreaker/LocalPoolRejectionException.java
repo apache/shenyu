@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.base.circuitbreaker;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 /**
  * A rejected connection acquisition before an upstream request was sent.
  */
@@ -31,5 +33,15 @@ public final class LocalPoolRejectionException extends RuntimeException {
      */
     public LocalPoolRejectionException(final Throwable cause) {
         super(cause.getMessage(), cause);
+    }
+
+    /**
+     * Check for a marked rejection, including one wrapped by another plugin.
+     *
+     * @param error the received error
+     * @return whether the error resulted from a local pool rejection
+     */
+    public static boolean isLocalRejection(final Throwable error) {
+        return ExceptionUtils.indexOfType(error, LocalPoolRejectionException.class) >= 0;
     }
 }

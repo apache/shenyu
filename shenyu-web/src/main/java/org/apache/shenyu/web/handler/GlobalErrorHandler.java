@@ -56,7 +56,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @Override
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
-        if (!(throwable instanceof LocalPoolRejectionException)) {
+        if (!LocalPoolRejectionException.isLocalRejection(throwable)) {
             LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
         }
         if (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.REQUEST)) && throwable instanceof ResponseStatusException status

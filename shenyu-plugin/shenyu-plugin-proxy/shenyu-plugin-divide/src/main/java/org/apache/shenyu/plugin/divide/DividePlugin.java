@@ -426,7 +426,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             response = response.doFinally(signalType -> attemptOwner.releaseCurrent());
         }
         return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey,
-                () -> exchange.getAttribute(UpstreamCircuitBreaker.INITIAL_FAILOVER_ERROR));
+                () -> exchange.getAttribute(UpstreamCircuitBreaker.INITIAL_FAILOVER_LOCAL_REJECTION));
     }
 
     /**

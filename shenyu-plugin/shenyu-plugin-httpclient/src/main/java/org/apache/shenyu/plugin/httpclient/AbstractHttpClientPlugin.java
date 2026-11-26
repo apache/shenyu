@@ -163,7 +163,8 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
     }
 
     private static <T> Mono<T> markLocalPoolRejection(final Mono<T> attempt) {
-        return attempt.onErrorMap(error -> ExceptionUtils.indexOfType(error, PoolAcquirePendingLimitException.class) >= 0,
+        return attempt.onErrorMap(error -> !LocalPoolRejectionException.isLocalRejection(error)
+                        && ExceptionUtils.indexOfType(error, PoolAcquirePendingLimitException.class) >= 0,
                 LocalPoolRejectionException::new);
     }
 

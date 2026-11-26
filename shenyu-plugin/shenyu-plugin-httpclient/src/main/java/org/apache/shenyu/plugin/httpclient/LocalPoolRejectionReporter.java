@@ -50,7 +50,7 @@ final class LocalPoolRejectionReporter {
     }
 
     void logAttemptError(final Logger logger, final Throwable error) {
-        if (!(error instanceof LocalPoolRejectionException)) {
+        if (!LocalPoolRejectionException.isLocalRejection(error)) {
             logger.error(error.getMessage(), error);
             return;
         }

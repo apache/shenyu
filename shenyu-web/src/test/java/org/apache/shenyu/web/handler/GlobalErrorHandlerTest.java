@@ -48,15 +48,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -113,13 +111,19 @@ public final class GlobalErrorHandlerTest {
 
     @Test
     public void testDoesNotLogLocalPoolRejectionAgain() {
-        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
         LocalPoolRejectionException rejection = new LocalPoolRejectionException(new IllegalStateException("pool full"));
+        assertPoolRejectionIsNotLogged(rejection, HttpStatus.INTERNAL_SERVER_ERROR);
+        assertPoolRejectionIsNotLogged(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "overloaded", rejection),
+                HttpStatus.SERVICE_UNAVAILABLE);
+    }
 
-        globalErrorHandler.handle(exchange, rejection).block();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
-        verify(loggerSpy, never()).error(anyString(), eq(exchange.getLogPrefix()), anyString(), same(rejection));
+    private void assertPoolRejectionIsNotLogged(final Throwable error, final HttpStatus expectedStatus) {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        clearInvocations(loggerSpy);
+        globalErrorHandler.handle(exchange, error).block();
+        assertEquals(expectedStatus, exchange.getResponse().getStatusCode());
+        assertTrue(mockingDetails(loggerSpy).getInvocations().stream()
+                .noneMatch(invocation -> "error".equals(invocation.getMethod().getName())));
     }
 
     @Test
