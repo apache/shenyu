@@ -26,6 +26,7 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,6 +72,72 @@ public final class AppAuthDataRefreshTest {
         appAuthDataRefresh.refresh(appAuthDataList);
         appAuthDataList.add(appAuthData);
         appAuthDataRefresh.refresh(appAuthDataList);
+    }
+
+    @Test
+    public void refreshRemovesEntriesMissingFromNonEmptySnapshot() {
+        final List<String> subscribed = new ArrayList<>();
+        final List<String> unsubscribed = new ArrayList<>();
+        final List<AuthDataSubscriber> subscribers = new ArrayList<>();
+        subscribers.add(recordingSubscriber(subscribed, unsubscribed));
+        final AppAuthDataRefresh dataRefresh = new AppAuthDataRefresh(subscribers);
+
+        final AppAuthData appA = new AppAuthData();
+        appA.setAppKey("appA");
+        final AppAuthData appB = new AppAuthData();
+        appB.setAppKey("appB");
+        dataRefresh.refresh(new ArrayList<>(Arrays.asList(appA, appB)));
+
+        dataRefresh.refresh(new ArrayList<>(Collections.singletonList(appB)));
+
+        assertThat("the app missing from the snapshot must be unsubscribed", unsubscribed, is(Collections.singletonList("appA")));
+        assertThat(subscribed, is(Arrays.asList("appA", "appB", "appB")));
+    }
+
+    @Test
+    public void refreshKeepsEntriesRetainedByTheSnapshot() {
+        final List<String> subscribed = new ArrayList<>();
+        final List<String> unsubscribed = new ArrayList<>();
+        final List<AuthDataSubscriber> subscribers = new ArrayList<>();
+        subscribers.add(recordingSubscriber(subscribed, unsubscribed));
+        final AppAuthDataRefresh dataRefresh = new AppAuthDataRefresh(subscribers);
+
+        final AppAuthData appA = new AppAuthData();
+        appA.setAppKey("appA");
+        dataRefresh.refresh(new ArrayList<>(Collections.singletonList(appA)));
+        dataRefresh.refresh(new ArrayList<>(Collections.singletonList(appA)));
+
+        assertThat("a retained app must not be unsubscribed", unsubscribed, is(Collections.emptyList()));
+    }
+
+    @Test
+    public void refreshForgetsTrackedKeysAfterAnEmptySnapshot() {
+        final List<String> unsubscribed = new ArrayList<>();
+        final List<AuthDataSubscriber> subscribers = new ArrayList<>();
+        subscribers.add(recordingSubscriber(new ArrayList<>(), unsubscribed));
+        final AppAuthDataRefresh dataRefresh = new AppAuthDataRefresh(subscribers);
+
+        final AppAuthData appA = new AppAuthData();
+        appA.setAppKey("appA");
+        dataRefresh.refresh(new ArrayList<>(Collections.singletonList(appA)));
+        dataRefresh.refresh(new ArrayList<>());
+        dataRefresh.refresh(new ArrayList<>(Collections.singletonList(appA)));
+
+        assertThat("an empty snapshot already cleared the cache: no further unsubscribe", unsubscribed, is(Collections.emptyList()));
+    }
+
+    private AuthDataSubscriber recordingSubscriber(final List<String> subscribed, final List<String> unsubscribed) {
+        return new AuthDataSubscriber() {
+            @Override
+            public void onSubscribe(final AppAuthData appAuthData) {
+                subscribed.add(appAuthData.getAppKey());
+            }
+
+            @Override
+            public void unSubscribe(final AppAuthData appAuthData) {
+                unsubscribed.add(appAuthData.getAppKey());
+            }
+        };
     }
 
     private AppAuthDataRefresh buildMockAppAuthDataRefresh() {
