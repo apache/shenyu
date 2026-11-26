@@ -44,9 +44,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ConfigurationContractRegistryTest {
 
     @Test
-    void absentEnumerationIsOptional() {
+    void absentEnumerationIsOptionalInBothFieldConstructors() {
         ConfigurationContract.Field shortForm = new ConfigurationContract.Field(STRING, false, false, null, null, false, null, null, null);
+        ConfigurationContract.Field fullForm = new ConfigurationContract.Field(STRING, false, false, null, null, false, null, null, null, null);
         assertEquals(List.of(), shortForm.values());
+        assertEquals(List.of(), fullForm.values());
         assertThrows(UnsupportedOperationException.class, () -> shortForm.values().add("changed"));
     }
 
