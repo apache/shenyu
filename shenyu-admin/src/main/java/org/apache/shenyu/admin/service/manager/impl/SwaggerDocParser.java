@@ -50,6 +50,14 @@ import java.util.stream.Collectors;
  */
 public class SwaggerDocParser implements DocParser {
 
+    private static final String SCHEMA_REFERENCE = "$ref";
+
+    private static final String SCHEMA_TYPE = "type";
+
+    private static final String SCHEMA_MAX_LENGTH = "maxLength";
+
+    private static final Set<String> SCALAR_PARAMETER_TYPES = Set.of("boolean", "integer", "number", "string");
+
     /**
      * parseJson.
      *
@@ -188,7 +196,11 @@ public class SwaggerDocParser implements DocParser {
             JsonObject fieldJson = parameters.get(i).getAsJsonObject();
             JsonObject schema = fieldJson.getAsJsonObject("schema");
             
-            if (Objects.nonNull(schema)) {
+            JsonElement schemaType = Objects.isNull(schema) ? null : schema.get(SCHEMA_TYPE);
+            boolean hasStringType = Objects.nonNull(schemaType) && schemaType.isJsonPrimitive() && schemaType.getAsJsonPrimitive().isString();
+            boolean hasInlineSchema = version == SwaggerVersion.V3 && hasStringType
+                    && !schema.has(SCHEMA_REFERENCE) && SCALAR_PARAMETER_TYPES.contains(schemaType.getAsString());
+            if (Objects.nonNull(schema) && !hasInlineSchema) {
                 RefInfo refInfo = getRefInfo(schema, version);
                 if (Objects.nonNull(refInfo)) {
                     List<DocParameter> parameterList = this.buildDocParameters(refInfo.ref, docRoot, true, version);
@@ -196,6 +208,12 @@ public class SwaggerDocParser implements DocParser {
                 }
             } else {
                 DocParameter docParameter = GsonUtils.getInstance().fromJson(fieldJson, DocParameter.class);
+                if (hasInlineSchema) {
+                    docParameter.setType(schemaType.getAsString());
+                    if (schema.has(SCHEMA_MAX_LENGTH)) {
+                        docParameter.setMaxLength(schema.get(SCHEMA_MAX_LENGTH).getAsString());
+                    }
+                }
                 JsonElement inElement = fieldJson.get("in");
                 if (Objects.nonNull(inElement) && "header".equals(inElement.getAsString())) {
                     docHeaderParameterList.add(docParameter);
@@ -287,7 +305,7 @@ public class SwaggerDocParser implements DocParser {
 
             JsonObject prop = properties.getAsJsonObject(fieldName);
             if (Objects.nonNull(prop)) {
-                docParameter.setMaxLength(Objects.isNull(prop.get("maxLength")) ? "-" : prop.get("maxLength").getAsString());
+                docParameter.setMaxLength(Objects.isNull(prop.get(SCHEMA_MAX_LENGTH)) ? "-" : prop.get(SCHEMA_MAX_LENGTH).getAsString());
                 if (Objects.nonNull(prop.get("required"))) {
                     docParameter.setRequired(Boolean.parseBoolean(prop.get("required").getAsString()));
                 }
@@ -349,12 +367,12 @@ public class SwaggerDocParser implements DocParser {
 
     private RefInfo getRefInfo(final JsonObject jsonObject, final SwaggerVersion version) {
         JsonElement refElement;
-        boolean isArray = Objects.nonNull(jsonObject.get("type")) && "array".equals(jsonObject.get("type").getAsString());
+        boolean isArray = Objects.nonNull(jsonObject.get(SCHEMA_TYPE)) && "array".equals(jsonObject.get(SCHEMA_TYPE).getAsString());
         
         if (isArray) {
-            refElement = jsonObject.getAsJsonObject("items").get("$ref");
+            refElement = jsonObject.getAsJsonObject("items").get(SCHEMA_REFERENCE);
         } else {
-            refElement = jsonObject.get("$ref");
+            refElement = jsonObject.get(SCHEMA_REFERENCE);
         }
         
         if (Objects.isNull(refElement)) {

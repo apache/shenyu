@@ -19,6 +19,9 @@ package org.apache.shenyu.admin.service.manager.impl;
 
 import com.google.gson.JsonObject;
 import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocItem;
+import org.apache.shenyu.admin.model.bean.DocParameter;
+import org.apache.shenyu.common.enums.SwaggerVersion;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +29,13 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -122,5 +132,81 @@ public class SwaggerDocParserTest {
         docRoot.addProperty("basePath", "/" + "testClusterName");
         DocInfo docInfo = swaggerDocParser.parseJson(docRoot);
         assert docInfo.getDocModuleList().get(0).getModule().equals("Order API");
+    }
+
+    @Test
+    void testOpenApiInlineOperationParameters() {
+        JsonObject root = GsonUtils.getInstance().fromJson("""
+                {
+                  "openapi": "3.0.3",
+                  "info": {"title": "Orders", "version": "1"},
+                  "paths": {"/orders/{id}": {"get": {
+                    "parameters": [
+                      {"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}},
+                      {"name": "limit", "in": "query", "schema": {"type": "integer"}},
+                      {"name": "X-Region", "in": "header", "required": true,
+                       "description": "Region code", "schema": {"type": "string", "maxLength": 8}}
+                    ],
+                    "responses": {"200": {"description": "OK"}}
+                  }}}
+                }
+                """, JsonObject.class);
+        DocItem item = swaggerDocParser.parseJson(root).getDocModuleList().get(0).getDocItems().get(0);
+        assertEquals(List.of("id", "limit"), item.getRequestParameters().stream().map(DocParameter::getName).toList());
+        assertEquals(List.of("integer", "integer"), item.getRequestParameters().stream().map(DocParameter::getType).toList());
+        assertTrue(item.getRequestParameters().get(0).isRequired());
+        assertEquals(1, item.getRequestHeaders().size());
+        DocParameter header = item.getRequestHeaders().get(0);
+        assertEquals("X-Region", header.getName());
+        assertEquals("string", header.getType());
+        assertEquals("8", header.getMaxLength());
+        assertEquals("Region code", header.getDescription());
+        assertTrue(header.isRequired());
+    }
+
+    @Test
+    void testOpenApiSchemaReferenceWithScalarSibling() {
+        JsonObject root = GsonUtils.getInstance().fromJson("""
+                {
+                  "openapi": "3.1.0",
+                  "info": {"title": "Orders", "version": "1"},
+                  "paths": {"/orders": {"get": {
+                    "parameters": [
+                      {"name": "limit", "in": "query",
+                       "schema": {"$ref": "#/components/schemas/Limit", "type": "number"}}
+                    ],
+                    "responses": {"200": {"description": "OK"}}
+                  }}},
+                  "components": {"schemas": {"Limit": {"type": "integer", "maximum": 100}}}
+                }
+                """, JsonObject.class);
+        SwaggerDocParser parser = spy(new SwaggerDocParser());
+        DocItem item = parser.parseJson(root).getDocModuleList().get(0).getDocItems().get(0);
+        verify(parser).buildDocParameters("Limit", root, true, SwaggerVersion.V3);
+        assertTrue(item.getRequestParameters().isEmpty());
+    }
+
+    @Test
+    void testSwaggerBodyReferenceAndDirectHeader() {
+        JsonObject root = GsonUtils.getInstance().fromJson("""
+                {
+                  "swagger": "2.0",
+                  "info": {"title": "Orders", "version": "1"},
+                  "paths": {"/orders": {"post": {
+                    "parameters": [
+                      {"name": "order", "in": "body", "schema": {"$ref": "#/definitions/Order"}},
+                      {"name": "X-Region", "in": "header", "type": "string", "maxLength": 8}
+                    ],
+                    "responses": {"200": {"description": "OK"}}
+                  }}},
+                  "definitions": {"Order": {"type": "object", "properties": {"id": {"type": "integer"}}}}
+                }
+                """, JsonObject.class);
+        DocItem item = swaggerDocParser.parseJson(root).getDocModuleList().get(0).getDocItems().get(0);
+        assertEquals(List.of("id"), item.getRequestParameters().stream().map(DocParameter::getName).toList());
+        assertEquals(1, item.getRequestHeaders().size());
+        DocParameter header = item.getRequestHeaders().get(0);
+        assertEquals("X-Region", header.getName());
+        assertEquals("8", header.getMaxLength());
     }
 }
