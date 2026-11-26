@@ -190,9 +190,11 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
             if (!Objects.equals(this.savedInstanceList.size(), newInstanceList.size())) {
                 return true;
             }
+            // Avoid allocating a set for repeated notifications with equal lists in the same order.
             if (this.savedInstanceList.equals(newInstanceList)) {
                 return false;
             }
+            // Membership equivalence with List.contains relies on consistent GrpcUpstream.equals/hashCode.
             final Set<GrpcUpstream> newInstances = new HashSet<>(newInstanceList);
             return !newInstances.containsAll(this.savedInstanceList);
         }

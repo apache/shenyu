@@ -69,6 +69,12 @@ Oracle HotSpot 17.0.4.1+1-LTS-2, JMH 1.37. Two forks, three 1-second warmups and
 five 1-second measurements per fork, 256 MiB heap. Base revision:
 `d3a3918a69b7297b3f9837c71c8f669593940daa`.
 
+The recorded VM is `Java HotSpot(TM) 64-Bit Server VM`, version
+`17.0.4.1+1-LTS-2`, using the HotSpot JIT. The JVM arguments captured in
+`results.json` are `-Xms256m -Xmx256m`; no explicit JIT compiler or tiering
+overrides are recorded. These measurements apply to this machine, JVM, and run
+conditions only, not to other hardware, JIT implementations, or gateway workloads.
+
 | Order | Instances | Baseline, us/op | Optimized, us/op | Optimized allocated bytes/op |
 | --- | ---: | ---: | ---: | ---: |
 | Same | 8 | 0.679 | 0.138 | approximately 0 |
