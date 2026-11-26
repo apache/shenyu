@@ -260,9 +260,19 @@ public class ShenyuGrpcClient implements Closeable {
             @Override
             public void start(final Listener<DynamicMessage> responseListener, final Metadata headers) {
                 synchronized (admissionLock) {
-                    ensureActive();
-                    super.start(responseListener, headers);
+                    if (!retired) {
+                        super.start(responseListener, headers);
+                        return;
+                    }
                 }
+                // A prepared call can keep the channel from shutting down while name resolution is pending.
+                RetiredClientException retirement = new RetiredClientException();
+                try {
+                    cancel(retirement.getMessage(), retirement);
+                } catch (RuntimeException cancellationFailure) {
+                    retirement.addSuppressed(cancellationFailure);
+                }
+                throw retirement;
             }
 
             @Override

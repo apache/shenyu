@@ -34,6 +34,8 @@ import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
@@ -57,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -221,13 +224,14 @@ public final class ShenyuGrpcClientTest {
         first.get(5, TimeUnit.SECONDS).cancel(true);
     }
 
-    @Test
+    @ParameterizedTest
+    @EnumSource(value = MethodDescriptor.MethodType.class, names = {"UNARY", "SERVER_STREAMING", "CLIENT_STREAMING", "BIDI_STREAMING"})
     @SuppressWarnings("unchecked")
-    public void testRetirementRejectsPreparedCallBeforeItStarts() throws Exception {
+    public void testRetirementRejectsPreparedCallBeforeItStarts(final MethodDescriptor.MethodType methodType) throws Exception {
         final ManagedChannel channel = mock(ManagedChannel.class);
         final ClientCall<DynamicMessage, DynamicMessage> transport = mock(ClientCall.class);
         final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
-        final ShenyuGrpcCallRequest request = newCallParams(MethodDescriptor.MethodType.UNARY, newRequestList());
+        final ShenyuGrpcCallRequest request = newCallParams(methodType, newRequestList());
         final CountDownLatch preparing = new CountDownLatch(1);
         final CountDownLatch releasePreparation = new CountDownLatch(1);
         request.setChannel(channel);
@@ -248,8 +252,31 @@ public final class ShenyuGrpcClientTest {
         final ListenableFuture<Void> result = start.get(5, TimeUnit.SECONDS);
         final ExecutionException failure = assertThrows(ExecutionException.class, () -> result.get(5, TimeUnit.SECONDS));
         assertEquals("gRPC client is retired", failure.getCause().getMessage());
+        verify(transport).cancel(any(), any());
         verify(transport, never()).start(any(), any());
         verify(transport, never()).sendMessage(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCancellationFailurePreservesRetirementError() throws Exception {
+        final ManagedChannel channel = mock(ManagedChannel.class);
+        final ClientCall<DynamicMessage, DynamicMessage> transport = mock(ClientCall.class);
+        final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
+        final ShenyuGrpcCallRequest request = newCallParams(MethodDescriptor.MethodType.UNARY, newRequestList());
+        request.setChannel(channel);
+        final IllegalStateException cancellationFailure = new IllegalStateException("Transport cancellation failed");
+        doAnswer(invocation -> {
+            client.close();
+            return transport;
+        }).when(channel).newCall(any(), any());
+        doThrow(cancellationFailure).when(transport).cancel(any(), any());
+
+        final ListenableFuture<Void> result = client.invoke(request);
+
+        final ExecutionException failure = assertThrows(ExecutionException.class, () -> result.get(5, TimeUnit.SECONDS));
+        assertEquals("gRPC client is retired", failure.getCause().getMessage());
+        assertEquals(List.of(cancellationFailure), List.of(failure.getCause().getSuppressed()));
     }
 
     @Test
