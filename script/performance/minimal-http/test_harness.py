@@ -144,14 +144,55 @@ class LoadResultTest(unittest.TestCase):
     def test_generator_is_reaped_if_gateway_exits_before_initial_sample(self):
         gateway = SimpleNamespace(pid=12345)
         generator = Mock(poll=Mock(return_value=None))
-        with tempfile.TemporaryDirectory() as temp, \
-                patch("benchmark.subprocess.Popen", return_value=generator), \
-                patch("benchmark.psutil.Process", side_effect=NoSuchProcess(gateway.pid)), \
-                self.assertRaises(NoSuchProcess):
-            load(SimpleNamespace(k6="k6", p99_ms=100), "http://127.0.0.1/bench/ok",
-                 b"upstream-a", 100, 20, Path(temp) / "load", gateway)
+        failure = NoSuchProcess(gateway.pid)
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "minimal-1" / "warmup"
+            with patch("benchmark.subprocess.Popen", return_value=generator), \
+                    patch("benchmark.psutil.Process", side_effect=failure), \
+                    self.assertRaises(RuntimeError) as raised:
+                load(SimpleNamespace(k6="k6", p99_ms=100), "http://127.0.0.1/bench/ok",
+                     b"upstream-a", 100, 20, output, gateway)
+            self.assertIn(str(output.parent / "gateway.log"), str(raised.exception))
+            self.assertIs(failure, raised.exception.__cause__)
         generator.kill.assert_called_once_with()
         generator.wait.assert_called_once_with(timeout=5)
+
+    def test_generator_is_reaped_if_gateway_exits_during_sampling(self):
+        gateway = SimpleNamespace(pid=12345)
+        generator = Mock(poll=Mock(return_value=None))
+        failure = NoSuchProcess(gateway.pid)
+        target = Mock()
+        target.cpu_times.return_value = (1, 2)
+        target.memory_info.side_effect = (SimpleNamespace(rss=1024), failure)
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "minimal-1" / "load-100"
+            with patch("benchmark.subprocess.Popen", return_value=generator), \
+                    patch("benchmark.psutil.Process", return_value=target), \
+                    patch("benchmark.time.sleep"), self.assertRaises(RuntimeError) as raised:
+                load(SimpleNamespace(k6="k6", p99_ms=100), "http://127.0.0.1/bench/ok",
+                     b"upstream-a", 100, 20, output, gateway)
+            self.assertIn(str(output.parent / "gateway.log"), str(raised.exception))
+            self.assertIs(failure, raised.exception.__cause__)
+        self.assertEqual(2, target.memory_info.call_count)
+        generator.kill.assert_called_once_with()
+        generator.wait.assert_called_once_with(timeout=5)
+
+    def test_gateway_exit_during_final_cpu_sample_reports_gateway_log(self):
+        gateway = SimpleNamespace(pid=12345)
+        generator = Mock(poll=Mock(return_value=0))
+        failure = NoSuchProcess(gateway.pid)
+        target = Mock()
+        target.cpu_times.side_effect = ((1, 2), failure)
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "minimal-1" / "load-100"
+            with patch("benchmark.subprocess.Popen", return_value=generator), \
+                    patch("benchmark.psutil.Process", return_value=target), \
+                    self.assertRaises(RuntimeError) as raised:
+                load(SimpleNamespace(k6="k6", p99_ms=100), "http://127.0.0.1/bench/ok",
+                     b"upstream-a", 100, 20, output, gateway)
+            self.assertIn(str(output.parent / "gateway.log"), str(raised.exception))
+            self.assertIs(failure, raised.exception.__cause__)
+        generator.kill.assert_not_called()
 
     def test_missing_counter_is_not_silently_treated_as_zero(self):
         for name in ("http_reqs", "successful_requests"):
