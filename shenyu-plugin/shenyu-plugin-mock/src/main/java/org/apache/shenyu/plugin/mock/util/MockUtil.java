@@ -152,7 +152,7 @@ public final class MockUtil {
         LocalDateTime now = LocalDateTime.now();
         try {
             return DateTimeFormatter.ofPattern(format).format(now);
-        } catch (DateTimeException e) {
+        } catch (DateTimeException | IllegalArgumentException e) {
             LOG.warn("format fail,use default format :{}", DEFAULT_FORMAT);
             return DateTimeFormatter.ofPattern(DEFAULT_FORMAT).format(now);
         }

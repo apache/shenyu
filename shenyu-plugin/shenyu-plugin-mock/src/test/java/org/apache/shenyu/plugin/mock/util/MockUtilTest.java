@@ -71,4 +71,15 @@ public final class MockUtilTest {
         }
         assertTrue(maxLength >= 4, "zh(2,5) must be able to produce lengths up to 5 but max observed was " + maxLength);
     }
+
+    @ParameterizedTest
+    @CsvSource(value = {"yyyy-MM-dd '", "XXX"}, quoteCharacter = '"')
+    void currentShouldUseDefaultWhenPatternCannotFormatLocalTime(final String pattern) {
+        assertTrue(MockUtil.current(pattern).matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"));
+    }
+
+    @Test
+    void currentShouldKeepValidCustomPattern() {
+        assertTrue(MockUtil.current("yyyy").matches("\\d{4}"));
+    }
 }
