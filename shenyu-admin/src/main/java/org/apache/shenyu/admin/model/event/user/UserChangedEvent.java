@@ -47,9 +47,9 @@ public class UserChangedEvent extends AdminDataModelChangedEvent {
     public String buildContext() {
         final DashboardUserDO after = (DashboardUserDO) getAfter();
         if (Objects.isNull(getBefore())) {
-            return String.format("the selector [%s] is %s", after.getUserName(), StringUtils.lowerCase(getType().getType().toString()));
+            return String.format("the user [%s] is %s", after.getUserName(), StringUtils.lowerCase(getType().getType().toString()));
         }
-        return String.format("the selector [%s] is %s : %s", after.getUserName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
+        return String.format("the user [%s] is %s : %s", after.getUserName(), StringUtils.lowerCase(getType().getType().toString()), contrast());
         
     }
     

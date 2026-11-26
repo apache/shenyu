@@ -48,7 +48,7 @@ public class UserCreatedEventTest {
     public void userCreatedBuildCTest() {
         UserCreatedEvent userCreatedEvent = new UserCreatedEvent(dashboardUserDO, "admin");
 
-        String context = String.format("the selector [%s] is %s",
+        String context = String.format("the user [%s] is %s",
                 dashboardUserDO.getUserName(), StringUtils.lowerCase(EventTypeEnum.USER_CREATE.getType().toString()));
 
         assertEquals(context, userCreatedEvent.buildContext());

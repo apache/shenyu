@@ -50,11 +50,11 @@ public class BatchUserDeletedEvent extends BatchChangedEvent {
     
     @Override
     public String buildContext() {
-        final String selector = ((Collection<?>) getSource())
+        final String userNames = ((Collection<?>) getSource())
                 .stream()
                 .map(s -> ((DashboardUserDO) s).getUserName())
                 .collect(Collectors.joining(","));
-        return String.format("the user[%s] is %s", selector, StringUtils.lowerCase(getType().getType().toString()));
+        return String.format("the user[%s] is %s", userNames, StringUtils.lowerCase(getType().getType().toString()));
     }
     
     /**
