@@ -153,6 +153,21 @@ class OwnershipTest(unittest.TestCase):
         failures = self.run_check(polluted)
         self.assertTrue(any("records must stay empty" in f for f in failures))
 
+    def test_transferred_state_rejects_blank_last_main_version(self):
+        transferred_state = dict(MANIFEST)
+        transferred_state["handoff_state"] = "transferred"
+        transferred_state["publication_boundaries"] = {
+            "records": {"shenyu-client": {"last_main_version": "2.7.2"},
+                        "shenyu-client-core": {"last_main_version": "  "}}}
+        failures = self.run_check(transferred_state)
+        self.assertTrue(any("non-empty last_main_version" in f for f in failures))
+
+    def test_retained_prefix_must_not_shadow_transferred_coordinate(self):
+        shadowed = dict(MANIFEST)
+        shadowed["retained_prefixes"] = ["shenyu-client"]
+        failures = self.run_check(shadowed)
+        self.assertTrue(any("shadowed by a retained prefix" in f for f in failures))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -24,6 +24,7 @@ Modes:
                            for release readiness without publishing anything.
 """
 
+import argparse
 import json
 import os
 import sys
@@ -91,8 +92,17 @@ def validate_manifest(root, manifest, failures):
         missing = sorted(transferred - set(boundaries))
         if missing:
             failures.append(f"handoff_state is transferred but boundary records are missing: {missing}")
+        blank = sorted(a for a, record in boundaries.items()
+                       if not isinstance(record, dict) or not str(record.get("last_main_version", "")).strip())
+        if blank:
+            failures.append(f"boundary records need a non-empty last_main_version: {blank}")
     elif boundaries:
         failures.append("boundary records must stay empty while handoff_state is preparation")
+
+    prefixes = manifest.get("retained_prefixes", [])
+    shadowed = sorted(a for a in transferred | foundations if any(a == p or a.startswith(p + "-") for p in prefixes))
+    if shadowed:
+        failures.append(f"coordinates shadowed by a retained prefix: {shadowed}")
     return transferred, foundations
 
 
@@ -114,27 +124,25 @@ def validate_repository(directory, version, transferred, foundations, state, fai
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--repository", type=Path, help="built local Maven repository holding org/apache/shenyu/<artifact>/<version>")
+    parser.add_argument("--version", help="release version the candidate repository was built for")
+    options = parser.parse_args()
     repository = Path(__file__).resolve().parents[2]
-    args = sys.argv[1:]
-    repo_dir = None
-    if "--repository" in args:
-        repo_dir = Path(args[args.index("--repository") + 1])
-    version = None
-    if "--version" in args:
-        version = args[args.index("--version") + 1]
 
     manifest = load_manifest(repository)
     failures = []
     transferred, foundations = validate_manifest(repository, manifest, failures)
-    if repo_dir is not None:
-        validate_repository(repo_dir, version, transferred, foundations, manifest["handoff_state"], failures)
+    if options.repository is not None:
+        validate_repository(options.repository, options.version, transferred, foundations,
+                            manifest["handoff_state"], failures)
 
     for failure in failures:
         print(f"[ownership] {failure}", file=sys.stderr)
     if failures:
         sys.exit(1)
     print("Coordinate ownership manifest verified"
-          + (" (release repository dry-run passed)" if repo_dir is not None else ""))
+          + (" (release repository dry-run passed)" if options.repository is not None else ""))
 
 
 if __name__ == "__main__":
