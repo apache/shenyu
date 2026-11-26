@@ -40,6 +40,8 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
      */
     private static final Logger LOG = LoggerFactory.getLogger(PluginDataRefresh.class);
 
+    private static final Object APPLY_LOCK = new Object();
+
     private final PluginDataSubscriber pluginDataSubscriber;
 
     public PluginDataRefresh(final PluginDataSubscriber pluginDataSubscriber) {
@@ -59,7 +61,21 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
 
     @Override
     protected boolean updateCacheIfNeed(final ConfigData<PluginData> result) {
-        return updateCacheIfNeed(result, ConfigGroupEnum.PLUGIN);
+        synchronized (APPLY_LOCK) {
+            return updateCacheIfNeed(result, ConfigGroupEnum.PLUGIN);
+        }
+    }
+
+    @Override
+    protected boolean applyConfig(final ConfigData<PluginData> result) {
+        synchronized (APPLY_LOCK) {
+            if (!isNewerConfig(cacheConfigData(), result, ConfigGroupEnum.PLUGIN)) {
+                return false;
+            }
+            // Advertise the digest only after the subscriber has applied this snapshot.
+            refresh(result.getData());
+            return updateCacheIfNeed(result, ConfigGroupEnum.PLUGIN);
+        }
     }
 
     @Override

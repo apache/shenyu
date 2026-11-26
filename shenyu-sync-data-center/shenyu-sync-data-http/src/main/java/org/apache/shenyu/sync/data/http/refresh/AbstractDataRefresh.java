@@ -76,14 +76,21 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
             return false;
         }
 
-        boolean updated = false;
-        ConfigData<T> result = fromJson(jsonObject);
-        if (this.updateCacheIfNeed(result)) {
-            updated = true;
-            refresh(result.getData());
-        }
+        return applyConfig(fromJson(jsonObject));
+    }
 
-        return updated;
+    /**
+     * Apply a configuration snapshot if it is newer than the cached snapshot.
+     *
+     * @param result the parsed snapshot
+     * @return whether a new snapshot was applied
+     */
+    protected boolean applyConfig(final ConfigData<T> result) {
+        if (!this.updateCacheIfNeed(result)) {
+            return false;
+        }
+        refresh(result.getData());
+        return true;
     }
 
     /**
@@ -109,13 +116,7 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         }
         ResultHolder holder = new ResultHolder(false);
         GROUP_CACHE.merge(groupEnum, newVal, (oldVal, value) -> {
-            if (StringUtils.equals(oldVal.getMd5(), newVal.getMd5())) {
-                LOG.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
-                return oldVal;
-            }
-            // must compare the last update time
-            if (oldVal.getLastModifyTime() >= newVal.getLastModifyTime()) {
-                LOG.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
+            if (!isNewerConfig(oldVal, newVal, groupEnum)) {
                 return oldVal;
             }
             LOG.info("update {} config: {}", groupEnum, newVal);
@@ -123,6 +124,29 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
             return newVal;
         });
         return holder.result;
+    }
+
+    /**
+     * Check whether the candidate has a different digest and a later version.
+     *
+     * @param oldVal the cached snapshot, if any
+     * @param newVal the candidate snapshot
+     * @param groupEnum the configuration group
+     * @return whether the candidate should be applied
+     */
+    protected final boolean isNewerConfig(final ConfigData<?> oldVal, final ConfigData<T> newVal, final ConfigGroupEnum groupEnum) {
+        if (Objects.isNull(oldVal)) {
+            return true;
+        }
+        if (StringUtils.equals(oldVal.getMd5(), newVal.getMd5())) {
+            LOG.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
+            return false;
+        }
+        if (oldVal.getLastModifyTime() >= newVal.getLastModifyTime()) {
+            LOG.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
+            return false;
+        }
+        return true;
     }
 
     private static final class ResultHolder {
