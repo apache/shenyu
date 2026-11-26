@@ -75,13 +75,13 @@ class AgentGatewayPluginOrderingTest {
 
     @Test
     void shouldUseEnumOrderWithoutCachedConfiguration() {
-        assertOrder(handler(false), "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy");
+        assertOrder(handler(null), "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy");
     }
 
     @Test
     void shouldUseCachedDefaultsWhenPluginsAreEnabled() {
         PLUGINS.forEach(plugin -> cache(plugin, plugin.getCode()));
-        ShenyuWebHandler handler = handler(false);
+        ShenyuWebHandler handler = handler(null);
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.ENABLED, data(PluginEnum.AGENT_GATEWAY, PluginEnum.AGENT_GATEWAY.getCode())));
         assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy");
     }
@@ -89,19 +89,19 @@ class AgentGatewayPluginOrderingTest {
     @Test
     void shouldNotSilentlyRepairAnUnmigratedCachedGateway() {
         cache(PluginEnum.AGENT_GATEWAY, 198);
-        assertOrder(handler(false), "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer", "agentGateway", "aiProxy");
+        assertOrder(handler(null), "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer", "agentGateway", "aiProxy");
     }
 
     @Test
     void shouldRetainExplicitCustomOrdersEvenWhenUnsafe() {
         cache(PluginEnum.AGENT_GATEWAY, 149);
         cache(PluginEnum.AI_PROXY, 148);
-        assertOrder(handler(false), "aiProxy", "agentGateway", "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer");
+        assertOrder(handler(null), "aiProxy", "agentGateway", "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer");
     }
 
     @Test
     void shouldApplyAnAdminSortEventAndFallBackAfterCacheRemoval() {
-        ShenyuWebHandler handler = handler(false);
+        ShenyuWebHandler handler = handler(null);
         cache(PluginEnum.AGENT_GATEWAY, 198);
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, data(PluginEnum.AGENT_GATEWAY, 198)));
         assertOrder(handler, "keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer", "agentGateway", "aiProxy");
@@ -115,26 +115,58 @@ class AgentGatewayPluginOrderingTest {
 
     @Test
     void shouldContinueFromGatewayThroughTheExistingAiChain() {
-        verifyChain(handler(false));
+        verifyChain(handler(null));
         assertEquals(Arrays.asList("keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy"), executed);
     }
 
     @Test
     void shouldNotReachLaterPluginsWhenGatewayTerminates() {
-        verifyChain(handler(true));
+        verifyChain(handler(PluginEnum.AGENT_GATEWAY));
         assertEquals(Arrays.asList("keyAuth", "agentGateway"), executed);
     }
 
     @Test
     void shouldLeaveTheOriginalAiChainWhenGatewayIsDisabled() {
-        ShenyuWebHandler handler = handler(false);
+        ShenyuWebHandler handler = handler(null);
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DISABLED, data(PluginEnum.AGENT_GATEWAY, PluginEnum.AGENT_GATEWAY.getCode())));
         verifyChain(handler);
         assertEquals(Arrays.asList("keyAuth", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy"), executed);
     }
 
-    private ShenyuWebHandler handler(final boolean gatewayTerminates) {
-        List<ShenyuPlugin> plugins = PLUGINS.stream().map(plugin -> new RecordingPlugin(plugin, gatewayTerminates))
+    @Test
+    void shouldNotReachLimiterAfterItMovesBehindTerminalProxy() {
+        ShenyuWebHandler handler = handler(PluginEnum.AI_PROXY);
+        verifyChain(handler);
+        assertEquals(Arrays.asList("keyAuth", "agentGateway", "aiPrompt", "aiTokenLimiter", "mcpServer", "aiProxy"), executed);
+
+        executed.clear();
+        moveLimiterAfterProxy(handler);
+        assertOrder(handler, "keyAuth", "agentGateway", "aiPrompt", "mcpServer", "aiProxy", "aiTokenLimiter");
+        verifyChain(handler);
+        assertEquals(Arrays.asList("keyAuth", "agentGateway", "aiPrompt", "mcpServer", "aiProxy"), executed);
+    }
+
+    @Test
+    void shouldReachLimiterWhenEarlierTerminalProxyIsDisabled() {
+        ShenyuWebHandler handler = handler(PluginEnum.AI_PROXY);
+        moveLimiterAfterProxy(handler);
+        PluginData disabledProxy = data(PluginEnum.AI_PROXY, PluginEnum.AI_PROXY.getCode());
+        disabledProxy.setEnabled(false);
+        BaseDataCache.getInstance().cachePluginData(disabledProxy);
+        handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.DISABLED, disabledProxy));
+
+        verifyChain(handler);
+        assertEquals(Arrays.asList("keyAuth", "agentGateway", "aiPrompt", "mcpServer", "aiTokenLimiter"), executed);
+    }
+
+    private void moveLimiterAfterProxy(final ShenyuWebHandler handler) {
+        PluginData limiter = data(PluginEnum.AI_TOKEN_LIMITER, PluginEnum.AI_PROXY.getCode() + 1);
+        BaseDataCache.getInstance().cachePluginData(limiter);
+        handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, limiter));
+    }
+
+    private ShenyuWebHandler handler(final PluginEnum terminalPlugin) {
+        List<ShenyuPlugin> plugins = PLUGINS.stream().map(plugin -> new RecordingPlugin(plugin, plugin == terminalPlugin))
                 .collect(Collectors.toList());
         ShenyuWebHandler handler = new ShenyuWebHandler(plugins, mock(ShenyuLoaderService.class), new ShenyuConfig());
         handler.onApplicationEvent(new PluginHandlerEvent(PluginHandlerEventEnum.SORTED, data(PluginEnum.AGENT_GATEWAY, PluginEnum.AGENT_GATEWAY.getCode())));
@@ -161,17 +193,17 @@ class AgentGatewayPluginOrderingTest {
 
         private final PluginEnum plugin;
 
-        private final boolean gatewayTerminates;
+        private final boolean terminal;
 
-        private RecordingPlugin(final PluginEnum plugin, final boolean gatewayTerminates) {
+        private RecordingPlugin(final PluginEnum plugin, final boolean terminal) {
             this.plugin = plugin;
-            this.gatewayTerminates = gatewayTerminates;
+            this.terminal = terminal;
         }
 
         @Override
         public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
             executed.add(named());
-            if (gatewayTerminates && plugin == PluginEnum.AGENT_GATEWAY) {
+            if (terminal) {
                 return Mono.empty();
             }
             return chain.execute(exchange);

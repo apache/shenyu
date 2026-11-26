@@ -17,6 +17,11 @@
 version: '3.9'
 
 services:
+  httpbin:
+    extends:
+      file: ../../compose/fixtures/httpbin.yml
+      service: httpbin
+
   rocketmq-dialevoneid:
     image: rocketmqinc/rocketmq:4.4.0
     container_name: rocketmq-dialevoneid

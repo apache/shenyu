@@ -105,7 +105,7 @@ WRAPPER
 chmod +x "${test_dir}/project/mvnw"
 cd "${test_dir}/project"
 
-export E2E_MATRIX='{"include":[{"case":"shenyu-e2e-case-http","example_projects":":shenyu-examples-http"},{"case":"shenyu-e2e-case-cluster","example_projects":":shenyu-examples-http"},{"case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"}]}'
+export E2E_MATRIX='{"include":[{"case":"shenyu-e2e-case-http","example_projects":":shenyu-examples-http"},{"case":"shenyu-e2e-case-cluster","example_projects":""},{"case":"shenyu-e2e-case-grpc","example_projects":":shenyu-examples-grpc"}]}'
 export STORAGE_MATRIX='{"include":[{"case":"shenyu-e2e-case-storage"}]}'
 bash "${script_dir}/prepare-e2e-maven-repository.sh" "${test_dir}/artifact" "${test_dir}/source"
 [[ "$(cat "${test_dir}/artifact/example-projects")" == :shenyu-examples-grpc,:shenyu-examples-http ]]

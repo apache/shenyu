@@ -93,6 +93,8 @@ public final class AiProxyEngine {
 
     private final AiProxyRetryProperties retryProperties;
 
+    private final AiProxyCredentialFailureClassifier credentialFailureClassifier;
+
     private final AiCallObserver observer;
 
     private final AiProxyAttemptListener attemptListener;
@@ -201,6 +203,7 @@ public final class AiProxyEngine {
         this.aiProtocolRouteResolver = Objects.requireNonNull(routeResolver, "routeResolver must not be null");
         this.aiProxyTransport = Objects.requireNonNull(transport, "transport must not be null");
         this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
+        this.credentialFailureClassifier = new AiProxyCredentialFailureClassifier(retryProperties.getCredentialFailureFallback(), protocols);
         this.attemptListener = Objects.requireNonNull(attemptListener, "attemptListener must not be null");
         this.observer = observer;
         this.responseCache = responseCache;
@@ -684,7 +687,7 @@ public final class AiProxyEngine {
                         null, statusFailure.status, statusFailure.headers, retriesRemaining,
                         fallback.isPresent(), prepared.conservativeReplaySafe(), prepared.operation(),
                         retryProperties.getReplay(), prepared.providerDeclaredReplaySafe(),
-                        fallbackProviderDeclaredReplaySafe));
+                        fallbackProviderDeclaredReplaySafe, statusFailure.credentialFailure));
             } else {
                 return Mono.error(error);
             }
@@ -754,10 +757,12 @@ public final class AiProxyEngine {
                 return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
                         "AI proxy request deadline exceeded before fallback", error));
             }
-            emit(execution.invocationId(), currentAttempt, phase,
-                    error instanceof AiTransportException
-                            ? AiProxyAttemptEvent.Reason.FALLBACK_TRANSPORT : AiProxyAttemptEvent.Reason.FALLBACK_STATUS,
-                    AiProxyRetryPolicy.retryAfter(responseHeaders, retryProperties));
+            AiProxyAttemptEvent.Reason reason = error instanceof AiTransportException
+                    ? AiProxyAttemptEvent.Reason.FALLBACK_TRANSPORT : AiProxyAttemptEvent.Reason.FALLBACK_STATUS;
+            if (error instanceof UpstreamStatusFailure statusFailure && statusFailure.credentialFailure) {
+                reason = AiProxyAttemptEvent.Reason.FALLBACK_CREDENTIAL;
+            }
+            emit(execution.invocationId(), currentAttempt, phase, reason, AiProxyRetryPolicy.retryAfter(responseHeaders, retryProperties));
             execution.activeConfig().set(fallback.get());
             return attempt(execution, prepare(execution.requestBody(), fallback.get()),
                     Optional.empty(), 0, 0, AiProxyAttemptEvent.Phase.FALLBACK, false);
@@ -776,19 +781,37 @@ public final class AiProxyEngine {
             return response.getBody().then(Mono.error(new UpstreamStatusFailure(
                     response.getStatusCode(), response.getHeaders())));
         }
-        final AiProxyRetryPolicy.Decision decision =
-                RETRY_POLICY.decideStatus(new AiProxyRetryPolicy.FailureContext(
-                        null, response.getStatusCode(), response.getHeaders(), retriesRemaining,
-                        fallback.isPresent(), prepared.conservativeReplaySafe(), prepared.operation(),
-                        retryProperties.getReplay(), prepared.providerDeclaredReplaySafe(),
-                        fallbackProviderDeclaredReplaySafe));
+        final AiProxyRetryPolicy.FailureContext failure = new AiProxyRetryPolicy.FailureContext(
+                null, response.getStatusCode(), response.getHeaders(), retriesRemaining,
+                fallback.isPresent(), prepared.conservativeReplaySafe(), prepared.operation(),
+                retryProperties.getReplay(), prepared.providerDeclaredReplaySafe(), fallbackProviderDeclaredReplaySafe);
+        if (phase == AiProxyAttemptEvent.Phase.PRIMARY && !execution.emitted().get() && fallback.isPresent()) {
+            final List<AiProxyCredentialFailureClassifier.Rule> rules = credentialFailureClassifier.findRules(prepared.request().getUri(), prepared.targetProtocol(), response);
+            if (!rules.isEmpty()) {
+                return AiProxyCredentialFailureInspector.inspect(response,
+                        body -> credentialFailureClassifier.matches(body, rules),
+                        inspection -> handleStatusDecision(inspection.response(), failure.withCredentialFailure(inspection.credentialFailure()),
+                                execution, currentAttempt, phase));
+            }
+        }
+        return handleStatusDecision(response, failure, execution, currentAttempt, phase);
+    }
+
+    private Mono<Void> handleStatusDecision(final AiUpstreamResponse response, final AiProxyRetryPolicy.FailureContext failure,
+                                          final Execution execution, final int currentAttempt, final AiProxyAttemptEvent.Phase phase) {
+        // Notify only once the preserved body has a subscription: a listener may cancel the execution synchronously.
+        final AiUpstreamResponse observed = failure.credentialFailure()
+                ? new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(), response.getBody().doOnSubscribe(ignored ->
+                        emit(execution.invocationId(), currentAttempt, phase, AiProxyAttemptEvent.Reason.CREDENTIAL_FAILURE, null)))
+                : response;
+        final AiProxyRetryPolicy.Decision decision = RETRY_POLICY.decideStatus(failure);
         if (decision == AiProxyRetryPolicy.Decision.FORWARD_RESPONSE) {
             emit(execution.invocationId(), currentAttempt, phase,
                     AiProxyAttemptEvent.Reason.NON_RETRYABLE_RESPONSE, null);
-            return consumeResponse(response, execution.responseConsumer(), execution.emitted());
+            return consumeResponse(observed, execution.responseConsumer(), execution.emitted());
         }
-        return response.getBody().then(Mono.error(new UpstreamStatusFailure(
-                response.getStatusCode(), response.getHeaders())));
+        return observed.getBody().then(Mono.error(new UpstreamStatusFailure(
+                response.getStatusCode(), response.getHeaders(), failure.credentialFailure())));
     }
 
     private void emit(final String invocationId, final int attemptIndex, final AiProxyAttemptEvent.Phase phase,
@@ -985,10 +1008,17 @@ public final class AiProxyEngine {
 
         private final Map<String, List<String>> headers;
 
+        private final boolean credentialFailure;
+
         private UpstreamStatusFailure(final int status, final Map<String, List<String>> headers) {
+            this(status, headers, false);
+        }
+
+        private UpstreamStatusFailure(final int status, final Map<String, List<String>> headers, final boolean credentialFailure) {
             super("AI upstream returned HTTP " + status);
             this.status = status;
             this.headers = Objects.requireNonNull(headers, "headers must not be null");
+            this.credentialFailure = credentialFailure;
         }
     }
 }
