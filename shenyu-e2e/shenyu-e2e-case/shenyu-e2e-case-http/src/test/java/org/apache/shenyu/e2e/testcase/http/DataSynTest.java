@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.e2e.testcase.http;
 
-import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.function.ConfigSyncHelper;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
 public class DataSynTest {
 
     @Test
-    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
-        WaitDataSync.verifyFixtureData(adminClient, gatewayClient, "http");
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) {
+        ConfigSyncHelper.verifyResourceSync(adminClient, gatewayClient, "http");
     }
 }

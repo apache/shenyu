@@ -88,6 +88,15 @@ class HttpbinTest(unittest.TestCase):
         self.assertEqual(200, response.status)
         self.assertEqual({"id": 123, "name": "hello world save order"}, json.loads(response.read()))
 
+    def test_save_order_rejects_invalid_bodies(self):
+        for body in ('{"name":"test"}', '{', 'null'):
+            with self.subTest(body=body):
+                self.connection.request("POST", "/http/order/save", body=body,
+                                        headers={"Content-Type": "application/json"})
+                response = self.connection.getresponse()
+                self.assertEqual(400, response.status)
+                self.assertEqual({"error": "an order id is required"}, json.loads(response.read()))
+
     def test_compose_uses_healthy_local_upstream(self):
         directory = Path(__file__).resolve().parent
         compose = directory.parent

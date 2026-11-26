@@ -50,6 +50,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
 
     private static final String SAVE_PATH = "/http/order/save";
 
+    private static final int SAVED_ORDER_ID = 456;
+
     private static final String UPSTREAM = System.getProperty("shenyu.test.http.upstream", "httpbin.org");
 
     @Override
@@ -77,8 +79,9 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                         .build())
                 .caseSpec(ShenYuCaseSpec.builder()
                         .add(request -> request.request(Method.GET, REQUEST).then().statusCode(200).body("id", equalTo("123")))
-                        .add(request -> request.contentType("application/json").body(Map.of("id", 123, "name", "test"))
-                                .post(SAVE_PATH).then().statusCode(200).body("name", equalTo("hello world save order")))
+                        .add(request -> request.contentType("application/json").body(Map.of("id", SAVED_ORDER_ID, "name", "test"))
+                                .post(SAVE_PATH).then().statusCode(200)
+                                .body("id", equalTo(SAVED_ORDER_ID), "name", equalTo("hello world save order")))
                         .build())
                 .afterEachSpec(ShenYuAfterEachSpec.builder().deleteWaiting(notExists(REQUEST)).build())
                 .build();

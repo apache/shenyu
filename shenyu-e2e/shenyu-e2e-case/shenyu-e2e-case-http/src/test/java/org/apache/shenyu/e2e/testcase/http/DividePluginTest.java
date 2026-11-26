@@ -91,8 +91,10 @@ public class DividePluginTest {
 
     @AfterEach
     void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-        spec.getDeleter().delete(client, selectorIds);
-        ConfigSyncHelper.awaitDeleted(gateway, selectorIds, ruleIds);
+        if (!selectorIds.isEmpty()) {
+            spec.getDeleter().delete(client, selectorIds);
+            ConfigSyncHelper.awaitDeleted(gateway, selectorIds, ruleIds);
+        }
         spec.deleteWaiting().waitFor(gateway);
     }
 

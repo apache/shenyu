@@ -103,7 +103,9 @@ jobs:
           kubectl rollout status deployment/http-smoke-fixture --timeout=120s
           curl --fail --retry 30 --retry-connrefused --retry-delay 2 --max-time 5 http://localhost:31095/actuator/health
           curl --fail --retry 30 --retry-connrefused --retry-delay 2 --max-time 5 http://localhost:31195/actuator/health
-          curl --fail --retry 30 --retry-connrefused --retry-delay 2 --max-time 5 http://localhost:31189/status/200
+          fixture_port="$(kubectl get service http-smoke-fixture -o jsonpath='{.spec.ports[0].nodePort}')"
+          test -n "$fixture_port"
+          curl --fail --retry 30 --retry-connrefused --retry-delay 2 --max-time 5 "http://localhost:${fixture_port}/status/200"
       - name: Verify the HTTP fixture through the gateway
         if: steps.cases.outputs.run_k8s_examples == 'true'
         run: |

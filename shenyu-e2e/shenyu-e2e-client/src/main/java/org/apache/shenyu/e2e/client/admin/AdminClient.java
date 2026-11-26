@@ -394,6 +394,23 @@ public class AdminClient extends BaseClient {
     }
 
     /**
+     * Delete fixture metadata created for the given path in the test namespace.
+     *
+     * @param path fixture metadata path
+     */
+    public void deleteMetaDataByPath(final String path) {
+        List<String> ids = listAllMetaData().stream()
+                .filter(metadata -> path.equals(metadata.getPath()))
+                .map(MetaDataDTO::getId)
+                .toList();
+        delete("/meta-data/batchDeleted", ids);
+        if (!ids.isEmpty()) {
+            Assertions.assertTrue(listAllMetaData().stream().noneMatch(metadata -> path.equals(metadata.getPath())),
+                    () -> "Fixture metadata still present in Admin: " + path);
+        }
+    }
+
+    /**
      * bindingData.
      *
      * @param bindingData bindingData

@@ -19,9 +19,6 @@ package org.apache.shenyu.e2e.client;
 
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
-import org.apache.shenyu.e2e.model.Plugin;
-import org.apache.shenyu.e2e.model.data.Condition;
-import org.apache.shenyu.e2e.model.data.MetaData;
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
@@ -31,45 +28,12 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newDivideRuleHandle;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
-import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
-
 /**
  * WaitDataSync.
  */
 public class WaitDataSync {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WaitDataSync.class);
-
-    /**
-     * Verify sync with explicit Admin-owned resources in a fresh test stack.
-     *
-     * @param admin Admin test client
-     * @param gateway gateway test client
-     * @param rpcType RPC type of the metadata under test
-     * @throws Exception if sync fails
-     */
-    public static void verifyFixtureData(final AdminClient admin, final GatewayClient gateway, final String rpcType) throws Exception {
-        admin.login();
-        final String name = rpcType + "-fixture-sync";
-        final String context = "/" + name;
-        final String path = context + "/metadata";
-        final var conditions = newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, path);
-        final var selector = admin.create(newSelectorBuilder(name, Plugin.DIVIDE).conditionList(conditions).build());
-        final var rule = newRuleBuilder(name).conditionList(conditions).handle(newDivideRuleHandle()).build();
-        rule.setSelectorId(selector.getId());
-        admin.create(rule);
-        admin.createMetaData(MetaData.builder()
-                .appName(name).contextPath(context).path(path).rpcType(rpcType)
-                .serviceName(name).methodName("metadata").enabled(true).build());
-        waitAdmin2GatewayDataSyncEquals(admin::listAllSelectors, gateway::getSelectorCache, admin);
-        waitAdmin2GatewayDataSyncEquals(admin::listAllRules, gateway::getRuleCache, admin);
-        waitAdmin2GatewayDataSyncEquals(admin::listAllMetaData, gateway::getMetaDataCache, admin);
-        Assertions.assertTrue(gateway.getMetaDataCache().stream().anyMatch(metadata -> path.equals(metadata.getPath())),
-                "Fixture metadata is visible in the gateway");
-    }
 
     /**
      * waitAdmin2GatewayDataSync.
