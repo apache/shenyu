@@ -210,13 +210,17 @@ completions cannot silently inflate throughput. The measured duration must fit
 the offered window plus the configured five-second graceful stop, with a
 one-second tolerance at either end for scheduler and reporting jitter. Points
 outside that window retain their metrics with `measurement_valid` and
-`thresholds_passed` both set to `false`. k6 exit 99 retains a completed
+`thresholds_passed` both set to `false`. The report also records the harness's
+monotonic elapsed time as `load_process_elapsed_s` for comparison with the
+k6-reported duration. The final summary counts excluded direct and measured
+capacity points. k6 exit 99 retains a completed
 threshold-failing point for the sweep. Other nonzero exits abort the harness.
 Missing or invalid counters and measurement durations fail validation.
 
-Use only rates whose direct control passes when comparing gateway capacity. A point
-passes the default limits when p99 is below 100 ms, response errors are below 0.1%, and
-no iterations are dropped. Increase `--rates` until a failure brackets sustainable
+Use only rates whose direct control passes when comparing gateway capacity.
+`thresholds_passed` is true when the measured duration is inside the valid window,
+p99 is below the configured limit (100 ms by default), response errors are below
+0.1%, and no iterations are dropped. Increase `--rates` until a failure brackets sustainable
 capacity; if every rate passes, report the highest tested sustainable rate, not a
 measured maximum. Compare equal successful throughput separately from capacity limits.
 Report repetition ranges and variability; a smaller image does not establish higher QPS.

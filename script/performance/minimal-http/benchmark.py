@@ -228,10 +228,11 @@ def load(args, url, body, rate, duration, output, gateway=None):
     # k6 counts requests completed during gracefulStop. Use its actual run duration,
     # not only the offered-load window, to avoid inflating throughput at high load.
     measured_seconds = measured_ms / 1000
-    # A scheduler stall can extend the reported duration even when k6 exits successfully.
+    # A successful k6 exit does not guarantee its reported duration is usable.
     measurement_valid = (duration - MEASUREMENT_SLACK_SECONDS <= measured_seconds
                          <= duration + GRACEFUL_STOP_SECONDS + MEASUREMENT_SLACK_SECONDS)
     return {"offered_rps": rate, "offered_duration_s": duration, "measurement_duration_s": measured_seconds,
+            "load_process_elapsed_s": elapsed,
             "measurement_valid": measurement_valid, "successful_rps": successful / measured_seconds, "requests": requests,
             "errors": requests - successful, "dropped_iterations": count("dropped_iterations") if "dropped_iterations" in metrics else 0,
             "latency_ms": metrics["http_req_duration"]["values"], "thresholds_passed": measurement_valid and process.returncode == 0,
@@ -304,6 +305,10 @@ def main():
                     print(f"{name} run {repeat + 1}: ready={ready:.3f}s classes={result['loaded_classes']} smoke=passed", flush=True)
                 finally:
                     stop(process, log)
+        if not args.smoke_only:
+            points = report["direct_controls"] + [point for run in report["runs"] for point in run["loads"]]
+            excluded = sum(not point["measurement_valid"] for point in points)
+            print(f"Excluded {excluded} of {len(points)} capacity points outside the measurement window.")
         for name, _ in assemblies:
             ready = [row["readiness_s"] for row in report["runs"] if row["assembly"] == name]
             print(f"{name}: readiness median={statistics.median(ready):.3f}s range={min(ready):.3f}..{max(ready):.3f}s")
