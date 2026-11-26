@@ -22,6 +22,7 @@ local timestamp_key = KEYS[2]
 local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
+local requested = math.ceil(math.max(1, tonumber(ARGV[4]) or 1))
 
 local window_size = tonumber(capacity / rate)
 local window_time = 1
@@ -39,11 +40,14 @@ if (exists_key == 1) then
 end
 --redis.log(redis.LOG_WARNING, "last_requested " .. last_requested)
 
-local remain_request = capacity - last_requested
+local remain_request = math.max(0, capacity - last_requested)
 local allowed_num = 0
-if (last_requested < capacity) then
+if (last_requested + requested <= capacity) then
     allowed_num = 1
-    redis.call('zadd', tokens_key, now, timestamp_key)
+    remain_request = math.max(0, capacity - last_requested - requested)
+    for i = 1, requested do
+        redis.call('zadd', tokens_key, now, timestamp_key .. ':' .. i)
+    end
 end
 
 --redis.log(redis.LOG_WARNING, "remain_request " .. remain_request)
