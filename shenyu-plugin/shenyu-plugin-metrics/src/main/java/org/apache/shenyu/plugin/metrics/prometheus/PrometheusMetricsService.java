@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.metrics.prometheus;
 
+import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -32,7 +33,9 @@ import org.slf4j.LoggerFactory;
 import javax.management.MalformedObjectNameException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -43,22 +46,27 @@ public final class PrometheusMetricsService implements MetricsService {
 
     private static final Logger LOG = LoggerFactory.getLogger(PrometheusMetricsService.class);
 
+    private final List<Collector> ownedCollectors = new ArrayList<>();
+
     private HTTPServer server;
     
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
     @Override
-    public void start(final MetricsConfig metricsConfig, final MetricsRegister metricsRegister) {
-        startServer(metricsConfig);
+    public synchronized void start(final MetricsConfig metricsConfig, final MetricsRegister metricsRegister) {
+        if (Objects.isNull(server)) {
+            startServer(metricsConfig);
+        }
     }
-    
+
     @Override
-    public void stop() {
-        Optional.ofNullable(server).ifPresent(server -> {
+    public synchronized void stop() {
+        if (Objects.nonNull(server)) {
             server.close();
-            registered.set(false);
-            CollectorRegistry.defaultRegistry.clear();
-        });
+            server = null;
+        }
+        // Keep the shared registry and the reporter-owned metrics available across restarts.
+        unregisterOwnedCollectors();
     }
 
     /**
@@ -80,7 +88,6 @@ public final class PrometheusMetricsService implements MetricsService {
     }
 
     private void startServer(final MetricsConfig config) {
-        register(config);
         int port = config.getPort();
         String host = config.getHost();
         InetSocketAddress inetSocketAddress;
@@ -89,10 +96,12 @@ public final class PrometheusMetricsService implements MetricsService {
         } else {
             inetSocketAddress = new InetSocketAddress(host, port);
         }
+        register(config);
         try {
             server = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
             LOG.info(String.format("Prometheus metrics HTTP server `%s:%s` start success.", inetSocketAddress.getHostString(), inetSocketAddress.getPort()));
         } catch (final IOException ex) {
+            unregisterOwnedCollectors();
             LOG.error("Prometheus metrics HTTP server start fail", ex);
         }
     }
@@ -101,23 +110,44 @@ public final class PrometheusMetricsService implements MetricsService {
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        new LoggingQueueMetricsCollector().register();
-        new AgentCatalogMetricsCollector().register();
+        try {
+            registerConfiguredCollectors(config);
+        } catch (RuntimeException ex) {
+            unregisterOwnedCollectors();
+            throw ex;
+        }
+    }
+
+    private void registerConfiguredCollectors(final MetricsConfig config) {
+        registerCollector(new LoggingQueueMetricsCollector());
+        registerCollector(new AgentCatalogMetricsCollector());
         String jvmEnabled = String.valueOf(config.getProps().getProperty("jvm_enabled"));
         if (StringUtils.isNotEmpty(jvmEnabled)) {
             boolean enabled = Boolean.parseBoolean(jvmEnabled);
             if (enabled) {
+                // DefaultExports is initialized once for the shared JVM registry.
                 DefaultExports.initialize();
             }
         }
         try {
             String jmxConfig = config.getJmxConfig();
             if (!"null".equals(jmxConfig) && StringUtils.isNotEmpty(jmxConfig)) {
-                new JmxCollector(jmxConfig).register();
+                registerCollector(new JmxCollector(jmxConfig));
             }
         } catch (MalformedObjectNameException e) {
             LOG.error("init jmx collector error", e);
         }
+    }
+
+    private void registerCollector(final Collector collector) {
+        collector.register();
+        ownedCollectors.add(collector);
+    }
+
+    private void unregisterOwnedCollectors() {
+        ownedCollectors.forEach(CollectorRegistry.defaultRegistry::unregister);
+        ownedCollectors.clear();
+        registered.set(false);
     }
 }
 
