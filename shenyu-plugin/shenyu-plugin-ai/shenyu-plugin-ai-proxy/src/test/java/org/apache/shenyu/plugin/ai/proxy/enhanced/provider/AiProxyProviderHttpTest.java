@@ -130,9 +130,9 @@ class AiProxyProviderHttpTest {
     }
 
     private AiProxyEngine engine(final AiProxyProvider provider) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
                 new AiProxyProviderFactory(List.of(provider)), protocolRouteResolver(),
-                new WebClientAiProxyTransport(WebClient.builder().build()));
+                new WebClientAiProxyTransport(WebClient.builder().build())).build();
     }
 
     private AiCommonConfig config(final DisposableServer server, final String provider, final String protocol) {

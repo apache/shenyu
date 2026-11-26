@@ -32,8 +32,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -72,6 +73,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 
 /**
  * Real downstream disconnect classification across the AI proxy terminal boundary.
@@ -292,9 +294,12 @@ class AiProxyDownstreamDisconnectHttpTest {
             handle.setModel("fixture-model");
             AiProxyPluginHandler handler = new AiProxyPluginHandler();
             handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(selectorId, Constants.DEFAULT_RULE), handle);
-            AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                    new AiProxyProviderFactory(List.of(new OpenAi())),
-                    new WebClientAiProxyTransport(WebClient.builder().build(), properties), Duration.ZERO, observer);
+            AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                    new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
+                    new WebClientAiProxyTransport(WebClient.builder().build(), properties))
+                    .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                    .observer(observer)
+                    .build();
             AiProxyPlugin plugin = new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, observer);
             SelectorData selector = new SelectorData();
             selector.setId(selectorId);

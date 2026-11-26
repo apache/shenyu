@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure;
 
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import reactor.core.publisher.Flux;
@@ -33,13 +33,13 @@ import java.util.function.Predicate;
  */
 final class AiProxyCredentialFailureInspector {
 
-    static final int MAX_INSPECTION_BYTES = 16 * 1024;
+    public static final int MAX_INSPECTION_BYTES = 16 * 1024;
 
     private AiProxyCredentialFailureInspector() {
     }
 
-    static Mono<Void> inspect(final AiUpstreamResponse response, final Predicate<byte[]> classifier,
-                              final Function<Inspection, Mono<Void>> consumer) {
+    public static <T> Mono<T> inspect(final AiUpstreamResponse response, final Predicate<byte[]> classifier,
+                                      final Function<Inspection, Mono<T>> consumer) {
         return Mono.defer(() -> {
             final Accumulator accumulator = new Accumulator();
             return response.getBody().materialize().<Frame>handle(accumulator::accept)
@@ -52,11 +52,11 @@ final class AiProxyCredentialFailureInspector {
                         final Flux<byte[]> body = frames.concatMap(Frame::replay, 1);
                         final AiUpstreamResponse preserved = new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(), body);
                         return Mono.defer(() -> consumer.apply(new Inspection(preserved, classified))).flux();
-                    }).then().doFinally(ignored -> accumulator.clear());
+                    }).next().doFinally(ignored -> accumulator.clear());
         });
     }
 
-    record Inspection(AiUpstreamResponse response, boolean credentialFailure) {
+    public record Inspection(AiUpstreamResponse response, boolean credentialFailure) {
     }
 
     private record Frame(byte[] prefix, Signal<byte[]> signal) {

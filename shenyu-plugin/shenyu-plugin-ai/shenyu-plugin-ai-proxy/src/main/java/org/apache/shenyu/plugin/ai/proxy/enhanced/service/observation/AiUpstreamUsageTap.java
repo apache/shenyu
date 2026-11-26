@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -39,9 +39,9 @@ import java.util.Objects;
  * Bounded raw upstream side tap. Never subscribes, changes bytes, estimates tokens,
  * logs payloads or treats protocol-conversion defaults as provider-reported usage.
  */
-final class AiUpstreamUsageTap {
+public final class AiUpstreamUsageTap {
 
-    static final int MAX_BYTES = 64 * 1024;
+    public static final int MAX_BYTES = 64 * 1024;
 
     private static final ObjectMapper MAPPER = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
@@ -66,7 +66,8 @@ final class AiUpstreamUsageTap {
         this(observation, headers, stream, true);
     }
 
-    AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final boolean nativeChat) {
+    public AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers,
+                              final boolean stream, final boolean nativeChat) {
         this.observation = observation;
         String contentType = header(headers, "Content-Type").toLowerCase(Locale.ROOT).split(";", 2)[0].trim();
         streaming = contentType.isEmpty() ? stream : "text/event-stream".equals(contentType);
@@ -81,7 +82,7 @@ final class AiUpstreamUsageTap {
         }
     }
 
-    AiUpstreamResponse attach(final AiUpstreamResponse response) {
+    public AiUpstreamResponse attach(final AiUpstreamResponse response) {
         return new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(), response.getBody()
                 .doOnNext(this::accept).doOnComplete(this::complete)
                 .doOnError(ignored -> evidence(AiStreamCompletion.Evidence.TRANSPORT_FAILURE))

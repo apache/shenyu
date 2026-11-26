@@ -129,7 +129,7 @@ test('E2E protocol shards retain every sync channel and leave other scenarios in
   const original = { include: [
     { script: 'e2e-grpc-sync-compose', case: 'grpc', example_projects: ':grpc' },
     { script: 'e2e-apache-dubbo-sync-compose', case: 'dubbo', example_projects: ':dubbo' },
-    { script: 'e2e-logging-rocketmq-compose', case: 'logging', example_projects: ':http' },
+    { script: 'e2e-logging-rocketmq-compose', case: 'logging', example_projects: '' },
     { script: 'e2e-cluster-jdbc-compose', case: 'cluster', example_projects: ':http' },
   ] };
   const temporary = mkdtempSync(resolve(root, '.github/scripts/.matrix-test-'));

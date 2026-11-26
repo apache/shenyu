@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure;
+
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -24,6 +25,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigValidator;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -53,7 +56,7 @@ final class AiProxyCredentialFailureClassifier {
     private final Map<Scope, List<Rule>> declarations;
 
     AiProxyCredentialFailureClassifier(final AiProxyRetryProperties.CredentialFailureFallbackProperties properties,
-                                      final AiProxyProtocolFactory protocols) {
+                                       final AiProxyProtocolFactory protocols) {
         final Map<Scope, List<Rule>> compiled = new LinkedHashMap<>();
         int index = 0;
         try {

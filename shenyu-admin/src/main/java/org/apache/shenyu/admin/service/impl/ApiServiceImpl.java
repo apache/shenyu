@@ -175,11 +175,18 @@ public class ApiServiceImpl implements ApiService {
         //clean rule
         final List<RuleVO> rules = ruleService.searchByCondition(condition);
         if (CollectionUtils.isNotEmpty(rules)) {
-            ruleRemover.accept(rules.stream()
+            // The keyword search matches rule names by substring, so it also returns rules
+            // registered for longer paths that merely contain this one; only the rule named
+            // exactly the deleted API path belongs to it.
+            final List<String> exactRuleIds = rules.stream()
+                    .filter(rule -> path.equals(rule.getName()))
                     .map(RuleVO::getId)
                     .distinct()
                     // todo:[To be refactored with namespace]  Temporarily  hardcode
-                    .collect(Collectors.toList()), SYS_DEFAULT_NAMESPACE_ID);
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(exactRuleIds)) {
+                ruleRemover.accept(exactRuleIds, SYS_DEFAULT_NAMESPACE_ID);
+            }
         }
         //clean selector
         List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNamesAndNamespaceId(apiDO.getContextPath(), PluginEnum.getUpstreamNames(), SYS_DEFAULT_NAMESPACE_ID);
