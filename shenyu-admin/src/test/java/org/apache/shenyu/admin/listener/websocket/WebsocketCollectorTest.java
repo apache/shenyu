@@ -337,6 +337,25 @@ public final class WebsocketCollectorTest {
     }
 
     @Test
+    void runningModeInquiryDoesNotLeakTheSessionThreadLocal() {
+        ClusterProperties clusterProperties = mock(ClusterProperties.class);
+        when(clusterProperties.isEnabled()).thenReturn(false);
+        when(SpringBeanUtils.getInstance().getBean(ClusterProperties.class)).thenReturn(clusterProperties);
+
+        mockSuccessfulAsyncRemote(session);
+
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(DataEventTypeEnum.RUNNING_MODE.name(), session);
+
+        // The RUNNING_MODE branch must clean up after itself exactly like the MYSELF
+        // and initial-sync paths: a stale thread-local session would divert later
+        // MYSELF-typed sends on this container thread to the wrong gateway.
+        assertNull(ThreadLocalUtils.get("sessionKey"),
+                "the RUNNING_MODE branch must clear the session thread local");
+        websocketCollector.onClose(session);
+    }
+
+    @Test
     void testOnMessageBootstrapInstanceInfo() {
         InstanceInfoReportEventPublisher publisher = mock(InstanceInfoReportEventPublisher.class);
         when(SpringBeanUtils.getInstance().getBean(InstanceInfoReportEventPublisher.class)).thenReturn(publisher);

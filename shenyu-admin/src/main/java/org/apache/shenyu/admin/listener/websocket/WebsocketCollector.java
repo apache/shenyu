@@ -229,8 +229,14 @@ public class WebsocketCollector {
             if (isMaster) {
                 ThreadLocalUtils.put(SESSION_KEY, session);
             }
-            
-            sendMessageBySession(session, JsonUtils.toJson(map));
+            try {
+                sendMessageBySession(session, JsonUtils.toJson(map));
+            } finally {
+                // The thread-local session marks the request origin for MYSELF-typed sends;
+                // leaving it set would divert later sends on this container thread to this
+                // gateway, so clean it up exactly like the MYSELF and initial-sync paths.
+                ThreadLocalUtils.remove(SESSION_KEY);
+            }
             return;
         }
         
