@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.token.limiter;
 
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
 import org.apache.shenyu.infra.redis.serializer.ShenyuRedisSerializationContext;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
@@ -48,6 +49,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Objects;
 import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -121,23 +124,71 @@ class AiTokenLimiterPluginTest {
 
     @Test
     void testReportedZeroIsDifferentFromUnknownUsage() {
-        assertJsonUsage("{\"usage\":{\"completion_tokens\":0}}", List.of(0L));
-        assertJsonUsage("{\"usage\":{}}", List.of());
-        assertJsonUsage("{\"usage\":null}", List.of());
-        assertJsonUsage("{}", List.of());
+        List<AiUsage> zero = assertJsonUsage("{\"usage\":{\"completion_tokens\":0}}", List.of(0L));
+        assertEquals(List.of(AiUsage.Status.REPORTED), statuses(zero), "a known zero is reported, never unknown");
+        List<AiUsage> emptyUsage = assertJsonUsage("{\"usage\":{}}", List.of());
+        assertEquals(List.of(AiUsage.Status.UNKNOWN), statuses(emptyUsage));
+        List<AiUsage> nullUsage = assertJsonUsage("{\"usage\":null}", List.of());
+        assertEquals(List.of(AiUsage.Status.UNKNOWN), statuses(nullUsage));
+        List<AiUsage> noUsage = assertJsonUsage("{}", List.of());
+        assertEquals(List.of(AiUsage.Status.UNKNOWN), statuses(noUsage));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"-1", "1.5", "\"12\"", "null", "true", "{}", "[]", "9223372036854775808"})
     void testInvalidTokenCountsDoNotRecordUsage(final String count) {
-        assertJsonUsage("{\"usage\":{\"completion_tokens\":" + count + "}}", List.of());
+        List<AiUsage> outcomes = assertJsonUsage("{\"usage\":{\"completion_tokens\":" + count + "}}", List.of());
+        assertEquals(List.of(AiUsage.Status.INVALID), statuses(outcomes), "malformed token counts carry the invalid reason");
     }
 
     @Test
     void testAmbiguousJsonDoesNotRecordUsage() {
-        assertJsonUsage("{\"usage\":{\"completion_tokens\":12,\"completion_tokens\":13}}", List.of());
-        assertJsonUsage("{\"usage\":{\"completion_tokens\":12}}{}", List.of());
-        assertJsonUsage("{\"usage\":{\"completion_tokens\":12}}garbage", List.of());
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":12,\"completion_tokens\":13}}", List.of(), AiUsage.Status.INVALID);
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":12}}{}", List.of(), AiUsage.Status.INVALID);
+        assertJsonUsage("{\"usage\":{\"completion_tokens\":12}}garbage", List.of(), AiUsage.Status.INVALID);
+    }
+
+    @Test
+    void testMissingUsageReportsUnknownOutcome() {
+        List<AiUsage> outcomes = assertJsonUsage("{\"choices\":[],\"vendor\":true}", List.of());
+        assertEquals(List.of(AiUsage.Status.UNKNOWN), statuses(outcomes),
+                "missing usage is an explicit unknown outcome, not a silent omission");
+    }
+
+    @Test
+    void testOversizedNonStreamingUsageReportsLimitExceededOutcome() {
+        // just below the bound: extraction succeeds
+        List<AiUsage> below = assertJsonUsage(jsonBodyWithTotalLength(65535), List.of(123L));
+        assertEquals(List.of(AiUsage.Status.REPORTED), statuses(below));
+        // exactly at the bound: still buffered and parsed
+        List<AiUsage> at = assertJsonUsage(jsonBodyWithTotalLength(65536), List.of(123L));
+        assertEquals(List.of(AiUsage.Status.REPORTED), statuses(at));
+        // above the bound: explicit unknown with the size reason, never a fabricated zero
+        List<AiUsage> above = assertJsonUsage(jsonBodyWithTotalLength(65537), List.of());
+        assertEquals(List.of(AiUsage.Status.LIMIT_EXCEEDED), statuses(above));
+    }
+
+    @Test
+    void testOversizedSseEventReportsLimitExceededOutcome() {
+        String oversized = "data: {\"choices\":[{\"delta\":{\"content\":\"" + "x".repeat(70000) + "\"}}]}\n\n";
+        String stream = oversized + USAGE_EVENT + "data: [DONE]\n\n";
+        List<AiUsage> outcomes = assertEventStreamUsage(stream,
+                new byte[][] {stream.getBytes(StandardCharsets.UTF_8)}, false, false, List.of());
+        assertEquals(List.of(AiUsage.Status.LIMIT_EXCEEDED), statuses(outcomes));
+    }
+
+    @Test
+    void testOnlyReportedUsageDebitsTheCounter() {
+        ReactiveRedisTemplate<String, String> redisTemplate = mockRedisTemplate();
+        Mockito.when(redisTemplate.execute(Mockito.<RedisScript<Long>>any(), Mockito.eq(List.of("key")), Mockito.eq(List.of("12", "60"))))
+                .thenReturn(Flux.just(12L));
+        AiTokenLimiterPlugin plugin = new AiTokenLimiterPlugin();
+        plugin.applyUsageOutcome(new AiUsage(null, 12L, null, AiUsage.Status.REPORTED), redisTemplate, "key", 60L).block();
+        Mockito.verify(redisTemplate).execute(Mockito.<RedisScript<Long>>any(), Mockito.eq(List.of("key")), Mockito.eq(List.of("12", "60")));
+        plugin.applyUsageOutcome(AiUsage.UNKNOWN, redisTemplate, "key", 60L).block();
+        plugin.applyUsageOutcome(new AiUsage(null, null, null, AiUsage.Status.LIMIT_EXCEEDED), redisTemplate, "key", 60L).block();
+        plugin.applyUsageOutcome(new AiUsage(null, null, null, AiUsage.Status.INVALID), redisTemplate, "key", 60L).block();
+        Mockito.verifyNoMoreInteractions(redisTemplate);
     }
 
     @Test
@@ -201,7 +252,7 @@ class AiTokenLimiterPluginTest {
             forwarded.writeBytes(bytes);
             DataBufferUtils.release(buffer);
         }).then());
-        List<Long> recorded = new ArrayList<>();
+        List<AiUsage> recorded = new ArrayList<>();
         List<Throwable> errors = new ArrayList<>();
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
                 exchange, exchange.getResponse(), recorded::add);
@@ -217,7 +268,7 @@ class AiTokenLimiterPluginTest {
 
         body.tryEmitComplete().orThrow();
         assertTrue(errors.isEmpty());
-        assertEquals(List.of(12L), recorded);
+        assertEquals(List.of(12L), reportedTokens(recorded));
     }
 
     @Test
@@ -349,32 +400,40 @@ class AiTokenLimiterPluginTest {
         assertEquals("0", valuePair.read(valuePair.write("0")));
     }
 
-    private void assertJsonUsage(final String body, final List<Long> expectedTokens) {
-        byte[] content = body.getBytes(StandardCharsets.UTF_8);
-        assertResponseUsage(content, new byte[][] {content}, MediaType.APPLICATION_JSON, false, false, expectedTokens);
+    private List<AiUsage> assertJsonUsage(final String body, final List<Long> expectedTokens) {
+        return assertJsonUsage(body, expectedTokens, null);
     }
 
-    private void assertEventStreamUsage(final String expected, final byte[][] chunks, final boolean flush,
-                                        final boolean gzip, final List<Long> expectedTokens) {
-        assertResponseUsage(expected.getBytes(StandardCharsets.UTF_8), chunks, MediaType.TEXT_EVENT_STREAM,
+    private List<AiUsage> assertJsonUsage(final String body, final List<Long> expectedTokens, final AiUsage.Status expectedStatus) {
+        byte[] content = body.getBytes(StandardCharsets.UTF_8);
+        List<AiUsage> outcomes = assertResponseUsage(content, new byte[][] {content}, MediaType.APPLICATION_JSON, false, false, expectedTokens);
+        if (Objects.nonNull(expectedStatus)) {
+            assertEquals(List.of(expectedStatus), statuses(outcomes));
+        }
+        return outcomes;
+    }
+
+    private List<AiUsage> assertEventStreamUsage(final String expected, final byte[][] chunks, final boolean flush,
+                                                 final boolean gzip, final List<Long> expectedTokens) {
+        return assertResponseUsage(expected.getBytes(StandardCharsets.UTF_8), chunks, MediaType.TEXT_EVENT_STREAM,
                 flush, gzip, expectedTokens);
     }
 
-    private void assertResponseUsage(final byte[] expected, final byte[][] chunks, final MediaType mediaType,
-                                     final boolean flush, final boolean gzip, final List<Long> expectedTokens) {
+    private List<AiUsage> assertResponseUsage(final byte[] expected, final byte[][] chunks, final MediaType mediaType,
+                                              final boolean flush, final boolean gzip, final List<Long> expectedTokens) {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
         exchange.getResponse().getHeaders().setContentType(mediaType);
         if (gzip) {
             exchange.getResponse().getHeaders().set(HttpHeaders.CONTENT_ENCODING, "gzip");
         }
-        List<Long> recorded = new ArrayList<>();
+        List<AiUsage> recorded = new ArrayList<>();
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
                 exchange, exchange.getResponse(), recorded::add);
         Flux<DataBuffer> body = Flux.fromArray(chunks).map(exchange.getResponse().bufferFactory()::wrap);
         Mono<Void> completion = flush ? response.writeAndFlushWith(body.map(Mono::just)) : response.writeWith(body);
         completion.block();
 
-        assertEquals(expectedTokens, recorded);
+        assertEquals(expectedTokens, reportedTokens(recorded));
         byte[] forwarded = DataBufferUtils.join(exchange.getResponse().getBody()).map(buffer -> {
             byte[] bytes = new byte[buffer.readableByteCount()];
             buffer.read(bytes);
@@ -382,13 +441,14 @@ class AiTokenLimiterPluginTest {
             return bytes;
         }).block();
         assertArrayEquals(expected, forwarded);
+        return recorded;
     }
 
-    private void assertCancellationUsage(final String content, final List<Long> expectedTokens) {
+    private List<AiUsage> assertCancellationUsage(final String content, final List<Long> expectedTokens) {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
         exchange.getResponse().getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
         exchange.getResponse().setWriteHandler(body -> body.doOnNext(DataBufferUtils::release).then());
-        List<Long> recorded = new ArrayList<>();
+        List<AiUsage> recorded = new ArrayList<>();
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse response = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
                 exchange, exchange.getResponse(), recorded::add);
         Flux<DataBuffer> body = Flux.concat(
@@ -398,7 +458,8 @@ class AiTokenLimiterPluginTest {
         assertTrue(recorded.isEmpty());
 
         subscription.dispose();
-        assertEquals(expectedTokens, recorded);
+        assertEquals(expectedTokens, reportedTokens(recorded));
+        return recorded;
     }
 
     @SuppressWarnings("unchecked")
@@ -412,6 +473,25 @@ class AiTokenLimiterPluginTest {
                 + "data: {\"id\":\"chatcmpl-1\",\"choices\":[{\"delta\":{}}],"
                 + "\"usage\":{\"completion_tokens\":" + tokens + ",\"prompt_tokens\":10,\"total_tokens\":" + (tokens + 10) + "}}\n\n"
                 + "data: [DONE]\n\n";
+    }
+
+    private static List<Long> reportedTokens(final List<AiUsage> outcomes) {
+        return outcomes.stream().filter(usage -> usage.status() == AiUsage.Status.REPORTED)
+                .map(AiUsage::completionTokens).collect(Collectors.toList());
+    }
+
+    private static List<AiUsage.Status> statuses(final List<AiUsage> outcomes) {
+        return outcomes.stream().map(AiUsage::status).collect(Collectors.toList());
+    }
+
+    private String jsonBodyWithTotalLength(final int target) {
+        String head = "{\"choices\":[{\"message\":{\"content\":\"";
+        String tail = "\"}}],\"usage\":{\"completion_tokens\":123}}";
+        int fixed = head.getBytes(StandardCharsets.UTF_8).length + tail.getBytes(StandardCharsets.UTF_8).length;
+        assertTrue(target > fixed, "fixture target must leave room for padding");
+        byte[] padding = new byte[target - fixed];
+        Arrays.fill(padding, (byte) 'x');
+        return head + new String(padding, StandardCharsets.UTF_8) + tail;
     }
 
     private byte[] compressGzip(final String content) throws IOException {

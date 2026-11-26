@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.token.limiter;
 
+import org.apache.shenyu.common.metrics.AiUsage;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -171,12 +172,14 @@ class GzipBoundedObservationTest {
         byte[] compressed = compress(body);
 
         MockServerWebExchange exchange = gzipExchange(MediaType.APPLICATION_JSON);
-        List<Long> recorded = new ArrayList<>();
+        List<AiUsage> recorded = new ArrayList<>();
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse observer = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
                 exchange, exchange.getResponse(), recorded::add);
         observer.writeWith(Flux.just(exchange.getResponse().bufferFactory().wrap(compressed))).block(TIMEOUT);
 
-        assertTrue(recorded.isEmpty(), "usage beyond the budget must stay unavailable, not be recorded as zero");
+        assertTrue(reported(recorded).isEmpty(), "usage beyond the budget must stay unavailable, not be recorded as zero");
+        assertEquals(List.of(AiUsage.Status.LIMIT_EXCEEDED), statuses(recorded),
+                "budget exhaustion carries the explicit size-limit reason");
         assertArrayEquals(compressed, forwarded(exchange));
     }
 
@@ -185,14 +188,14 @@ class GzipBoundedObservationTest {
         byte[] compressed = compress("data: {\"usage\":{\"completion_tokens\":12}}\n\ndata: [DONE]\n\n"
                 .getBytes(StandardCharsets.UTF_8));
         MockServerWebExchange exchange = gzipExchange(MediaType.TEXT_EVENT_STREAM);
-        List<Long> recorded = new ArrayList<>();
+        List<AiUsage> recorded = new ArrayList<>();
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse observer = new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(
                 exchange, exchange.getResponse(), recorded::add);
         byte[][] chunks = splitEvery(compressed, 7);
         observer.writeAndFlushWith(Flux.fromArray(chunks).map(chunk ->
                 Mono.just(exchange.getResponse().bufferFactory().wrap(chunk)))).block(TIMEOUT);
 
-        assertEquals(List.of(12L), recorded);
+        assertEquals(List.of(12L), reported(recorded));
         assertArrayEquals(compressed, forwarded(exchange));
     }
 
@@ -234,11 +237,20 @@ class GzipBoundedObservationTest {
 
     private AiTokenLimiterPlugin.AiStatisticServerHttpResponse observerWithDecoder(final MockServerWebExchange exchange,
                                                                                    final GzipStreamDecoder decoder,
-                                                                                   final List<Long> recorded) {
+                                                                                   final List<AiUsage> recorded) {
         AiTokenLimiterPlugin.AiStatisticServerHttpResponse observer = Mockito.spy(
                 new AiTokenLimiterPlugin.AiStatisticServerHttpResponse(exchange, exchange.getResponse(), recorded::add));
         Mockito.doReturn(decoder).when(observer).createDecoder();
         return observer;
+    }
+
+    private static List<Long> reported(final List<AiUsage> outcomes) {
+        return outcomes.stream().filter(usage -> usage.status() == AiUsage.Status.REPORTED)
+                .map(AiUsage::completionTokens).collect(java.util.stream.Collectors.toList());
+    }
+
+    private static List<AiUsage.Status> statuses(final List<AiUsage> outcomes) {
+        return outcomes.stream().map(AiUsage::status).collect(java.util.stream.Collectors.toList());
     }
 
     private MockServerWebExchange gzipExchange(final MediaType mediaType) {

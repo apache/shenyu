@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.AiTokenLimiterHandle;
 import org.apache.shenyu.common.enums.AiTokenLimiterEnum;
@@ -64,7 +65,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.function.Consumer;
 
 /**
@@ -117,10 +117,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         String cacheKey = REDIS_KEY_PREFIX + CacheKeyUtils.INST.getKey(rule) + ":" + getCacheKey(exchange, tokenLimitType, keyName);
 
         final AiStatisticServerHttpResponse loggingServerHttpResponse = new AiStatisticServerHttpResponse(exchange, exchange.getResponse(),
-                tokens -> recordTokensUsage(reactiveRedisTemplate,
-                        cacheKey,
-                        tokens,
-                        timeWindowSeconds).subscribe(unused -> { }, error -> LOG.error("Failed to record AI token usage", error)));
+                usage -> applyUsageOutcome(usage, reactiveRedisTemplate, cacheKey, timeWindowSeconds)
+                        .subscribe(unused -> { }, error -> LOG.error("Failed to record AI token usage", error)));
 
         // check if the request is allowed
         return isAllowed(reactiveRedisTemplate, cacheKey, tokenLimit)
@@ -200,6 +198,29 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
         return reactiveRedisTemplate.execute(TOKEN_USAGE_SCRIPT, List.of(cacheKey), List.of(tokens.toString(), windowSeconds.toString())).single();
     }
 
+    /**
+     * Apply one usage outcome emitted by the response observer. Only an explicitly reported
+     * count debits the existing counter, exactly once per request; every other outcome is
+     * observable through a single bounded diagnostic that names the fixed status only — no
+     * response content, credentials or caller labels. Unavailable usage is never treated as
+     * zero, so reservation-enabled consumers must not settle or release reserved consumption
+     * based on it (that reconciliation belongs to the reservation tasks, not here).
+     *
+     * @param usage the usage outcome of one observed response
+     * @param reactiveRedisTemplate the Redis template backing the counter
+     * @param cacheKey the counter key for this rule and resolver
+     * @param windowSeconds the accounting window in seconds
+     * @return the accounting write, or an empty mono when the outcome is not reportable
+     */
+    Mono<Void> applyUsageOutcome(final AiUsage usage, final ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
+                                 final String cacheKey, final Long windowSeconds) {
+        if (usage.status() == AiUsage.Status.REPORTED && Objects.nonNull(usage.completionTokens())) {
+            return recordTokensUsage(reactiveRedisTemplate, cacheKey, usage.completionTokens(), windowSeconds).then();
+        }
+        LOG.warn("Skipped AI token usage accounting: {}", usage.status());
+        return Mono.empty();
+    }
+
     @Override
     public int getOrder() {
         return PluginEnum.AI_TOKEN_LIMITER.getCode();
@@ -221,13 +242,13 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
         private final ServerHttpResponse serverHttpResponse;
 
-        private final Consumer<Long> tokensRecorder;
+        private final Consumer<AiUsage> usageRecorder;
 
-        AiStatisticServerHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final Consumer<Long> tokensRecorder) {
+        AiStatisticServerHttpResponse(final ServerWebExchange exchange, final ServerHttpResponse delegate, final Consumer<AiUsage> usageRecorder) {
             super(delegate);
             this.exchange = exchange;
             this.serverHttpResponse = delegate;
-            this.tokensRecorder = tokensRecorder;
+            this.usageRecorder = usageRecorder;
         }
 
         @Override
@@ -301,7 +322,9 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
             if (Objects.nonNull(decoder)) {
                 decoder.close();
             }
-            extractor.finish().ifPresent(tokensRecorder::accept);
+            // every terminal signal yields exactly one outcome: a reported count, or an
+            // explicitly unknown/invalid/limited one — never a silent omission
+            usageRecorder.accept(extractor.finishOutcome());
         }
 
         /**
@@ -352,6 +375,8 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
             private boolean invalid;
 
+            private AiUsage.Status failureStatus;
+
             private boolean finished;
 
             private int eventBytes;
@@ -373,7 +398,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 try {
                     if (!eventStream) {
                         if (bytes.length > MAX_USAGE_PAYLOAD_SIZE - buffer.size()) {
-                            invalidate();
+                            invalidate(AiUsage.Status.LIMIT_EXCEEDED);
                         } else {
                             buffer.writeBytes(bytes);
                         }
@@ -389,7 +414,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         }
                         carriageReturn = false;
                         if (++eventBytes > MAX_USAGE_PAYLOAD_SIZE) {
-                            invalidate();
+                            invalidate(AiUsage.Status.LIMIT_EXCEEDED);
                             break;
                         }
                         if (value == '\r' || value == '\n') {
@@ -400,26 +425,41 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                         }
                     }
                 } catch (Exception ignored) {
-                    invalidate();
+                    invalidate(AiUsage.Status.INVALID);
                 }
             }
 
-            synchronized OptionalLong finish() {
+            /**
+             * One outcome per observed response: a reported count, or an explicitly
+             * unavailable usage with its fixed reason — size limit, malformed data, or
+             * unknown (missing usage and observations that ended before any usage arrived,
+             * including cancellations). Known zero stays a reported zero.
+             *
+             * @return the usage outcome of this response
+             */
+            synchronized AiUsage finishOutcome() {
                 if (finished) {
-                    return OptionalLong.empty();
+                    return AiUsage.UNKNOWN;
                 }
                 finished = true;
                 if (!invalid && !eventStream && buffer.size() > 0) {
                     try {
                         capture(MAPPER.readTree(buffer.toByteArray()));
                     } catch (Exception ignored) {
-                        invalidate();
+                        invalidate(AiUsage.Status.INVALID);
                     }
                 }
-                OptionalLong result = !invalid && Objects.nonNull(outputTokens)
-                        ? OptionalLong.of(outputTokens) : OptionalLong.empty();
+                AiUsage outcome;
+                if (invalid) {
+                    outcome = new AiUsage(null, null, null,
+                            Objects.nonNull(failureStatus) ? failureStatus : AiUsage.Status.INVALID);
+                } else if (Objects.nonNull(outputTokens)) {
+                    outcome = new AiUsage(null, outputTokens, null, AiUsage.Status.REPORTED);
+                } else {
+                    outcome = AiUsage.UNKNOWN;
+                }
                 clear();
-                return result;
+                return outcome;
             }
 
             private void readLine() throws IOException {
@@ -452,7 +492,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
 
             private void capture(final JsonNode root) {
                 if (Objects.isNull(root) || !root.isObject()) {
-                    invalidate();
+                    invalidate(AiUsage.Status.INVALID);
                     return;
                 }
                 JsonNode usage = usageOf(root, eventStream);
@@ -460,7 +500,7 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                     return;
                 }
                 if (!usage.isObject()) {
-                    invalidate();
+                    invalidate(AiUsage.Status.INVALID);
                     return;
                 }
                 JsonNode outputTokenNode = outputTokensOf(usage);
@@ -470,14 +510,17 @@ public class AiTokenLimiterPlugin extends AbstractShenyuPlugin {
                 }
                 if (!outputTokenNode.isIntegralNumber() || !outputTokenNode.canConvertToLong()
                         || outputTokenNode.longValue() < 0) {
-                    invalidate();
+                    invalidate(AiUsage.Status.INVALID);
                     return;
                 }
                 outputTokens = outputTokenNode.longValue();
             }
 
-            private void invalidate() {
-                invalid = true;
+            private void invalidate(final AiUsage.Status reason) {
+                if (!invalid) {
+                    invalid = true;
+                    failureStatus = reason;
+                }
                 outputTokens = null;
                 clear();
             }
