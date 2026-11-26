@@ -54,6 +54,7 @@ import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.RuleEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.validation.MatchingConditionEnforcement;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -156,6 +157,22 @@ public final class RuleServiceTest {
         publishEvent();
         testUpdate();
         testCreate();
+    }
+
+    @Test
+    public void testStrictMatchingConditionValidationRejectsBeforeWrite() {
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setRuleConditions(Collections.singletonList(RuleConditionDTO.builder()
+                .paramType("query").operator("=").paramName("tenant").paramValue("").build()));
+        MatchingConditionEnforcement.setStrictValidation(true);
+        try {
+            ShenyuAdminException exception = assertThrows(ShenyuAdminException.class,
+                    () -> ruleService.createOrUpdate(ruleDTO));
+            assertTrue(exception.getMessage().contains("conditions[0].paramValue=VALUE_REQUIRED"));
+            verify(ruleMapper, never()).insertSelective(any());
+        } finally {
+            MatchingConditionEnforcement.setStrictValidation(false);
+        }
     }
 
     @Test

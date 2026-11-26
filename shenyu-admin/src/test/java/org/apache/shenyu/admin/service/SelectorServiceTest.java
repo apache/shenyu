@@ -54,6 +54,7 @@ import org.apache.shenyu.admin.service.impl.SelectorServiceImpl;
 import org.apache.shenyu.admin.service.permission.PluginDataPermissionChecker;
 import org.apache.shenyu.admin.service.publish.SelectorEventPublisher;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.admin.validation.MatchingConditionEnforcement;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -198,6 +199,27 @@ public final class SelectorServiceTest {
         publishEvent();
         testUpdate();
         testCreate();
+    }
+
+    @Test
+    public void testStrictMatchingConditionValidationRejectsBeforeWrite() {
+        SelectorDTO selectorDTO = buildSelectorDTO("");
+        selectorDTO.setType(SelectorTypeEnum.CUSTOM_FLOW.getCode());
+        SelectorConditionDTO condition = new SelectorConditionDTO();
+        condition.setParamType("header");
+        condition.setOperator("=");
+        condition.setParamName("X-Tenant");
+        condition.setParamValue("");
+        selectorDTO.setSelectorConditions(Collections.singletonList(condition));
+        MatchingConditionEnforcement.setStrictValidation(true);
+        try {
+            ShenyuAdminException exception = assertThrows(ShenyuAdminException.class,
+                    () -> selectorService.createOrUpdate(selectorDTO));
+            assertTrue(exception.getMessage().contains("conditions[0].paramValue=VALUE_REQUIRED"));
+            verify(selectorMapper, never()).insertSelective(any());
+        } finally {
+            MatchingConditionEnforcement.setStrictValidation(false);
+        }
     }
 
     @Test

@@ -28,6 +28,7 @@ import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
+import org.apache.shenyu.admin.validation.MatchingConditionEnforcement;
 import org.apache.shenyu.admin.validation.validator.UriConditionValidator;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -54,6 +55,7 @@ public interface RuleService extends PageService<RuleQueryCondition, RuleVO> {
      * @return rows int
      */
     default int createOrUpdate(final RuleDTO ruleDTO) {
+        MatchingConditionEnforcement.checkRuleConditions(ruleDTO.getRuleConditions());
         try {
             final List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
             ruleConditions.stream()
