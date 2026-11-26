@@ -47,6 +47,10 @@ public final class AiRequestObservation {
 
     private AiUsage usage = AiUsage.UNKNOWN;
 
+    private AiUsageSummary usageTotals = AiUsageSummary.EMPTY;
+
+    private final AiUsageSummary.Aggregator usageAggregator = new AiUsageSummary.Aggregator(AiUsageSummary.EMPTY);
+
     private AiStreamCompletion completion = AiStreamCompletion.NOT_INSPECTED;
 
     private AiCallOutcome failure;
@@ -156,16 +160,30 @@ public final class AiRequestObservation {
      */
     public synchronized Attempt startAttempt(final AgentRequestContext target, final AiAttemptEvent.Kind kind,
                                              final String provider, final String protocol, final boolean streaming) {
+        return startAttempt(target, kind, new AiAttemptRoute(provider, protocol, null, null, null), streaming);
+    }
+
+    /**
+     * Allocate state exactly when an upstream attempt starts, retaining full route attribution.
+     *
+     * @param target trusted context updated with the actual selected target
+     * @param kind reason for the attempt
+     * @param route client/target protocol and model facts
+     * @param streaming actual mode
+     * @return isolated attempt state
+     */
+    public synchronized Attempt startAttempt(final AgentRequestContext target, final AiAttemptEvent.Kind kind,
+                                             final AiAttemptRoute route, final boolean streaming) {
         if (completed) {
-            Attempt ignored = new Attempt(this, context, attempts, kind, provider, protocol, streaming);
+            Attempt ignored = new Attempt(this, context, attempts, kind, route, streaming);
             ignored.completed = true;
             return ignored;
         }
         updateContext(target);
-        // a new attempt owns a new response write path, so write evidence never carries over
+        // A new attempt owns a new response write path, so write evidence never carries over.
         downstreamDisconnected = false;
         downstreamWriteFailed = false;
-        active = new Attempt(this, context, ++attempts, kind, provider, protocol, streaming);
+        active = new Attempt(this, context, ++attempts, kind, route, streaming);
         usage = AiUsage.UNKNOWN;
         completion = AiStreamCompletion.NOT_INSPECTED;
         return active;
@@ -188,7 +206,7 @@ public final class AiRequestObservation {
             attemptEvent = Objects.isNull(active) ? null : active.freeze(signal, terminalOutcome(active.status, error));
             final AiCallOutcome outcome = interrupted(signal, Objects.nonNull(error), httpStatus)
                     ? AiCallOutcome.CANCELLED : terminalOutcome(httpStatus, error);
-            terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage, completion);
+            terminalEvent = new AiTerminalEvent(context, outcome, httpStatus, elapsed(started), attempts, usage, usageTotals, completion);
         }
         recordAttempt(attemptEvent);
         AgentRuntimeMetrics.safely(() -> metrics.finished(AgentRuntimeMetrics.Traffic.LLM,
@@ -307,9 +325,7 @@ public final class AiRequestObservation {
 
         private final AiAttemptEvent.Kind kind;
 
-        private final String provider;
-
-        private final String protocol;
+        private final AiAttemptRoute route;
 
         private final boolean streaming;
 
@@ -323,15 +339,18 @@ public final class AiRequestObservation {
 
         private boolean completed;
 
-        private Attempt(final AiRequestObservation owner, final AgentRequestContext context, final int number, final AiAttemptEvent.Kind kind,
-                        final String provider, final String protocol, final boolean streaming) {
+        private Attempt(final AiRequestObservation owner, final AgentRequestContext context, final int number,
+                        final AiAttemptEvent.Kind kind, final AiAttemptRoute route, final boolean streaming) {
             this.owner = owner;
             this.context = context;
             this.number = number;
             this.kind = kind;
-            this.provider = provider;
-            this.protocol = protocol;
+            this.route = route;
             this.streaming = streaming;
+        }
+
+        public AiAttemptRoute route() {
+            return route;
         }
 
         public void status(final int value) {
@@ -399,6 +418,7 @@ public final class AiRequestObservation {
             }
             completed = true;
             owner.usage = usage;
+            owner.usageTotals = owner.usageAggregator.add(usage).build();
             final AiStreamCompletion.Evidence evidence = completion.evidence();
             // a truncated stream, a malformed partial event or a transport failure is a stronger
             // fact than "the source was cancelled": keep it and keep the matching classification
@@ -407,7 +427,7 @@ public final class AiRequestObservation {
             final boolean failed = Objects.nonNull(error) && error != AiCallOutcome.SUCCESS;
             final boolean interrupted = !failedStream && owner.interrupted(signal, failed, status);
             if (interrupted && (evidence == AiStreamCompletion.Evidence.PENDING
-                    || evidence == AiStreamCompletion.Evidence.UNKNOWN)) {
+                        || evidence == AiStreamCompletion.Evidence.UNKNOWN)) {
                 completion = new AiStreamCompletion(AiStreamCompletion.Evidence.SOURCE_CANCELLED, completion.framing());
             }
             owner.completion = completion;
@@ -422,7 +442,7 @@ public final class AiRequestObservation {
             } else {
                 outcome = terminalOutcome(status, error);
             }
-            return new AiAttemptEvent(context, number, kind, provider, protocol, streaming, outcome, status, elapsed(started), usage, completion);
+            return new AiAttemptEvent(context, number, kind, route, streaming, outcome, status, elapsed(started), usage, completion);
         }
     }
 }

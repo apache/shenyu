@@ -25,6 +25,7 @@ import reactor.core.publisher.SignalType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -41,13 +42,13 @@ class AiRequestObservationTest {
         final AgentRequestContext base = new AgentRequestContext("request", "llm", "selector", "rule");
         final AiRequestObservation observation = new AiRequestObservation(sink, base);
         final AiRequestObservation.Attempt first = observation.startAttempt(base.withTarget("primary", "chat", null),
-                AiAttemptEvent.Kind.PRIMARY, "openai", "openai-chat", false);
+                AiAttemptEvent.Kind.PRIMARY, new AiAttemptRoute("openai", "openai-responses", "openai-chat", "client-alias", "upstream-model"), false);
         first.status(503);
-        first.usage(new AiUsage(5L, 2L, null, AiUsage.Status.REPORTED));
+        first.usage(new AiUsage(5L, 2L, null, 2L, Map.of("reasoning_tokens", 1L), AiUsage.Status.REPORTED));
         first.finish(SignalType.ON_COMPLETE, null);
         first.finish(SignalType.CANCEL, null);
         final AiRequestObservation.Attempt second = observation.startAttempt(base.withTarget("fallback", "chat", null),
-                AiAttemptEvent.Kind.FALLBACK, "openai", "openai-chat", false);
+                AiAttemptEvent.Kind.FALLBACK, new AiAttemptRoute("fallback-provider", "openai-responses", "openai-chat", "client-alias", "fallback-model"), false);
         second.status(200);
         second.finish(SignalType.ON_COMPLETE, null);
         observation.finish(SignalType.ON_COMPLETE, 200);
@@ -58,7 +59,19 @@ class AiRequestObservationTest {
         assertEquals(1, sink.events.size());
         assertEquals(2, sink.events.get(0).attemptCount());
         assertSame(AiUsage.UNKNOWN, sink.events.get(0).usage());
+        final AiUsageSummary totals = sink.events.get(0).usageTotals();
+        assertEquals(5L, totals.promptTokens());
+        assertEquals(2L, totals.completionTokens());
+        assertEquals(2L, totals.cachedPromptTokens());
+        assertEquals(1L, totals.providerCountReports());
+        assertEquals(1, totals.reportedAttemptCount());
+        assertEquals(1, totals.unreportedAttemptCount());
         assertEquals("fallback", sink.events.get(0).context().getTarget());
+        assertEquals("openai-responses", sink.attempts.get(0).clientProtocol());
+        assertEquals("openai-chat", sink.attempts.get(0).targetProtocol());
+        assertEquals("client-alias", sink.attempts.get(0).requestedModel());
+        assertEquals("upstream-model", sink.attempts.get(0).resolvedModel());
+        assertEquals("fallback-provider", sink.attempts.get(1).provider());
     }
 
     @Test
@@ -76,6 +89,8 @@ class AiRequestObservationTest {
         assertEquals(AiCallOutcome.CANCELLED, sink.attempts.get(0).outcome());
         assertEquals(AiCallOutcome.CANCELLED, sink.events.get(0).outcome());
         assertSame(AiUsage.UNKNOWN, sink.events.get(0).usage());
+        assertEquals(1, sink.events.get(0).usageTotals().attemptCount());
+        assertEquals(1, sink.events.get(0).usageTotals().unreportedAttemptCount());
         assertNull(observation.getContext().getTenant());
     }
 

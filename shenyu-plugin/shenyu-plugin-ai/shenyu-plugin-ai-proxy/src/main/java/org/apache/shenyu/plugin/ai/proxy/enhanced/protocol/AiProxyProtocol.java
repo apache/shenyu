@@ -45,6 +45,15 @@ public interface AiProxyProtocol {
     boolean matches(JsonNode payload);
 
     /**
+     * Whether body-only detection can distinguish this envelope from existing protocols.
+     * Ambiguous native envelopes may require explicit selector protocol configuration.
+     * @return true for existing auto-detected protocols
+     */
+    default boolean supportsAutoDetection() {
+        return true;
+    }
+
+    /**
      * Decode client request into ShenYu internal request.
      *
      * @param rawBody original request body

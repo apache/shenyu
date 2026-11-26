@@ -69,6 +69,7 @@ public final class AiProxyProtocolFactory {
      */
     public AiProxyProtocol detect(final JsonNode payload) {
         return aiProxyProtocolMap.values().stream()
+                .filter(AiProxyProtocol::supportsAutoDetection)
                 .filter(protocol -> protocol.matches(payload))
                 .findFirst()
                 .orElseThrow(() -> new ShenyuException("No AI protocol matches the request body"));
