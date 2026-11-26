@@ -71,6 +71,7 @@ class PluginDataRefreshRetryTest {
         assertThrows(IllegalStateException.class, () -> firstWorker.refresh(newer));
         assertEquals("older", applied.get());
         assertEquals("older", retryWorker.cacheConfigData().getMd5());
+        assertFalse(retryWorker.refresh(snapshot("older", 0L)));
         assertTrue(retryWorker.refresh(newer));
         assertEquals("newer", applied.get());
         assertEquals("newer", firstWorker.cacheConfigData().getMd5());

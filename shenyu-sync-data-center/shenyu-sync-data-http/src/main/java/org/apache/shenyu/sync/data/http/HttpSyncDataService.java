@@ -231,6 +231,10 @@ public class HttpSyncDataService implements SyncDataService {
     }
 
     private void doLongPolling(final String server) {
+        if (factory.isPluginRecoveryRequired()) {
+            // Admin may have reverted to the last advertised digest and report no change to a long poll.
+            this.doFetchGroupConfig(server, ConfigGroupEnum.PLUGIN);
+        }
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = factory.cacheConfigData(group);

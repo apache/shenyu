@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Plugin data refresh.
@@ -41,6 +42,8 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
     private static final Logger LOG = LoggerFactory.getLogger(PluginDataRefresh.class);
 
     private static final Object APPLY_LOCK = new Object();
+
+    private static volatile boolean recoveryRequired;
 
     private final PluginDataSubscriber pluginDataSubscriber;
 
@@ -66,15 +69,31 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
         }
     }
 
+    static boolean isRecoveryRequired() {
+        return recoveryRequired;
+    }
+
     @Override
     protected boolean applyConfig(final ConfigData<PluginData> result) {
         synchronized (APPLY_LOCK) {
-            if (!isNewerConfig(cacheConfigData(), result, ConfigGroupEnum.PLUGIN)) {
+            ConfigData<?> applied = cacheConfigData();
+            // During recovery the snapshot may be identical to the last successful one, but the subscriber state is not.
+            boolean restoreApplied = recoveryRequired && Objects.nonNull(applied)
+                    && Objects.equals(applied.getMd5(), result.getMd5())
+                    && result.getLastModifyTime() >= applied.getLastModifyTime();
+            if (!restoreApplied && !isNewerConfig(applied, result, ConfigGroupEnum.PLUGIN)) {
                 return false;
             }
-            // Advertise the digest only after the subscriber has applied this snapshot.
-            refresh(result.getData());
-            return updateCacheIfNeed(result, ConfigGroupEnum.PLUGIN);
+            try {
+                refresh(result.getData());
+            } catch (RuntimeException ex) {
+                recoveryRequired = true;
+                throw ex;
+            }
+            // Advertise the digest only after the subscriber has applied or restored this snapshot.
+            GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
+            recoveryRequired = false;
+            return true;
         }
     }
 
