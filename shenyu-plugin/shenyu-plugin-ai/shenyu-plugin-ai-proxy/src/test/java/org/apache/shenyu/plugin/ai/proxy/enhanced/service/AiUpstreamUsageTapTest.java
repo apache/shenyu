@@ -22,6 +22,7 @@ import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
 import org.apache.shenyu.common.metrics.AiUsage;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiUpstreamUsageTap;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -137,7 +138,8 @@ class AiUpstreamUsageTapTest {
             return Flux.fromIterable(chunks);
         }));
         final List<byte[]> received = new ArrayList<>();
-        StepVerifier.create(new AiUpstreamUsageTap(attempt, headers, streaming).attach(response).getBody().doOnNext(received::add).then()).verifyComplete();
+        StepVerifier.create(new AiUpstreamUsageTap(attempt, headers, streaming, true)
+                .attach(response).getBody().doOnNext(received::add).then()).verifyComplete();
         attempt.finish(SignalType.ON_COMPLETE, null);
         owner.finish(SignalType.ON_COMPLETE, 200);
         assertEquals(1, subscriptions.get());

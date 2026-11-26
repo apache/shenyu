@@ -22,6 +22,7 @@ import org.apache.shenyu.common.metrics.AiAttemptEvent;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
+import org.apache.shenyu.common.metrics.AiStreamCompletion;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
 import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
@@ -65,11 +66,13 @@ class AiProxyObservationTest {
     void configuredRetryLimitRetainsAttemptAndTerminalObservation() throws InterruptedException {
         final Sink sink = new Sink();
         final AtomicInteger calls = new AtomicInteger();
-        final AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+        final AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                 new AiProxyProviderFactory(List.of(new OpenAi())),
                 protocolRouteResolver(),
-                request -> Mono.just(response(calls.incrementAndGet() <= 2 ? 503 : 200, Flux.just(bytes("{}")))),
-                new AiProxyRetryProperties(1, 0, Duration.ZERO), sink);
+                request -> Mono.just(response(calls.incrementAndGet() <= 2 ? 503 : 200, Flux.just(bytes("{}")))))
+                .retryProperties(new AiProxyRetryProperties(1, 0, Duration.ZERO))
+                .observer(sink)
+                .build();
         engine.execute(BODY, config(false, "primary"), Optional.of(config(false, "fallback")), result -> result.getBody().then()).block();
         assertTrue(sink.finished.await(5, TimeUnit.SECONDS));
         assertEquals(3, calls.get());
@@ -207,6 +210,41 @@ class AiProxyObservationTest {
     }
 
     @Test
+    void nativeResponsesRetainsRawUpstreamUsage() {
+        final Sink sink = new Sink();
+        final AiProxyEngine engine = engine(request -> Mono.just(response(200, Flux.just(bytes(
+                "{\"id\":\"resp_fixture\",\"usage\":{\"input_tokens\":3,\"output_tokens\":2,\"total_tokens\":5}}")))), sink);
+        final AiCommonConfig config = config(false, "main");
+        config.setProtocol(OpenAiResponses.NAME);
+
+        engine.execute("{\"input\":\"hello\"}", config, Optional.empty(), result -> result.getBody().then()).block();
+
+        assertEquals(1, sink.attempts.size());
+        assertEquals(AiUsage.Status.REPORTED, sink.attempts.get(0).usage().status());
+        assertEquals(5L, sink.attempts.get(0).usage().totalTokens());
+        assertEquals(5L, sink.events.get(0).usage().totalTokens());
+    }
+
+    @Test
+    void failedChatEventStreamDoesNotReportCompletionEvidence() {
+        final Sink sink = new Sink();
+        final AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
+                        request -> Mono.just(new AiUpstreamResponse(503,
+                                Map.of("Content-Type", List.of("text/event-stream")),
+                                Flux.just(bytes("data: [DONE]\n\n")))))
+                .retryProperties(new AiProxyRetryProperties(0, 0, Duration.ZERO))
+                .observer(sink)
+                .build();
+
+        engine.execute(BODY, config(true, "main"), Optional.empty(), result -> result.getBody().then()).block();
+
+        assertEquals(1, sink.attempts.size());
+        assertEquals(AiCallOutcome.ERROR, sink.attempts.get(0).outcome());
+        assertEquals(AiStreamCompletion.NOT_INSPECTED, sink.attempts.get(0).completion());
+    }
+
+    @Test
     void exhaustedTransportTimeoutHasOneTerminalAndNoReportedUsage() throws InterruptedException {
         final Sink sink = new Sink();
         final AiProxyEngine engine = engine(request -> Mono.error(new AiTransportException(
@@ -224,9 +262,13 @@ class AiProxyObservationTest {
     void cancellingRetryBackoffDoesNotInventAnotherAttempt() {
         final Sink sink = new Sink();
         StepVerifier.withVirtualTime(() -> {
-            AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())), new AiProxyProviderFactory(List.of(new OpenAi())),
+            AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                    new AiProxyProviderFactory(List.of(new OpenAi())),
                     protocolRouteResolver(),
-                    request -> Mono.just(response(503, Flux.just(bytes("{}")))), Duration.ofSeconds(30), sink);
+                    request -> Mono.just(response(503, Flux.just(bytes("{}")))))
+                    .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ofSeconds(30)))
+                    .observer(sink)
+                    .build();
             return engine.execute(BODY, config(false, "main"), Optional.empty(), result -> result.getBody().then());
         }).then(() -> assertEquals(1, sink.attempts.size())).thenCancel().verify();
         assertEquals(1, sink.events.size());
@@ -254,8 +296,11 @@ class AiProxyObservationTest {
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiCallObserver observer) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport, Duration.ZERO, observer);
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport)
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .observer(observer)
+                .build();
     }
 
     private AiCommonConfig config(final boolean streaming, final String model) {

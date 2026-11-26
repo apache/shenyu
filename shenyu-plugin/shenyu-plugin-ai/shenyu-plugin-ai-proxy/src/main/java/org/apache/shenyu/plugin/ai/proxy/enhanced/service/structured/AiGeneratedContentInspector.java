@@ -15,37 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.structured;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiContentCompliance;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiStructuredOutputPolicy;
 import org.apache.shenyu.plugin.base.schema.BoundedJsonSchemaValidator;
 
 import java.util.Objects;
 
 /**
- * Classifies the generated content of one materialized non-streaming chat
- * completion (issue #8257). Every classification is derived from protocol fields
- * ({@code finish_reason}, {@code tool_calls}, content presence) or from the
- * bounded schema validator — never from a semantic judgement — and the evidence
- * it carries for repair composition is bounded. Inspection is pure local work and
- * is never recorded as an upstream attempt.
+ * Pure classifier for one materialized non-streaming chat completion.
  */
-public final class AiGeneratedContentInspector {
+final class AiGeneratedContentInspector {
 
-    /**
-     * Maximum characters of prior model output carried into a repair request as
-     * data; longer outputs are represented by their prefix.
-     */
     private static final int MAX_PREVIOUS_OUTPUT_CHARS = 2048;
 
-    /**
-     * Maximum characters of the classification summary carried into a repair
-     * request and failure messages.
-     */
     private static final int MAX_SUMMARY_CHARS = 512;
 
     private static final ObjectMapper MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
@@ -53,14 +41,7 @@ public final class AiGeneratedContentInspector {
     private AiGeneratedContentInspector() {
     }
 
-    /**
-     * Classify one materialized chat completion envelope.
-     *
-     * @param policy the active structured output policy
-     * @param envelope the materialized response body
-     * @return the classification
-     */
-    public static AiContentInspection classify(final AiStructuredOutputPolicy policy, final String envelope) {
+    static AiContentInspection classify(final AiStructuredOutputPolicy policy, final String envelope) {
         if (envelope.isBlank()) {
             return new AiContentInspection(AiContentCompliance.MALFORMED_ENVELOPE, "empty response envelope", null);
         }
@@ -88,7 +69,7 @@ public final class AiGeneratedContentInspector {
             return new AiContentInspection(AiContentCompliance.TRUNCATED, "upstream declared finish_reason length", null);
         }
         JsonNode content = message.path("content");
-        if (content.isMissingNode() || content.isNull() || (content.isTextual() && content.asText().isBlank())) {
+        if (content.isMissingNode() || content.isNull() || content.isTextual() && content.asText().isBlank()) {
             return new AiContentInspection(AiContentCompliance.EMPTY, "generated content is absent or blank", null);
         }
         if (!content.isTextual()) {
@@ -101,13 +82,12 @@ public final class AiGeneratedContentInspector {
             generatedJson = MAPPER.readTree(generated);
         } catch (JsonProcessingException error) {
             return new AiContentInspection(AiContentCompliance.INVALID_JSON,
-                    bounded("generated content is not valid JSON: " + error.getOriginalMessage()), boundedOutput(generated));
+                    bounded("generated content is not valid JSON: " + error.getOriginalMessage()),
+                    boundedOutput(generated));
         }
         try {
             policy.validator().validateValue(generatedJson);
         } catch (BoundedJsonSchemaValidator.SchemaBudgetExceededException error) {
-            // an oversized document may be perfectly valid: rejecting it is fail-closed,
-            // but regenerating it can only waste billable work
             return new AiContentInspection(AiContentCompliance.SCHEMA_BUDGET_EXCEEDED,
                     bounded("generated content exceeds the bounded validation budget: " + error.getMessage()),
                     boundedOutput(generated));
@@ -119,12 +99,6 @@ public final class AiGeneratedContentInspector {
         return new AiContentInspection(AiContentCompliance.VALID, null, null);
     }
 
-    /**
-     * Bounded reference of the prior output for repair composition.
-     *
-     * @param generated the prior generated content
-     * @return the bounded prefix
-     */
     private static String boundedOutput(final String generated) {
         if (Objects.isNull(generated) || generated.length() <= MAX_PREVIOUS_OUTPUT_CHARS) {
             return generated;
@@ -140,12 +114,12 @@ public final class AiGeneratedContentInspector {
     }
 
     /**
-     * One classification result.
+     * Bounded generated-content classification.
      *
-     * @param compliance the classified outcome
-     * @param summary bounded human-readable evidence, {@code null} when valid
-     * @param previousOutput bounded prior generated content, {@code null} when absent
+     * @param compliance classified outcome
+     * @param summary bounded diagnostic evidence
+     * @param previousOutput bounded prior generated content
      */
-    public record AiContentInspection(AiContentCompliance compliance, String summary, String previousOutput) {
+    record AiContentInspection(AiContentCompliance compliance, String summary, String previousOutput) {
     }
 }

@@ -32,7 +32,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
@@ -269,11 +269,14 @@ class AiProxyFallbackAuthorizationTest {
             properties.getCredentialFailureFallback().setEnabled(true);
             properties.getCredentialFailureFallback().setDeclarations(List.of(declaration));
             final AtomicInteger calls = new AtomicInteger();
-            final AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                    new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), request -> {
-                        calls.incrementAndGet();
-                        return Mono.error(new AssertionError("authorization must precede upstream calls"));
-                    }, properties);
+            final AiProxyEngine engine = AiProxyEngine.builder(
+                            new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                            new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), request -> {
+                                calls.incrementAndGet();
+                                return Mono.error(new AssertionError("authorization must precede upstream calls"));
+                            })
+                    .retryProperties(properties)
+                    .build();
             final ProxyApiKeyData key = mapping("credential-fixture-client", "mapped-fixture-key");
             key.setEnabled(!"disabled-key".equals(scenario));
             if ("wrong-selector".equals(scenario)) {
@@ -324,8 +327,11 @@ class AiProxyFallbackAuthorizationTest {
     }
 
     private AiProxyPlugin plugin(final AiProxyPluginHandler handler) {
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())), new AiProxyProviderFactory(List.of(new OpenAi())),
-                protocolRouteResolver(), new WebClientAiProxyTransport(WebClient.builder().build()), new AiProxyRetryProperties(0, 0, Duration.ZERO));
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
+                        new WebClientAiProxyTransport(WebClient.builder().build()))
+                .retryProperties(new AiProxyRetryProperties(0, 0, Duration.ZERO))
+                .build();
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 

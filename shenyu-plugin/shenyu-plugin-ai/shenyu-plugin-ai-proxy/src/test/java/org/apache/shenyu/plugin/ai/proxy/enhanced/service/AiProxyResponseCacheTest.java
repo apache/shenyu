@@ -194,9 +194,12 @@ class AiProxyResponseCacheTest {
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport,
-                new AiProxyRetryProperties(), terminals::add, event -> { }, cache);
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport)
+                .retryProperties(new AiProxyRetryProperties())
+                .observer(terminals::add)
+                .responseCache(cache)
+                .build();
     }
 
     private AiUpstreamResponse response(final Flux<byte[]> body) {

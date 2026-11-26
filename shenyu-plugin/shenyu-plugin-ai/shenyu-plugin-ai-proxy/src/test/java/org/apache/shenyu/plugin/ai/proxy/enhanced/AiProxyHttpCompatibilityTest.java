@@ -33,8 +33,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
@@ -357,9 +358,12 @@ class AiProxyHttpCompatibilityTest {
     }
 
     private AiProxyPlugin plugin(final AiProxyPluginHandler handler) {
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("ChatOnly"))),
-                protocolRouteResolver(), new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO);
+        AiProxyEngine engine = AiProxyEngine.builder(
+                        new AiProxyProtocolFactory(List.of(new OpenAiChat(), new OpenAiResponses())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("ChatOnly"))),
+                        protocolRouteResolver(), new WebClientAiProxyTransport(WebClient.builder().build()))
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                .build();
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler);
     }
 
