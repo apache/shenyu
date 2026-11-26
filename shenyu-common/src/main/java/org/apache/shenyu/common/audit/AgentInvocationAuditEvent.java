@@ -17,6 +17,9 @@
 
 package org.apache.shenyu.common.audit;
 
+import org.apache.shenyu.common.metrics.AiUsage;
+import org.apache.shenyu.common.metrics.AiUsageSummary;
+
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,7 +32,7 @@ public final class AgentInvocationAuditEvent {
     /**
      * Stable metadata contract version. Bump it only when fields or semantics change.
      */
-    public static final int SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = 2;
 
     private final RecordType recordType;
 
@@ -63,6 +66,20 @@ public final class AgentInvocationAuditEvent {
 
     private final long elapsedMillis;
 
+    private final String provider;
+
+    private final String clientProtocol;
+
+    private final String targetProtocol;
+
+    private final String requestedModel;
+
+    private final String resolvedModel;
+
+    private final AiUsage usage;
+
+    private final AiUsageSummary usageTotals;
+
     private final Instant timestamp;
 
     private AgentInvocationAuditEvent(final Builder builder) {
@@ -89,6 +106,13 @@ public final class AgentInvocationAuditEvent {
             throw new IllegalArgumentException("elapsedMillis must not be negative");
         }
         timestamp = Objects.requireNonNullElseGet(builder.timestamp, Instant::now);
+        provider = nullableText(builder.provider, "provider");
+        clientProtocol = nullableText(builder.clientProtocol, "clientProtocol");
+        targetProtocol = nullableText(builder.targetProtocol, "targetProtocol");
+        requestedModel = nullableText(builder.requestedModel, "requestedModel");
+        resolvedModel = nullableText(builder.resolvedModel, "resolvedModel");
+        usage = builder.usage;
+        usageTotals = builder.usageTotals;
     }
 
     public static Builder logical() {
@@ -167,6 +191,34 @@ public final class AgentInvocationAuditEvent {
         return elapsedMillis;
     }
 
+    public Optional<String> getProvider() {
+        return Optional.ofNullable(provider);
+    }
+
+    public Optional<String> getClientProtocol() {
+        return Optional.ofNullable(clientProtocol);
+    }
+
+    public Optional<String> getTargetProtocol() {
+        return Optional.ofNullable(targetProtocol);
+    }
+
+    public Optional<String> getRequestedModel() {
+        return Optional.ofNullable(requestedModel);
+    }
+
+    public Optional<String> getResolvedModel() {
+        return Optional.ofNullable(resolvedModel);
+    }
+
+    public Optional<AiUsage> getUsage() {
+        return Optional.ofNullable(usage);
+    }
+
+    public Optional<AiUsageSummary> getUsageTotals() {
+        return Optional.ofNullable(usageTotals);
+    }
+
     public Instant getTimestamp() {
         return timestamp;
     }
@@ -231,6 +283,20 @@ public final class AgentInvocationAuditEvent {
         private long elapsedMillis;
 
         private Instant timestamp;
+
+        private String provider;
+
+        private String clientProtocol;
+
+        private String targetProtocol;
+
+        private String requestedModel;
+
+        private String resolvedModel;
+
+        private AiUsage usage;
+
+        private AiUsageSummary usageTotals;
 
         private Builder(final RecordType recordType) {
             this.recordType = recordType;
@@ -318,6 +384,41 @@ public final class AgentInvocationAuditEvent {
 
         public Builder timestamp(final Instant value) {
             timestamp = value;
+            return this;
+        }
+
+        public Builder provider(final String value) {
+            provider = value;
+            return this;
+        }
+
+        public Builder clientProtocol(final String value) {
+            clientProtocol = value;
+            return this;
+        }
+
+        public Builder targetProtocol(final String value) {
+            targetProtocol = value;
+            return this;
+        }
+
+        public Builder requestedModel(final String value) {
+            requestedModel = value;
+            return this;
+        }
+
+        public Builder resolvedModel(final String value) {
+            resolvedModel = value;
+            return this;
+        }
+
+        public Builder usage(final AiUsage value) {
+            usage = value;
+            return this;
+        }
+
+        public Builder usageTotals(final AiUsageSummary value) {
+            usageTotals = value;
             return this;
         }
 

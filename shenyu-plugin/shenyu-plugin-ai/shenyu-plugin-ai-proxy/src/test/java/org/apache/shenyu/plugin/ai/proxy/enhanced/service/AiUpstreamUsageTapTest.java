@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.SignalType;
 import reactor.test.StepVerifier;
@@ -40,6 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AiUpstreamUsageTapTest {
 
@@ -50,6 +52,24 @@ class AiUpstreamUsageTapTest {
         assertEquals(0L, usage.promptTokens());
         assertEquals(3L, usage.completionTokens());
         assertNull(usage.totalTokens());
+    }
+
+    @Test
+    void extractsSupportedCacheCategoriesAndBoundedProviderCounts() {
+        final AiUsage usage = read("{\"usage\":{\"prompt_tokens\":10,\"completion_tokens\":2,\"total_tokens\":12,"
+                + "\"prompt_tokens_details\":{\"cached_tokens\":4},\"reasoning_tokens\":1}}", false, Map.of());
+        assertEquals(AiUsage.Status.REPORTED, usage.status());
+        assertEquals(4L, usage.cachedPromptTokens());
+        assertEquals(Map.of("reasoning_tokens", 1L), usage.providerCounts());
+        assertEquals(AiUsage.Source.PROVIDER_REPORTED, usage.source());
+        assertEquals(AiUsage.Aggregation.CUMULATIVE_SNAPSHOT, usage.aggregation());
+    }
+
+    @Test
+    void acceptsDeepSeekCacheAliasWithoutInventingACacheCount() {
+        final AiUsage usage = read("{\"usage\":{\"prompt_tokens\":10,\"prompt_cache_hit_tokens\":3}}", false, Map.of());
+        assertEquals(3L, usage.cachedPromptTokens());
+        assertTrue(usage.providerCounts().isEmpty());
     }
 
     @ParameterizedTest
@@ -69,6 +89,15 @@ class AiUpstreamUsageTapTest {
         assertEquals(AiUsage.Status.INVALID, usage.status());
         assertNull(usage.promptTokens());
         assertNull(usage.completionTokens());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"cached_tokens", "prompt_cache_hit_tokens", "prompt_tokens_details.cached_tokens"})
+    void invalidCacheCountsInvalidateSnapshotWithoutEstimates(final String field) {
+        String body = field.startsWith("prompt_tokens_details.")
+                ? "{\"usage\":{\"prompt_tokens_details\":{\"cached_tokens\":\"bad\"}}}"
+                : "{\"usage\":{\"" + field + "\":\"bad\"}}";
+        assertEquals(AiUsage.Status.INVALID, read(body, false, Map.of()).status());
     }
 
     @ParameterizedTest
@@ -117,16 +146,24 @@ class AiUpstreamUsageTapTest {
     }
 
     private AiUsage read(final String body, final boolean streaming, final Map<String, List<String>> headers) {
+        return read(body, streaming, headers, "openai-chat");
+    }
+
+    private AiUsage read(final String body, final boolean streaming, final Map<String, List<String>> headers, final String protocol) {
         final byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         final List<byte[]> chunks = new ArrayList<>();
         // Split within UTF-8 codepoints and every JSON/SSE boundary.
         for (int offset = 0; offset < bytes.length; offset++) {
             chunks.add(Arrays.copyOfRange(bytes, offset, offset + 1));
         }
-        return read(chunks, streaming, headers);
+        return read(chunks, streaming, headers, protocol);
     }
 
     private AiUsage read(final List<byte[]> chunks, final boolean streaming, final Map<String, List<String>> headers) {
+        return read(chunks, streaming, headers, "openai-chat");
+    }
+
+    private AiUsage read(final List<byte[]> chunks, final boolean streaming, final Map<String, List<String>> headers, final String protocol) {
         final List<AiTerminalEvent> events = new ArrayList<>();
         final AgentRequestContext context = new AgentRequestContext("request", "llm", null, null);
         final AiRequestObservation owner = new AiRequestObservation(events::add, context);
@@ -137,7 +174,7 @@ class AiUpstreamUsageTapTest {
             return Flux.fromIterable(chunks);
         }));
         final List<byte[]> received = new ArrayList<>();
-        StepVerifier.create(new AiUpstreamUsageTap(attempt, headers, streaming).attach(response).getBody().doOnNext(received::add).then()).verifyComplete();
+        StepVerifier.create(new AiUpstreamUsageTap(attempt, headers, streaming, protocol).attach(response).getBody().doOnNext(received::add).then()).verifyComplete();
         attempt.finish(SignalType.ON_COMPLETE, null);
         owner.finish(SignalType.ON_COMPLETE, 200);
         assertEquals(1, subscriptions.get());
@@ -146,5 +183,64 @@ class AiUpstreamUsageTapTest {
             assertSame(chunks.get(index), received.get(index));
         }
         return events.get(0).usage();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void responsesUsesNativeInputOutputBeforeClientConversion(final boolean streaming) {
+        String response = "{\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"total_tokens\":15,\"input_tokens_details\":{\"cached_tokens\":0}}}";
+        String wire = streaming ? "data: {\"type\":\"response.completed\",\"response\":" + response + "}\n\n" : response;
+        AiUsage actual = read(wire, streaming, Map.of(), "openai-responses");
+        assertEquals(3L, actual.promptTokens());
+        assertEquals(12L, actual.completionTokens());
+        assertEquals(15L, actual.totalTokens());
+        assertEquals(0L, actual.cachedPromptTokens());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"response.completed", "response.incomplete", "response.failed"})
+    void terminalResponsesUsageIsOneSnapshotNotAnIncrement(final String event) {
+        String wire = "data: {\"type\":\"response.created\",\"response\":{\"usage\":{\"input_tokens\":99,\"output_tokens\":99}}}\n\n"
+                + "data: {\"type\":\"" + event + "\",\"response\":{\"usage\":{\"input_tokens\":3,\"output_tokens\":12}}}\n\n";
+        AiUsage actual = read(wire, true, Map.of(), "openai-responses");
+        assertEquals(3L, actual.promptTokens());
+        assertEquals(12L, actual.completionTokens());
+        assertNull(actual.totalTokens());
+    }
+
+    @Test
+    void anthropicSparseCumulativeUpdatesRetainInputButNeverSumOutput() {
+        String start = "data: {\"type\":\"message_start\",\"message\":{\"usage\":{\"input_tokens\":3,\"output_tokens\":1,"
+                + "\"cache_read_input_tokens\":0,\"cache_creation_input_tokens\":0}}}\n\n";
+        String wire = start + "data: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":5}}\n\n"
+                + "data: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":12}}\n\n"
+                + "data: {\"type\":\"message_stop\"}\n\n";
+        AiUsage actual = read(wire, true, Map.of(), "anthropic-messages");
+        assertEquals(3L, actual.promptTokens());
+        assertEquals(12L, actual.completionTokens());
+        assertEquals(0L, actual.cachedPromptTokens());
+        assertEquals(0L, actual.providerCounts().get("cache_creation_input_tokens"));
+        assertNull(actual.totalTokens());
+        AiUsage zero = read(start + "data: {\"type\":\"message_delta\",\"usage\":{\"input_tokens\":0,\"output_tokens\":0}}\n\n", true, Map.of(), "anthropic-messages");
+        assertEquals(0L, zero.promptTokens());
+        assertEquals(0L, zero.completionTokens());
+    }
+
+    @Test
+    void anthropicCacheAndServiceUnitsAreNotSilentlyPricedAsRegularTokens() {
+        AiUsage actual = read("{\"usage\":{\"input_tokens\":3,\"output_tokens\":12,\"cache_read_input_tokens\":5,"
+                + "\"cache_creation_input_tokens\":7,\"server_tool_use\":{\"web_search_requests\":1}}}", false, Map.of(), "anthropic-messages");
+        assertEquals(3L, actual.promptTokens());
+        assertEquals(5L, actual.cachedPromptTokens());
+        assertEquals(7L, actual.providerCounts().get("cache_creation_input_tokens"));
+        assertEquals(1L, actual.providerCounts().get("server_tool_use.web_search_requests"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"openai-responses,input_tokens", "anthropic-messages,output_tokens", "anthropic-messages,cache_read_input_tokens"})
+    void malformedNativeCountersDoNotBecomeZero(final String protocol, final String field) {
+        AiUsage actual = read("{\"usage\":{\"" + field + "\":-1}}", false, Map.of(), protocol);
+        assertEquals(AiUsage.Status.INVALID, actual.status());
+        assertNull(actual.promptTokens());
     }
 }
