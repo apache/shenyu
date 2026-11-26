@@ -28,7 +28,7 @@ from unittest.mock import Mock, patch
 
 from websockets.sync.client import connect
 
-from benchmark import error_code, load
+from benchmark import error_code, load, main
 from fixture import SyncFixture, configuration
 from inventory import PLUGINS, inventory
 
@@ -174,6 +174,40 @@ class LoadResultTest(unittest.TestCase):
             summary["metrics"]["successful_requests"]["values"]["count"] = successes
             with self.subTest(requests=requests, successes=successes), self.assertRaisesRegex(ValueError, "k6 summary"):
                 self.run_load(summary)
+
+
+class BenchmarkRunTest(unittest.TestCase):
+    def test_failed_warmup_skips_only_its_steady_state_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            output = root / "report"
+            upstream = SimpleNamespace(port=8081, body=b"expected", close=Mock())
+            load_paths = []
+
+            def load_result(args, url, body, rate, duration, directory, gateway=None):
+                relative = directory.relative_to(output).as_posix()
+                load_paths.append(relative)
+                return {"offered_rps": rate, "thresholds_passed": relative != "minimal-1/warmup"}
+
+            subprocess = Mock()
+            subprocess.run.return_value.stderr = "java fixture"
+            subprocess.check_output.return_value = "fixture"
+            argv = ["benchmark.py", "--minimal", str(root / "minimal"), "--full", str(root / "full"),
+                    "--output", str(output), "--java", "java", "--k6", "k6", "--rates", "200", "500", "--runs", "1"]
+            with patch("sys.argv", argv), patch.multiple(
+                    "benchmark", subprocess=subprocess, inventory=Mock(), Upstream=Mock(return_value=upstream),
+                    SyncFixture=Mock(), launch=Mock(return_value=(Mock(), Mock(), "http://127.0.0.1", 1)),
+                    smoke=Mock(return_value=["routing passed"]), resources=Mock(return_value={}),
+                    loaded_classes=Mock(return_value=(1, "jcmd")), stop=Mock(), load=Mock(side_effect=load_result)):
+                main()
+
+            self.assertEqual(["direct-200", "direct-500", "minimal-1/warmup",
+                              "full-1/warmup", "full-1/load-200", "full-1/load-500"], load_paths)
+            minimal, full = json.loads((output / "report.json").read_text())["runs"]
+            self.assertFalse(minimal["warmup"]["thresholds_passed"])
+            self.assertEqual([], minimal["loads"])
+            self.assertTrue(full["warmup"]["thresholds_passed"])
+            self.assertEqual([200, 500], [row["offered_rps"] for row in full["loads"]])
 
 
 class InventoryTest(unittest.TestCase):

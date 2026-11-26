@@ -202,6 +202,10 @@ capacity at each offered rate. Both CPU/RSS and p50/p95/p99, successful throughp
 body/status errors and dropped iterations are retained. JFR capture starts before
 warmup and includes all measured rates equally. Raw k6 samples, summaries, process
 commands/counters, gateway logs, JFR files and `report.json` remain in the output folder.
+Each load repetition records its `warmup` result. A failed warmup skips the
+measured rates for that repetition, leaving its `loads` array empty. Other
+repetitions continue. This keeps an unhealthy warmup, such as one that opens
+the gateway circuit breaker, out of the steady-state comparison.
 The output directory must be new, preventing accidental evidence replacement.
 `successful_rps` divides successful responses by k6's actual `testRunDurationMs`,
 including graceful-stop completion time, rather than only the configured arrival

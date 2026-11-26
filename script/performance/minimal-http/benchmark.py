@@ -288,9 +288,13 @@ def main():
                     if args.jfr:
                         subprocess.run([jcmd, str(process.pid), "JFR.start", "name=assembly", "settings=profile"], check=True, capture_output=True)
                     if not args.smoke_only:
-                        load(args, base + "/bench/ok", upstream_a.body, args.rates[0], args.warmup, output / "warmup", process)
-                        for rate in args.rates:
-                            result["loads"].append(load(args, base + "/bench/ok", upstream_a.body, rate, args.duration, output / f"load-{rate}", process))
+                        warmup = load(args, base + "/bench/ok", upstream_a.body, args.rates[0], args.warmup, output / "warmup", process)
+                        result["warmup"] = warmup
+                        if warmup["thresholds_passed"]:
+                            for rate in args.rates:
+                                result["loads"].append(load(args, base + "/bench/ok", upstream_a.body, rate, args.duration, output / f"load-{rate}", process))
+                        else:
+                            print(f"{name} run {repeat + 1}: warmup failed. Skipping steady-state loads.", flush=True)
                     if args.jfr:
                         subprocess.run([jcmd, str(process.pid), "JFR.dump", "name=assembly", f'filename="{output / "gateway.jfr"}"'], check=True, capture_output=True)
                     report["runs"].append(result)
