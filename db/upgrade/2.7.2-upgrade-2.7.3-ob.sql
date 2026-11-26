@@ -105,6 +105,14 @@ ALTER TABLE dashboard_user ADD COLUMN token_version INT NOT NULL DEFAULT 0 COMME
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}', '2026-10-30 00:00:00', '2026-10-30 00:00:00');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
+VALUES ('1890000000000000041', '10', 'paramFlowEnable', 'Parameter flow enable (0 or 1)', 1, 2, 20, '{"required":"0","defaultValue":"0","rule":""}', '2026-11-26 00:00:00', '2026-11-26 00:00:00');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
+VALUES ('1890000000000000042', '10', 'paramFlowSource', 'Parameter source (HEADER or EXCHANGE_ATTRIBUTE)', 2, 2, 21, '{"required":"0","defaultValue":"HEADER","rule":""}', '2026-11-26 00:00:00', '2026-11-26 00:00:00');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
+VALUES ('1890000000000000043', '10', 'paramFlowKey', 'Header or exchange attribute name', 2, 2, 22, '{"required":"0","defaultValue":"","rule":""}', '2026-11-26 00:00:00', '2026-11-26 00:00:00');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`)
+VALUES ('1890000000000000044', '10', 'paramFlowMissingKeyPolicy', 'Missing parameter policy (SHARED_BUCKET or SKIP)', 2, 2, 23, '{"required":"0","defaultValue":"SHARED_BUCKET","rule":""}', '2026-11-26 00:00:00', '2026-11-26 00:00:00');
 INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`)
 VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1, '2026-10-30 00:00:00', '2026-10-30 00:00:00');
 INSERT INTO `shenyu_dict` (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`)

@@ -44,16 +44,21 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import reactor.test.publisher.TestPublisher;
 
 import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public final class SentinelPluginTest {
+
+    private static final String QUOTA_HEADER = "X-Quota-Group";
 
     private SentinelPlugin sentinelPlugin;
 
@@ -185,6 +190,91 @@ public final class SentinelPluginTest {
     public void testNamed() {
         final String result = sentinelPlugin.named();
         assertEquals(PluginEnum.SENTINEL.getName(), result);
+    }
+
+    @Test
+    public void testParameterQuotasAreIndependentAndBlockBeforeDownstream() {
+        RuleData rule = parameterRule("independent-quotas", "HEADER", QUOTA_HEADER, "SHARED_BUCKET");
+        sentinelRuleHandle.handlerRule(rule);
+        try {
+            assertEquals(HttpStatus.OK, invoke(rule, quotaRequest("blue")));
+            ServerWebExchange excess = quotaRequest("blue");
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, invoke(rule, excess));
+            verify(chain, never()).execute(excess);
+            assertEquals(HttpStatus.OK, invoke(rule, quotaRequest("green")));
+        } finally {
+            sentinelRuleHandle.removeRule(rule);
+        }
+    }
+
+    @Test
+    public void testMissingAndAmbiguousHeaderShareASeparateBucket() {
+        RuleData rule = parameterRule("missing-quota", "HEADER", QUOTA_HEADER, "SHARED_BUCKET");
+        sentinelRuleHandle.handlerRule(rule);
+        try {
+            assertEquals(HttpStatus.OK, invoke(rule, quotaRequest()));
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, invoke(rule, quotaRequest("blue", "green")));
+            assertEquals(HttpStatus.OK, invoke(rule, quotaRequest("missing")));
+        } finally {
+            sentinelRuleHandle.removeRule(rule);
+        }
+    }
+
+    @Test
+    public void testAttributeSourceAndSkipMissingParameter() {
+        RuleData rule = parameterRule("attribute-quota", "EXCHANGE_ATTRIBUTE", "quota.group", "SKIP");
+        sentinelRuleHandle.handlerRule(rule);
+        try {
+            assertEquals(HttpStatus.OK, invoke(rule, quotaRequest("header-only")));
+            assertEquals(HttpStatus.OK, invoke(rule, quotaRequest("header-only")));
+            ServerWebExchange first = quotaRequest("unrelated-header");
+            first.getAttributes().put("quota.group", "green");
+            assertEquals(HttpStatus.OK, invoke(rule, first));
+            ServerWebExchange second = quotaRequest("different-header");
+            second.getAttributes().put("quota.group", "green");
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, invoke(rule, second));
+        } finally {
+            sentinelRuleHandle.removeRule(rule);
+        }
+    }
+
+    @Test
+    public void testParameterFlowPropagatesCancellationToDownstream() {
+        RuleData rule = parameterRule("cancel-quota", "HEADER", QUOTA_HEADER, "SHARED_BUCKET");
+        ServerWebExchange request = quotaRequest("green");
+        TestPublisher<Void> downstream = TestPublisher.create();
+        when(chain.execute(request)).thenReturn(downstream.mono());
+        sentinelRuleHandle.handlerRule(rule);
+        try {
+            StepVerifier.create(sentinelPlugin.doExecute(request, chain, selectorData, rule))
+                    .then(downstream::assertWasSubscribed).thenCancel().verify();
+            downstream.assertCancelled();
+        } finally {
+            sentinelRuleHandle.removeRule(rule);
+        }
+    }
+
+    private RuleData parameterRule(final String id, final String source, final String key, final String missingPolicy) {
+        RuleData rule = new RuleData();
+        rule.setSelectorId("sentinel");
+        rule.setId(id);
+        rule.setHandle("""
+                {"flowRuleEnable":1,"flowRuleCount":1,"degradeRuleEnable":0,"fallbackUri":"",
+                 "paramFlowEnable":1,"paramFlowSource":"%s","paramFlowKey":"%s","paramFlowMissingKeyPolicy":"%s"}
+                """.formatted(source, key, missingPolicy));
+        return rule;
+    }
+
+    private ServerWebExchange quotaRequest(final String... values) {
+        ServerWebExchange request = MockServerWebExchange.from(MockServerHttpRequest.get("/reports").header(QUOTA_HEADER, values));
+        request.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
+        return request;
+    }
+
+    private HttpStatus invoke(final RuleData rule, final ServerWebExchange request) {
+        when(chain.execute(request)).thenReturn(Mono.fromRunnable(() -> request.getResponse().setStatusCode(HttpStatus.OK)));
+        StepVerifier.create(sentinelPlugin.doExecute(request, chain, selectorData, rule)).verifyComplete();
+        return HttpStatus.valueOf(request.getResponse().getStatusCode().value());
     }
 
     @Test

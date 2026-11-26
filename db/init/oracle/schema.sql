@@ -1569,6 +1569,14 @@ values ('1518229897210273830', '4', 'keyResolverName', 'keyResolverName', 3, 2, 
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1890000000000000041', '10', 'paramFlowEnable', 'Parameter flow enable (0 or 1)', 1, 2, 20, '{"required":"0","defaultValue":"0","rule":""}');
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1890000000000000042', '10', 'paramFlowSource', 'Parameter source (HEADER or EXCHANGE_ATTRIBUTE)', 2, 2, 21, '{"required":"0","defaultValue":"HEADER","rule":""}');
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1890000000000000043', '10', 'paramFlowKey', 'Header or exchange attribute name', 2, 2, 22, '{"required":"0","defaultValue":"","rule":""}');
+insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+values ('1890000000000000044', '10', 'paramFlowMissingKeyPolicy', 'Missing parameter policy (SHARED_BUCKET or SKIP)', 2, 2, 23, '{"required":"0","defaultValue":"SHARED_BUCKET","rule":""}');
 
 insert /*+ IGNORE_ROW_ON_DUPKEY_INDEX(plugin_handle(plugin_id, field, type)) */ into plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 values ('1518229897210273831', '5', 'upstreamHost', 'host', 2, 1, 0, null);

@@ -358,6 +358,7 @@ The text of each license is the standard Apache 2.0 license.
     resilience4j-reactor 1.7.1: https://resilience4j.readme.io, Apache 2.0
     resilience4j-timelimiter 1.7.1: https://resilience4j.readme.io, Apache 2.0
     sentinel-core 1.8.3: https://github.com/alibaba/Sentinel/sentinel-core, Apache 2.0
+    sentinel-parameter-flow-control 1.8.3: https://github.com/alibaba/Sentinel/tree/1.8.3/sentinel-extension/sentinel-parameter-flow-control, Apache 2.0
     sentinel-reactor-adapter 1.8.3: https://github.com/alibaba/Sentinel/sentinel-adapter/sentinel-reactor-adapter, Apache 2.0
     sentinel-spring-webflux-adapter 1.8.3: https://github.com/alibaba/Sentinel/sentinel-adapter/sentinel-spring-webflux-adapter, Apache 2.0
     simpleclient_common 0.16.0: https://github.com/prometheus/client_java, Apache 2.0

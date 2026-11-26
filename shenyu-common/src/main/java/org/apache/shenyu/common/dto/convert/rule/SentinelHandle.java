@@ -26,6 +26,14 @@ import java.util.Objects;
  */
 public class SentinelHandle {
 
+    public static final String PARAM_FLOW_HEADER = "HEADER";
+
+    public static final String PARAM_FLOW_EXCHANGE_ATTRIBUTE = "EXCHANGE_ATTRIBUTE";
+
+    public static final String PARAM_FLOW_SHARED_BUCKET = "SHARED_BUCKET";
+
+    public static final String PARAM_FLOW_SKIP = "SKIP";
+
     /**
      * Flow rule enable.
      */
@@ -56,6 +64,14 @@ public class SentinelHandle {
      * Flow rule control behavior.
      */
     private Integer flowRuleControlBehavior = Constants.SENTINEL_FLOW_REJECT;
+
+    private Integer paramFlowEnable = Constants.FLOW_RULE_ENABLE_OFF;
+
+    private String paramFlowSource;
+
+    private String paramFlowKey;
+
+    private String paramFlowMissingKeyPolicy = PARAM_FLOW_SHARED_BUCKET;
 
     /**
      * Degrade rule control behavior.
@@ -176,6 +192,79 @@ public class SentinelHandle {
      */
     public void setFlowRuleControlBehavior(final Integer flowRuleControlBehavior) {
         this.flowRuleControlBehavior = flowRuleControlBehavior;
+    }
+
+    /**
+     * Determine whether parameter flow control is selected.
+     *
+     * @return whether the parameter flow switch is on
+     */
+    public boolean isParamFlowEnabled() {
+        return Objects.equals(paramFlowEnable, Constants.FLOW_RULE_ENABLE_ON);
+    }
+
+    /**
+     * Get the configured parameter source.
+     *
+     * @return source type
+     */
+    public String getParamFlowSource() {
+        return paramFlowSource;
+    }
+
+    /**
+     * Get the configured header or attribute name.
+     *
+     * @return the name to look up
+     */
+    public String getParamFlowKey() {
+        return paramFlowKey;
+    }
+
+    /**
+     * Determine whether an unusable value bypasses parameter flow checks.
+     *
+     * @return whether to skip the parameter check when no value can be resolved
+     */
+    public boolean skipMissingParamFlowKey() {
+        return PARAM_FLOW_SKIP.equals(paramFlowMissingKeyPolicy);
+    }
+
+    /**
+     * Validate settings specific to the opt-in parameter mode.
+     */
+    public void validateParamFlow() {
+        if (Objects.isNull(paramFlowEnable) || Objects.equals(paramFlowEnable, Constants.FLOW_RULE_ENABLE_OFF)) {
+            return;
+        }
+        if (!isParamFlowEnabled()) {
+            throw new IllegalArgumentException("paramFlowEnable must be 0 or 1");
+        }
+        validateParamFlowSource();
+        validateParamFlowThreshold();
+    }
+
+    private void validateParamFlowSource() {
+        if (!PARAM_FLOW_HEADER.equals(paramFlowSource) && !PARAM_FLOW_EXCHANGE_ATTRIBUTE.equals(paramFlowSource)) {
+            throw new IllegalArgumentException("paramFlowSource must be HEADER or EXCHANGE_ATTRIBUTE");
+        }
+        if (Objects.isNull(paramFlowKey) || paramFlowKey.isBlank() || !paramFlowKey.equals(paramFlowKey.trim())) {
+            throw new IllegalArgumentException("paramFlowKey must be a nonblank name without surrounding whitespace");
+        }
+        if (Objects.nonNull(paramFlowMissingKeyPolicy) && !PARAM_FLOW_SHARED_BUCKET.equals(paramFlowMissingKeyPolicy)
+                && !skipMissingParamFlowKey()) {
+            throw new IllegalArgumentException("paramFlowMissingKeyPolicy must be SHARED_BUCKET or SKIP");
+        }
+    }
+
+    private void validateParamFlowThreshold() {
+        if (Objects.isNull(flowRuleCount) || flowRuleCount <= 0) {
+            throw new IllegalArgumentException("flowRuleCount must be positive for parameter flow control");
+        }
+        if (!Objects.equals(flowRuleGrade, Constants.SENTINEL_QPS_FLOW_GRADE)
+                || !Objects.equals(flowRuleControlBehavior, Constants.SENTINEL_FLOW_REJECT)) {
+            throw new IllegalArgumentException("parameter flow control requires QPS grade and direct rejection");
+        }
     }
     
     /**
@@ -373,14 +462,17 @@ public class SentinelHandle {
                 && Objects.equals(degradeRuleGrade, that.degradeRuleGrade) && Objects.equals(degradeRuleCount, that.degradeRuleCount)
                 && Objects.equals(degradeRuleTimeWindow, that.degradeRuleTimeWindow) && Objects.equals(degradeRuleMinRequestAmount, that.degradeRuleMinRequestAmount)
                 && Objects.equals(degradeRuleSlowRatioThreshold, that.degradeRuleSlowRatioThreshold) && Objects.equals(fallbackUri, that.fallbackUri)
-                && Objects.equals(flowRuleMaxQueueingTimeMs, that.flowRuleMaxQueueingTimeMs) && Objects.equals(flowRuleWarmUpPeriodSec, that.flowRuleWarmUpPeriodSec);
+                && Objects.equals(flowRuleMaxQueueingTimeMs, that.flowRuleMaxQueueingTimeMs) && Objects.equals(flowRuleWarmUpPeriodSec, that.flowRuleWarmUpPeriodSec)
+                && Objects.equals(paramFlowEnable, that.paramFlowEnable) && Objects.equals(paramFlowSource, that.paramFlowSource)
+                && Objects.equals(paramFlowKey, that.paramFlowKey) && Objects.equals(paramFlowMissingKeyPolicy, that.paramFlowMissingKeyPolicy);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(flowRuleEnable, flowRuleGrade, flowRuleCount, flowRuleControlBehavior, degradeRuleEnable, degradeRuleGrade,
                 degradeRuleCount, degradeRuleTimeWindow, degradeRuleMinRequestAmount, degradeRuleSlowRatioThreshold, degradeRuleStatIntervals,
-                fallbackUri, flowRuleMaxQueueingTimeMs, flowRuleWarmUpPeriodSec);
+                fallbackUri, flowRuleMaxQueueingTimeMs, flowRuleWarmUpPeriodSec,
+                paramFlowEnable, paramFlowSource, paramFlowKey, paramFlowMissingKeyPolicy);
     }
 
     @Override

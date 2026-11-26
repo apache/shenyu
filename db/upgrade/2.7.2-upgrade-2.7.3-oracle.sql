@@ -110,6 +110,14 @@ COMMENT ON COLUMN dashboard_user.token_version IS 'token version used to revoke 
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');
+INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+VALUES ('1890000000000000041', '10', 'paramFlowEnable', 'Parameter flow enable (0 or 1)', 1, 2, 20, '{"required":"0","defaultValue":"0","rule":""}');
+INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+VALUES ('1890000000000000042', '10', 'paramFlowSource', 'Parameter source (HEADER or EXCHANGE_ATTRIBUTE)', 2, 2, 21, '{"required":"0","defaultValue":"HEADER","rule":""}');
+INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+VALUES ('1890000000000000043', '10', 'paramFlowKey', 'Header or exchange attribute name', 2, 2, 22, '{"required":"0","defaultValue":"","rule":""}');
+INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
+VALUES ('1890000000000000044', '10', 'paramFlowMissingKeyPolicy', 'Missing parameter policy (SHARED_BUCKET or SKIP)', 2, 2, 23, '{"required":"0","defaultValue":"SHARED_BUCKET","rule":""}');
 INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1);
 INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
