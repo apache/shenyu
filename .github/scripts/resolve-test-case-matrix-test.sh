@@ -113,6 +113,7 @@ assert_file_output "k8s-examples-http" \
   "shenyu-plugin/shenyu-plugin-proxy/shenyu-plugin-divide/pom.xml" \
   "run_k8s_examples" "true"
 assert_file_output "k8s-examples-http" "shenyu-bootstrap/pom.xml" "run_k8s_examples" "true"
+assert_file_output "k8s-examples-http" "shenyu-e2e/shenyu-e2e-case/k8s/http-smoke/shenyu-service.yml" "run_k8s_examples" "true"
 assert_file_output "k8s-examples-http" "pom.xml" "run_k8s_examples" "true"
 
 readonly E2E_GRPC="shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-grpc/compose/script/e2e-grpc-sync-compose.sh"

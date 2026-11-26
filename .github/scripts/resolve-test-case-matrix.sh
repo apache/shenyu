@@ -462,7 +462,8 @@ while IFS= read -r file; do
 
   if [[ "${mode}" == "k8s-examples-http" ]]; then
     case "${file}" in
-      .github/workflows/k8s-examples-http.yml|.github/scripts/install-k3s*|.github/scripts/free-disk-space*|actions/*)
+      .github/workflows/k8s-examples-http.yml|.github/scripts/install-k3s*|.github/scripts/free-disk-space*|actions/*|\
+      shenyu-e2e/shenyu-e2e-case/k8s/http-smoke/*)
         run_k8s_examples=true
         continue
         ;;
