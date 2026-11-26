@@ -305,6 +305,31 @@ class PositiveMatchCacheTest {
         assertSame(updated, cache.obtainRuleData(PLUGIN, "/x"));
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void retriesInitializationWhenEitherCacheConfigurationWasMissing(final boolean selectorCacheMissing) {
+        ShenyuConfig.SelectorMatchCache selectorConfig = config.getSelectorMatchCache();
+        ShenyuConfig.RuleMatchCache ruleConfig = config.getRuleMatchCache();
+        config.setSelectorMatchCache(selectorCacheMissing ? null : selectorConfig);
+        config.setRuleMatchCache(selectorCacheMissing ? ruleConfig : null);
+        BaseDataCache cache = BaseDataCache.getInstance();
+        // Initialize while the plugin is disabled so the first execution does not use the caches.
+        cache.cachePluginData(PluginData.builder().name(PLUGIN).enabled(false).build());
+        execute(false);
+
+        config.setSelectorMatchCache(selectorConfig);
+        config.setRuleMatchCache(ruleConfig);
+        cache.cachePluginData(PluginData.builder().name(PLUGIN).enabled(true).build());
+        SelectorData selector = selector("selector", List.of(uriCondition()), true);
+        RuleData rule = rule("rule", List.of(uriCondition()));
+        cache.cacheSelectData(selector);
+        cache.cacheRuleData(rule);
+
+        execute(false);
+        assertSame(selector, plugin.selector);
+        assertSame(rule, plugin.rule);
+    }
+
     private void prepareStage(final boolean ruleStage) {
         if (ruleStage) {
             BaseDataCache.getInstance().cacheSelectData(selector("selector", List.of(uriCondition()), true));

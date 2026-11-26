@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.BaseData;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -227,11 +228,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
     
     private void initMatchConfig() {
-        if (Objects.isNull(matchSortFirst)) {
+        if (Objects.isNull(matchSortFirst) || Objects.isNull(selectorMatchConfig) || Objects.isNull(ruleMatchConfig)) {
             ShenyuConfig shenyuConfig = SpringBeanUtils.getInstance().getBean(ShenyuConfig.class);
             selectorMatchConfig = shenyuConfig.getSelectorMatchCache();
             ruleMatchConfig = shenyuConfig.getRuleMatchCache();
-            // Publish both cache settings before marking matching configuration initialized.
+            // Publish the cache settings before other requests read the matching mode.
             matchSortFirst = shenyuConfig.isMatchSortFirst();
         }
     }
@@ -343,7 +344,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 unique = false;
             }
             int specificity = MatchModeEnum.match(selector.getMatchMode(), MatchModeEnum.AND) ? CollectionUtils.size(selector.getConditionList()) : 0;
-            if (Objects.isNull(best) || outranks(sortFirst, selector.getSort(), specificity, best.getSort(), bestSpecificity)) {
+            if (Objects.isNull(best) || outranks(sortFirst, selector, specificity, best, bestSpecificity)) {
                 best = selector;
                 bestSpecificity = specificity;
             }
@@ -377,7 +378,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 unique = false;
             }
             int specificity = MatchModeEnum.match(rule.getMatchMode(), MatchModeEnum.AND) ? CollectionUtils.size(rule.getConditionDataList()) : 0;
-            if (Objects.isNull(best) || outranks(sortFirst, rule.getSort(), specificity, best.getSort(), bestSpecificity)) {
+            if (Objects.isNull(best) || outranks(sortFirst, rule, specificity, best, bestSpecificity)) {
                 best = rule;
                 bestSpecificity = specificity;
             }
@@ -385,12 +386,12 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return Pair.of(unique, best);
     }
 
-    private static boolean outranks(final boolean sortFirst, final Integer sort, final int specificity, final Integer bestSort, final int bestSpecificity) {
+    private static boolean outranks(final boolean sortFirst, final BaseData candidate, final int specificity, final BaseData best, final int bestSpecificity) {
         if (sortFirst) {
-            int sortOrder = Integer.compare(sort, bestSort);
+            int sortOrder = Integer.compare(candidate.getSort(), best.getSort());
             return sortOrder < 0 || sortOrder == 0 && specificity > bestSpecificity;
         }
-        return specificity > bestSpecificity || specificity == bestSpecificity && sort < bestSort;
+        return specificity > bestSpecificity || specificity == bestSpecificity && candidate.getSort() < best.getSort();
     }
 
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
