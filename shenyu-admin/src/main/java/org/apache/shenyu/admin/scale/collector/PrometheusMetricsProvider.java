@@ -17,11 +17,12 @@
 
 package org.apache.shenyu.admin.scale.collector;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.shenyu.admin.scale.collector.provider.MetricData;
 import org.apache.shenyu.admin.scale.collector.provider.MetricsProvider;
 import org.apache.shenyu.admin.config.properties.DeploymentProperties;
@@ -64,7 +65,10 @@ public class PrometheusMetricsProvider implements MetricsProvider {
         }
 
         String query = String.format(queryTemplate, deploymentProperties.getNamespace(), deploymentProperties.getName());
-        String queryUrl = String.format("%s/api/v1/query?query=%s", prometheusProperties.getUrl(), query);
+        HttpUrl queryUrl = HttpUrl.get(prometheusProperties.getUrl()).newBuilder()
+                .addPathSegments("api/v1/query")
+                .setQueryParameter("query", query)
+                .build();
 
         Request request = new Request.Builder()
                 .url(queryUrl)
