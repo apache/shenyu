@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import io.restassured.http.Method;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.shenyu.e2e.engine.scenario.ShenYuScenarioProvider;
@@ -34,6 +35,9 @@ import org.apache.shenyu.e2e.engine.scenario.specification.ShenYuScenarioSpec;
 import org.apache.shenyu.e2e.model.MatchMode;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.data.Condition;
+import org.awaitility.core.ConditionTimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.time.Duration;
@@ -42,16 +46,19 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.apache.shenyu.e2e.engine.scenario.function.HttpCheckers.exists;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
 import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DividePluginCases implements ShenYuScenarioProvider {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DividePluginCases.class);
 
     private static final String TOPIC = "shenyu-access-logging";
 
@@ -59,7 +66,8 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofSeconds(60);
+    // A fresh consumer group may need to scan retained history before finding the current request.
+    private static final Duration LOG_CONSUME_TIMEOUT = Duration.ofMinutes(5);
 
     @Override
     public List<ScenarioSpec> get() {
@@ -82,13 +90,25 @@ public class DividePluginCases implements ShenYuScenarioProvider {
     }
 
     static Optional<JsonNode> findRequestLog(final Iterable<ConsumerRecord<String, String>> records,
-                                             final URI endpoint) throws JsonProcessingException {
+                                             final URI endpoint) {
         for (var record : records) {
-            JsonNode log = MAPPER.readTree(record.value());
-            URI requestUri = URI.create(log.path("requestUri").asText());
-            if (Objects.equals(endpoint.getRawPath(), requestUri.getRawPath())
-                    && Objects.equals(endpoint.getRawQuery(), requestUri.getRawQuery())) {
-                return Optional.of(log);
+            String value = record.value();
+            if (Objects.isNull(value) || value.isBlank()) {
+                continue;
+            }
+            try {
+                JsonNode log = MAPPER.readTree(value);
+                String uri = log.path("requestUri").textValue();
+                if (Objects.isNull(uri) || uri.isBlank()) {
+                    continue;
+                }
+                URI requestUri = URI.create(uri);
+                if (Objects.equals(endpoint.getRawPath(), requestUri.getRawPath())
+                        && Objects.equals(endpoint.getRawQuery(), requestUri.getRawQuery())) {
+                    return Optional.of(log);
+                }
+            } catch (JsonProcessingException | IllegalArgumentException ignored) {
+                LOG.debug("Skipping malformed Kafka access log in partition {} at offset {}", record.partition(), record.offset());
             }
         }
         return Optional.empty();
@@ -122,15 +142,27 @@ public class DividePluginCases implements ShenYuScenarioProvider {
                                     try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties(requestId))) {
                                         consumer.subscribe(List.of(TOPIC));
                                         request.request(Method.GET, endpoint.toString()).then().statusCode(200).body("id", equalTo("23"));
-                                        JsonNode log = await().alias("Kafka access log for " + endpoint)
-                                                .pollInSameThread().atMost(LOG_CONSUME_TIMEOUT)
-                                                .until(() -> findRequestLog(consumer.poll(Duration.ofMillis(200)), endpoint), Optional::isPresent)
-                                                .orElseThrow();
-                                        assertEquals(Method.GET.name(), log.path("requestMethod").asText());
-                                        assertEquals(200, log.path("status").asInt());
+                                        JsonNode log = awaitRequestLog(consumer, endpoint);
+                                        assertThat(log.path("requestMethod").asText(), equalTo(Method.GET.name()));
+                                        assertThat(log.path("status").asInt(), equalTo(200));
                                     }
                                 }).build()
                 ).build();
+    }
+
+    private static JsonNode awaitRequestLog(final KafkaConsumer<String, String> consumer, final URI endpoint) {
+        AtomicLong scanned = new AtomicLong();
+        try {
+            return await().alias("Kafka access log for " + endpoint).pollInSameThread().atMost(LOG_CONSUME_TIMEOUT)
+                    .until(() -> {
+                        ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(200));
+                        scanned.addAndGet(records.count());
+                        return findRequestLog(records, endpoint);
+                    }, Optional::isPresent).orElseThrow();
+        } catch (ConditionTimeoutException timeout) {
+            throw new AssertionError("No Kafka access log for " + endpoint + " after scanning " + scanned.get()
+                    + " records in " + TOPIC + " (assigned partitions: " + consumer.assignment() + ")", timeout);
+        }
     }
 
     private Properties consumerProperties(final String requestId) {
