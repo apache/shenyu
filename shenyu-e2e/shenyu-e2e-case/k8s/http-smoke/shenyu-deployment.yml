@@ -44,8 +44,16 @@ spec:
               value: sql-script/h2/schema.sql
             - name: SHENYU_JWT_SECRETKEY
               value: shenyu-e2e-jwt-secret-key-2024
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
+            - name: shenyu.sync.websocket.allowOrigins
+              value: "ws://shenyu-bootstrap:9195"
           ports:
             - containerPort: 9095
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9095
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: {}
@@ -77,8 +85,16 @@ spec:
           env:
             - name: shenyu.sync.websocket.urls
               value: ws://shenyu-admin:9095/websocket
+            - name: shenyu.sync.websocket.token
+              value: shenyu-sync-token
+            - name: shenyu.sync.websocket.allowOrigin
+              value: "ws://shenyu-bootstrap:9195"
           ports:
             - containerPort: 9195
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9195
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
 status: {}

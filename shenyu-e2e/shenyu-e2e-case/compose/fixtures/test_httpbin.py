@@ -71,6 +71,23 @@ class HttpbinTest(unittest.TestCase):
         self.assertEqual(404, response.status)
         response.read()
 
+    def test_order_lookup_returns_the_requested_id(self):
+        self.connection.request("GET", "/http/order/findById?id=123")
+        response = self.connection.getresponse()
+        self.assertEqual(200, response.status)
+        self.assertEqual({"id": "123"}, json.loads(response.read()))
+        self.connection.request("GET", "/http/order/findById")
+        response = self.connection.getresponse()
+        self.assertEqual(400, response.status)
+        response.read()
+
+    def test_save_order_returns_the_gateway_response_contract(self):
+        self.connection.request("POST", "/http/order/save", body='{"id":123,"name":"test"}',
+                                headers={"Content-Type": "application/json"})
+        response = self.connection.getresponse()
+        self.assertEqual(200, response.status)
+        self.assertEqual({"id": 123, "name": "hello world save order"}, json.loads(response.read()))
+
     def test_compose_uses_healthy_local_upstream(self):
         directory = Path(__file__).resolve().parent
         compose = directory.parent

@@ -17,22 +17,10 @@
 version: '3.9'
 
 services:
-  shenyu-examples-http:
-    image: shenyu-examples-http:latest
-    container_name: shenyu-examples-http
-    environment:
-      - shenyu.register.serverLists=http://shenyu-admin:9095
-    ports:
-      - "31189:8189"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O - http://localhost:8189/actuator/health | grep UP || exit 1" ]
-      interval: 10s
-      timeout: 2s
-      retries: 3
-      start_period: 10s
-    restart: always
-    networks:
-      - shenyu
+  httpbin:
+    extends:
+      file: ../../compose/fixtures/httpbin.yml
+      service: httpbin
 
 networks:
   shenyu:

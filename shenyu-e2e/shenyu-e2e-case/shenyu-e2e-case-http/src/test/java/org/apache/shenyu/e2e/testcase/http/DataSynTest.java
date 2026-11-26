@@ -25,7 +25,7 @@ import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.Test;
 
 /**
- * Testing the correctness of etcd data synchronization method.
+ * Verifies fixture selectors, rules and metadata travel from Admin to the gateway.
  */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -51,9 +51,6 @@ public class DataSynTest {
 
     @Test
     void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
-        adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+        WaitDataSync.verifyFixtureData(adminClient, gatewayClient, "http");
     }
 }
