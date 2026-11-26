@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -30,6 +31,7 @@ import org.mockito.MockedStatic;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -142,6 +144,22 @@ class PredicateJudgeTest {
             assertFalse(new TimerAfterPredicateJudge().judge(conditionData, "ignored"));
             assertTrue(new TimerBeforePredicateJudge().judge(conditionData, "ignored"));
         }
+    }
+
+    @Test
+    void missingRequestValueDisablesTheTimeCondition() {
+        ConditionData conditionData = condition(ParamTypeEnum.HEADER, "2030-01-01 00:00:00");
+        conditionData.setParamName("request-time");
+
+        // a missing header/query value means the condition cannot be evaluated,
+        // matching the #8358 request-side contract: no match, no exception
+        assertDoesNotThrow(() -> assertFalse(new TimerBeforePredicateJudge().judge(conditionData, null)));
+        assertDoesNotThrow(() -> assertFalse(new TimerAfterPredicateJudge().judge(conditionData, null)));
+        // request side keeps working when the value is present
+        assertTrue(new TimerBeforePredicateJudge().judge(conditionData, "2026-01-01 00:00:00"));
+        assertFalse(new TimerBeforePredicateJudge().judge(conditionData, "2031-01-01 00:00:00"));
+        assertFalse(new TimerAfterPredicateJudge().judge(conditionData, "2026-01-01 00:00:00"));
+        assertTrue(new TimerAfterPredicateJudge().judge(conditionData, "2031-01-01 00:00:00"));
     }
 
     private static ConditionData condition(final ParamTypeEnum type, final String value) {
