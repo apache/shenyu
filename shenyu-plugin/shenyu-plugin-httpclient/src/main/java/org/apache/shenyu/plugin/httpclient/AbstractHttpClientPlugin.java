@@ -43,13 +43,14 @@ import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
 import org.apache.shenyu.plugin.api.tracing.TraceContextPropagator;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.LocalPoolRejectionException;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.netty.internal.shaded.reactor.pool.PoolAcquirePendingLimitException;
 import reactor.util.context.ContextView;
 
 
@@ -115,7 +117,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 ? getCachedRequestBody(exchange)
                 : exchange.getRequest().getBody();
         final Mono<R> response = withAttemptTimeout(exchange, duration, () -> doRequest(exchange, httpMethod, uri, requestBody))
-                .doOnError(e -> LOG.error(e.getMessage(), e));
+                .doOnError(e -> LocalPoolRejectionReporter.INSTANCE.logAttemptError(LOG, e));
         final Mono<R> retriedResponse = retryTimes <= 0
                 ? response
                 : executeWithRetry(response, exchange, duration, retryTimes);
@@ -146,7 +148,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
     static <T> Mono<T> withAttemptTimeout(final ServerWebExchange exchange, final Duration duration, final Supplier<Mono<T>> send) {
         HttpRouteDeadline request = exchange.getAttribute(HttpRouteDeadline.REQUEST);
         if (Objects.isNull(request)) {
-            return send.get()
+            return markLocalPoolRejection(send.get())
                     .timeout(duration, Mono.error(() -> new TimeoutException("Response took longer than timeout: " + duration)));
         }
         return Mono.defer(() -> {
@@ -155,9 +157,14 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             }
             HttpRouteDeadline attempt = new HttpRouteDeadline(duration.toMillis());
             exchange.getAttributes().put(HttpRouteDeadline.ATTEMPT, attempt);
-            return attempt.limit(send.get())
+            return attempt.limit(markLocalPoolRejection(send.get()))
                     .doOnError(error -> attempt.abandon()).doOnCancel(attempt::abandon);
         });
+    }
+
+    private static <T> Mono<T> markLocalPoolRejection(final Mono<T> attempt) {
+        return attempt.onErrorMap(error -> ExceptionUtils.indexOfType(error, PoolAcquirePendingLimitException.class) >= 0,
+                LocalPoolRejectionException::new);
     }
 
     private static Throwable mapUpstreamTimeout(final Throwable throwable) {

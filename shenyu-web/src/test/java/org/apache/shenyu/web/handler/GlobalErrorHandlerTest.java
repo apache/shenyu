@@ -23,6 +23,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.alert.AlarmService;
+import org.apache.shenyu.plugin.base.circuitbreaker.LocalPoolRejectionException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,11 +48,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -104,6 +109,17 @@ public final class GlobalErrorHandlerTest {
         assertTrue(exchange.getResponse().getHeaders().getOrEmpty("Content-Encoding").isEmpty());
         assertTrue(exchange.getResponse().isCommitted());
         StepVerifier.create(globalErrorHandler.handle(exchange, failure)).expectErrorMatches(error -> error == failure).verify();
+    }
+
+    @Test
+    public void testDoesNotLogLocalPoolRejectionAgain() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
+        LocalPoolRejectionException rejection = new LocalPoolRejectionException(new IllegalStateException("pool full"));
+
+        globalErrorHandler.handle(exchange, rejection).block();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+        verify(loggerSpy, never()).error(anyString(), eq(exchange.getLogPrefix()), anyString(), same(rejection));
     }
 
     @Test

@@ -117,7 +117,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                            final int retryTimes, final Duration backoff, final Predicate<Throwable> retryFilter) {
         final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
         final UpstreamAttemptOwner owner = exchange.getAttribute(UpstreamAttemptOwner.ATTRIBUTE);
-        Mono<R> result = clientResponse;
+        Mono<R> result = rememberPrimaryFailure(clientResponse, exchange);
         if (Objects.nonNull(owner)) {
             // Bind the release to the initial attempt itself, not to the composed failover chain:
             // onErrorResume below consumes the initial error, so a chain-level doFinally would only
@@ -150,9 +150,14 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         return mapFailoverErrors(Mono.defer(() -> {
             final Set<URI> exclude = new HashSet<>(Collections.singletonList(Objects.requireNonNull(exchange.getAttribute(Constants.HTTP_URI))));
             final AtomicBoolean firstAttempt = new AtomicBoolean(true);
-            return Mono.defer(() -> firstAttempt.compareAndSet(true, false) ? clientResponse : resend(exchange, duration, exclude))
+            final Mono<R> primary = rememberPrimaryFailure(clientResponse, exchange);
+            return Mono.defer(() -> firstAttempt.compareAndSet(true, false) ? primary : resend(exchange, duration, exclude))
                     .retryWhen(retry);
         }));
+    }
+
+    private Mono<R> rememberPrimaryFailure(final Mono<R> primary, final ServerWebExchange exchange) {
+        return primary.doOnError(error -> exchange.getAttributes().put(UpstreamCircuitBreaker.INITIAL_FAILOVER_ERROR, error));
     }
 
     private Mono<R> mapFailoverErrors(final Mono<R> response) {
@@ -234,7 +239,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             final String breakerKey = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
             Mono<R> retryResponse = AbstractHttpClientPlugin.withAttemptTimeout(exchange, duration,
                     () -> httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange)))
-                    .doOnError(e -> LOG.error(e.getMessage(), e));
+                    .doOnError(e -> LocalPoolRejectionReporter.INSTANCE.logAttemptError(LOG, e));
             if (ownerPresent) {
                 retryResponse = retryResponse.doFinally(signal -> {
                     if (signal != SignalType.ON_COMPLETE) {

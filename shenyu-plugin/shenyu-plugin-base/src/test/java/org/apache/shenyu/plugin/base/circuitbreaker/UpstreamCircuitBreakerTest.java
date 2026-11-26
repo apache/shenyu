@@ -291,6 +291,42 @@ public final class UpstreamCircuitBreakerTest {
     }
 
     @Test
+    public void testPrimaryPoolRejectionDoesNotInheritStandbyFailureOrSuccess() {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.reset(KEY);
+        try {
+            breaker.recordFailure(KEY);
+            breaker.recordFailure(KEY);
+            final LocalPoolRejectionException rejection = new LocalPoolRejectionException(new RuntimeException("pool full"));
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new IllegalStateException("standby down")), KEY, () -> rejection))
+                    .expectError(IllegalStateException.class).verify();
+            assertTrue(breaker.isRequestAllowed(KEY));
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.empty(), KEY, () -> rejection)).verifyComplete();
+            breaker.recordFailure(KEY);
+            assertTrue(breaker.isBlocking(KEY));
+        } finally {
+            breaker.reset(KEY);
+        }
+    }
+
+    @Test
+    public void testStandbyPoolRejectionDoesNotHidePrimaryFailure() {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.reset(KEY);
+        try {
+            breaker.recordFailure(KEY);
+            breaker.recordFailure(KEY);
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                            Mono.error(new LocalPoolRejectionException(new RuntimeException("standby pool full"))), KEY,
+                            () -> new IllegalStateException("primary down")))
+                    .expectError(LocalPoolRejectionException.class).verify();
+            assertTrue(breaker.isBlocking(KEY));
+        } finally {
+            breaker.reset(KEY);
+        }
+    }
+
+    @Test
     public void testProbeCancellationReopensAndCanRecover() {
         UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.create(1, 0);
         breaker.recordFailure(KEY);
