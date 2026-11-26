@@ -23,8 +23,6 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
@@ -36,7 +34,10 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -45,12 +46,6 @@ import static org.mockito.Mockito.verify;
 public final class MetaDataRefreshTest {
 
     private final MetaDataRefresh mockMetaDataRefresh = this.buildMockMetaDataRefresh();
-
-    @BeforeEach
-    @AfterEach
-    public void clearGroupCache() {
-        AbstractDataRefresh.GROUP_CACHE.remove(ConfigGroupEnum.META_DATA);
-    }
 
     @Test
     public void testConvert() {
@@ -128,6 +123,61 @@ public final class MetaDataRefreshTest {
         calls.verify(subscriber).unSubscribe(retained);
         calls.verify(subscriber).refresh();
         calls.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testFailedSubscriberAllowsReplayOfTheSameMetadataSnapshot() {
+        MetaDataSubscriber subscriber = mock(MetaDataSubscriber.class);
+        MetaDataRefresh refresh = new MetaDataRefresh(List.of(subscriber));
+        MetaData retained = metadata("retained-id", "/retained");
+        MetaData rejected = metadata("rejected-id", "/rejected");
+        assertTrue(refresh.refresh(snapshot("first", 1, List.of(retained))));
+        doThrow(new IllegalStateException("temporary subscriber failure")).doNothing().when(subscriber).onSubscribe(rejected);
+
+        JsonObject second = snapshot("second", 2, List.of(retained, rejected));
+        assertThrows(IllegalStateException.class, () -> refresh.refresh(second));
+        String digestAfterFailure = refresh.cacheConfigData().getMd5();
+        assertTrue(refresh.refresh(second), "an identical metadata snapshot must be retried after a subscriber failed");
+        assertThat(digestAfterFailure, is("first"));
+        assertThat(refresh.cacheConfigData().getMd5(), is("second"));
+    }
+
+    @Test
+    public void testSupersedingSnapshotRemovesPartiallyAppliedMetadata() {
+        MetaDataSubscriber first = mock(MetaDataSubscriber.class);
+        MetaDataSubscriber second = mock(MetaDataSubscriber.class);
+        MetaDataRefresh refresh = new MetaDataRefresh(List.of(first, second));
+        MetaData retained = metadata("retained", "/kept");
+        MetaData partial = metadata("partial", "/temporary");
+        assertTrue(refresh.refresh(snapshot("original", 1, List.of(retained))));
+        doAnswer(invocation -> {
+            assertThat(refresh.cacheConfigData().getMd5(), is("original"));
+            throw new IllegalStateException("second subscriber failed");
+        }).when(second).onSubscribe(partial);
+
+        assertThrows(IllegalStateException.class, () -> refresh.refresh(snapshot("intermediate", 2, List.of(retained, partial))));
+        verify(first).onSubscribe(partial);
+        assertTrue(refresh.refresh(snapshot("original", 3, List.of(retained))));
+        verify(first).unSubscribe(partial);
+        verify(second).unSubscribe(partial);
+        assertFalse(refresh.refresh(snapshot("intermediate", 2, List.of(retained, partial))));
+    }
+
+    @Test
+    public void testFailedUnsubscribeIsRetriedBeforeConfirmingAnEmptySnapshot() {
+        MetaDataSubscriber subscriber = mock(MetaDataSubscriber.class);
+        MetaDataRefresh refresh = new MetaDataRefresh(List.of(subscriber));
+        MetaData deleted = metadata("deleted", "/deleted");
+        assertTrue(refresh.refresh(snapshot("initial", 1, List.of(deleted))));
+        doThrow(new IllegalStateException("temporary removal failure")).doNothing().when(subscriber).unSubscribe(deleted);
+        JsonObject empty = snapshot("empty", 2, List.of());
+
+        assertThrows(IllegalStateException.class, () -> refresh.refresh(empty));
+        verify(subscriber, never()).refresh();
+        assertTrue(refresh.refresh(empty));
+        verify(subscriber).refresh();
+        assertThat(refresh.cacheConfigData().getMd5(), is("empty"));
+        assertFalse(refresh.refresh(empty));
     }
 
     @Test
