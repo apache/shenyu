@@ -22,6 +22,8 @@ import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.ProxySelectorData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
@@ -131,6 +133,43 @@ public class AbstractNodeDataSyncServiceTest {
         // all guard their key arrays before indexing
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheDiscoveryUpstreamData("namespace.discovery"));
         verify(discoveryUpstreamDataSubscriber, never()).unSubscribe(any(DiscoveryUpstreamKey.class));
+    }
+
+    @Test
+    public void testUnCacheSelectorDataIgnoresShortKeys() {
+        // a plugin-level selector-subtree removal key carries no selector id segment:
+        // it must not throw AIOOBE — the guarded unCache methods all length-check first
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheSelectorData("namespace.selector.testPlugin"));
+        verify(pluginDataSubscriber, never()).unSelectorSubscribe(any(SelectorData.class));
+    }
+
+    @Test
+    public void testUnCacheSelectorDataRemovesTheSelector() {
+        nodeDataSyncService.unCacheSelectorData("namespace.selector.testPlugin.selectorId");
+
+        ArgumentCaptor<SelectorData> captor = ArgumentCaptor.forClass(SelectorData.class);
+        verify(pluginDataSubscriber).unSelectorSubscribe(captor.capture());
+        assertEquals("testPlugin", captor.getValue().getPluginName());
+        assertEquals("selectorId", captor.getValue().getId());
+    }
+
+    @Test
+    public void testUnCacheRuleDataIgnoresShortKeys() {
+        // a selector-level rule-subtree removal key carries no rule id segment:
+        // it must not throw AIOOBE — the guarded unCache methods all length-check first
+        assertDoesNotThrow(() -> nodeDataSyncService.unCacheRuleData("namespace.rule.testPlugin.selectorId"));
+        verify(pluginDataSubscriber, never()).unRuleSubscribe(any(RuleData.class));
+    }
+
+    @Test
+    public void testUnCacheRuleDataRemovesTheRule() {
+        nodeDataSyncService.unCacheRuleData("namespace.rule.testPlugin.selectorId.ruleId");
+
+        ArgumentCaptor<RuleData> captor = ArgumentCaptor.forClass(RuleData.class);
+        verify(pluginDataSubscriber).unRuleSubscribe(captor.capture());
+        assertEquals("testPlugin", captor.getValue().getPluginName());
+        assertEquals("selectorId", captor.getValue().getSelectorId());
+        assertEquals("ruleId", captor.getValue().getId());
     }
 
     @Test
