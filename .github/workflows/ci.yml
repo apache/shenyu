@@ -146,6 +146,7 @@ jobs:
       - name: Replay registration contract and check resolved client boundaries
         run: |
           python3 .github/scripts/test-client-boundary.py
+          python3 .github/scripts/test-coordinate-ownership.py
           python3 .github/scripts/check-client-boundary.py
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-spring-boot-starter/shenyu-spring-boot-starter-client/shenyu-spring-boot-starter-client-beat -am package dependency:tree \
             -Dtest=RegistrationProtocolCompatibilityTest,ZookeeperClientDiscoveryIntegrationTest,HeartbeatListenerConfigurationTest \
@@ -282,6 +283,12 @@ jobs:
       - name: Check every candidate Maven JAR and both source distributions
         if: github.event_name == 'workflow_dispatch' && inputs.release_candidate
         run: python3 .github/scripts/check-release-artifacts.py --repository "${HOME}/.m2/repository/org/apache/shenyu"
+      - name: Dry-run the coordinate ownership handoff on the candidate repository
+        if: github.event_name == 'workflow_dispatch' && inputs.release_candidate
+        run: |
+          release_version="$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('pom.xml').getroot().findtext('{http://maven.apache.org/POM/4.0.0}version'))")"
+          python3 .github/scripts/check-coordinate-ownership.py \
+            --repository "${HOME}/.m2/repository/org/apache/shenyu" --version "${release_version}"
       - name: Resolve distribution runtime dependencies
         run: |
           bash .github/scripts/maven-with-retry.sh ./mvnw -B -ntp -pl shenyu-admin,shenyu-bootstrap,shenyu-dist/shenyu-admin-dist,shenyu-dist/shenyu-bootstrap-dist dependency:list \

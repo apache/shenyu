@@ -1,0 +1,52 @@
+{
+  "description": "Coordinate ownership for #8421: the single source of truth for which Maven coordinates apache/shenyu main publishes and which move to apache/shenyu-client-java. Flipping handoff_state to 'transferred' makes the release lane reject every transferred coordinate; until then main keeps publishing them so consumers are never stranded.",
+  "handoff_state": "preparation",
+  "transferred_coordinates": [
+    {"artifact": "shenyu-client", "role": "aggregator"},
+    {"artifact": "shenyu-client-core", "role": "implementation"},
+    {"artifact": "shenyu-client-http", "role": "aggregator"},
+    {"artifact": "shenyu-client-springmvc", "role": "implementation"},
+    {"artifact": "shenyu-client-mcp", "role": "aggregator"},
+    {"artifact": "shenyu-client-mcp-common", "role": "implementation"},
+    {"artifact": "shenyu-client-mcp-register", "role": "implementation"},
+    {"artifact": "shenyu-client-dubbo", "role": "aggregator"},
+    {"artifact": "shenyu-client-dubbo-common", "role": "implementation"},
+    {"artifact": "shenyu-client-apache-dubbo", "role": "implementation"},
+    {"artifact": "shenyu-client-sofa", "role": "implementation"},
+    {"artifact": "shenyu-client-tars", "role": "implementation"},
+    {"artifact": "shenyu-client-grpc", "role": "implementation"},
+    {"artifact": "shenyu-client-websocket", "role": "aggregator"},
+    {"artifact": "shenyu-client-spring-websocket", "role": "implementation"},
+    {"artifact": "shenyu-client-api-docs-annotations", "role": "implementation"},
+    {"artifact": "shenyu-client-autoconfig", "role": "implementation"},
+    {"artifact": "shenyu-register-client", "role": "aggregator"},
+    {"artifact": "shenyu-register-client-api", "role": "registration"},
+    {"artifact": "shenyu-register-client-http", "role": "registration"},
+    {"artifact": "shenyu-spring-boot-starter-client", "role": "starter-parent"},
+    {"artifact": "shenyu-spring-boot-starter-client-apache-dubbo", "role": "starter"},
+    {"artifact": "shenyu-spring-boot-starter-client-common", "role": "starter"},
+    {"artifact": "shenyu-spring-boot-starter-client-grpc", "role": "starter"},
+    {"artifact": "shenyu-spring-boot-starter-client-mcp", "role": "starter"},
+    {"artifact": "shenyu-spring-boot-starter-client-sofa", "role": "starter"},
+    {"artifact": "shenyu-spring-boot-starter-client-spring-websocket", "role": "starter"},
+    {"artifact": "shenyu-spring-boot-starter-client-springmvc", "role": "starter"},
+    {"artifact": "shenyu-spring-boot-starter-client-tars", "role": "starter"}
+  ],
+  "retained_foundations": [
+    {"artifact": "shenyu-register-protocol", "note": "versioned registration protocol contract; the independent client resolves this from released main artifacts"},
+    {"artifact": "shenyu-register-common", "note": "shared registration model"},
+    {"artifact": "shenyu-register-mcp", "note": "main-owned MCP registration foundation"},
+    {"artifact": "shenyu-register-client-beat", "note": "gateway runtime heartbeat; name says client, ownership is main"},
+    {"artifact": "shenyu-spring-boot-starter-client-beat", "note": "gateway runtime heartbeat starter; re-parented in #8423, coordinates unchanged"}
+  ],
+  "retained_prefixes": ["shenyu-sdk"],
+  "selected_foundation_version": "2.7.2",
+  "publication_boundaries": {
+    "description": "last_main_version is null while handoff_state is preparation; the release manager records the final main-published version of every transferred coordinate when the state flips, and the first client-owned version is published by apache/shenyu-client-java afterwards.",
+    "records": {}
+  },
+  "rollback": {
+    "before_publication": "Revert handoff_state to preparation and drop the boundary records; no artifact was published, so main resumes its previous release content unchanged.",
+    "after_publication": "Point consumers back to the last recorded last_main_version of each transferred coordinate; do not republish that version and do not transfer ownership back — instead cut a new main-published version only after the project votes to abort the migration, keeping Admin wire compatibility through the unchanged register-protocol contract."
+  }
+}
