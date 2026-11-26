@@ -41,6 +41,8 @@ from fixture import SyncFixture, Upstream
 from inventory import inventory
 
 HERE = Path(__file__).resolve().parent
+GRACEFUL_STOP_SECONDS = 5
+MEASUREMENT_SLACK_SECONDS = 1
 
 
 def request(url):
@@ -181,6 +183,7 @@ def loaded_classes(args, process, output):
 def load(args, url, body, rate, duration, output, gateway=None):
     output.mkdir(parents=True)
     env = dict(os.environ, URL=url, EXPECTED_BODY=body.decode(), RATE=str(rate), DURATION=str(duration),
+               GRACEFUL_STOP_SECONDS=str(GRACEFUL_STOP_SECONDS),
                SUMMARY=str(output / "summary.json"), P99_MS=str(args.p99_ms), K6_NO_USAGE_REPORT="true")
     command = [args.k6, "run", "--quiet", "--out", f"json={output / 'samples.json'}", str(HERE / "load.js")]
     with (output / "k6.log").open("w", encoding="utf-8") as log:
@@ -225,10 +228,13 @@ def load(args, url, body, rate, duration, output, gateway=None):
     # k6 counts requests completed during gracefulStop. Use its actual run duration,
     # not only the offered-load window, to avoid inflating throughput at high load.
     measured_seconds = measured_ms / 1000
+    # A scheduler stall can extend the reported duration even when k6 exits successfully.
+    measurement_valid = (duration - MEASUREMENT_SLACK_SECONDS <= measured_seconds
+                         <= duration + GRACEFUL_STOP_SECONDS + MEASUREMENT_SLACK_SECONDS)
     return {"offered_rps": rate, "offered_duration_s": duration, "measurement_duration_s": measured_seconds,
-            "successful_rps": successful / measured_seconds, "requests": requests,
+            "measurement_valid": measurement_valid, "successful_rps": successful / measured_seconds, "requests": requests,
             "errors": requests - successful, "dropped_iterations": count("dropped_iterations") if "dropped_iterations" in metrics else 0,
-            "latency_ms": metrics["http_req_duration"]["values"], "thresholds_passed": process.returncode == 0,
+            "latency_ms": metrics["http_req_duration"]["values"], "thresholds_passed": measurement_valid and process.returncode == 0,
             "cpu_percent_one_core": cpu, "peak_sampled_rss_bytes": max(samples) if samples else None}
 
 

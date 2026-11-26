@@ -28,7 +28,7 @@ export const options = {
       duration: `${__ENV.DURATION}s`,
       preAllocatedVUs: Number(__ENV.VUS || 64),
       maxVUs: Number(__ENV.VUS || 64),
-      gracefulStop: '5s',
+      gracefulStop: `${__ENV.GRACEFUL_STOP_SECONDS}s`,
     },
   },
   summaryTrendStats: ['avg', 'min', 'med', 'p(50)', 'p(95)', 'p(99)', 'max'],

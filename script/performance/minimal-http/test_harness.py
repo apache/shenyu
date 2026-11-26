@@ -111,14 +111,29 @@ class LoadResultTest(unittest.TestCase):
         summary["metrics"]["successful_requests"]["values"] = {"count": 2000, "rate": 80}
         summary["metrics"]["http_req_duration"]["values"]["p(99)"] = 80
         result = self.run_load(summary, 0)
+        self.assertTrue(result["measurement_valid"])
         self.assertTrue(result["thresholds_passed"])
         self.assertEqual(80, result["successful_rps"])
         self.assertEqual(0, result["errors"])
+
+    def test_k6_success_outside_the_measurement_window_cannot_pass(self):
+        for measured_ms in (18_999, 26_001, 173_050):
+            with self.subTest(measured_ms=measured_ms):
+                summary = self.summary()
+                summary["state"]["testRunDurationMs"] = measured_ms
+                summary["metrics"]["successful_requests"]["values"]["count"] = 2000
+                summary["metrics"]["http_req_duration"]["values"]["p(99)"] = 80
+                result = self.run_load(summary, 0)
+                self.assertFalse(result["thresholds_passed"])
+                self.assertFalse(result["measurement_valid"])
+                self.assertEqual(measured_ms / 1000, result["measurement_duration_s"])
+                self.assertAlmostEqual(2_000_000 / measured_ms, result["successful_rps"])
 
     def test_threshold_failure_remains_a_valid_sweep_point(self):
         summary = self.summary()
         summary["metrics"]["dropped_iterations"] = {"values": {"count": 10}}
         result = self.run_load(summary, 99)
+        self.assertTrue(result["measurement_valid"])
         self.assertFalse(result["thresholds_passed"])
         self.assertEqual(10, result["dropped_iterations"])
         self.assertEqual(72, result["successful_rps"])

@@ -206,10 +206,13 @@ The output directory must be new, preventing accidental evidence replacement.
 `successful_rps` divides successful responses by k6's actual `testRunDurationMs`,
 including graceful-stop completion time, rather than only the configured arrival
 window. Both `offered_duration_s` and `measurement_duration_s` are recorded so late
-completions cannot silently inflate throughput. k6 exit 99 retains a completed
-threshold-failing point for the sweep; other nonzero exits abort the harness and
-must not be interpreted as gateway saturation. Missing or invalid counters and
-measurement durations also fail instead of becoming zero-valued evidence.
+completions cannot silently inflate throughput. The measured duration must fit
+the offered window plus the configured five-second graceful stop, with a
+one-second tolerance at either end for scheduler and reporting jitter. Points
+outside that window retain their metrics with `measurement_valid` and
+`thresholds_passed` both set to `false`. k6 exit 99 retains a completed
+threshold-failing point for the sweep. Other nonzero exits abort the harness.
+Missing or invalid counters and measurement durations fail validation.
 
 Use only rates whose direct control passes when comparing gateway capacity. A point
 passes the default limits when p99 is below 100 ms, response errors are below 0.1%, and
