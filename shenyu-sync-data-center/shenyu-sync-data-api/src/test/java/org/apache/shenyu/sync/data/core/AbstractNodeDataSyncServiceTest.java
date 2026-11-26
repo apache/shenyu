@@ -50,6 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -148,6 +149,32 @@ public class AbstractNodeDataSyncServiceTest {
 
         assertTrue(removedKeys.contains("namespace.plugin.testPlugin"),
                 "unCachePluginData must remove the per-plugin listener like the sibling unCache methods do");
+    }
+
+    @Test
+    public void testUnCachePluginDataRemovesThePerPluginListListeners() {
+        final java.util.List<String> removedKeys = new java.util.ArrayList<>();
+        final AbstractNodeDataSyncService service = new AbstractNodeDataSyncServiceImpl(
+                changeData, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, shenyuConfig) {
+            @Override
+            protected void doRemoveListener(final String removeKey) {
+                removedKeys.add(removeKey);
+            }
+        };
+
+        when(changeData.getSelectorDataId()).thenReturn("selector");
+
+        service.unCachePluginData("namespace.plugin.testPlugin");
+
+        // watcherPlugin registered one selector list and two watchCommonList listeners for
+        // this plugin; deleting the plugin must drop all three together with the plugin key
+        assertTrue(removedKeys.contains("namespace.selector.testPlugin.list"),
+                "the per-plugin selector list listener must be removed when the plugin is deleted");
+        assertTrue(removedKeys.contains("namespace.proxy.selector.testPlugin.list"),
+                "the per-plugin proxy-selector list listener must be removed when the plugin is deleted");
+        assertTrue(removedKeys.contains("namespace.discovery.testPlugin.list"),
+                "the per-plugin discovery list listener must be removed when the plugin is deleted");
     }
 
     @Test
