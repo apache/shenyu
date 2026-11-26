@@ -358,7 +358,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             ConfigDataCache serverCache = CACHE.get(buildCacheKey(namespaceId, group.name()));
             boolean changed = refreshStaleCache
                     ? this.checkCacheDelayAndUpdate(serverCache, clientMd5, NumberUtils.toLong(params[1]))
-                    : !StringUtils.equals(clientMd5, serverCache.getMd5());
+                    : isMd5Changed(serverCache, clientMd5);
             if (changed) {
                 changedGroup.add(group);
             }
@@ -380,7 +380,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      */
     private boolean checkCacheDelayAndUpdate(final ConfigDataCache serverCache, final String clientMd5, final long clientModifyTime) {
         // is the same, doesn't need to be updated
-        if (StringUtils.equals(clientMd5, serverCache.getMd5())) {
+        if (!isMd5Changed(serverCache, clientMd5)) {
             return false;
         }
         // if the md5 value is different, it is necessary to compare lastModifyTime.
@@ -399,18 +399,22 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         ConfigDataCache latest = CACHE.get(configDataCacheKey);
         if (latest != serverCache) {
-            return !StringUtils.equals(clientMd5, latest.getMd5());
+            return isMd5Changed(latest, clientMd5);
         }
         Object refreshLock = refreshLocks.computeIfAbsent(serverCache.getNamespaceId(), key -> new Object());
         synchronized (refreshLock) {
             latest = CACHE.get(configDataCacheKey);
             if (latest != serverCache) {
-                return !StringUtils.equals(clientMd5, latest.getMd5());
+                return isMd5Changed(latest, clientMd5);
             }
             this.refreshLocalCache(serverCache.getNamespaceId());
             latest = CACHE.get(configDataCacheKey);
-            return !StringUtils.equals(clientMd5, latest.getMd5());
+            return isMd5Changed(latest, clientMd5);
         }
+    }
+
+    private static boolean isMd5Changed(final ConfigDataCache serverCache, final String clientMd5) {
+        return !StringUtils.equals(clientMd5, serverCache.getMd5());
     }
 
     /**
