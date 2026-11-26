@@ -64,6 +64,11 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
 
     @Override
     protected boolean updateCacheIfNeed(final ConfigData<MetaData> result) {
+        List<MetaData> rows = ListUtils.emptyIfNull(result.getData());
+        if (!rows.isEmpty() && rows.stream().allMatch(Objects::isNull)) {
+            LOG.warn("ignore HTTP metadata snapshot containing only null rows");
+            return false;
+        }
         return updateCacheIfNeed(result, ConfigGroupEnum.META_DATA);
     }
 

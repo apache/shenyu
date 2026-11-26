@@ -131,17 +131,21 @@ public final class MetaDataRefreshTest {
     }
 
     @Test
-    public void testSnapshotWithOnlyNullRowsDoesNotClearMetadata() {
+    public void testSnapshotWithOnlyNullRowsDoesNotAdvanceVersion() {
         MetaDataSubscriber subscriber = mock(MetaDataSubscriber.class);
         MetaDataRefresh refresh = new MetaDataRefresh(List.of(subscriber));
         MetaData retained = metadata("retained-id", "/retained");
 
         assertTrue(refresh.refresh(snapshot("first", 1, List.of(retained))));
-        refresh.refresh(snapshot("malformed", 2, Collections.singletonList(null)));
+        boolean updated = refresh.refresh(snapshot("malformed", 3, Collections.singletonList(null)));
+        assertThat(refresh.cacheConfigData().getLastModifyTime(), is(1L));
+        assertThat(refresh.cacheConfigData().getMd5(), is("first"));
+        assertFalse(updated);
         verify(subscriber, never()).unSubscribe(retained);
         verify(subscriber, never()).refresh();
 
-        assertTrue(refresh.refresh(snapshot("empty", 3, List.of())));
+        assertTrue(refresh.refresh(snapshot("empty", 2, List.of())));
+        assertThat(refresh.cacheConfigData().getLastModifyTime(), is(2L));
         verify(subscriber).unSubscribe(retained);
         verify(subscriber).refresh();
     }
