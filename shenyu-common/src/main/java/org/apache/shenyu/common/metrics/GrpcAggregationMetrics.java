@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Process-wide counters for gRPC bridge calls, independent of the metrics backend.
+ * Keeping these counters in the common module lets the gRPC plugin record outcomes without depending on the metrics plugin.
  * Each outcome has fixed storage and never retains request metadata or payloads.
  */
 public final class GrpcAggregationMetrics {

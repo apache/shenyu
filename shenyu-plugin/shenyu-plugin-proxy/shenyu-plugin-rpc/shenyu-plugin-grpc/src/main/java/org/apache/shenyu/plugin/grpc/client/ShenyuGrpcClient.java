@@ -31,6 +31,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.convert.plugin.GrpcRegisterConfig;
 import org.apache.shenyu.common.metrics.GrpcAggregationMetrics.Outcome;
@@ -214,11 +215,11 @@ public class ShenyuGrpcClient implements Closeable {
         }
     }
 
-    private static Outcome terminalOutcome(final Throwable error, final ShenyuGrpcException overflow) {
+    static Outcome terminalOutcome(final Throwable error, final ShenyuGrpcException overflow) {
         if (Objects.isNull(error)) {
             return Outcome.SUCCESS;
         }
-        if (error == overflow) {
+        if (error == overflow || (Objects.nonNull(overflow) && ExceptionUtils.getThrowableList(error).contains(overflow))) {
             return Outcome.OVERFLOW;
         }
         return Status.fromThrowable(error).getCode() == Status.Code.DEADLINE_EXCEEDED ? Outcome.DEADLINE : Outcome.ERROR;

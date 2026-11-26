@@ -24,11 +24,14 @@ import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.ClientResponseObserver;
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.dto.MetaData;
+import org.apache.shenyu.common.metrics.GrpcAggregationMetrics.Outcome;
+import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
@@ -42,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
@@ -58,6 +62,27 @@ import static org.mockito.Mockito.verify;
  * Test cases for {@link ShenyuGrpcClient}.
  */
 public final class ShenyuGrpcClientTest {
+
+    @Test
+    public void dependentStagePreservesTheOverflowOutcome() {
+        ShenyuGrpcException overflow = new ShenyuGrpcException("aggregate budget exceeded");
+        CompletableFuture<Void> source = new CompletableFuture<>();
+        CompletableFuture<Outcome> outcome = source.thenApply(value -> value).handle((value, error) -> {
+            assertTrue(error instanceof CompletionException);
+            return ShenyuGrpcClient.terminalOutcome(error, overflow);
+        });
+        source.completeExceptionally(overflow);
+        assertEquals(Outcome.OVERFLOW, outcome.join());
+    }
+
+    @Test
+    public void unrelatedWrappedFailuresKeepTheirOwnOutcomes() {
+        ShenyuGrpcException overflow = new ShenyuGrpcException("aggregate budget exceeded");
+        Throwable otherFailure = new CompletionException(new ShenyuGrpcException(overflow.getMessage()));
+        assertEquals(Outcome.ERROR, ShenyuGrpcClient.terminalOutcome(otherFailure, overflow));
+        Throwable deadline = new CompletionException(Status.DEADLINE_EXCEEDED.asRuntimeException());
+        assertEquals(Outcome.DEADLINE, ShenyuGrpcClient.terminalOutcome(deadline, overflow));
+    }
 
     @Test
     public void testCallCompletesAsynchronously() {

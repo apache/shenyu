@@ -141,6 +141,7 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
 
     /**
      * Stops aggregation and releases retained results before the transport closes.
+     * Keeps the admitted item and byte counts for terminal metrics.
      */
     public synchronized void discardResults() {
         terminated = true;
