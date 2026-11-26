@@ -59,7 +59,7 @@ public class UserUpdatedEventTest {
         String typeStr = StringUtils.lowerCase(EventTypeEnum.USER_UPDATE.getType().toString());
 
         UserUpdatedEvent userUpdatedNothingEvent = new UserUpdatedEvent(after, after, "test-operator");
-        String contextNothing = String.format("the selector [%s] is %s : %s",
+        String contextNothing = String.format("the user [%s] is %s : %s",
                 after.getUserName(), typeStr, "it no change");
         assertEquals(contextNothing, userUpdatedNothingEvent.buildContext());
 
@@ -69,7 +69,7 @@ public class UserUpdatedEventTest {
         contrast.append(String.format("role[%s => %s] ", before.getRole(), after.getRole()));
         contrast.append(String.format("enable[%s => %s] ", before.getEnabled(), after.getEnabled()));
 
-        String context = String.format("the selector [%s] is %s : %s",
+        String context = String.format("the user [%s] is %s : %s",
                 after.getUserName(), typeStr, contrast);
         UserUpdatedEvent userUpdatedEvent = new UserUpdatedEvent(after, before, "test-operator");
         assertEquals(context, userUpdatedEvent.buildContext());
