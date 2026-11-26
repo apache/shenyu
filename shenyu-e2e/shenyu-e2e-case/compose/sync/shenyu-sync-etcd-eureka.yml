@@ -108,6 +108,7 @@ services:
     environment:
       - TZ=Asia/Beijing
       - shenyu.sync.etcd.url=http://shenyu-etcd:2379
+      # Override the inherited URL. The WebSocket starter's @ConditionalOnProperty skips the bean for the literal "false".
       - shenyu.sync.websocket.urls=false
       - spring.cloud.discovery.enabled=true
       - eureka.client.enabled=true

@@ -515,6 +515,7 @@ data:
     shenyu:
       sync:
         websocket:
+          # Override the inherited URL. The WebSocket starter's @ConditionalOnProperty skips the bean for the literal "false".
           urls: "false"
         etcd:
           url: http://shenyu-etcd:2379
