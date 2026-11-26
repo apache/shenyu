@@ -37,6 +37,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -45,10 +46,8 @@ import java.util.UUID;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
 
@@ -56,9 +55,12 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
 
     private static final String LOG_INDEX = "shenyu-access-logging";
 
+    private static final int ELASTICSEARCH_PORT = 9200;
+
     @BeforeAll
     public static void setup() throws IOException {
-        String pluginResult = initPlugin(PluginEnum.LOGGING_ELASTIC_SEARCH.getName(), "{\"host\":\"shenyu-elasticsearch\", \"port\": \"9200\"}");
+        String pluginResult = initPlugin(PluginEnum.LOGGING_ELASTIC_SEARCH.getName(),
+                "{\"host\":\"shenyu-elasticsearch\",\"port\":\"" + ELASTICSEARCH_PORT + "\"}");
         assertThat(pluginResult, is("success"));
         String selectorAndRulesResult = initSelectorAndRules(PluginEnum.LOGGING_ELASTIC_SEARCH.getName(),
                 "", buildSelectorConditionList(), buildRuleLocalDataList());
@@ -72,21 +74,24 @@ public class LoggingElasticSearchPluginTest extends AbstractPluginDataInit {
         String result = HttpHelper.INSTANCE.postGateway(requestPath, String.class);
         assertThat(result, containsString("[post method result]:hi! " + marker + "!"));
 
-        String requestUri = HttpHelper.INSTANCE.getGatewayEndpoint() + requestPath;
+        URI expected = URI.create(requestPath);
         try (ElasticsearchTransport transport = new RestClientTransport(
-                RestClient.builder(new HttpHost("localhost", 9200)).build(), new JacksonJsonpMapper())) {
+                RestClient.builder(new HttpHost("localhost", ELASTICSEARCH_PORT)).build(), new JacksonJsonpMapper())) {
             ElasticsearchClient client = new ElasticsearchClient(transport);
-            await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+            await().pollInterval(Duration.ofMillis(500)).atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
                 SearchResponse<ShenyuRequestLog> response = client.search(search -> search
                         .index(LOG_INDEX).ignoreUnavailable(true).size(1)
-                        .query(query -> query.term(term -> term.field("requestUri.keyword").value(requestUri))), ShenyuRequestLog.class);
-                assertFalse(response.hits().hits().isEmpty(), () -> "No access log for " + requestUri);
+                        .query(query -> query.wildcard(wildcard -> wildcard.field("requestUri.keyword").value("*" + marker))),
+                        ShenyuRequestLog.class);
+                assertThat("No access log for " + requestPath, response.hits().hits().isEmpty(), is(false));
                 ShenyuRequestLog log = response.hits().hits().get(0).source();
-                assertNotNull(log);
-                assertEquals(requestUri, log.getRequestUri());
-                assertEquals(LOGGING_ELASTIC_SEARCH_PATH, log.getPath());
-                assertEquals("POST", log.getRequestMethod());
-                assertEquals(200, log.getStatus());
+                assertThat(log, notNullValue());
+                URI logged = URI.create(log.getRequestUri());
+                assertThat(logged.getRawPath(), is(expected.getRawPath()));
+                assertThat(logged.getRawQuery(), is(expected.getRawQuery()));
+                assertThat(log.getPath(), is(LOGGING_ELASTIC_SEARCH_PATH));
+                assertThat(log.getRequestMethod(), is("POST"));
+                assertThat(log.getStatus(), is(200));
             });
         }
     }
