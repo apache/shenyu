@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
+package org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure;
 
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.junit.jupiter.api.Test;

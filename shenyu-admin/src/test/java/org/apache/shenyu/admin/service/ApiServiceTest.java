@@ -146,6 +146,7 @@ public final class ApiServiceTest {
         MetaDataDO metadata = new MetaDataDO();
         metadata.setId("metadata-1");
         ApiDO apiDO = buildApiDO("123");
+        rule.setName(apiDO.getApiPath());
         when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
         when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
@@ -168,6 +169,7 @@ public final class ApiServiceTest {
         RuleVO rule = new RuleVO();
         rule.setId("rule-1");
         ApiDO apiDO = buildApiDO("123");
+        rule.setName(apiDO.getApiPath());
         when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
         when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
@@ -187,6 +189,7 @@ public final class ApiServiceTest {
         SelectorDO selector = new SelectorDO();
         selector.setId("selector-1");
         ApiDO apiDO = buildApiDO("123");
+        rule.setName(apiDO.getApiPath());
         when(apiMapper.selectByApiPathHttpMethodRpcType(apiDO.getApiPath(), apiDO.getHttpMethod(), apiDO.getRpcType()))
                 .thenReturn(Collections.singletonList(apiDO));
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);

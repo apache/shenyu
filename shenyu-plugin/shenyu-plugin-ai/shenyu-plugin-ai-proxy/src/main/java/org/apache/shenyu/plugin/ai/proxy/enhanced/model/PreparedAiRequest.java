@@ -35,4 +35,14 @@ public record PreparedAiRequest(
         Objects.requireNonNull(request, "AI upstream request is required");
         Objects.requireNonNull(responseAdapter, "AI response adapter is required");
     }
+
+    /**
+     * Prepare an upstream request that requires no provider response adaptation.
+     *
+     * @param request upstream request
+     * @return prepared request with the identity response adapter
+     */
+    public static PreparedAiRequest identity(final AiUpstreamRequest request) {
+        return new PreparedAiRequest(request, AiResponseAdapter.identity());
+    }
 }

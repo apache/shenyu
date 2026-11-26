@@ -31,8 +31,9 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,7 @@ import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 
@@ -58,6 +60,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,6 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 
 /**
  * Real downstream disconnect classification across the AI proxy terminal boundary.
@@ -141,9 +145,11 @@ class AiProxyDownstreamDisconnectHttpTest {
 
     @Test
     void writeFailureAfterCommitKeepsTheStrongEvidenceAndIsAnError() {
+        Sinks.One<String> upstreamFailure = Sinks.one();
         try (Probe probe = new Probe(Flux.just(FIRST_CHUNK)
-                .concatWith(Flux.error(new IllegalStateException("private upstream text"))))) {
-            probe.consumeToleratingFailure();
+                .concatWith(upstreamFailure.asMono()))) {
+            probe.consumeToleratingFailure(() -> upstreamFailure.tryEmitError(new IllegalStateException("private upstream text")));
+            assertSingleObservation(probe);
             assertEquals(AiCallOutcome.ERROR, probe.terminal().outcome(), "a failed write is not a success");
             assertEquals(AiCallOutcome.ERROR, probe.attempts().get(0).outcome(), "attempt outcome");
             assertEquals("TRANSPORT_FAILURE", probe.attempts().get(0).completion().evidence().name(),
@@ -257,9 +263,12 @@ class AiProxyDownstreamDisconnectHttpTest {
             handle.setModel("fixture-model");
             AiProxyPluginHandler handler = new AiProxyPluginHandler();
             handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(selectorId, Constants.DEFAULT_RULE), handle);
-            AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                    new AiProxyProviderFactory(List.of(new OpenAi())),
-                    new WebClientAiProxyTransport(WebClient.builder().build()), Duration.ZERO, observer);
+            AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                    new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
+                    new WebClientAiProxyTransport(WebClient.builder().build()))
+                    .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
+                    .observer(observer)
+                    .build();
             AiProxyPlugin plugin = new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, observer);
             SelectorData selector = new SelectorData();
             selector.setId(selectorId);
@@ -291,8 +300,15 @@ class AiProxyDownstreamDisconnectHttpTest {
             incoming().doOnNext(DataBufferUtils::release).then().block(TIMEOUT);
         }
 
-        void consumeToleratingFailure() {
-            incoming().doOnNext(DataBufferUtils::release).onErrorResume(ignored -> Flux.empty()).then().block(TIMEOUT);
+        void consumeToleratingFailure(final Runnable afterFirstChunk) {
+            final AtomicBoolean received = new AtomicBoolean();
+            incoming().doOnNext(buffer -> {
+                DataBufferUtils.release(buffer);
+                if (received.compareAndSet(false, true)) {
+                    afterFirstChunk.run();
+                }
+            }).onErrorResume(ignored -> Flux.empty()).then().block(TIMEOUT);
+            assertTrue(received.get(), "the client must receive part of the response before the upstream fails");
         }
 
         void abortMidStream() {
