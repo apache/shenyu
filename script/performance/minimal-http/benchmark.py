@@ -287,24 +287,29 @@ def main():
                     result["loaded_classes"], jcmd = loaded_classes(args, process, output)
                     if args.jfr:
                         subprocess.run([jcmd, str(process.pid), "JFR.start", "name=assembly", "settings=profile"], check=True, capture_output=True)
+                    warmup_status = ""
                     if not args.smoke_only:
                         warmup = load(args, base + "/bench/ok", upstream_a.body, args.rates[0], args.warmup, output / "warmup", process)
                         result["warmup"] = warmup
                         if warmup["thresholds_passed"]:
                             for rate in args.rates:
                                 result["loads"].append(load(args, base + "/bench/ok", upstream_a.body, rate, args.duration, output / f"load-{rate}", process))
+                            warmup_status = " warmup=passed"
                         else:
-                            print(f"{name} run {repeat + 1}: warmup failed. Skipping steady-state loads.", flush=True)
+                            warmup_status = " warmup=failed loads=skipped"
                     if args.jfr:
                         subprocess.run([jcmd, str(process.pid), "JFR.dump", "name=assembly", f'filename="{output / "gateway.jfr"}"'], check=True, capture_output=True)
                     report["runs"].append(result)
                     (args.output / "report.json").write_text(json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
-                    print(f"{name} run {repeat + 1}: ready={ready:.3f}s classes={result['loaded_classes']} smoke=passed", flush=True)
+                    print(f"{name} run {repeat + 1}: ready={ready:.3f}s classes={result['loaded_classes']} smoke=passed{warmup_status}", flush=True)
                 finally:
                     stop(process, log)
         for name, _ in assemblies:
-            ready = [row["readiness_s"] for row in report["runs"] if row["assembly"] == name]
+            runs = [row for row in report["runs"] if row["assembly"] == name]
+            ready = [row["readiness_s"] for row in runs]
             print(f"{name}: readiness median={statistics.median(ready):.3f}s range={min(ready):.3f}..{max(ready):.3f}s")
+            if not args.smoke_only and all(not run["loads"] for run in runs):
+                print(f"{name}: all {len(runs)} warmups failed. No steady-state capacity measurements.")
     finally:
         fixture.close()
         upstream_a.close()

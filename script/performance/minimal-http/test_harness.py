@@ -177,7 +177,7 @@ class LoadResultTest(unittest.TestCase):
 
 
 class BenchmarkRunTest(unittest.TestCase):
-    def test_failed_warmup_skips_only_its_steady_state_loads(self):
+    def run_benchmark(self, failed_warmups):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve()
             output = root / "report"
@@ -187,27 +187,43 @@ class BenchmarkRunTest(unittest.TestCase):
             def load_result(args, url, body, rate, duration, directory, gateway=None):
                 relative = directory.relative_to(output).as_posix()
                 load_paths.append(relative)
-                return {"offered_rps": rate, "thresholds_passed": relative != "minimal-1/warmup"}
+                return {"offered_rps": rate, "measurement_valid": True, "thresholds_passed": relative not in failed_warmups}
 
             subprocess = Mock()
             subprocess.run.return_value.stderr = "java fixture"
             subprocess.check_output.return_value = "fixture"
             argv = ["benchmark.py", "--minimal", str(root / "minimal"), "--full", str(root / "full"),
-                    "--output", str(output), "--java", "java", "--k6", "k6", "--rates", "200", "500", "--runs", "1"]
-            with patch("sys.argv", argv), patch.multiple(
+                    "--output", str(output), "--java", "java", "--k6", "k6", "--rates", "200", "500", "--runs", "2"]
+            with patch("sys.argv", argv), patch("builtins.print") as printed, patch.multiple(
                     "benchmark", subprocess=subprocess, inventory=Mock(), Upstream=Mock(return_value=upstream),
                     SyncFixture=Mock(), launch=Mock(return_value=(Mock(), Mock(), "http://127.0.0.1", 1)),
                     smoke=Mock(return_value=["routing passed"]), resources=Mock(return_value={}),
                     loaded_classes=Mock(return_value=(1, "jcmd")), stop=Mock(), load=Mock(side_effect=load_result)):
                 main()
 
-            self.assertEqual(["direct-200", "direct-500", "minimal-1/warmup",
-                              "full-1/warmup", "full-1/load-200", "full-1/load-500"], load_paths)
-            minimal, full = json.loads((output / "report.json").read_text())["runs"]
-            self.assertFalse(minimal["warmup"]["thresholds_passed"])
-            self.assertEqual([], minimal["loads"])
-            self.assertTrue(full["warmup"]["thresholds_passed"])
-            self.assertEqual([200, 500], [row["offered_rps"] for row in full["loads"]])
+            report = json.loads((output / "report.json").read_text())
+            return load_paths, report["runs"], [call.args[0] for call in printed.call_args_list]
+
+    def test_failed_warmup_skips_only_its_steady_state_loads(self):
+        load_paths, runs, messages = self.run_benchmark({"minimal-1/warmup"})
+        self.assertEqual(["direct-200", "direct-500", "minimal-1/warmup",
+                          "full-1/warmup", "full-1/load-200", "full-1/load-500",
+                          "full-2/warmup", "full-2/load-200", "full-2/load-500",
+                          "minimal-2/warmup", "minimal-2/load-200", "minimal-2/load-500"], load_paths)
+        self.assertFalse(runs[0]["warmup"]["thresholds_passed"])
+        self.assertEqual([], runs[0]["loads"])
+        for run in runs[1:]:
+            self.assertTrue(run["warmup"]["thresholds_passed"])
+            self.assertEqual([200, 500], [row["offered_rps"] for row in run["loads"]])
+        self.assertTrue(any("minimal run 1:" in message and "warmup=failed loads=skipped" in message for message in messages))
+
+    def test_all_failed_warmups_report_missing_capacity_measurements(self):
+        failed = {f"{assembly}-{repeat}/warmup" for assembly in ("minimal", "full") for repeat in (1, 2)}
+        _, runs, messages = self.run_benchmark(failed)
+        self.assertEqual(4, len(runs))
+        self.assertTrue(all(not run["loads"] for run in runs))
+        for name in ("minimal", "full"):
+            self.assertIn(f"{name}: all 2 warmups failed. No steady-state capacity measurements.", messages)
 
 
 class InventoryTest(unittest.TestCase):
