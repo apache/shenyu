@@ -144,10 +144,10 @@ test('E2E protocol shards retain every sync channel and leave other scenarios in
     rmSync(temporary, { recursive: true, force: true });
   }
   const shards = JSON.parse(output.slice('matrix='.length)).include;
-  assert.equal(shards.length, 10);
+  assert.equal(shards.length, 13);
   for (const entry of original.include) {
     const selected = shards.filter(shard => shard.script === entry.script);
-    assert.deepEqual(selected.map(shard => shard.sync), entry.case === 'cluster' ? [''] : ['websocket', 'http', 'zookeeper']);
+    assert.deepEqual(selected.map(shard => shard.sync), entry.case === 'cluster' ? [''] : ['websocket', 'http', 'zookeeper', 'etcd']);
     for (const shard of selected) {
       assert.equal(shard.case, entry.case);
       assert.equal(shard.example_projects, entry.example_projects);
@@ -157,11 +157,11 @@ test('E2E protocol shards retain every sync channel and leave other scenarios in
 
 test('manual E2E runs keep all sync channels and invalid selections fail', () => {
   const command = 'source .github/scripts/select-e2e-sync.sh; printf "%s\\n" "${SYNC_ARRAY[@]}"';
-  for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
+  for (const channel of ['', 'websocket', 'http', 'zookeeper', 'etcd']) {
     const actual = execFileSync('bash', ['-c', command], {
       cwd: root, env: { ...process.env, SHENYU_E2E_SYNC: channel }, encoding: 'utf8',
     }).trim().split('\n');
-    assert.deepEqual(actual, channel ? [channel] : ['websocket', 'http', 'zookeeper']);
+    assert.deepEqual(actual, channel ? [channel] : ['websocket', 'http', 'zookeeper', 'etcd']);
   }
   assert.throws(() => execFileSync('bash', ['-c', command], {
     cwd: root, env: { ...process.env, SHENYU_E2E_SYNC: 'unsupported' }, stdio: 'pipe',
@@ -225,12 +225,12 @@ for (const [index, stage] of webSocketStartup.entries()) {
   });
 }
 
-for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
+for (const channel of ['', 'websocket', 'http', 'zookeeper', 'etcd']) {
   test(`WebSocket Compose retains successful setup, tests and cleanup for ${channel || 'all channels'}`, () => {
     const result = runWebSocketCompose('', channel);
     assert.equal(result.status, 0, result.stderr);
     const iteration = [...webSocketStartup.slice(2), 'ps', 'maven', 'sync:down', 'example:down'];
-    const iterations = channel ? iteration : [iteration, iteration, iteration].flat();
+    const iterations = channel ? iteration : [iteration, iteration, iteration, iteration].flat();
     assert.deepEqual(result.calls, [...webSocketStartup.slice(0, 2), ...iterations]);
   });
 }

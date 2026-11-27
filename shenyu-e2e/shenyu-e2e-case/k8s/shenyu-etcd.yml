@@ -32,17 +32,17 @@ spec:
         app: shenyu-etcd
     spec:
       containers:
-        - image: rancher/hardened-etcd:v3.5.21-k3s1-build20250910
+        - image: gcr.io/etcd-development/etcd:v3.5.34
           name: shenyu-etcd
-          command: ["etcd"]
+          command: ["/usr/local/bin/etcd"]
+          args:
+            - --listen-client-urls=http://0.0.0.0:2379
+            - --advertise-client-urls=http://shenyu-etcd:2379
           resources: { }
-          env:
-            - name: ALLOW_NONE_AUTHENTICATION
-              value: "yes"
-            - name: ETCD_ADVERTISE_CLIENT_URLS
-              value: http://shenyu-etcd:2379
-            - name: TZ
-              value: Asia/Shanghai
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: client
           ports:
             - containerPort: 2379
               name: client

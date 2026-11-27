@@ -90,7 +90,7 @@ jobs:
         run: |
           matrix=$(jq -c '{include: [.include[] |
             if ((.script | endswith("-sync-compose")) or .script == "e2e-logging-rocketmq-compose") then
-              . as $entry | ["websocket", "http", "zookeeper"][] | $entry + {sync: .}
+              . as $entry | ["websocket", "http", "zookeeper", "etcd"][] | $entry + {sync: .}
             else . + {sync: ""} end]}' <<< "$E2E_MATRIX")
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 

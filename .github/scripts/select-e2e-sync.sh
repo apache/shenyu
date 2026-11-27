@@ -17,10 +17,10 @@
 
 # shellcheck disable=SC2034
 # SYNC_ARRAY is consumed by the sourcing protocol runners; manual runs keep all channels.
-SYNC_ARRAY=("websocket" "http" "zookeeper")
+SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
 if [[ -n "${SHENYU_E2E_SYNC:-}" ]]; then
   case "${SHENYU_E2E_SYNC}" in
-    websocket|http|zookeeper) SYNC_ARRAY=("${SHENYU_E2E_SYNC}") ;;
+    websocket|http|zookeeper|etcd) SYNC_ARRAY=("${SHENYU_E2E_SYNC}") ;;
     *)
       echo "Unsupported E2E sync channel: ${SHENYU_E2E_SYNC}" >&2
       exit 1
