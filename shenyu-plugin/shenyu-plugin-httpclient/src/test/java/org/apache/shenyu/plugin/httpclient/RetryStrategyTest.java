@@ -686,6 +686,33 @@ public class RetryStrategyTest {
     }
 
     @Test
+    void testFailoverPreservesRawQuery() {
+        final String query = "tag=a%2Bb&empty=&tag=c+d&flag&space=a%20b";
+        final String requestTarget = "/echo?" + query;
+        final ServerWebExchange exchange = createFailoverExchange("http://localhost:8080" + requestTarget);
+        final ServerWebExchange requestExchange = exchange.mutate()
+                .request(MockServerHttpRequest.method(HttpMethod.GET, URI.create(requestTarget)).build())
+                .build();
+        requestExchange.getAttributes().put(Constants.REWRITE_URI, "/echo");
+        requestExchange.getAttributes().put(Constants.PRESERVE_RAW_QUERY, Boolean.TRUE);
+        final Upstream standby = Upstream.builder().protocol("http://").url("localhost:8081").build();
+        final UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(List.of(standby));
+        final AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        final URI expected = URI.create("http://localhost:8081" + requestTarget);
+        when(plugin.getCachedRequestBody(requestExchange)).thenReturn(Flux.empty());
+        when(plugin.doRequest(eq(requestExchange), eq("GET"), eq(expected), any())).thenReturn(Mono.just("success"));
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
+                            requestExchange, Duration.ofSeconds(5), 1))
+                    .expectNext("success")
+                    .verifyComplete();
+        }
+        verify(plugin).doRequest(eq(requestExchange), eq("GET"), eq(expected), any());
+    }
+
+    @Test
     void testFixedRetryStrategyRetriesTransientGetFailures() {
         AbstractHttpClientPlugin<String> httpClientPlugin = mock(AbstractHttpClientPlugin.class);
         FixedRetryStrategy<String> strategy = new FixedRetryStrategy<>(httpClientPlugin);

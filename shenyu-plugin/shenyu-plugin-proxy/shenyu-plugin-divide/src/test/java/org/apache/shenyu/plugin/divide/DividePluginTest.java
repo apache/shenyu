@@ -358,6 +358,23 @@ public final class DividePluginTest {
     }
 
     @Test
+    void testSelectedRuleControlsRawQueryPreservation() {
+        final DividePluginDataHandler handler = new DividePluginDataHandler();
+        handler.handlerSelector(selectorData);
+        divideUpstreamDataHandler.handlerDiscoveryUpstreamData(discoverySyncData);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        when(ruleData.getHandle()).thenReturn("{\"preserveRawQuery\":true}");
+        handler.handlerRule(ruleData);
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        assertEquals(Boolean.TRUE, exchange.getAttribute(Constants.PRESERVE_RAW_QUERY));
+
+        when(ruleData.getHandle()).thenReturn("{}");
+        handler.handlerRule(ruleData);
+        StepVerifier.create(dividePlugin.doExecute(exchange, chain, selectorData, ruleData)).verifyComplete();
+        assertEquals(Boolean.FALSE, exchange.getAttribute(Constants.PRESERVE_RAW_QUERY));
+    }
+
+    @Test
     public void testRetryBackOffSpecDefaultAttribute() {
         DivideRuleHandle handle = new DivideRuleHandle();
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));

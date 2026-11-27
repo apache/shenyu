@@ -187,6 +187,11 @@ public interface Constants {
     String HTTP_DOMAIN = "httpDomain";
 
     /**
+     * Whether to preserve the raw query when building the upstream HTTP URI.
+     */
+    String PRESERVE_RAW_QUERY = "preserveRawQuery";
+
+    /**
      * The constant RPC_PARAM_TRANSFORM.
      */
     String PARAM_TRANSFORM = "param_transform";
