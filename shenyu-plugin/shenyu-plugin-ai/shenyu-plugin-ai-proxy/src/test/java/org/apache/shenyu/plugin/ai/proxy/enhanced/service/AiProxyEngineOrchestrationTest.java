@@ -225,6 +225,38 @@ class AiProxyEngineOrchestrationTest {
     }
 
     @Test
+    void retryDelayedPastTheSharedDeadlineDoesNotStartUpstream() {
+        AtomicInteger calls = new AtomicInteger();
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        Duration backoff = Duration.ofMillis(25);
+        Duration requestDeadline = Duration.ofMillis(500);
+        AiProxyEngine engine = engine(request -> calls.incrementAndGet() == 1
+                        ? Mono.just(response(503, Flux.just(bytes("busy"))))
+                        : Mono.just(response(200, Flux.just(bytes("ok")))),
+                retryProperties(backoff, requestDeadline), events::add);
+
+        StepVerifier.withVirtualTime(() -> engine.execute(BODY, config(false, "main"), Optional.empty(),
+                        response -> response.getBody().then()))
+                .expectSubscription()
+                .then(() -> {
+                    assertEquals(AiProxyAttemptEvent.Reason.RETRY_STATUS, events.get(0).reason());
+                    // Hold the virtual backoff timer while the engine's monotonic deadline elapses.
+                    long queuedAt = System.nanoTime();
+                    await().pollInterval(Duration.ofMillis(25)).atMost(requestDeadline.plusSeconds(1))
+                            .until(() -> System.nanoTime() - queuedAt >= requestDeadline.toNanos());
+                })
+                .thenAwait(backoff)
+                .expectErrorSatisfies(error -> assertEquals("AI proxy request deadline exceeded before attempt",
+                        assertInstanceOf(AiProxyException.class, error).getMessage()))
+                .verify(Duration.ofSeconds(8));
+        assertEquals(1, calls.get());
+        String invocationId = events.get(0).invocationId();
+        assertEquals(List.of(
+                new AiProxyAttemptEvent(invocationId, 0, AiProxyAttemptEvent.Phase.PRIMARY, AiProxyAttemptEvent.Reason.RETRY_STATUS, null),
+                new AiProxyAttemptEvent(invocationId, 0, AiProxyAttemptEvent.Phase.PRIMARY, AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null)), events);
+    }
+
+    @Test
     void excessiveRetryAfterDoesNotRetryEarlierThanTheUpstreamHint() {
         AtomicInteger calls = new AtomicInteger();
         AiProxyEngine engine = engine(request -> {

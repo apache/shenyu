@@ -45,6 +45,7 @@ import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 
@@ -59,6 +60,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -143,9 +145,11 @@ class AiProxyDownstreamDisconnectHttpTest {
 
     @Test
     void writeFailureAfterCommitKeepsTheStrongEvidenceAndIsAnError() {
+        Sinks.One<String> upstreamFailure = Sinks.one();
         try (Probe probe = new Probe(Flux.just(FIRST_CHUNK)
-                .concatWith(Flux.error(new IllegalStateException("private upstream text"))))) {
-            probe.consumeToleratingFailure();
+                .concatWith(upstreamFailure.asMono()))) {
+            probe.consumeToleratingFailure(() -> upstreamFailure.tryEmitError(new IllegalStateException("private upstream text")));
+            assertSingleObservation(probe);
             assertEquals(AiCallOutcome.ERROR, probe.terminal().outcome(), "a failed write is not a success");
             assertEquals(AiCallOutcome.ERROR, probe.attempts().get(0).outcome(), "attempt outcome");
             assertEquals("TRANSPORT_FAILURE", probe.attempts().get(0).completion().evidence().name(),
@@ -296,8 +300,15 @@ class AiProxyDownstreamDisconnectHttpTest {
             incoming().doOnNext(DataBufferUtils::release).then().block(TIMEOUT);
         }
 
-        void consumeToleratingFailure() {
-            incoming().doOnNext(DataBufferUtils::release).onErrorResume(ignored -> Flux.empty()).then().block(TIMEOUT);
+        void consumeToleratingFailure(final Runnable afterFirstChunk) {
+            final AtomicBoolean received = new AtomicBoolean();
+            incoming().doOnNext(buffer -> {
+                DataBufferUtils.release(buffer);
+                if (received.compareAndSet(false, true)) {
+                    afterFirstChunk.run();
+                }
+            }).onErrorResume(ignored -> Flux.empty()).then().block(TIMEOUT);
+            assertTrue(received.get(), "the client must receive part of the response before the upstream fails");
         }
 
         void abortMidStream() {

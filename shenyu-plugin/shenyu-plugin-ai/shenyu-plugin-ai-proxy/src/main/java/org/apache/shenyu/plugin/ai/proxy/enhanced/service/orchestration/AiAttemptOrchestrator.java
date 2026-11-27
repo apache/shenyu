@@ -87,22 +87,27 @@ public final class AiAttemptOrchestrator {
         Optional<AiAttemptPlan.FallbackPlan> fallbackPlan = fallback.map(config -> new AiAttemptPlan.FallbackPlan(
                 config, exchangePlanner.providerDeclaredReplaySafe(config, primary.operation())));
         return attempt(new AiAttemptPlan(execution, primary, fallbackPlan,
-                new AiAttemptPlan.RetryBudget(maxRetries, maxRetries), AiProxyAttemptEvent.Phase.PRIMARY));
+                new AiAttemptPlan.RetryBudget(maxRetries, maxRetries), AiProxyAttemptEvent.Phase.PRIMARY), null);
     }
 
-    private Mono<Void> attempt(final AiAttemptPlan plan) {
-        AiExecutionState execution = plan.execution();
-        final int currentAttempt = execution.lifecycle().nextAttemptIndex();
-        if (execution.lifecycle().requestDeadline().expired()) {
-            eventEmitter.emit(execution.lifecycle().invocationId(), currentAttempt, plan.phase(),
-                    AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
-            return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
-                    "AI proxy request deadline exceeded before attempt", null));
-        }
-        return attemptExecutor.execute(execution.lifecycle(), plan.prepared(), currentAttempt, plan.phase(),
-                        (response, observation) -> handleResponse(response, plan, currentAttempt, observation))
-                .onErrorResume(error -> classifyFailure(error, plan, currentAttempt))
-                .flatMap(outcome -> applyOutcome(outcome, plan, currentAttempt));
+    private Mono<Void> attempt(final AiAttemptPlan plan, final AttemptPosition previous) {
+        return Mono.defer(() -> {
+            AiExecutionState.AttemptLifecycle lifecycle = plan.execution().lifecycle();
+            // The backoff may finish after the shared deadline even if it fit when scheduled.
+            if (lifecycle.requestDeadline().expired()) {
+                if (Objects.nonNull(previous)) {
+                    eventEmitter.emit(lifecycle.invocationId(), previous.index(), previous.phase(),
+                            AiProxyAttemptEvent.Reason.REQUEST_DEADLINE_EXCEEDED, null);
+                }
+                return Mono.error(new AiProxyException(AiProxyException.Kind.TRANSPORT,
+                        "AI proxy request deadline exceeded before attempt", null));
+            }
+            int currentAttempt = lifecycle.nextAttemptIndex();
+            return attemptExecutor.execute(lifecycle, plan.prepared(), currentAttempt, plan.phase(),
+                            (response, observation) -> handleResponse(response, plan, currentAttempt, observation))
+                    .onErrorResume(error -> classifyFailure(error, plan, currentAttempt))
+                    .flatMap(outcome -> applyOutcome(outcome, plan, currentAttempt));
+        });
     }
 
     private Mono<AiAttemptOutcome> handleResponse(final AiUpstreamResponse response, final AiAttemptPlan plan,
@@ -174,7 +179,7 @@ public final class AiAttemptOrchestrator {
                 repairBody, execution.request().activeUpstream().current());
         eventEmitter.emit(execution.lifecycle().invocationId(), currentAttempt, plan.phase(),
                 AiProxyAttemptEvent.Reason.CONTENT_REPAIR, null);
-        return attempt(plan.forRepair(repairPrepared))
+        return attempt(plan.forRepair(repairPrepared), new AttemptPosition(currentAttempt, plan.phase()))
                 .onErrorMap(error -> error instanceof AiTransportException || error instanceof AiUpstreamStatusException
                         ? new AiProxyException(AiProxyException.Kind.TRANSPORT, "AI repair generation failed", error)
                         : error);
@@ -270,7 +275,7 @@ public final class AiAttemptOrchestrator {
                     error instanceof AiTransportException
                             ? AiProxyAttemptEvent.Reason.RETRY_TRANSPORT : AiProxyAttemptEvent.Reason.RETRY_STATUS,
                     retryAfter);
-            return Mono.delay(delay).then(attempt(plan.nextRetry()));
+            return Mono.delay(delay).then(attempt(plan.nextRetry(), new AttemptPosition(currentAttempt, plan.phase())));
         });
     }
 
@@ -291,7 +296,7 @@ public final class AiAttemptOrchestrator {
             plan.execution().request().activeUpstream().select(fallbackConfig);
             AiPreparedExchange fallbackExchange = exchangePlanner.prepare(
                     plan.execution().request().payload().body(), fallbackConfig);
-            return attempt(plan.forFallback(fallbackExchange));
+            return attempt(plan.forFallback(fallbackExchange), new AttemptPosition(currentAttempt, plan.phase()));
         });
     }
 
@@ -307,5 +312,8 @@ public final class AiAttemptOrchestrator {
 
     private static boolean fallbackProviderDeclaredReplaySafe(final AiAttemptPlan plan) {
         return plan.fallback().map(AiAttemptPlan.FallbackPlan::providerDeclaredReplaySafe).orElse(false);
+    }
+
+    private record AttemptPosition(int index, AiProxyAttemptEvent.Phase phase) {
     }
 }
