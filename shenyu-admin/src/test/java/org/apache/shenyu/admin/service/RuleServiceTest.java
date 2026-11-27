@@ -355,6 +355,29 @@ public final class RuleServiceTest {
     }
 
     @Test
+    public void testAiRequestIdCreateRejectsUnknownHandleFieldBeforeWrite() {
+        mockAiRequestIdPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"unexpected\":true}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testAiRequestIdCreateAcceptsValidHandle() {
+        mockAiRequestIdPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"responseHeaderEnabled\":false}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    @Test
     public void testAgentGatewayCreateAcceptsValidHandle() {
         mockAgentGatewayPlugin();
         RuleDTO ruleDTO = buildRuleDTO("");
@@ -463,6 +486,14 @@ public final class RuleServiceTest {
         given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
                 .id("789")
                 .name(PluginEnum.REWRITE.getName())
+                .build());
+    }
+
+    private void mockAiRequestIdPlugin() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
+                .id("789")
+                .name(PluginEnum.AI_REQUEST_ID.getName())
                 .build());
     }
 

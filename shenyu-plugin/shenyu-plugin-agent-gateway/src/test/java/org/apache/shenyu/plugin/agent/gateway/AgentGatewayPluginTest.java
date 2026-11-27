@@ -40,6 +40,7 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -64,8 +65,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 class AgentGatewayPluginTest {
 
@@ -161,9 +164,11 @@ class AgentGatewayPluginTest {
         ServerWebExchange exchange = newExchange();
         AtomicReference<AgentTrafficContext> reactorContext = new AtomicReference<>();
         AtomicReference<AgentTrafficContext> exchangeContext = new AtomicReference<>();
+        AtomicReference<AgentRequestContext> requestContext = new AtomicReference<>();
         ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
             reactorContext.set(context.get(AgentGatewayConstants.REACTOR_CONTEXT_KEY));
             exchangeContext.set(next.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE));
+            requestContext.set(next.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
             return Mono.empty();
         });
 
@@ -175,7 +180,138 @@ class AgentGatewayPluginTest {
         assertEquals("LLM", exchangeContext.get().getTrafficType());
         assertEquals("selector-1", exchangeContext.get().getSelectorId());
         assertEquals("rule-1", exchangeContext.get().getRuleId());
+        assertNotNull(requestContext.get());
+        assertEquals(exchangeContext.get().getRequestId(), requestContext.get().getRequestId());
+        assertEquals("LLM", requestContext.get().getTrafficType());
         assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+        assertTrue(Objects.isNull(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE)));
+    }
+
+    @Test
+    void shouldReuseAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        AgentRequestContext canonical = new AgentRequestContext("ai-request-id", "llm", "ai-selector", "ai-rule");
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE, canonical);
+        AtomicReference<String> observed = new AtomicReference<>();
+        AtomicReference<AgentRequestContext> installed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            installed.set(next.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertEquals("ai-request-id", observed.get());
+        assertNotNull(installed.get());
+        assertEquals("ai-request-id", installed.get().getRequestId());
+        assertEquals("selector-1", installed.get().getSelectorId());
+        assertEquals("rule-1", installed.get().getRuleId());
+        assertEquals(canonical, exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+    }
+
+    @Test
+    void shouldReuseAiRequestIdFromReactorContextForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}"))
+                        .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY,
+                                new AgentRequestContext("reactor-request-id", "llm", "s", "r"))))
+                .verifyComplete();
+
+        assertEquals("reactor-request-id", observed.get());
+    }
+
+    @Test
+    void shouldReplaceOverlongAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        String overlong = "a".repeat(129);
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext(overlong, "llm", "ai-selector", "ai-rule"));
+        AtomicReference<String> observed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertNotEquals(overlong, observed.get());
+        assertTrue(AgentRequestContext.isReusableRequestId(observed.get()));
+    }
+
+    @Test
+    void shouldReplaceUnsafeAiRequestIdForLlmTraffic() {
+        ServerWebExchange exchange = newExchange();
+        String unsafe = "bad id";
+        AgentRequestContext rejected = new AgentRequestContext(unsafe, "llm", "ai-selector", "ai-rule");
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE, rejected);
+        AtomicReference<String> observed = new AtomicReference<>();
+        AtomicReference<AgentRequestContext> installed = new AtomicReference<>();
+        ShenyuPluginChain chain = next -> Mono.deferContextual(context -> {
+            observed.set(context.<AgentRequestContext>get(AgentRequestContext.REACTOR_KEY).getRequestId());
+            installed.set(next.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+            return Mono.empty();
+        });
+
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector(), rule("{\"trafficType\":\"LLM\"}")))
+                .verifyComplete();
+
+        assertNotEquals(unsafe, observed.get());
+        assertTrue(AgentRequestContext.isReusableRequestId(observed.get()));
+        assertNotNull(installed.get());
+        // The access log sees the replacement, not the rejected value.
+        assertEquals(observed.get(), installed.get().getRequestId());
+        // Ownership is restored after the gateway finishes; the rejected value is not leaked.
+        assertEquals(rejected, exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+    }
+
+    @Test
+    void shouldReturnLegacyHeaderWithReusedAiRequestId() {
+        ServerWebExchange exchange = newExchange();
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("ai-request-id", "llm", "ai-selector", "ai-rule"));
+
+        StepVerifier.create(plugin.doExecute(exchange, next -> exchange.getResponse().setComplete(), selector(),
+                        rule("{\"trafficType\":\"LLM\",\"responseRequestId\":true}")))
+                .verifyComplete();
+
+        assertEquals("ai-request-id", exchange.getResponse().getHeaders()
+                .getFirst(AgentGatewayConstants.REQUEST_ID_HEADER));
+    }
+
+    @Test
+    void shouldKeepFreshRequestIdForMcpTraffic() {
+        AgentMcpHttpHandler handler = mock(AgentMcpHttpHandler.class);
+        AtomicReference<AgentRequestContext> installed = new AtomicReference<>();
+        when(handler.handle(any(), any(), any(), anyLong(), any())).thenAnswer(invocation -> {
+            final ServerWebExchange handledExchange = invocation.getArgument(0);
+            installed.set(handledExchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+            return Mono.empty();
+        });
+        AgentGatewayPlugin mcpPlugin = new AgentGatewayPlugin(handler);
+        ServerWebExchange exchange = newExchange();
+        AgentRequestContext canonical = new AgentRequestContext("ai-request-id", "llm", "ai-selector", "ai-rule");
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE, canonical);
+
+        StepVerifier.create(mcpPlugin.doExecute(exchange, ignored -> Mono.empty(), selector(),
+                        rule("{\"trafficType\":\"mcp\",\"mcp\":{\"allowedTools\":[\"read\"]}}")))
+                .verifyComplete();
+
+        ArgumentCaptor<AgentTrafficContext> captor = ArgumentCaptor.forClass(AgentTrafficContext.class);
+        verify(handler).handle(any(), any(), captor.capture(), anyLong(), any());
+        assertNotEquals("ai-request-id", captor.getValue().getRequestId());
+        assertTrue(Objects.nonNull(captor.getValue().getRequestId()));
+        assertNotNull(installed.get());
+        assertEquals(captor.getValue().getRequestId(), installed.get().getRequestId());
+        assertEquals(canonical, exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
     }
 
     @Test
@@ -314,6 +450,29 @@ class AgentGatewayPluginTest {
     }
 
     @Test
+    void shouldReuseIngressRequestIdInInvalidConfigAudit() {
+        ServerWebExchange exchange = newExchange();
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("ingress-request-id", "llm", "s", "r"));
+        java.util.List<org.apache.shenyu.common.audit.AgentInvocationAuditEvent> audits = new java.util.concurrent.CopyOnWriteArrayList<>();
+        exchange.getAttributes().put(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE,
+                (org.apache.shenyu.common.audit.AgentInvocationAuditObserver) audits::add);
+        RuleData invalidRule = RuleData.builder()
+                .id("rule-1")
+                .selectorId("selector-1")
+                .handle("{\"trafficType\":\"MCP\"}")
+                .build();
+
+        StepVerifier.create(plugin.doExecute(exchange, next -> Mono.empty(), selector(), invalidRule))
+                .verifyComplete();
+
+        assertEquals(1, audits.size());
+        assertEquals("ingress-request-id", audits.get(0).getRequestId());
+        assertEquals("INVALID_CONFIGURATION", audits.get(0).getReason());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
     void shouldIgnoreUnknownRuleHandleFieldOnRequestPath() {
         ServerWebExchange exchange = newExchange();
         AtomicBoolean called = new AtomicBoolean();
@@ -345,6 +504,7 @@ class AgentGatewayPluginTest {
         assertEquals(2, calls.get());
         assertEquals(2, requestIds.size());
         assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+        assertTrue(Objects.isNull(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE)));
     }
 
     @Test
@@ -359,6 +519,7 @@ class AgentGatewayPluginTest {
 
         assertTrue(cancelled.get());
         assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+        assertTrue(Objects.isNull(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE)));
     }
 
     @Test
@@ -385,6 +546,7 @@ class AgentGatewayPluginTest {
             throw new IllegalStateException("chain failed before returning a publisher");
         }, selector(), rule("rule-1"))).expectError(IllegalStateException.class).verify();
         assertTrue(Objects.isNull(exchange.getAttribute(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE)));
+        assertTrue(Objects.isNull(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE)));
     }
 
     @Test

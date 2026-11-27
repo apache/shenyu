@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
@@ -296,6 +297,62 @@ class AiProxyEngineOrchestrationTest {
                 new AiProxyAttemptEvent(invocationId, 0, AiProxyAttemptEvent.Phase.PRIMARY,
                         AiProxyAttemptEvent.Reason.RETRY_STATUS, Duration.ofSeconds(1)),
                 new AiProxyAttemptEvent(invocationId, 1, AiProxyAttemptEvent.Phase.PRIMARY,
+                        AiProxyAttemptEvent.Reason.COMPLETED, null)), events);
+    }
+
+    @Test
+    void attemptEventsReuseTheInstalledLogicalRequestId() {
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                        protocolRouteResolver(), request -> Mono.just(response(200, Flux.just(bytes("ok")))))
+                .retryProperties(retryProperties(Duration.ZERO, Duration.ofMinutes(1)))
+                .attemptListener(events::add)
+                .build();
+        AgentRequestContext context = new AgentRequestContext("gateway-request-id", "llm", "selector", "rule");
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.empty(),
+                                response -> response.getBody().then())
+                        .contextWrite(view -> view.put(AgentRequestContext.REACTOR_KEY, context)))
+                .verifyComplete();
+
+        assertFalse(events.isEmpty());
+        assertTrue(events.stream().allMatch(event -> "gateway-request-id".equals(event.invocationId())));
+    }
+
+    @Test
+    void installedRequestIdSurvivesRetryAndFallbackWithDistinctAttemptIndexes() {
+        List<AiProxyAttemptEvent> events = new ArrayList<>();
+        AiProxyRetryProperties properties = retryProperties(Duration.ZERO, Duration.ofMinutes(1));
+        properties.setMaxRetries(1);
+        AtomicInteger primaryCalls = new AtomicInteger();
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                        protocolRouteResolver(), request -> {
+                            String body = new String(request.getBody(), StandardCharsets.UTF_8);
+                            if (body.contains("\"model\":\"fallback\"")) {
+                                return Mono.just(response(200, Flux.just(bytes("ok"))));
+                            }
+                            primaryCalls.incrementAndGet();
+                            return Mono.just(response(429, Flux.just(bytes("busy"))));
+                        })
+                .retryProperties(properties)
+                .attemptListener(events::add)
+                .build();
+        AgentRequestContext context = new AgentRequestContext("gateway-request-id", "llm", "selector", "rule");
+
+        StepVerifier.create(engine.execute(BODY, config(false, "main"), Optional.of(config(false, "fallback")),
+                                response -> response.getBody().then())
+                        .contextWrite(view -> view.put(AgentRequestContext.REACTOR_KEY, context)))
+                .verifyComplete();
+
+        assertEquals(2, primaryCalls.get());
+        assertEquals(List.of(
+                new AiProxyAttemptEvent("gateway-request-id", 0, AiProxyAttemptEvent.Phase.PRIMARY,
+                        AiProxyAttemptEvent.Reason.RETRY_STATUS, null),
+                new AiProxyAttemptEvent("gateway-request-id", 1, AiProxyAttemptEvent.Phase.PRIMARY,
+                        AiProxyAttemptEvent.Reason.FALLBACK_STATUS, null),
+                new AiProxyAttemptEvent("gateway-request-id", 2, AiProxyAttemptEvent.Phase.FALLBACK,
                         AiProxyAttemptEvent.Reason.COMPLETED, null)), events);
     }
 

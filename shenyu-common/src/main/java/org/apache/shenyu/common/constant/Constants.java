@@ -30,6 +30,11 @@ public interface Constants {
     String X_SHENYU_DISCOVERY_PAYLOAD = "X-Shenyu-Discovery-Payload";
 
     /**
+     * Canonical response header carrying the gateway AI request correlation id.
+     */
+    String X_SHENYU_AI_REQUEST_ID = "X-Shenyu-Ai-Request-Id";
+
+    /**
      * Version one of the compact Discovery projection.
      */
     String COMPACT_DISCOVERY_PAYLOAD_V1 = "compact-v1";

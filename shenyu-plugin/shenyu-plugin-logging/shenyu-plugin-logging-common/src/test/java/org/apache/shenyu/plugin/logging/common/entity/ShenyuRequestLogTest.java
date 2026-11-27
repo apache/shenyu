@@ -171,6 +171,19 @@ public class ShenyuRequestLogTest {
     }
 
     @Test
+    public void testRequestId() {
+        shenyuRequestLog.setRequestId("shenyu-ai-request-id");
+        Assertions.assertEquals(shenyuRequestLog.getRequestId(), "shenyu-ai-request-id");
+        Assertions.assertTrue(shenyuRequestLog.toString().contains("requestId=shenyu-ai-request-id"));
+    }
+
+    @Test
+    public void testRequestIdIsSerialized() {
+        shenyuRequestLog.setRequestId("shenyu-ai-request-id");
+        Assertions.assertTrue(GsonUtils.getInstance().toJson(shenyuRequestLog).contains("\"requestId\":\"shenyu-ai-request-id\""));
+    }
+
+    @Test
     public void testPath() {
         shenyuRequestLog.setPath("/shenyu/plugin");
         Assertions.assertEquals(shenyuRequestLog.getPath(), "/shenyu/plugin");

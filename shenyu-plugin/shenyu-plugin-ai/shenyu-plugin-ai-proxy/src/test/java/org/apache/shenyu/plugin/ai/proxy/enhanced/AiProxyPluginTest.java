@@ -398,6 +398,45 @@ class AiProxyPluginTest {
     }
 
     @Test
+    void standaloneProxyKeepsLogicalRequestIdAndRefreshesRouteIdentity() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AiProxyPlugin plugin = plugin(request -> Mono.just(response(200, "{}")), events::add);
+        final MockServerWebExchange current = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/test").body(REQUEST_BODY));
+        final AgentRequestContext correlation = new AgentRequestContext(
+                "correlation-id", "llm", "aiRequestId-selector", "aiRequestId-rule");
+        rule.setId("proxy-rule");
+
+        StepVerifier.create(plugin.doExecute(current, ignored -> Mono.empty(), selector, rule)
+                        .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, correlation)))
+                .verifyComplete();
+
+        assertEquals(1, events.size());
+        assertEquals("correlation-id", events.get(0).context().getRequestId());
+        assertEquals(SELECTOR_ID, events.get(0).context().getSelectorId());
+        assertEquals("proxy-rule", events.get(0).context().getRuleId());
+    }
+
+    @Test
+    void standaloneProxyReplacesUnsafeExistingRequestId() {
+        final List<AiTerminalEvent> events = new ArrayList<>();
+        final AiProxyPlugin plugin = plugin(request -> Mono.just(response(200, "{}")), events::add);
+        final MockServerWebExchange current = MockServerWebExchange.from(
+                MockServerHttpRequest.post("/test").body(REQUEST_BODY));
+        final AgentRequestContext unsafe = new AgentRequestContext(
+                "bad id", "llm", "aiRequestId-selector", "aiRequestId-rule");
+        rule.setId("proxy-rule");
+
+        StepVerifier.create(plugin.doExecute(current, ignored -> Mono.empty(), selector, rule)
+                        .contextWrite(context -> context.put(AgentRequestContext.REACTOR_KEY, unsafe)))
+                .verifyComplete();
+
+        assertEquals(1, events.size());
+        assertNotEquals("bad id", events.get(0).context().getRequestId());
+        assertTrue(AgentRequestContext.isReusableRequestId(events.get(0).context().getRequestId()));
+    }
+
+    @Test
     void gatewayStateIsReusedWithoutDoubleTerminalEmission() {
         final List<AiTerminalEvent> events = new ArrayList<>();
         final AiRequestObservation owner = new AiRequestObservation(events::add,

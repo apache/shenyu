@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.logging.common.body;
 
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
@@ -37,6 +38,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -116,6 +119,29 @@ public class LoggingServerHttpResponseTest {
         method.setAccessible(true);
         String traceId = (String) method.invoke(loggingServerHttpResponse);
         Assertions.assertEquals(traceId, "shenyu-agent-trace-id");
+    }
+
+    @Test
+    public void testGetRequestId() throws Exception {
+        loggingServerHttpResponse.setExchange(exchange);
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("shenyu-ai-request-id", "llm", "selector", "rule"));
+        Method method = loggingServerHttpResponse.getClass().getDeclaredMethod("getRequestId");
+        method.setAccessible(true);
+        Assertions.assertEquals("shenyu-ai-request-id", method.invoke(loggingServerHttpResponse));
+    }
+
+    @Test
+    public void testResponseLogCarriesRequestId() {
+        exchange.getAttributes().put(AgentRequestContext.EXCHANGE_ATTRIBUTE,
+                new AgentRequestContext("shenyu-ai-request-id", "llm", "selector", "rule"));
+        loggingServerHttpResponse.setExchange(exchange);
+
+        StepVerifier.create(loggingServerHttpResponse.writeWith(Flux.just(
+                        exchange.getResponse().bufferFactory().wrap("ok".getBytes(StandardCharsets.UTF_8)))))
+                .verifyComplete();
+
+        Assertions.assertEquals("shenyu-ai-request-id", requestInfo.getRequestId());
     }
 
     @Test

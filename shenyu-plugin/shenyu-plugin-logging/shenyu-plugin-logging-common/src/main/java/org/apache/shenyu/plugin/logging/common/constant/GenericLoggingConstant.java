@@ -150,6 +150,11 @@ public class GenericLoggingConstant {
     public static final String TRACE_ID = "traceId";
 
     /**
+     * logging AI request id.
+     */
+    public static final String REQUEST_ID = "requestId";
+
+    /**
      * logging path.
      */
     public static final String PATH = "path";

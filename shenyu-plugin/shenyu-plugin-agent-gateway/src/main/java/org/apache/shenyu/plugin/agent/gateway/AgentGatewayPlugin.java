@@ -38,11 +38,14 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
+import reactor.util.context.ContextView;
 
 import java.util.Objects;
 import java.util.List;
@@ -53,6 +56,8 @@ import java.util.UUID;
  * and continuing LLM traffic to the existing AI proxy chain.
  */
 public class AgentGatewayPlugin extends AbstractShenyuPlugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AgentGatewayPlugin.class);
 
     private final AgentGatewayRuleHandleParser parser = new AgentGatewayRuleHandleParser();
 
@@ -83,25 +88,34 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         if (Boolean.FALSE.equals(selector.getContinued())) {
             return chain.execute(exchange);
         }
-        return Mono.defer(() -> {
+        return Mono.deferContextual(view -> {
             final AgentGatewayRuleHandle handle = resolveHandle(rule);
             if (!handle.isValid()) {
                 return reject(exchange, handle.getErrorMessage(), selector, rule);
             }
+            // LLM traffic reuses the id established by the AI request id plugin; MCP keeps its own entry.
             final AgentTrafficContext context = new AgentTrafficContext(
-                    UUID.randomUUID().toString(), handle.getTrafficType(), selector.getId(), rule.getId());
+                    requestId(exchange, view, handle.getTrafficType()), handle.getTrafficType(), selector.getId(), rule.getId());
+            final AgentRequestContext requestContext = context.toRequestContext(handle.getGeneration());
             final Object previousContext = exchange.getAttributes()
                     .put(AgentGatewayConstants.REQUEST_CONTEXT_ATTRIBUTE, context);
+            // Access logging reads this attribute at response time. Install the resolved id even
+            // when aiRequestId is absent or replaced a non-reusable value, then restore ownership.
+            final Object previousRequestContext = exchange.getAttributes()
+                    .put(AgentRequestContext.EXCHANGE_ATTRIBUTE, requestContext);
             if (handle.isResponseRequestId()) {
                 registerResponseRequestId(exchange, context.getRequestId());
             }
             return Mono.defer(() -> "mcp".equals(handle.getTrafficType())
                     ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration(),
                             new AgentHttpToolExecutor(exchange, chain, handle.getMcp().getMaxRequestBytes(), handle.getMcp().getMaxResponseBytes()))
-                    : handleLlm(exchange, chain, context.toRequestContext(handle.getGeneration())))
+                    : handleLlm(exchange, chain, requestContext))
                     .contextWrite(reactorContext -> reactorContext.put(AgentGatewayConstants.REACTOR_CONTEXT_KEY, context)
-                            .put(AgentRequestContext.REACTOR_KEY, context.toRequestContext(handle.getGeneration())))
-                    .doFinally(signal -> restorePreviousContext(exchange, previousContext, context));
+                            .put(AgentRequestContext.REACTOR_KEY, requestContext))
+                    .doFinally(signal -> {
+                        restoreRequestContext(exchange, previousRequestContext, requestContext);
+                        restorePreviousContext(exchange, previousContext, context);
+                    });
         });
     }
 
@@ -131,6 +145,18 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
                     .doFinally(signal -> observation.finish(signal, Objects.isNull(exchange.getResponse().getStatusCode())
                             ? null : exchange.getResponse().getStatusCode().value()));
         });
+    }
+
+    private void restoreRequestContext(final ServerWebExchange exchange, final Object previousContext,
+                                       final AgentRequestContext currentContext) {
+        // Same ownership discipline as the traffic context: never clear a value installed by
+        // another execution on this exchange.
+        if (Objects.isNull(previousContext)) {
+            exchange.getAttributes().remove(AgentRequestContext.EXCHANGE_ATTRIBUTE, currentContext);
+        } else {
+            exchange.getAttributes().replace(AgentRequestContext.EXCHANGE_ATTRIBUTE, currentContext,
+                    previousContext);
+        }
     }
 
     private void restorePreviousContext(final ServerWebExchange exchange, final Object previousContext,
@@ -165,12 +191,40 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
         });
     }
 
+    private String requestId(final ServerWebExchange exchange, final ContextView view, final String trafficType) {
+        if ("mcp".equals(trafficType)) {
+            return UUID.randomUUID().toString();
+        }
+        final String attributed = contextRequestId(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+        if (AgentRequestContext.isReusableRequestId(attributed)) {
+            return attributed;
+        }
+        final String subscribed = contextRequestId(view.getOrDefault(AgentRequestContext.REACTOR_KEY, null));
+        if (AgentRequestContext.isReusableRequestId(subscribed)) {
+            return subscribed;
+        }
+        if (Objects.nonNull(attributed) || Objects.nonNull(subscribed)) {
+            // Never log the rejected value; it may contain characters unsafe for log output.
+            LOG.warn("Replacing an invalid existing AI request id on the Agent Gateway path");
+        }
+        return UUID.randomUUID().toString();
+    }
+
+    private String contextRequestId(final Object value) {
+        return value instanceof AgentRequestContext context ? context.getRequestId() : null;
+    }
+
+    private String rejectRequestId(final ServerWebExchange exchange) {
+        final String existing = contextRequestId(exchange.getAttribute(AgentRequestContext.EXCHANGE_ATTRIBUTE));
+        return AgentRequestContext.isReusableRequestId(existing) ? existing : UUID.randomUUID().toString();
+    }
+
     private Mono<Void> reject(final ServerWebExchange exchange, final String reason, final SelectorData selector, final RuleData rule) {
         exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         final Object error = ShenyuResultWrap.error(exchange, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 AgentGatewayConstants.CONFIG_INVALID_CODE + ": " + reason, null);
         long started = System.nanoTime();
-        String requestId = UUID.randomUUID().toString();
+        String requestId = rejectRequestId(exchange);
         return WebFluxResultUtils.result(exchange, error).doFinally(signal -> {
             Object callback = exchange.getAttribute(org.apache.shenyu.common.audit.AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE);
             if (callback instanceof org.apache.shenyu.common.audit.AgentInvocationAuditObserver audit) {

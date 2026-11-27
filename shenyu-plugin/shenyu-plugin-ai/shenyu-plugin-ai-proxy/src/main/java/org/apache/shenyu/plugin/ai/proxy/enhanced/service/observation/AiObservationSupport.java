@@ -21,6 +21,8 @@ import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import reactor.util.context.ContextView;
 
@@ -33,11 +35,16 @@ import java.util.concurrent.TimeoutException;
  */
 public final class AiObservationSupport {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AiObservationSupport.class);
+
     private AiObservationSupport() {
     }
 
     /**
      * Resolve only subscription context; never recover identities from exchange attributes or headers.
+     * When the observation owner supplies matched selector/rule ids, refresh those fields while
+     * preserving the existing logical request id.
+     *
      * @param view Reactor context
      * @param selectorId matched AI selector for standalone requests
      * @param ruleId matched AI rule for standalone requests
@@ -45,7 +52,20 @@ public final class AiObservationSupport {
      */
     public static AgentRequestContext context(final ContextView view, final String selectorId, final String ruleId) {
         Object value = view.getOrDefault(AgentRequestContext.REACTOR_KEY, null);
-        return value instanceof AgentRequestContext context ? context : new AgentRequestContext(UUID.randomUUID().toString(), "llm", selectorId, ruleId);
+        if (value instanceof AgentRequestContext context) {
+            if (!AgentRequestContext.isReusableRequestId(context.getRequestId())) {
+                // Never log the rejected value; it may contain characters unsafe for log output.
+                LOG.warn("Replacing an invalid existing AI request id in AI Proxy");
+                final AgentRequestContext replaced = context.withRequestId(UUID.randomUUID().toString());
+                return Objects.isNull(selectorId) && Objects.isNull(ruleId)
+                        ? replaced
+                        : replaced.withSelectorAndRule(selectorId, ruleId);
+            }
+            return Objects.isNull(selectorId) && Objects.isNull(ruleId)
+                    ? context
+                    : context.withSelectorAndRule(selectorId, ruleId);
+        }
+        return new AgentRequestContext(UUID.randomUUID().toString(), "llm", selectorId, ruleId);
     }
 
     /**

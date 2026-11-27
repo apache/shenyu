@@ -27,7 +27,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -97,7 +96,7 @@ public record AiExecutionState(
 
         private final AtomicInteger attemptIndex = new AtomicInteger();
 
-        private final String invocationId = UUID.randomUUID().toString();
+        private final String invocationId;
 
         private final RequestDeadline requestDeadline;
 
@@ -106,6 +105,9 @@ public record AiExecutionState(
         public AttemptLifecycle(final RequestDeadline requestDeadline, final AiRequestObservation observation) {
             this.requestDeadline = Objects.requireNonNull(requestDeadline, "requestDeadline must not be null");
             this.observation = Objects.requireNonNull(observation, "observation must not be null");
+            // Attempt events share the installed logical request id, so retries and fallbacks
+            // stay correlated with the response header and audit events.
+            this.invocationId = observation.getContext().getRequestId();
         }
 
         public int nextAttemptIndex() {
