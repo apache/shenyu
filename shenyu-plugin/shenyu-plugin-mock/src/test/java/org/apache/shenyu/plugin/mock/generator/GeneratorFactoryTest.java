@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -54,6 +55,16 @@ public class GeneratorFactoryTest {
         String content = GeneratorFactory.dealRule("${expression|'" + value + "'}", null);
 
         assertThat(content, is(JsonUtils.toJson(value)));
+    }
+
+    @Test
+    public void testJsonRequestBodyUsesUtf8() {
+        String body = "{\"city\":\"北京\"}";
+        MockRequest request = MockRequest.Builder.builder().body(body.getBytes(StandardCharsets.UTF_8)).build();
+
+        String result = GeneratorFactory.dealRule("{\"city\":${expression|#req.json['city']}}", request);
+
+        assertThat(JsonUtils.jsonToMap(result).get("city"), is("北京"));
     }
 
     @Test
