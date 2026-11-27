@@ -60,6 +60,10 @@
                 <os>
                     <name>Linux</name>
                 </os>
+                <property>
+                    <name>maven.test.skip</name>
+                    <value>!true</value>
+                </property>
             </activation>
             <build>
                 <plugins>
