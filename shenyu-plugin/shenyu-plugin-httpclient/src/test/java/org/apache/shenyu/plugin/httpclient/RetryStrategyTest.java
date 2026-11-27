@@ -319,7 +319,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverReleasesTheFailedAttemptImmediately() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-8158-fail");
@@ -345,7 +345,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverKeepsTheSucceededAttemptOwnedUntilTheTerminalRelease() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-8158-own");
@@ -374,7 +374,7 @@ public class RetryStrategyTest {
 
     @Test
     void testTwoCandidateFailoverReleasesEachAttemptAndHoldsTheFinalOne() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-8158-chain");
@@ -413,7 +413,7 @@ public class RetryStrategyTest {
 
     @Test
     void testBackoffReleasesTheFailedAttemptBeforeResend() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-8158-backoff");
@@ -446,7 +446,7 @@ public class RetryStrategyTest {
 
     @Test
     void testSynchronousResendFailureReleasesTheSelectedAttempt() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-8158-sync");
@@ -471,7 +471,7 @@ public class RetryStrategyTest {
 
     @Test
     void testLegacyRetryAccountingIsPreservedWithoutAnOwner() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-8158-legacy");
@@ -494,7 +494,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverReleasesShortestResponseInflight() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "shortestResponse");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7973-retry");
@@ -527,7 +527,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverReleasesShortestResponseInflightOnSingletonRetry() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "shortestResponse");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7973-retry-single");
@@ -556,7 +556,7 @@ public class RetryStrategyTest {
 
     @Test
     void testFailoverKeepsShortestResponseOwnedUntilTerminalRelease() {
-        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        AbstractHttpClientPlugin<String> plugin = mockWithAttemptPassthrough();
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         exchange.getAttributes().put(Constants.LOAD_BALANCE, "shortestResponse");
         exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-7973-owned");

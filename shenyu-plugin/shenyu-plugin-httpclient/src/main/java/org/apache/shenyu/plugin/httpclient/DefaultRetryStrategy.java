@@ -236,9 +236,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             Mono<R> retryResponse = httpClientPlugin.observeAttempt(exchange, newUri, exchange.getRequest().getMethod().name(),
                     AbstractHttpClientPlugin.withAttemptTimeout(exchange, duration,
                             () -> httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange)))
-                            .doOnError(e -> LOG.error(e.getMessage(), e));
-                    () -> httpClientPlugin.doRequest(exchange, exchange.getRequest().getMethod().name(), newUri, httpClientPlugin.getCachedRequestBody(exchange)))
-                    .doOnError(e -> LOG.error(e.getMessage(), e));
+                            .doOnError(e -> LOG.error(e.getMessage(), e)));
             if (ownerPresent) {
                 retryResponse = retryResponse.doFinally(signal -> {
                     if (signal != SignalType.ON_COMPLETE) {

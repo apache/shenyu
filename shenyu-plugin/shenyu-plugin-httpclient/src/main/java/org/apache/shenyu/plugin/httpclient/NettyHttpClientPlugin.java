@@ -160,12 +160,12 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     if (Objects.nonNull(attempt)) {
                         attempt.onAbandon(connection::dispose);
                     }
+                    // record the headers at the transport's response-header boundary, before a
+                    // retryable status is turned into an error, so a failed attempt keeps its
+                    // status and its time to headers (#8209)
+                    recordUpstreamHeaders(exchange, res.status().code());
                     if (shouldFailover(exchange, res.status().code())) {
-                        return connection.inbound().receive().doOnComplete(() -> {
-                            if (Objects.nonNull(attempt)) {
-                                attempt.received();
-                            }
-                        }).then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
+                        return failoverDrain(connection, res, attempt);
                     }
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);
@@ -193,6 +193,24 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     });
                     return Mono.just(res);
                 }));
+    }
+
+    /**
+     * Drain the retryable response and turn it into an error so the retry policy can fail over,
+     * marking the attempt received once the rejected body has fully drained.
+     *
+     * @param connection the upstream connection
+     * @param res the rejected upstream response
+     * @param attempt the current attempt deadline, or null
+     * @return the error completing once the rejected body has drained
+     */
+    private Mono<HttpClientResponse> failoverDrain(final reactor.netty.Connection connection,
+                                                   final HttpClientResponse res, final HttpRouteDeadline attempt) {
+        return connection.inbound().receive().doOnComplete(() -> {
+            if (Objects.nonNull(attempt)) {
+                attempt.received();
+            }
+        }).then(Mono.error(new ShenyuUpstreamStatusException(res.status().code())));
     }
 
     /**

@@ -176,8 +176,14 @@ class HttpClientFailoverTest {
             assertTwoAttemptsAreDistinct(observer);
             assertEquals(UpstreamAttemptObservation.Outcome.ERROR, observer.observations.get(0).getOutcome(),
                     "the initial upstream attempt failed and must keep its own record");
+            assertEquals(Integer.valueOf(503), observer.observations.get(0).getHeadersStatus(),
+                    "the retryable 503 arrived with headers before the transport turned it into an error, so the failed attempt keeps its status");
+            assertTrue(observer.observations.get(0).getHeadersReadyNanos() > 0,
+                    "the failed attempt keeps its time to headers");
             assertEquals(UpstreamAttemptObservation.Outcome.COMPLETED, observer.observations.get(1).getOutcome(),
                     "the failover attempt succeeded and must not overwrite the initial attempt");
+            assertEquals(Integer.valueOf(200), observer.observations.get(1).getHeadersStatus(),
+                    "the successful failover attempt records its own headers status");
         } finally {
             UpstreamAttemptObserverHolder.unregister();
         }

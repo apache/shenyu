@@ -191,8 +191,13 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
             return attempt
                     .doOnNext(r -> {
                         try {
-                            observation.markHeadersReady(extractStatusCode(r));
-                            observer.onHeadersReady(observation);
+                            // the transport records the headers at its response-header boundary
+                            // (Netty responseConnection / WebClient onRawStatus), before a retryable
+                            // status is turned into an error; this emission only covers transports
+                            // without such a hook, and the first record wins
+                            if (observation.markHeadersReady(extractStatusCode(r))) {
+                                observer.onHeadersReady(observation);
+                            }
                         } catch (RuntimeException e) {
                             LOG.warn("upstream attempt observer failed on headers ready", e);
                         }
@@ -208,6 +213,33 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                         }
                     });
         });
+    }
+
+    /**
+     * Records the response headers of the current transport attempt at the transport's
+     * response-header boundary, before a retryable status is turned into an error. Both
+     * HTTP clients convert a retryable response such as a 503 into an error after its
+     * headers arrived; recording here keeps the failed attempt's status and its time to
+     * headers instead of losing them with the error (#8209).
+     *
+     * @param exchange the current exchange
+     * @param statusCode the status code received with the headers
+     */
+    protected void recordUpstreamHeaders(final ServerWebExchange exchange, final int statusCode) {
+        if (!UpstreamAttemptObserverHolder.isInstrumented()) {
+            return;
+        }
+        final UpstreamAttemptObservation observation = exchange.getAttribute(UpstreamAttemptObservation.CURRENT_ATTRIBUTE);
+        if (Objects.isNull(observation)) {
+            return;
+        }
+        try {
+            if (observation.markHeadersReady(statusCode)) {
+                UpstreamAttemptObserverHolder.get().onHeadersReady(observation);
+            }
+        } catch (RuntimeException e) {
+            LOG.warn("upstream attempt observer failed on headers ready", e);
+        }
     }
 
     private void finishObservedAttempt(final ServerWebExchange exchange, final reactor.core.publisher.SignalType signalType) {

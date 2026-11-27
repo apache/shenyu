@@ -89,6 +89,8 @@ public final class UpstreamAttemptObservation {
 
     private final AtomicBoolean finished = new AtomicBoolean();
 
+    private final AtomicBoolean headersMarked = new AtomicBoolean();
+
     private volatile Integer headersStatus;
 
     private volatile long headersReadyNanos;
@@ -120,14 +122,21 @@ public final class UpstreamAttemptObservation {
     }
 
     /**
-     * Record the response headers becoming ready. A later error means the body did not
-     * complete and must not be counted as a fully successful attempt (#8209).
+     * Record the response headers becoming ready. The first record wins, so the transport's
+     * response-header boundary and any later emission of the response object agree on one
+     * headers-ready fact; the earliest timestamp is the time to headers. A later error means
+     * the body did not complete and must not be counted as a fully successful attempt (#8209).
      *
      * @param status the response status code
+     * @return true when this call recorded the fact; false when headers were already recorded
      */
-    public void markHeadersReady(final Integer status) {
+    public boolean markHeadersReady(final Integer status) {
+        if (!headersMarked.compareAndSet(false, true)) {
+            return false;
+        }
         this.headersStatus = status;
         this.headersReadyNanos = System.nanoTime();
+        return true;
     }
 
     /**
