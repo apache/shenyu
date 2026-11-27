@@ -127,6 +127,33 @@ class SwaggerDocRequestBodyTest {
         assertEquals(List.of("id", "quantity", "note"), item.getResponseParameters().stream().map(DocParameter::getName).toList());
     }
 
+    @Test
+    void resolvesLocalRequestFieldReferencesBeforeCheckingReadOnlyAndRequired() {
+        DocItem item = parseDocItem("""
+                {"openapi":"3.0.3","info":{"title":"Orders","version":"1"},
+                 "paths":{"/orders":{"post":{
+                   "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}},
+                   "responses":{"201":{"description":"Created"}}
+                 }}},
+                 "components":{"schemas":{
+                   "Order":{"type":"object","required":["id","product"],"properties":{
+                     "id":{"$ref":"#/components/schemas/Id"},
+                     "product":{"$ref":"#/components/schemas/Product"},
+                     "note":{"type":"string"}
+                   }},
+                   "Id":{"type":"string","readOnly":true},
+                   "Product":{"type":"string","description":"Product code"}
+                 }}}
+                """);
+        DocParameter body = item.getRequestParameters().get(0);
+        assertFalse(body.isRequired());
+        assertEquals(List.of("product", "note"), body.getRefs().stream().map(DocParameter::getName).toList());
+        assertEquals("string", body.getRefs().get(0).getType());
+        assertEquals("Product code", body.getRefs().get(0).getDescription());
+        assertTrue(body.getRefs().get(0).isRequired());
+        assertFalse(body.getRefs().get(1).isRequired());
+    }
+
     @ParameterizedTest
     @CsvSource({"false,false", "true,true", ",false"})
     void preservesBodyAndFieldRequirementsInTheStoredDocument(final String required, final boolean expectedBodyRequired) {

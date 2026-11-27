@@ -251,18 +251,9 @@ public class SwaggerDocParser implements DocParser {
         if (Objects.isNull(schema)) {
             return Optional.empty();
         }
-        JsonElement ref = schema.get("$ref");
-        if (Objects.nonNull(ref)) {
-            if (!ref.isJsonPrimitive() || !ref.getAsJsonPrimitive().isString()) {
-                return Optional.empty();
-            }
-            String schemaName = getLocalOpenApiSchemaName(ref.getAsString());
-            JsonObject definitions = getSchemaDefinitions(docRoot, SwaggerVersion.V3);
-            JsonElement model = Objects.isNull(definitions) || Objects.isNull(schemaName) || schemaName.isEmpty() ? null : definitions.get(schemaName);
-            if (Objects.isNull(model) || !model.isJsonObject()) {
-                return Optional.empty();
-            }
-            schema = model.getAsJsonObject();
+        schema = resolveRequestSchema(schema, docRoot);
+        if (Objects.isNull(schema)) {
+            return Optional.empty();
         }
         JsonElement type = schema.get("type");
         if (Objects.isNull(type) ? !schema.has("properties") : !type.isJsonPrimitive() || !"object".equals(type.getAsString())) {
@@ -273,11 +264,36 @@ public class SwaggerDocParser implements DocParser {
         body.setType("object");
         JsonElement required = requestBody.get("required");
         body.setRequired(Objects.nonNull(required) && required.isJsonPrimitive() && required.getAsJsonPrimitive().isBoolean() && required.getAsBoolean());
-        body.setRefs(buildRequestBodyFields(schema));
+        body.setRefs(buildRequestBodyFields(schema, docRoot));
         return Optional.of(body);
     }
 
-    private List<DocParameter> buildRequestBodyFields(final JsonObject schema) {
+    private JsonObject resolveRequestSchema(final JsonObject schema, final JsonObject docRoot) {
+        JsonElement ref = schema.get("$ref");
+        if (Objects.isNull(ref)) {
+            return schema;
+        }
+        if (!ref.isJsonPrimitive() || !ref.getAsJsonPrimitive().isString()) {
+            return null;
+        }
+        String schemaName = getLocalOpenApiSchemaName(ref.getAsString());
+        if (Objects.isNull(schemaName) || schemaName.isEmpty()) {
+            return null;
+        }
+        JsonObject definitions = getSchemaDefinitions(docRoot, SwaggerVersion.V3);
+        JsonElement model = Objects.isNull(definitions) ? null : definitions.get(schemaName);
+        if (Objects.isNull(model) || !model.isJsonObject() || model.getAsJsonObject().has("$ref")) {
+            return null;
+        }
+        return model.getAsJsonObject();
+    }
+
+    private boolean isReadOnly(final JsonObject schema) {
+        JsonElement readOnly = schema.get("readOnly");
+        return Objects.nonNull(readOnly) && readOnly.isJsonPrimitive() && readOnly.getAsJsonPrimitive().isBoolean() && readOnly.getAsBoolean();
+    }
+
+    private List<DocParameter> buildRequestBodyFields(final JsonObject schema, final JsonObject docRoot) {
         JsonObject properties = schema.getAsJsonObject("properties");
         if (Objects.isNull(properties)) {
             return Collections.emptyList();
@@ -288,11 +304,13 @@ public class SwaggerDocParser implements DocParser {
             if (!property.getValue().isJsonObject()) {
                 continue;
             }
-            JsonObject field = property.getValue().getAsJsonObject();
-            JsonElement readOnly = field.get("readOnly");
+            JsonObject propertySchema = property.getValue().getAsJsonObject();
+            JsonObject field = resolveRequestSchema(propertySchema, docRoot);
+            if (Objects.isNull(field) || isReadOnly(propertySchema) || isReadOnly(field)) {
+                continue;
+            }
             JsonElement type = field.get("type");
-            if (Objects.nonNull(readOnly) && readOnly.isJsonPrimitive() && readOnly.getAsJsonPrimitive().isBoolean() && readOnly.getAsBoolean()
-                    || Objects.nonNull(type) && (!type.isJsonPrimitive() || !type.getAsJsonPrimitive().isString())) {
+            if (Objects.nonNull(type) && (!type.isJsonPrimitive() || !type.getAsJsonPrimitive().isString())) {
                 continue;
             }
             DocParameter parameter = new DocParameter();
