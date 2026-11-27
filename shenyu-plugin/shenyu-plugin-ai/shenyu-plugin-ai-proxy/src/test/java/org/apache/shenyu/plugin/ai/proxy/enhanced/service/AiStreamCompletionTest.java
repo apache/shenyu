@@ -33,6 +33,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiResponses;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiUpstreamUsageTap;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -139,7 +141,15 @@ class AiStreamCompletionTest {
         StepVerifier.create(never.execute(new ArrayList<>())).thenCancel().verify();
         assertEquals(AiCallOutcome.CANCELLED, never.terminals.get(0).outcome());
         assertEquals(AiStreamCompletion.Evidence.SOURCE_CANCELLED, never.attempts.get(0).completion().evidence());
-        assertEquals(AiStreamCompletion.Framing.NONE, never.attempts.get(0).completion().framing());
+        assertEquals(AiStreamCompletion.Framing.NOT_INSPECTED, never.attempts.get(0).completion().framing());
+        AtomicBoolean bodySubscribed = new AtomicBoolean();
+        Probe subscribed = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY,
+                Flux.<byte[]>never().doOnSubscribe(ignored -> bodySubscribed.set(true)));
+        StepVerifier.create(subscribed.execute(new ArrayList<>()))
+                .then(() -> assertTrue(bodySubscribed.get()))
+                .thenCancel()
+                .verify();
+        assertEquals(AiStreamCompletion.Framing.NONE, subscribed.attempts.get(0).completion().framing());
         Probe probe = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY, Flux.defer(() -> Flux.just(bytes("data: {}\n\n"))), 2);
         Mono<Void> cold = probe.execute(new CopyOnWriteArrayList<>());
         Mono.when(cold.subscribeOn(reactor.core.scheduler.Schedulers.parallel()), cold.subscribeOn(reactor.core.scheduler.Schedulers.parallel())).block();
@@ -148,6 +158,24 @@ class AiStreamCompletionTest {
         assertEquals(2, probe.attempts.size());
         assertNotEquals(probe.terminals.get(0).context().getRequestId(), probe.terminals.get(1).context().getRequestId());
         assertTrue(probe.attempts.stream().allMatch(event -> event.completion().evidence() == AiStreamCompletion.Evidence.UNKNOWN));
+    }
+
+    @Test
+    void convertedResponseCancellationDoesNotInventChatFraming() {
+        Probe converted = new Probe(AiStreamCompletionProperties.Mode.COMPATIBILITY, Flux.never());
+        AiCommonConfig config = config();
+        config.setProtocol(OpenAiResponses.NAME);
+        config.setProvider("fixture-chat");
+
+        StepVerifier.create(converted.engine.execute("{\"input\":\"hello\",\"stream\":true}", config,
+                        Optional.empty(), response -> response.getBody().then()))
+                .thenCancel()
+                .verify();
+
+        assertEquals(AiStreamCompletion.Evidence.SOURCE_CANCELLED,
+                converted.attempts.get(0).completion().evidence());
+        assertEquals(AiStreamCompletion.Framing.NOT_INSPECTED,
+                converted.attempts.get(0).completion().framing());
     }
 
     @Test
@@ -212,11 +240,15 @@ class AiStreamCompletionTest {
 
         private Probe(final AiStreamCompletionProperties.Mode mode, final Flux<byte[]> body, final int expectedTerminals) {
             terminalLatch = new CountDownLatch(expectedTerminals);
-            engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat(mode), new OpenAiResponses())),
+            engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat(mode), new OpenAiResponses())),
                     new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("fixture-chat"))), protocolRouteResolver(), request -> {
                         calls.incrementAndGet();
                         return Mono.just(new AiUpstreamResponse(200, Map.of(), body));
-                    }, new AiProxyRetryProperties(1, 1, Duration.ZERO), this, event -> reasons.add(event.reason()));
+                    })
+                    .retryProperties(new AiProxyRetryProperties(1, 1, Duration.ZERO))
+                    .observer(this)
+                    .attemptListener(event -> reasons.add(event.reason()))
+                    .build();
         }
 
         private Mono<Void> execute(final List<String> output) {

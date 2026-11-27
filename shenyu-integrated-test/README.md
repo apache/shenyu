@@ -1,35 +1,53 @@
 # How to start the integrated tests
 
-There are two key points:
-1. Using docker compose to build a test environment. We start MySQL, database, redis and other dependencies in docker;
-2. Write integrated tests under `shenyu-integrated-tests/src/test`.
+Docker Compose starts the gateway, Admin, and other services required by each test case.
+Test sources live under each case module's `src/test` directory.
 
 ## Preparation
-1. Install and start docker and docker-compose.
+
+Install JDK 17, Docker with the Compose plugin, and `curl`. Start Docker before building the images.
 
 ## Quick start
-> If you are using windows, please notice that `-` is an invalid operator for terminals.
 
-Run those steps under this project's root directory 
+Run these commands from the repository root in Bash. This example uses the HTTP integration case.
 
-1. Build `dist` from source, run this command under root directory:
-   ```shell
+1. Build and install the ShenYu distributions and images.
+
+   ```bash
    ./mvnw -B clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
    ```
-2. Build integrated tests:
-   ```shell
-   ./mvnw -B clean install -Pit -DskipTests -f ./shenyu-integrated-test/pom.xml
+
+2. Build the HTTP example image and the integration gateway image.
+
+   ```bash
+   ./mvnw -B -f shenyu-examples/pom.xml -pl :shenyu-examples-http -am \
+     clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
+   ./mvnw -B -f shenyu-integrated-test/pom.xml -pl :shenyu-integrated-test-http -am \
+     clean install -Pit -Dmaven.test.skip=true
    ```
-3. Start the docker compose:
-   ```shell
-   docker-compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d
+
+3. Start the test stack and wait for the services to respond.
+
+   ```bash
+   case_dir=shenyu-integrated-test/shenyu-integrated-test-http
+   docker compose -f "$case_dir/docker-compose.yml" up -d
+   bash "$case_dir/script/healthcheck.sh"
    ```
-   > You need to replace ${{ matrix.case }} with the exact directory, such as shenyu-integrated-test-http.
-   > On mac, you could `docker compose`, but if you are using ubuntu, you'd better using `docker-compose`.
-4. Run the integrated test:
-   ```shell
-   ./mvnw test -Pit -f ./shenyu-integrated-test/${{ matrix.case }}/pom.xml
+
+4. Run the HTTP integration tests from the same shell.
+
+   ```bash
+   ./mvnw -B -f "$case_dir/pom.xml" test -Pit -DfailIfNoTests=true
    ```
+
+5. Stop the test stack when finished.
+
+   ```bash
+   docker compose -f "$case_dir/docker-compose.yml" down
+   ```
+
+For another Compose-based case, select its Maven module, example images, and case directory.
+The [integration test workflow](../.github/workflows/integrated-test.yml) shows how CI selects and builds the examples required by each case.
 
 ## How to write a new integrated tests?
 
@@ -38,10 +56,8 @@ Run those steps under this project's root directory
 That's the easy case!
 
 You just need to do those steps:
-1. (Optional) Update gateway configure. The configure file is under 
-   `shenyu-integated-test-{plugin}/src/main/resources/application-local.yml`
-   
-2. Writing new test cases under  `shenyu-integated-test-{plugin}/src/test`.
+1. Update the gateway configuration in the case module's `src/main/resources` directory if needed.
+2. Add test cases under `shenyu-integrated-test-{plugin}/src/test`.
 
 ### Write integrated tests for new plugin
 In this case, we didn't write tests for this plugin, so you need to setup the environment by yourself.
@@ -72,7 +88,7 @@ However, pls remember to clean after class.
 
 #### Write tests
 
-Writing tests under `shenyu-integated-test-{plugin}/src/test`. You must run test locally before you commit your changes.
+Write tests under `shenyu-integrated-test-{plugin}/src/test` and run them locally before committing.
 
 #### Write new github workflow
 

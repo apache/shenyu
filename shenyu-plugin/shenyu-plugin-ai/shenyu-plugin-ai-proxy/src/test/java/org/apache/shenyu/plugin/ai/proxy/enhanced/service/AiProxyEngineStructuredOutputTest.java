@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -277,20 +278,24 @@ class AiProxyEngineStructuredOutputTest {
         AiProxyRetryProperties noRetries = new AiProxyRetryProperties(0, 1, Duration.ofMillis(10));
         noRetries.setJitterFraction(0d);
         AiCommonConfig fallbackConfig = fallbackConfig();
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolRouteResolver(),
-                request -> {
-                    int index = calls.incrementAndGet();
-                    requests.add(request);
-                    if (index == 1) {
-                        return Mono.just(new AiUpstreamResponse(500, Map.of(), Flux.just(bytes("{}"))));
-                    }
-                    if (index == 2) {
-                        return of(200, envelope(MISMATCH_CONTENT, "stop"));
-                    }
-                    return of(200, envelope(VALID_CONTENT, "stop"));
-                }, noRetries, (AiProxyAttemptListener) events::add);
+        AiProxyTransport transport = request -> {
+            int index = calls.incrementAndGet();
+            requests.add(request);
+            if (index == 1) {
+                return Mono.just(new AiUpstreamResponse(500, Map.of(), Flux.just(bytes("{}"))));
+            }
+            if (index == 2) {
+                return of(200, envelope(MISMATCH_CONTENT, "stop"));
+            }
+            return of(200, envelope(VALID_CONTENT, "stop"));
+        };
+        AiProxyEngine engine = AiProxyEngine.builder(
+                        new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                        protocolRouteResolver(), transport)
+                .retryProperties(noRetries)
+                .attemptListener(events::add)
+                .build();
         StepVerifier.create(engine.execute(BODY, config(), Optional.of(fallbackConfig), consumeBody()))
                 .verifyComplete();
         assertEquals(3, calls.get(), "primary fails, fallback mismatches, the repair re-asks the fallback");
@@ -423,10 +428,13 @@ class AiProxyEngineStructuredOutputTest {
     }
 
     private AiProxyEngine engine(final AiProxyTransport transport) {
-        this.engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
-                protocolRouteResolver(), transport, new AiProxyRetryProperties(3, 1, Duration.ofSeconds(1)),
-                (AiProxyAttemptListener) events::add);
+        this.engine = AiProxyEngine.builder(
+                        new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), new OpenAiCompatible("DeepSeek"))),
+                        protocolRouteResolver(), transport)
+                .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ofSeconds(1)))
+                .attemptListener(events::add)
+                .build();
         return this.engine;
     }
 

@@ -160,7 +160,10 @@ public class GrpcPluginTest {
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
 
-        StepVerifier.create(grpcPlugin.doExecute(exchange, chain, selector, data)).thenCancel().verify();
+        Mono<Void> response = grpcPlugin.doExecute(exchange, chain, selector, data);
+        Mockito.verifyNoInteractions(channel);
+
+        StepVerifier.create(response).thenCancel().verify();
 
         assertEquals(1, call.cancellations.get());
     }

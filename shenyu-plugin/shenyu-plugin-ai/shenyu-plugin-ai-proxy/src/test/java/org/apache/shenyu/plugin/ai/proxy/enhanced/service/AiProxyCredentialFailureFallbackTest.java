@@ -36,14 +36,19 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.PreparedAiRequest;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.ShenyuAiRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.OpenAiChat;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.failure.AiCredentialFailureDetector;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProvider;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProviderCapabilities;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptListener;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.junit.jupiter.api.Test;
@@ -70,9 +75,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -169,7 +171,8 @@ class AiProxyCredentialFailureFallbackTest {
         "{\"error\":{\"code\":\"credential_revoked\",\"code\":\"credential_revoked\"}}",
         "{\"error\":{\"code\":\"credential_revoked\"}} trailing", "oversized"})
     void forwardsUnknownErrorsIntact(final String value) {
-        final byte[] original = bytes("oversized".equals(value) ? REJECTED + " ".repeat(AiProxyCredentialFailureInspector.MAX_INSPECTION_BYTES) : value);
+        final byte[] original = bytes("oversized".equals(value)
+                ? REJECTED + " ".repeat(AiCredentialFailureDetector.MAX_INSPECTION_BYTES) : value);
         final AtomicInteger calls = new AtomicInteger();
         final AtomicInteger subscriptions = new AtomicInteger();
         final ByteArrayOutputStream received = new ByteArrayOutputStream();
@@ -403,7 +406,9 @@ class AiProxyCredentialFailureFallbackTest {
         final AtomicInteger calls = new AtomicInteger();
         final WebClient client = WebClient.builder().exchangeFunction(request -> {
             final boolean primary = calls.incrementAndGet() == 1;
-            final byte[] content = bytes(primary ? REJECTED + (oversized ? " ".repeat(AiProxyCredentialFailureInspector.MAX_INSPECTION_BYTES) : "") : "{}");
+            final byte[] content = bytes(primary
+                    ? REJECTED + (oversized ? " ".repeat(AiCredentialFailureDetector.MAX_INSPECTION_BYTES) : "")
+                    : "{}");
             final NettyDataBuffer buffer = buffers.allocateBuffer(content.length);
             buffer.write(content);
             allocated.add(buffer);
@@ -425,16 +430,32 @@ class AiProxyCredentialFailureFallbackTest {
 
     @Test
     void credentialFailureCannotBypassFallbackCapabilities() {
-        final AiProxyProvider limited = mock(AiProxyProvider.class, CALLS_REAL_METHODS);
-        when(limited.name()).thenReturn("limited");
         final AiProviderCapabilities chat = AiProviderCapabilities.chat();
-        when(limited.capabilities()).thenReturn(new AiProviderCapabilities(chat.protocolBindings(), Set.of(), chat.features()));
+        final AiProxyProvider limited = new AiProxyProvider() {
+            @Override
+            public String name() {
+                return "limited";
+            }
+
+            @Override
+            public AiProviderCapabilities capabilities() {
+                return new AiProviderCapabilities(chat.protocolBindings(), Set.of(), chat.features());
+            }
+
+            @Override
+            public PreparedAiRequest prepareRequest(final ShenyuAiRequest request, final AiCommonConfig config) {
+                throw new UnsupportedOperationException("capability validation must reject the request first");
+            }
+        };
         final AtomicInteger calls = new AtomicInteger();
-        final AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi(), limited)), protocolRouteResolver(), request -> {
-                    calls.incrementAndGet();
-                    return Mono.just(response(401, Flux.just(bytes(REJECTED))));
-                }, properties(401));
+        final AiProxyEngine engine = AiProxyEngine.builder(
+                        new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi(), limited)), protocolRouteResolver(), request -> {
+                            calls.incrementAndGet();
+                            return Mono.just(response(401, Flux.just(bytes(REJECTED))));
+                        })
+                .retryProperties(properties(401))
+                .build();
         final AiCommonConfig fallback = config("fallback", false);
         fallback.setProvider("limited");
         StepVerifier.create(engine.execute(REQUEST, config("primary", false), Optional.of(fallback), response -> response.getBody().then()))
@@ -491,8 +512,12 @@ class AiProxyCredentialFailureFallbackTest {
 
     private AiProxyEngine engine(final AiProxyTransport transport, final AiProxyRetryProperties properties,
                                  final AiCallObserver observer, final AiProxyAttemptListener listener) {
-        return new AiProxyEngine(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
-                new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport, properties, observer, listener);
+        return AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
+                        new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(), transport)
+                .retryProperties(properties)
+                .observer(observer)
+                .attemptListener(listener)
+                .build();
     }
 
     private AiCommonConfig config(final String target, final boolean streaming) {

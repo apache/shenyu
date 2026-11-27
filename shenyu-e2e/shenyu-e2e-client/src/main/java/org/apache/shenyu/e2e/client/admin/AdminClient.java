@@ -32,6 +32,7 @@ import org.apache.shenyu.e2e.common.NameUtils;
 import org.apache.shenyu.e2e.model.Plugin;
 import org.apache.shenyu.e2e.model.ShenYuResult;
 import org.apache.shenyu.e2e.model.data.BindingData;
+import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.NamespaceSyncData;
 import org.apache.shenyu.e2e.model.data.QueryCondition;
 import org.apache.shenyu.e2e.model.data.ResourceData;
@@ -378,6 +379,35 @@ public class AdminClient extends BaseClient {
         log.info("create resource({}) successful. name: {}, id: {}", data.getClass().getSimpleName(), data.getName(), created.getId());
 
         return (R) created;
+    }
+
+    /**
+     * Create fixture metadata through Admin.
+     *
+     * @param metadata metadata to create
+     */
+    public void createMetaData(final MetaData metadata) {
+        metadata.setNamespaceId(SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
+        HttpEntity<MetaData> entity = new HttpEntity<>(metadata, basicAuth);
+        ResponseEntity<ShenYuResult> response = template.postForEntity(baseURL + "/meta-data/createOrUpdate", entity, ShenYuResult.class);
+        assertAndGet(response, "create success");
+    }
+
+    /**
+     * Delete fixture metadata created for the given path in the test namespace.
+     *
+     * @param path fixture metadata path
+     */
+    public void deleteMetaDataByPath(final String path) {
+        List<String> ids = listAllMetaData().stream()
+                .filter(metadata -> path.equals(metadata.getPath()))
+                .map(MetaDataDTO::getId)
+                .toList();
+        delete("/meta-data/batchDeleted", ids);
+        if (!ids.isEmpty()) {
+            Assertions.assertTrue(listAllMetaData().stream().noneMatch(metadata -> path.equals(metadata.getPath())),
+                    () -> "Fixture metadata still present in Admin: " + path);
+        }
     }
 
     /**
