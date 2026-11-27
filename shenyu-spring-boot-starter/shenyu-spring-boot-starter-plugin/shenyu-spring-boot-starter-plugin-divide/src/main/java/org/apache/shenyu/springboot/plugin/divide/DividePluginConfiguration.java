@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.plugin.divide;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.divide.DividePlugin;
@@ -30,13 +31,18 @@ import org.apache.shenyu.plugin.divide.handler.DivideMetaDataHandler;
 import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 /**
  * ShenyuConfiguration.
  */
 @Configuration
+@EnableConfigurationProperties(DivideCircuitBreakerProperties.class)
 @ConditionalOnProperty(value = {"shenyu.plugins.divide.enabled"}, havingValue = "true", matchIfMissing = true)
 public class DividePluginConfiguration {
 
@@ -44,11 +50,30 @@ public class DividePluginConfiguration {
      * init dividePlugin.
      *
      * @param canaryDecisionService request partition decision service
+     * @param divideCircuitBreaker the gateway's upstream circuit breaker
      * @return {@linkplain DividePlugin}
      */
     @Bean
-    public ShenyuPlugin dividePlugin(final CanaryDecisionService canaryDecisionService) {
-        return new DividePlugin(canaryDecisionService);
+    public ShenyuPlugin dividePlugin(final CanaryDecisionService canaryDecisionService, final UpstreamCircuitBreaker divideCircuitBreaker) {
+        return new DividePlugin(canaryDecisionService, divideCircuitBreaker);
+    }
+
+    /**
+     * Create one breaker for the lifetime of this gateway context.
+     *
+     * @param properties the bound startup configuration
+     * @param environment the gateway environment
+     * @return the shared upstream circuit breaker
+     */
+    @Bean
+    public UpstreamCircuitBreaker divideCircuitBreaker(final DivideCircuitBreakerProperties properties, final Environment environment) {
+        // The duration binder treats an empty string as an absent value.
+        Binder.get(environment).bind(DivideCircuitBreakerProperties.HALF_OPEN_WAIT_PROPERTY, String.class).ifBound(value -> {
+            if (!StringUtils.hasText(value)) {
+                throw new IllegalArgumentException(DivideCircuitBreakerProperties.HALF_OPEN_WAIT_PROPERTY + " must be a duration");
+            }
+        });
+        return UpstreamCircuitBreaker.create(properties.getFailureThreshold(), properties.halfOpenWaitMillis());
     }
 
     /**

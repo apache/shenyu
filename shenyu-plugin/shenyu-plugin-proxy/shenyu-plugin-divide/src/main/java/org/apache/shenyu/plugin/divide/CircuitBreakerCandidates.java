@@ -76,11 +76,23 @@ final class CircuitBreakerCandidates {
      * @return ordinary candidates or exactly one acquired recovery probe
      */
     static CircuitBreakerCandidates filter(final String selectorId, final List<Upstream> upstreams, final String requested) {
-        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        return filter(selectorId, upstreams, requested, UpstreamCircuitBreaker.getInstance());
+    }
+
+    /**
+     * Filter the candidates using the gateway's breaker.
+     *
+     * @param selectorId the selector id
+     * @param upstreams the read-only upstream snapshot published by the cache
+     * @param requested the explicit target, or null
+     * @param breaker the breaker that owns the upstream state
+     * @return ordinary candidates or an acquired recovery probe
+     */
+    static CircuitBreakerCandidates filter(final String selectorId, final List<Upstream> upstreams, final String requested,
+                                            final UpstreamCircuitBreaker breaker) {
         int size = upstreams.size();
         String[] keys = new String[size];
         int allowed = 0;
-        int blocked = -1;
         for (int index = 0; index < size; index++) {
             Upstream upstream = upstreams.get(index);
             String key = UpstreamCircuitBreaker.buildKey(selectorId, upstream);
@@ -89,9 +101,6 @@ final class CircuitBreakerCandidates {
                 allowed++;
                 continue;
             }
-            if (blocked < 0) {
-                blocked = index;
-            }
             if (Objects.isNull(requested) || requested.equals(upstream.getUrl())) {
                 HalfOpenProbe acquired = breaker.acquireHalfOpenProbe(key);
                 if (Objects.nonNull(acquired)) {
@@ -99,27 +108,41 @@ final class CircuitBreakerCandidates {
                 }
             }
         }
-        if (allowed == 0 && Objects.nonNull(requested)) {
-            // An unavailable explicit target may fall back to another probe only
-            // when no ordinary target is available. Reuse the first pass's keys.
-            for (int index = 0; index < size; index++) {
-                HalfOpenProbe acquired = breaker.acquireHalfOpenProbe(keys[index]);
-                if (Objects.nonNull(acquired)) {
-                    return probeCandidates(selectorId, upstreams.get(index), keys[index], acquired);
-                }
-            }
-        }
-        if (blocked < 0) {
+        if (allowed == size) {
             // Happy path: nothing was blocked, so keys[] already aligns 1:1 with the snapshot.
             // Hand the immutable snapshot back untouched and keep the request path zero-copy.
             return new CircuitBreakerCandidates(selectorId, upstreams, keys, null);
         }
+        if (allowed == 0 && Objects.nonNull(requested)) {
+            CircuitBreakerCandidates recovery = acquireFallbackProbe(selectorId, upstreams, keys, breaker);
+            if (Objects.nonNull(recovery)) {
+                return recovery;
+            }
+        }
+        return compactAllowed(selectorId, upstreams, keys, breaker);
+    }
+
+    private static CircuitBreakerCandidates acquireFallbackProbe(final String selectorId, final List<Upstream> upstreams,
+                                                                  final String[] keys, final UpstreamCircuitBreaker breaker) {
+        // An unavailable explicit target may fall back to another probe only
+        // when no ordinary target is available. Reuse the first pass's keys.
+        for (int index = 0; index < keys.length; index++) {
+            HalfOpenProbe acquired = breaker.acquireHalfOpenProbe(keys[index]);
+            if (Objects.nonNull(acquired)) {
+                return probeCandidates(selectorId, upstreams.get(index), keys[index], acquired);
+            }
+        }
+        return null;
+    }
+
+    private static CircuitBreakerCandidates compactAllowed(final String selectorId, final List<Upstream> upstreams,
+                                                            final String[] keys, final UpstreamCircuitBreaker breaker) {
         // Degraded path: at least one upstream is blocked. Materialise a mutable working copy
         // and compact out the blocked entries, leaving the caller's immutable snapshot intact.
-        List<Upstream> working = new ArrayList<>(size);
-        String[] compactedKeys = new String[size];
+        List<Upstream> working = new ArrayList<>(keys.length);
+        String[] compactedKeys = new String[keys.length];
         int kept = 0;
-        for (int index = 0; index < size; index++) {
+        for (int index = 0; index < keys.length; index++) {
             if (breaker.isRequestAllowed(keys[index])) {
                 working.add(upstreams.get(index));
                 compactedKeys[kept++] = keys[index];

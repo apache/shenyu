@@ -605,8 +605,9 @@ public class RetryStrategyTest {
         verifyNoInteractions(httpClientPlugin);
     }
 
-    @Test
-    void testFailoverSkipsBlockedUpstream() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testFailoverSkipsBlockedUpstream(final boolean configured) {
         AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         Upstream failed = Upstream.builder().url("localhost:8080").build();
@@ -614,8 +615,13 @@ public class RetryStrategyTest {
         UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
         when(cacheManager.findUpstreamListBySelectorId("selector-7475")).thenReturn(List.of(failed, standby));
         final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
-        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
-        for (int i = 0; i < 3; i++) {
+        UpstreamCircuitBreaker breaker = configured ? UpstreamCircuitBreaker.create(1, UpstreamCircuitBreaker.DEFAULT_HALF_OPEN_WAIT_MILLIS)
+                : UpstreamCircuitBreaker.getInstance();
+        if (configured) {
+            exchange.getAttributes().put(UpstreamCircuitBreaker.ATTRIBUTE, breaker);
+        }
+        int failures = configured ? 1 : UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD;
+        for (int i = 0; i < failures; i++) {
             breaker.recordFailure(standbyKey);
         }
         try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
@@ -630,8 +636,9 @@ public class RetryStrategyTest {
         verifyNoInteractions(plugin);
     }
 
-    @Test
-    void testFailoverResendRecordsFailureOutcome() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void testFailoverResendRecordsFailureOutcome(final boolean configured) {
         AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
         ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
         Upstream failed = Upstream.builder().url("localhost:8080").build();
@@ -641,7 +648,11 @@ public class RetryStrategyTest {
         when(plugin.getCachedRequestBody(exchange)).thenReturn(Flux.empty());
         when(plugin.doRequest(eq(exchange), eq("GET"), any(URI.class), any())).thenReturn(Mono.error(new TimeoutException("resend failed")));
         final String standbyKey = UpstreamCircuitBreaker.buildKey("selector-7475", standby);
-        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        UpstreamCircuitBreaker breaker = configured ? UpstreamCircuitBreaker.create(2, UpstreamCircuitBreaker.DEFAULT_HALF_OPEN_WAIT_MILLIS)
+                : UpstreamCircuitBreaker.getInstance();
+        if (configured) {
+            exchange.getAttributes().put(UpstreamCircuitBreaker.ATTRIBUTE, breaker);
+        }
         try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
             cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
             StepVerifier.create(new DefaultRetryStrategy<>(plugin).execute(Mono.error(new TimeoutException("upstream failed")),
@@ -649,8 +660,9 @@ public class RetryStrategyTest {
                     .expectErrorSatisfies(this::assertFailoverExhausted)
                     .verify();
         }
-        // the failed resend recorded one failure, one more below the threshold keeps the breaker closed
-        breaker.recordFailure(standbyKey);
+        if (!configured) {
+            breaker.recordFailure(standbyKey);
+        }
         assertFalse(breaker.isBlocking(standbyKey));
         breaker.recordFailure(standbyKey);
         assertTrue(breaker.isBlocking(standbyKey));
