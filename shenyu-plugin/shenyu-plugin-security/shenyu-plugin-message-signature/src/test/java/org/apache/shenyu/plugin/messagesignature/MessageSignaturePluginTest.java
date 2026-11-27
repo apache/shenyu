@@ -18,14 +18,20 @@
 package org.apache.shenyu.plugin.messagesignature;
 
 import com.authlete.hms.SignatureInputField;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.convert.rule.RewriteHandle;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.rewrite.RewritePlugin;
+import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -42,6 +48,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -125,6 +132,38 @@ class MessageSignaturePluginTest {
     }
 
     @Test
+    void verifiedOriginalTargetIsRewrittenOnlyAfterVerification() throws Exception {
+        MockServerWebExchange signed = request(BODY, "application/json", Instant.now().getEpochSecond(), true);
+        RuleData rule = RuleData.builder().id("rewrite-signed").selectorId("webhooks").handle("{}").build();
+        String cacheKey = CacheKeyUtils.INST.getKey(rule);
+        RewriteHandle handle = new RewriteHandle();
+        handle.setRegex("^/echo$");
+        handle.setReplace("/internal/events");
+        RewritePluginDataHandler.CACHED_HANDLE.get().cachedHandle(cacheKey, handle);
+        MatchedRewrite rewrite = new MatchedRewrite();
+        try {
+            MessageSignaturePlugin signature = plugin(null);
+            assertTrue(signature.getOrder() < rewrite.getOrder());
+            StepVerifier.create(run(signature, signed, exchange -> rewrite.apply(exchange, rule))).verifyComplete();
+            assertEquals("/internal/events", signed.getAttribute(Constants.REWRITE_URI));
+            MockServerWebExchange altered = MockServerWebExchange.from(MockServerHttpRequest.post("https://example.com/internal/events")
+                    .headers(signed.getRequest().getHeaders()).body(BODY));
+            StepVerifier.create(run(signature, altered, ignored -> fail("rewrite ran before verification"))).verifyComplete();
+            assertEquals(HttpStatus.UNAUTHORIZED, altered.getResponse().getStatusCode());
+        } finally {
+            RewritePluginDataHandler.CACHED_HANDLE.get().removeHandle(cacheKey);
+        }
+    }
+
+    @Test
+    void missingRequiredStoreDoesNotDowngradeToVerificationOnly() throws Exception {
+        MockServerWebExchange exchange = request(BODY, "application/json", Instant.now().getEpochSecond(), true);
+        MessageSignaturePlugin plugin = new MessageSignaturePlugin(Map.of("rule", MessageSignatureVerifier.replayProtected("partner", pair.getPublic(), null)));
+        StepVerifier.create(run(plugin, exchange, ignored -> fail("unexpected forward"))).verifyComplete();
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
     void oversizedBodyDoesNotReachTheChain() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post(TARGET).body("x".repeat(1024 * 1024 + 1)));
         StepVerifier.create(run(plugin(null), exchange, ignored -> fail("unexpected forward"))).verifyComplete();
@@ -139,7 +178,8 @@ class MessageSignaturePluginTest {
     }
 
     private MessageSignaturePlugin plugin(final NonceStore store) {
-        return new MessageSignaturePlugin(Map.of("rule", new MessageSignatureVerifier("partner", pair.getPublic(), store)));
+        return new MessageSignaturePlugin(Map.of("rule", Objects.isNull(store) ? MessageSignatureVerifier.verificationOnly("partner", pair.getPublic())
+                : MessageSignatureVerifier.replayProtected("partner", pair.getPublic(), store)));
     }
 
     private Mono<Void> run(final MessageSignaturePlugin plugin, final MockServerWebExchange exchange, final ShenyuPluginChain chain) {
@@ -158,5 +198,11 @@ class MessageSignaturePluginTest {
         return MockServerWebExchange.from(MockServerHttpRequest.method(org.springframework.http.HttpMethod.POST, java.net.URI.create(TARGET))
                 .header("Signature-Input", "sig1=" + params).header("Signature", "sig1=:" + Base64.getEncoder().encodeToString(signer.sign()) + ":")
                 .header("Content-Digest", digest).header("Content-Type", contentType).body(body));
+    }
+
+    private static final class MatchedRewrite extends RewritePlugin {
+        private Mono<Void> apply(final ServerWebExchange exchange, final RuleData rule) {
+            return doExecute(exchange, ignored -> Mono.empty(), null, rule);
+        }
     }
 }

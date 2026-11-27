@@ -26,6 +26,7 @@ import com.authlete.hms.SignatureMetadata;
 import com.authlete.hms.SignatureMetadataParameters;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -57,10 +58,32 @@ public final class MessageSignatureVerifier {
 
     private final NonceStore replayStore;
 
-    public MessageSignatureVerifier(final String keyId, final PublicKey key, final NonceStore replayStore) {
+    private MessageSignatureVerifier(final String keyId, final PublicKey key, final NonceStore replayStore) {
         this.keyId = Objects.requireNonNull(keyId);
         this.key = Objects.requireNonNull(key);
         this.replayStore = replayStore;
+    }
+
+    /**
+     * Verify signatures without replay protection.
+     * @param keyId trusted key identifier
+     * @param key verification key
+     * @return verification-only policy
+     */
+    public static MessageSignatureVerifier verificationOnly(final String keyId, final PublicKey key) {
+        return new MessageSignatureVerifier(keyId, key, null);
+    }
+
+    /**
+     * Require an atomic nonce claim; a missing store denies verified requests.
+     * @param keyId trusted key identifier
+     * @param key verification key
+     * @param store deployment's shared nonce store, if available
+     * @return replay-protected policy
+     */
+    public static MessageSignatureVerifier replayProtected(final String keyId, final PublicKey key, final NonceStore store) {
+        NonceStore required = Objects.nonNull(store) ? store : (id, nonce, ttl) -> Mono.error(new IllegalStateException("Nonce store unavailable"));
+        return new MessageSignatureVerifier(keyId, key, required);
     }
 
     String keyId() {
