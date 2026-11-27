@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.e2e.testcase.http;
 
-import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.function.ConfigSyncHelper;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.junit.jupiter.api.Test;
 
 /**
- * Testing the correctness of etcd data synchronization method.
+ * Verifies fixture selectors, rules and metadata travel from Admin to the gateway.
  */
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -50,10 +50,7 @@ import org.junit.jupiter.api.Test;
 public class DataSynTest {
 
     @Test
-    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
-        adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
+    void testDataSyn(final AdminClient adminClient, final GatewayClient gatewayClient) {
+        ConfigSyncHelper.verifyResourceSync(adminClient, gatewayClient, "http");
     }
 }

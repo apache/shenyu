@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.manager.impl;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.admin.model.bean.DocInfo;
 import org.apache.shenyu.admin.model.bean.DocItem;
@@ -25,6 +26,8 @@ import org.apache.shenyu.common.enums.SwaggerVersion;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -132,6 +135,50 @@ public class SwaggerDocParserTest {
         docRoot.addProperty("basePath", "/" + "testClusterName");
         DocInfo docInfo = swaggerDocParser.parseJson(docRoot);
         assert docInfo.getDocModuleList().get(0).getModule().equals("Order API");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "http://localhost:8190, /orders",
+            "/, /orders",
+            "/v1, /v1/orders",
+            "http://localhost:8190/v1/, /v1/orders",
+            "/services//v1/, /services//v1/orders"
+    })
+    public void testOpenApiOperationPath(final String serverUrl, final String expectedPath) {
+        JsonObject docRoot = new JsonObject();
+        docRoot.addProperty("openapi", "3.0.3");
+        JsonObject server = new JsonObject();
+        server.addProperty("url", serverUrl);
+        JsonArray servers = new JsonArray();
+        servers.add(server);
+        docRoot.add("servers", servers);
+        assertOperationPath(docRoot, "/orders", expectedPath);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "/, /orders, /orders",
+            "/v2, /orders, /v2/orders",
+            "/v2/, /orders, /v2/orders",
+            "/v2/, /, /v2/",
+            "/v2/, /orders//today, /v2/orders//today"
+    })
+    public void testSwaggerOperationPath(final String basePath, final String operationPath, final String expectedPath) {
+        JsonObject docRoot = new JsonObject();
+        docRoot.addProperty("swagger", "2.0");
+        docRoot.addProperty("basePath", basePath);
+        assertOperationPath(docRoot, operationPath, expectedPath);
+    }
+
+    private void assertOperationPath(final JsonObject docRoot, final String operationPath, final String expectedPath) {
+        JsonObject pathItem = new JsonObject();
+        pathItem.add("get", new JsonObject());
+        JsonObject paths = new JsonObject();
+        paths.add(operationPath, pathItem);
+        docRoot.add("paths", paths);
+        DocInfo result = swaggerDocParser.parseJson(docRoot);
+        assertEquals(expectedPath, result.getDocModuleList().get(0).getDocItems().get(0).getName());
     }
 
     @Test

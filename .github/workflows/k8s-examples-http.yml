@@ -91,24 +91,31 @@ jobs:
         shell: bash
         run: |
           ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-      - name: Build examples
-        if: steps.cases.outputs.run_k8s_examples == 'true'
-        shell: bash
-        run: |
-          ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl :shenyu-examples-http -am -f ./shenyu-examples/pom.xml
       - name: Build k8s Cluster
         if: steps.cases.outputs.run_k8s_examples == 'true'
         run: |
-          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest shenyu-examples-http:latest | sudo k3s ctr images import -
+          docker save apache/shenyu-admin:latest apache/shenyu-bootstrap:latest | sudo k3s ctr images import -
+          kubectl create configmap http-smoke-fixture --from-file=shenyu-e2e/shenyu-e2e-case/compose/fixtures/httpbin.py --dry-run=client -o yaml | kubectl apply -f -
           kubectl apply -f ./shenyu-e2e/shenyu-e2e-case/k8s/http-smoke
-          kubectl apply -f ./shenyu-examples/shenyu-examples-http/k8s/shenyu-examples-http.yml
       - name: Wait for k8s Cluster Start up
         if: steps.cases.outputs.run_k8s_examples == 'true'
         run: |
-          bash ./shenyu-examples/shenyu-examples-http/k8s/script/healthcheck.sh
-      - name: Cluster Test after Healthcheck
+          kubectl rollout status deployment/http-smoke-fixture --timeout=120s
+          curl --fail --retry 30 --retry-connrefused --retry-delay 2 --max-time 5 http://localhost:31095/actuator/health
+          curl --fail --retry 30 --retry-connrefused --retry-delay 2 --max-time 5 http://localhost:31195/actuator/health
+          fixture_port="$(kubectl get service http-smoke-fixture -o jsonpath='{.spec.ports[0].nodePort}')"
+          test -n "$fixture_port"
+          curl --fail --retry 30 --retry-connrefused --retry-delay 2 --max-time 5 "http://localhost:${fixture_port}/status/200"
+      - name: Verify the HTTP fixture through the gateway
         if: steps.cases.outputs.run_k8s_examples == 'true'
+        run: |
+          ./mvnw -B -ntp -f shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test \
+            -Dshenyu.test.http.upstream=http-smoke-fixture
+      - name: Capture cluster diagnostics
+        if: failure() && steps.cases.outputs.run_k8s_examples == 'true'
         run: |
           kubectl get all
           kubectl get events --all-namespaces
-          kubectl logs -l all=shenyu-examples-http
+          kubectl logs deployment/http-smoke-fixture
+          kubectl logs deployment/shenyu-admin
+          kubectl logs deployment/shenyu-bootstrap
