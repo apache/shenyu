@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service.impl;
 
+import com.github.pagehelper.PageHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.Pageable;
 import org.apache.shenyu.admin.mapper.MockRequestRecordMapper;
@@ -132,9 +133,12 @@ public class MockRequestRecordServiceImpl implements MockRequestRecordService {
     public MockRequestRecordVO queryByApiId(final String apiId) {
         MockRequestRecordQuery mockRequestRecordQuery = new MockRequestRecordQuery();
         mockRequestRecordQuery.setApiId(apiId);
-        List<MockRequestRecordDO> mockRequestRecordDOList = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
-        return mockRequestRecordDOList.isEmpty()
-                ? new MockRequestRecordVO()
-                : MockRequestRecordVO.buildMockRequestRecordVO(mockRequestRecordDOList.get(0));
+        PageHelper.startPage(1, 1, false);
+        try {
+            List<MockRequestRecordDO> records = mockRequestRecordMapper.selectByQuery(mockRequestRecordQuery);
+            return records.isEmpty() ? new MockRequestRecordVO() : MockRequestRecordVO.buildMockRequestRecordVO(records.get(0));
+        } finally {
+            PageHelper.clearPage();
+        }
     }
 }
