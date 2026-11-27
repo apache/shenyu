@@ -31,6 +31,7 @@ import org.apache.shenyu.client.core.register.registrar.MateDataApiRegistrarImpl
 import org.apache.shenyu.client.core.register.registrar.UriApiRegistrarImplImpl;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.Conditional;
@@ -41,6 +42,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(value = "shenyu.register.enabled", havingValue = "true", matchIfMissing = true)
 public class ClientRegisterConfiguration {
     
     /**
