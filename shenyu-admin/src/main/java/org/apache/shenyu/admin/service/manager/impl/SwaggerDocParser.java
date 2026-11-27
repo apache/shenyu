@@ -44,12 +44,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Parse the JSON content of swagger.
  */
 public class SwaggerDocParser implements DocParser {
+
+    private static final Pattern SUCCESS_STATUS_CODE = Pattern.compile("2[0-9]{2}");
 
     /**
      * parseJson.
@@ -330,23 +333,30 @@ public class SwaggerDocParser implements DocParser {
      * @return RefInfo
      */
     protected RefInfo getResponseRefInfo(final JsonObject docInfo, final SwaggerVersion version) {
-        if (version == SwaggerVersion.V2) {
-            // v2: responses/200/schema
-            return Optional.ofNullable(docInfo.getAsJsonObject("responses"))
-                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("200")))
-                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("schema")))
-                .map(schema -> this.getRefInfo(schema, version))
+        JsonObject responses = docInfo.getAsJsonObject("responses");
+        if (Objects.isNull(responses)) {
+            return null;
+        }
+        return responses.entrySet().stream()
+                .filter(entry -> SUCCESS_STATUS_CODE.matcher(entry.getKey()).matches() && entry.getValue().isJsonObject())
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> getResponseSchemaRef(entry.getValue().getAsJsonObject(), version))
+                .filter(Objects::nonNull)
+                .findFirst()
                 .orElse(null);
-        } else {
-            // v3: responses/200/content/application/json/schema
-            return Optional.ofNullable(docInfo.getAsJsonObject("responses"))
-                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("200")))
-                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("content")))
+    }
+
+    private RefInfo getResponseSchemaRef(final JsonObject response, final SwaggerVersion version) {
+        if (version == SwaggerVersion.V2) {
+            return Optional.ofNullable(response.getAsJsonObject("schema"))
+                    .map(schema -> this.getRefInfo(schema, version))
+                    .orElse(null);
+        }
+        return Optional.ofNullable(response.getAsJsonObject("content"))
                 .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("application/json")))
                 .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("schema")))
                 .map(schema -> this.getRefInfo(schema, version))
                 .orElse(null);
-        }
     }
 
     private RefInfo getRefInfo(final JsonObject jsonObject, final SwaggerVersion version) {

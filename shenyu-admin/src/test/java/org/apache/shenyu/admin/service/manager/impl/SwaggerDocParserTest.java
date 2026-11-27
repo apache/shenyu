@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.service.manager.impl;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.shenyu.admin.model.bean.DocInfo;
+import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,8 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -161,6 +164,74 @@ public class SwaggerDocParserTest {
         docRoot.addProperty("swagger", "2.0");
         docRoot.addProperty("basePath", basePath);
         assertOperationPath(docRoot, operationPath, expectedPath);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "false, false, false, 201, createdId",
+            "true, false, false, 201, createdId",
+            "false, true, false, 201, createdId",
+            "false, true, true, 201, okId",
+            "false, false, false, 400, ''"
+    })
+    public void testImportsSchemaFromSuccessfulResponse(final boolean swagger, final boolean includeOk, final boolean okHasSchema,
+                                                        final String status, final String expectedField) {
+        JsonObject docRoot = new JsonObject();
+        docRoot.addProperty(swagger ? "swagger" : "openapi", swagger ? "2.0" : "3.0.3");
+        JsonObject schemas = new JsonObject();
+        schemas.add("Created", responseModel("createdId"));
+        schemas.add("Ok", responseModel("okId"));
+        if (swagger) {
+            docRoot.add("definitions", schemas);
+        } else {
+            JsonObject components = new JsonObject();
+            components.add("schemas", schemas);
+            docRoot.add("components", components);
+        }
+        JsonObject responses = new JsonObject();
+        responses.add(status, responseWithSchema(swagger, "Created"));
+        if (includeOk) {
+            responses.add("200", okHasSchema ? responseWithSchema(swagger, "Ok") : new JsonObject());
+        }
+        JsonObject operation = new JsonObject();
+        operation.add("responses", responses);
+        JsonObject pathItem = new JsonObject();
+        pathItem.add("post", operation);
+        JsonObject paths = new JsonObject();
+        paths.add("/orders", pathItem);
+        docRoot.add("paths", paths);
+
+        DocInfo result = swaggerDocParser.parseJson(docRoot);
+        List<DocParameter> parameters = result.getDocModuleList().get(0).getDocItems().get(0).getResponseParameters();
+        assertEquals(expectedField.isEmpty() ? List.of() : List.of(expectedField), parameters.stream().map(DocParameter::getName).toList());
+    }
+
+    private JsonObject responseModel(final String fieldName) {
+        JsonObject field = new JsonObject();
+        field.addProperty("type", "string");
+        JsonObject properties = new JsonObject();
+        properties.add(fieldName, field);
+        JsonObject model = new JsonObject();
+        model.addProperty("type", "object");
+        model.add("properties", properties);
+        return model;
+    }
+
+    private JsonObject responseWithSchema(final boolean swagger, final String name) {
+        JsonObject schema = new JsonObject();
+        schema.addProperty("$ref", (swagger ? "#/definitions/" : "#/components/schemas/") + name);
+        JsonObject response = new JsonObject();
+        response.addProperty("description", "Response");
+        if (swagger) {
+            response.add("schema", schema);
+        } else {
+            JsonObject mediaType = new JsonObject();
+            mediaType.add("schema", schema);
+            JsonObject content = new JsonObject();
+            content.add("application/json", mediaType);
+            response.add("content", content);
+        }
+        return response;
     }
 
     private void assertOperationPath(final JsonObject docRoot, final String operationPath, final String expectedPath) {
