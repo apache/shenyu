@@ -14,3 +14,4 @@
 # limitations under the License.
 
 org.apache.shenyu.common.config.contract.AgentGatewayPluginContract
+org.apache.shenyu.common.config.contract.RewriteRuleContract
