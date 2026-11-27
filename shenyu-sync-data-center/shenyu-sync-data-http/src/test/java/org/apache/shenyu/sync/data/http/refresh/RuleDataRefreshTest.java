@@ -18,12 +18,15 @@
 package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -45,6 +49,12 @@ public final class RuleDataRefreshTest {
 
         }
     });
+
+    @BeforeEach
+    @AfterEach
+    void clearRuleSnapshot() {
+        AbstractDataRefresh.GROUP_CACHE.remove(ConfigGroupEnum.RULE);
+    }
 
     @Test
     public void testConvert() {
@@ -87,10 +97,44 @@ public final class RuleDataRefreshTest {
     public void testRefreshWithNullData() {
         final PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
         final RuleDataRefresh ruleDataRefresh = new RuleDataRefresh(subscriber);
-        // data is null, should not throw NPE; cache is still refreshed unconditionally, then return early
         ruleDataRefresh.refresh((List<RuleData>) null);
-        verify(subscriber).refreshRuleDataAll();
+        verify(subscriber).applyRuleDataSnapshot(Constants.SYS_DEFAULT_NAMESPACE_ID, Collections.emptyList());
         verify(subscriber, never()).unRuleSubscribe(any(RuleData.class));
         verify(subscriber, never()).onRuleSubscribe(any(RuleData.class));
+    }
+
+    @Test
+    public void testFullSnapshotUsesRuleReconciliation() {
+        final PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
+        final RuleDataRefresh refresh = new RuleDataRefresh(subscriber);
+        final String namespace = Constants.SYS_DEFAULT_NAMESPACE_ID;
+        final RuleData kept = RuleData.builder().id("kept").selectorId("selector").pluginName("divide").namespaceId(namespace).build();
+        final RuleData removed = RuleData.builder().id("removed").selectorId("selector").pluginName("divide").namespaceId(namespace).build();
+
+        assertTrue(refresh.refresh(snapshot("first", 1, List.of(removed, kept))));
+        assertTrue(refresh.refresh(snapshot("second", 2, List.of(kept))));
+        assertTrue(refresh.refresh(snapshot("empty", 3, Collections.emptyList())));
+
+        verify(subscriber).applyRuleDataSnapshot(namespace, List.of(removed, kept));
+        verify(subscriber).applyRuleDataSnapshot(namespace, List.of(kept));
+        verify(subscriber).applyRuleDataSnapshot(namespace, Collections.emptyList());
+        verify(subscriber, never()).refreshRuleDataAll();
+    }
+
+    @Test
+    public void testEmptySnapshotUsesGatewayNamespace() {
+        final PluginDataSubscriber subscriber = mock(PluginDataSubscriber.class);
+        final String namespace = "orders-dev";
+        final DataRefreshFactory factory = new DataRefreshFactory(subscriber, List.of(), List.of(), List.of(), List.of(), List.of(), namespace);
+
+        assertTrue(factory.executor(snapshot("empty", 1, Collections.emptyList())));
+
+        verify(subscriber).applyRuleDataSnapshot(namespace, Collections.emptyList());
+    }
+
+    private JsonObject snapshot(final String digest, final long timestamp, final List<RuleData> data) {
+        final JsonObject response = new JsonObject();
+        response.add(ConfigGroupEnum.RULE.name(), GsonUtils.getGson().toJsonTree(new ConfigData<>(digest, timestamp, data)));
+        return response;
     }
 }

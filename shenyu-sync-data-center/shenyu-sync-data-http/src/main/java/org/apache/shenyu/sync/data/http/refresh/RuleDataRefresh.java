@@ -19,31 +19,33 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Rule data refresh.
  */
 public class RuleDataRefresh extends AbstractDataRefresh<RuleData> {
 
-    /**
-     * logger.
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(RuleDataRefresh.class);
-
     private final PluginDataSubscriber pluginDataSubscriber;
 
+    private final String namespaceId;
+
     public RuleDataRefresh(final PluginDataSubscriber pluginDataSubscriber) {
+        this(pluginDataSubscriber, Constants.SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    RuleDataRefresh(final PluginDataSubscriber pluginDataSubscriber, final String namespaceId) {
         this.pluginDataSubscriber = pluginDataSubscriber;
+        this.namespaceId = namespaceId;
     }
 
     @Override
@@ -69,11 +71,6 @@ public class RuleDataRefresh extends AbstractDataRefresh<RuleData> {
 
     @Override
     protected void refresh(final List<RuleData> data) {
-        pluginDataSubscriber.refreshRuleDataAll();
-        if (CollectionUtils.isEmpty(data)) {
-            LOG.info("clear all rule cache, old cache");
-            return;
-        }
-        data.forEach(pluginDataSubscriber::onRuleSubscribe);
+        pluginDataSubscriber.applyRuleDataSnapshot(namespaceId, Objects.isNull(data) ? Collections.emptyList() : data);
     }
 }

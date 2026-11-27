@@ -115,7 +115,8 @@ public class HttpSyncDataService implements SyncDataService {
                 authDataSubscribers,
                 proxySelectorDataSubscribers,
                 discoveryUpstreamDataSubscribers,
-                aiProxyApiKeyDataSubscribers
+                aiProxyApiKeyDataSubscribers,
+                shenyuConfig.getNamespace()
         );
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         this.okHttpClient = okHttpClient;
