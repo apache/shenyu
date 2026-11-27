@@ -119,14 +119,17 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         // the initial attempt records its own outcome against the initial upstream's breaker:
         // a failure is recorded immediately (even when a failover follows), and a success is
         // only credited when no failover happens, so a successful retry can never clear the
-        // failed upstream's breaker (#8156)
+        // failed upstream's breaker (#8156). The success credit itself is deferred further:
+        // a 200 at the header stage does not clear the target's failures until the serving
+        // body has fully drained, so a body-phase upstream disconnect still counts (#8156).
         final String initialBreakerKey = exchange.getAttribute(UpstreamCircuitBreaker.INITIAL_BREAKER_KEY);
+        final AtomicReference<String> servingBreakerKey = new AtomicReference<>();
         final Mono<R> recordedResponse = retryTimes > 0 && Objects.nonNull(initialBreakerKey)
-                ? UpstreamCircuitBreaker.recordOutcome(response, initialBreakerKey)
+                ? UpstreamCircuitBreaker.recordOutcome(response, initialBreakerKey, servingBreakerKey::set)
                 : response;
         final Mono<R> retriedResponse = retryTimes <= 0
                 ? recordedResponse
-                : executeWithRetry(recordedResponse, exchange, duration, retryTimes);
+                : executeWithRetry(recordedResponse, exchange, duration, retryTimes, servingBreakerKey);
         final Mono<Void> result = retriedResponse
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
@@ -139,15 +142,21 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                             : attempt.finish(Mono.defer(() -> chain.execute(exchange)))
                                     .onErrorMap(TimeoutException.class, HttpRouteDeadline::gatewayTimeout);
                 });
+        // the downstream chain spans the body write-back, so its terminal signal is the
+        // serving attempt's body phase: completion credits the serving upstream, a body
+        // error (an upstream disconnect mid-response) counts as its failure (#8156)
+        final Mono<Void> bodyTerminalResult = retryTimes > 0 && Objects.nonNull(initialBreakerKey)
+                ? UpstreamCircuitBreaker.recordServingOutcome(result, servingBreakerKey::get)
+                : result;
         // The aggregation subscription intentionally outlives individual retry attempts: a timed out
         // attempt must not discard the body that a later retry still needs. It is disposed when the
         // logical request terminates, which also releases the buffers accumulated so far.
         Mono<Void> owned = exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST)
-                ? result.doFinally(signal -> {
+                ? bodyTerminalResult.doFinally(signal -> {
                     if (exchange.getAttributes().remove(HttpRouteDeadline.ATTEMPT) instanceof HttpRouteDeadline attempt) {
                         attempt.abandon();
                     }
-                }) : result;
+                }) : bodyTerminalResult;
         return cacheRequestBody ? owned.doFinally(signalType -> disposeCachedRequestBody(exchange)) : owned;
     }
 
@@ -184,7 +193,8 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
         return throwable;
     }
 
-    private Mono<R> executeWithRetry(final Mono<R> response, final ServerWebExchange exchange, final Duration duration, final int retryTimes) {
+    private Mono<R> executeWithRetry(final Mono<R> response, final ServerWebExchange exchange, final Duration duration,
+                                     final int retryTimes, final AtomicReference<String> servingBreakerKey) {
         final RetryStrategy<R> strategy;
         final String retryStrategyType = (String) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY_BACK_OFF_SPEC))
                 .orElse(HttpRetryBackoffSpecEnum.getDefault());
@@ -197,7 +207,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 strategy = new FixedRetryStrategy<>(this);
                 break;
             default:
-                strategy = new DefaultRetryStrategy<>(this);
+                strategy = new DefaultRetryStrategy<>(this, servingBreakerKey);
         }
         return strategy.execute(response, exchange, duration, retryTimes);
     }

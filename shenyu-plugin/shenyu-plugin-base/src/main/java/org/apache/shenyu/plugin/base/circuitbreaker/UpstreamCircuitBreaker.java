@@ -24,6 +24,8 @@ import reactor.core.publisher.SignalType;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * A lightweight built-in circuit breaker for divide/http proxy upstreams.
@@ -226,26 +228,64 @@ public final class UpstreamCircuitBreaker {
      * @return the wrapped mono with outcome recording attached
      */
     public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key) {
+        return recordOutcome(source, key, null);
+    }
+
+    /**
+     * Record a header-phase attempt's outcome, optionally deferring the success credit (#8156).
+     *
+     * <p>A failure is recorded immediately, even when a failover follows, so a target that
+     * answers with a retryable status or refuses the connection keeps counting. A completed
+     * attempt (response headers arrived) must not credit the target yet: its response body
+     * has not been served. When {@code servingKeySink} is given, the completed attempt only
+     * publishes its breaker key through the sink, and the success is credited by
+     * {@link #recordServingOutcome(Mono, Supplier)} once the serving body terminates — so a
+     * 200 followed by an upstream disconnect mid-body counts against the target instead of
+     * clearing its consecutive failures. With a null sink the terminal signal is recorded
+     * directly, which is the semantics callers whose wrapped mono already spans the body
+     * (the divide-side terminal recording) rely on.
+     *
+     * @param <T> the element type of the source mono
+     * @param source the mono executing the upstream call
+     * @param key the breaker key
+     * @param servingKeySink null, or the sink receiving this attempt's key when it wins the headers
+     * @return the wrapped mono with outcome recording attached
+     */
+    public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key, final Consumer<String> servingKeySink) {
         return Mono.defer(() -> {
             CircuitBreakerState initial = INSTANCE.breakers.get(key);
             long generation = Objects.isNull(initial) ? 0 : initial.getGeneration();
-            return source.doFinally(signal -> {
-                if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
-                    return;
-                }
-                CircuitBreakerState current = INSTANCE.breakers.get(key);
-                if (Objects.isNull(initial)) {
-                    if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
-                        current = INSTANCE.breakers.computeIfAbsent(key,
-                                ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
-                    }
-                } else if (current != initial) {
-                    return;
-                }
-                if (Objects.nonNull(current)) {
-                    current.recordOrdinaryOutcome(generation, signal);
-                }
-            });
+            return source
+                    .doOnNext(ignored -> {
+                        // the serving key must be published during onNext, NOT at this mono's
+                        // completion: a downstream flatMap subscribes its inner chain (the body
+                        // write-back) before this mono's onComplete/doFinally runs, so a
+                        // synchronously failing chain would read the sink before it is set (#8156)
+                        if (Objects.nonNull(servingKeySink)) {
+                            servingKeySink.accept(key);
+                        }
+                    })
+                    .doFinally(signal -> {
+                        if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
+                            return;
+                        }
+                        if (signal == SignalType.ON_COMPLETE && Objects.nonNull(servingKeySink)) {
+                            // the success credit is deferred to the body-terminal recording
+                            return;
+                        }
+                        CircuitBreakerState current = INSTANCE.breakers.get(key);
+                        if (Objects.isNull(initial)) {
+                            if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
+                                current = INSTANCE.breakers.computeIfAbsent(key,
+                                        ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
+                            }
+                        } else if (current != initial) {
+                            return;
+                        }
+                        if (Objects.nonNull(current)) {
+                            current.recordOrdinaryOutcome(generation, signal);
+                        }
+                    });
         });
     }
 
@@ -269,6 +309,37 @@ public final class UpstreamCircuitBreaker {
         synchronized (state) {
             return INSTANCE.new HalfOpenProbe(key, state, state.generation).recordOutcome(source);
         }
+    }
+
+    /**
+     * Record the serving attempt's final outcome when the response body terminates (#8156).
+     *
+     * <p>The gateway's downstream chain (body write-back included) completing means the
+     * serving attempt's body was fully drained and credits the serving upstream; a
+     * body-phase error, such as an upstream disconnect mid-response, counts as its failure.
+     * A cancelled chain records nothing, matching the ordinary outcome semantics. When no
+     * attempt ever won the response headers, every attempt's failure was already recorded
+     * at the header phase, so nothing is recorded here either.
+     *
+     * @param servingChain the downstream chain mono spanning the body write-back
+     * @param servingKey supplier of the serving attempt's breaker key, null while no headers arrived
+     * @return the wrapped chain with the body-terminal outcome recording attached
+     */
+    public static Mono<Void> recordServingOutcome(final Mono<Void> servingChain, final Supplier<String> servingKey) {
+        return servingChain.doFinally(signal -> {
+            if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
+                return;
+            }
+            final String key = servingKey.get();
+            if (Objects.isNull(key)) {
+                return;
+            }
+            if (signal == SignalType.ON_COMPLETE) {
+                INSTANCE.recordSuccess(key);
+            } else {
+                INSTANCE.recordFailure(key);
+            }
+        });
     }
 
     /**

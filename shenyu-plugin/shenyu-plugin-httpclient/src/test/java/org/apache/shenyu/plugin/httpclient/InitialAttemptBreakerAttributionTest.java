@@ -157,6 +157,57 @@ class InitialAttemptBreakerAttributionTest {
                 "a succeeded initial attempt clears its own consecutive failures");
     }
 
+    @Test
+    void bodyDisconnectAfterHeadersChargesTheServingUpstream() {
+        // a 200 at the header stage followed by an upstream disconnect mid-body must
+        // count as the serving upstream's failure instead of clearing its breaker
+        stubsByHost.put("a", Mono.just("served-by-a"));
+        whenChainErrors();
+
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        for (int i = 0; i < UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD; i++) {
+            StepVerifier.create(plugin.execute(exchange, chain))
+                    .verifyError();
+        }
+        assertTrue(breaker.isBlocking(initialKey),
+                "body-phase disconnects after 200 headers must charge the serving upstream's breaker");
+        assertFalse(breaker.isBlocking(standbyKey),
+                "the failover target was never selected, so its breaker stays closed");
+    }
+
+    @Test
+    void headerSuccessAloneCannotClearTheServingUpstreamFailures() {
+        // with the body never completing, even a single header success must not credit
+        // the upstream: credit happens only when the body has fully drained
+        stubsByHost.put("a", Mono.just("served-by-a"));
+        whenChainErrors();
+
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        for (int i = 0; i < UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD; i++) {
+            breaker.recordFailure(initialKey);
+            StepVerifier.create(plugin.execute(exchange, chain))
+                    .verifyError();
+        }
+        assertTrue(breaker.isBlocking(initialKey),
+                "header success without a completed body leaves the consecutive failures untouched");
+    }
+
+    @Test
+    void drainedFailoverBodyCreditsTheServingUpstream() {
+        // the failover target won the headers and its body drained fully: the credit
+        // lands on the serving upstream, clearing its own consecutive failures
+        stubsByHost.put("a", Mono.error(new RuntimeException("down")));
+        stubsByHost.put("b", Mono.just("served-by-b"));
+        whenChainCompletes();
+
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.recordFailure(standbyKey);
+        StepVerifier.create(plugin.execute(exchange, chain))
+                .verifyComplete();
+        assertFalse(breaker.isBlocking(standbyKey),
+                "a fully drained serving body credits the serving upstream");
+    }
+
     private void whenChainErrors() {
         when(chain.execute(exchange)).thenReturn(Mono.error(new RuntimeException("propagated")));
     }
