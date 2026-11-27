@@ -152,6 +152,21 @@ public class CommonUpstreamUtils {
     }
 
     /**
+     * Build a WebSocket selector entry for a healthy upstream missing from the previous handle.
+     *
+     * @param upstream the healthy upstream
+     * @return the websocket upstream
+     */
+    public static WebSocketUpstream buildAliveWebSocketUpstream(final CommonUpstream upstream) {
+        WebSocketUpstream websocket = WebSocketUpstream.builder()
+                .host(upstream.getUpstreamHost()).protocol(upstream.getProtocol()).upstreamUrl(upstream.getUpstreamUrl())
+                .weight(DEFAULT_WEIGHT).warmup(Constants.WARMUP_TIME).timestamp(upstream.getTimestamp())
+                .status(true).namespaceId(upstream.getNamespaceId()).build();
+        websocket.setHealthCheckEnabled(upstream.isHealthCheckEnabled());
+        return websocket;
+    }
+
+    /**
      * Build default dubbo upstream dubbo upstream.
      *
      * @param host the host
