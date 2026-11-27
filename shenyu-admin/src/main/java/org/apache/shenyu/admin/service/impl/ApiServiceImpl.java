@@ -233,6 +233,7 @@ public class ApiServiceImpl implements ApiService {
                 .parameterTypes(ext.getParameterTypes())
                 .rpcExt(ext.getRpcExt())
                 .rpcType(apiDO.getRpcType())
+                .namespaceId(SYS_DEFAULT_NAMESPACE_ID)
                 .enabled(true)
                 .build());
     }
