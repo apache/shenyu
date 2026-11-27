@@ -18,7 +18,6 @@
 package org.apache.shenyu.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
@@ -30,27 +29,27 @@ import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.ApiQuery;
-import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.query.TagRelationQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
-import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.model.vo.TagVO;
 import org.apache.shenyu.admin.service.ApiService;
-import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.ContextPathUtils;
 import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.common.utils.ListUtil;
+import org.apache.shenyu.common.utils.PluginNameAdapter;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
@@ -169,42 +168,37 @@ public class ApiServiceImpl implements ApiService {
     private void removeRegister(final ApiDO apiDO,
                                 final BiConsumer<List<String>, String> ruleRemover,
                                 final BiConsumer<List<String>, String> selectorRemover) {
-        final String path = apiDO.getApiPath();
-        RuleQueryCondition condition = new RuleQueryCondition();
-        condition.setKeyword(path);
-        //clean rule
-        final List<RuleVO> rules = ruleService.searchByCondition(condition);
-        if (CollectionUtils.isNotEmpty(rules)) {
-            // The keyword search matches rule names by substring, so it also returns rules
-            // registered for longer paths that merely contain this one; only the rule named
-            // exactly the deleted API path belongs to it.
-            final List<String> exactRuleIds = rules.stream()
-                    .filter(rule -> path.equals(rule.getName()))
-                    .map(RuleVO::getId)
-                    .distinct()
-                    // todo:[To be refactored with namespace]  Temporarily  hardcode
-                    .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(exactRuleIds)) {
-                ruleRemover.accept(exactRuleIds, SYS_DEFAULT_NAMESPACE_ID);
-            }
-        }
-        //clean selector
-        List<SelectorDO> selectorDOList = selectorService.findByNameAndPluginNamesAndNamespaceId(apiDO.getContextPath(), PluginEnum.getUpstreamNames(), SYS_DEFAULT_NAMESPACE_ID);
-        ArrayList<String> selectorIds = Lists.newArrayList();
-        Optional.ofNullable(selectorDOList).orElseGet(ArrayList::new).forEach(selectorDO -> {
-            final String selectorId = selectorDO.getId();
-            final List<RuleData> data = ruleService.findBySelectorId(selectorId);
-            if (CollectionUtils.isEmpty(data)) {
-                selectorIds.add(selectorId);
-            }
-        });
-        if (CollectionUtils.isNotEmpty(selectorIds)) {
-            // todo:[To be refactored with namespace]  Temporarily  hardcode
-            selectorRemover.accept(selectorIds, SYS_DEFAULT_NAMESPACE_ID);
-        }
-        //clean metadata
-        Optional.ofNullable(metaDataService.findByPathAndNamespaceId(path, SYS_DEFAULT_NAMESPACE_ID))
+        removeRegisteredRoute(apiDO, ruleRemover, selectorRemover);
+        Optional.ofNullable(metaDataService.findByPathAndNamespaceId(apiDO.getApiPath(), SYS_DEFAULT_NAMESPACE_ID))
                 .ifPresent(metaDataDO -> metaDataService.deleteByIdsAndNamespaceId(Lists.newArrayList(metaDataDO.getId()), SYS_DEFAULT_NAMESPACE_ID));
+    }
+
+    private void removeRegisteredRoute(final ApiDO apiDO,
+                                       final BiConsumer<List<String>, String> ruleRemover,
+                                       final BiConsumer<List<String>, String> selectorRemover) {
+        final String contextPath = apiDO.getContextPath();
+        final String rpcType = apiDO.getRpcType();
+        // AI does not use this registration path; the adapter would otherwise fall back to Divide.
+        final boolean supportsRegistration = RpcTypeEnum.acquireSupports().stream()
+                .anyMatch(type -> type != RpcTypeEnum.AI && type.getName().equals(rpcType));
+        if (StringUtils.isBlank(contextPath) || !supportsRegistration) {
+            return;
+        }
+        final SelectorDO selector = selectorService.findByNameAndPluginNameAndNamespaceId(
+                ContextPathUtils.buildContextPath(contextPath, null), PluginNameAdapter.rpcTypeAdapter(rpcType), SYS_DEFAULT_NAMESPACE_ID);
+        if (Objects.isNull(selector)) {
+            return;
+        }
+        final String selectorId = selector.getId();
+        final String path = apiDO.getApiPath();
+        final RuleDO rule = ruleService.findBySelectorIdAndName(selectorId, path);
+        if (Objects.isNull(rule) || !Objects.equals(path, rule.getRuleName())) {
+            return;
+        }
+        ruleRemover.accept(List.of(rule.getId()), SYS_DEFAULT_NAMESPACE_ID);
+        if (CollectionUtils.isEmpty(ruleService.findBySelectorId(selectorId))) {
+            selectorRemover.accept(List.of(selectorId), SYS_DEFAULT_NAMESPACE_ID);
+        }
     }
 
     private void register(final ApiDO apiDO) {

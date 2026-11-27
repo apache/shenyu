@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
 import org.apache.shenyu.admin.model.entity.MetaDataDO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.entity.TagRelationDO;
@@ -31,10 +32,11 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.vo.ApiVO;
-import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.impl.ApiServiceImpl;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.AdminConstants;
+import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -139,19 +141,17 @@ public final class ApiServiceTest {
 
     @Test
     public void testDeleteCleansRegisteredResources() {
-        RuleVO rule = new RuleVO();
-        rule.setId("rule-1");
         SelectorDO selector = new SelectorDO();
         selector.setId("selector-1");
         MetaDataDO metadata = new MetaDataDO();
         metadata.setId("metadata-1");
         ApiDO apiDO = buildApiDO("123");
-        rule.setName(apiDO.getApiPath());
+        RuleDO rule = RuleDO.builder().id("rule-1").ruleName(apiDO.getApiPath()).build();
         when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
-        when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
-        when(selectorService.findByNameAndPluginNamesAndNamespaceId(anyString(), anyList(), anyString()))
-                .thenReturn(Collections.singletonList(selector));
+        when(selectorService.findByNameAndPluginNameAndNamespaceId("/string", PluginEnum.DIVIDE.getName(), SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(selector);
+        when(ruleService.findBySelectorIdAndName("selector-1", apiDO.getApiPath())).thenReturn(rule);
         when(ruleService.findBySelectorId("selector-1")).thenReturn(Collections.emptyList());
         when(metaDataService.findByPathAndNamespaceId(apiDO.getApiPath(), SYS_DEFAULT_NAMESPACE_ID)).thenReturn(metadata);
 
@@ -166,13 +166,13 @@ public final class ApiServiceTest {
 
     @Test
     public void testDeleteIsRejectedWhenRuleCleanupIsDenied() {
-        RuleVO rule = new RuleVO();
-        rule.setId("rule-1");
         ApiDO apiDO = buildApiDO("123");
-        rule.setName(apiDO.getApiPath());
+        RuleDO rule = RuleDO.builder().id("rule-1").ruleName(apiDO.getApiPath()).build();
         when(apiMapper.selectByIds(Collections.singletonList("123"))).thenReturn(Collections.singletonList(apiDO));
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
-        when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
+        when(selectorService.findByNameAndPluginNameAndNamespaceId("/string", PluginEnum.DIVIDE.getName(), SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(SelectorDO.builder().id("selector-1").build());
+        when(ruleService.findBySelectorIdAndName("selector-1", apiDO.getApiPath())).thenReturn(rule);
         doThrow(new UnauthorizedException()).when(ruleService)
                 .deleteByIdsAndNamespaceId(Collections.singletonList("rule-1"), SYS_DEFAULT_NAMESPACE_ID);
 
@@ -184,18 +184,16 @@ public final class ApiServiceTest {
 
     @Test
     public void testRegistrationDeleteUsesUncheckedRegistrationDeletes() {
-        RuleVO rule = new RuleVO();
-        rule.setId("rule-1");
         SelectorDO selector = new SelectorDO();
         selector.setId("selector-1");
         ApiDO apiDO = buildApiDO("123");
-        rule.setName(apiDO.getApiPath());
+        RuleDO rule = RuleDO.builder().id("rule-1").ruleName(apiDO.getApiPath()).build();
         when(apiMapper.selectByApiPathHttpMethodRpcType(apiDO.getApiPath(), apiDO.getHttpMethod(), apiDO.getRpcType()))
                 .thenReturn(Collections.singletonList(apiDO));
         when(apiMapper.deleteByIds(Collections.singletonList("123"))).thenReturn(1);
-        when(ruleService.searchByCondition(any())).thenReturn(Collections.singletonList(rule));
-        when(selectorService.findByNameAndPluginNamesAndNamespaceId(anyString(), anyList(), anyString()))
-                .thenReturn(Collections.singletonList(selector));
+        when(selectorService.findByNameAndPluginNameAndNamespaceId("/string", PluginEnum.DIVIDE.getName(), SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(selector);
+        when(ruleService.findBySelectorIdAndName("selector-1", apiDO.getApiPath())).thenReturn(rule);
         when(ruleService.findBySelectorId("selector-1")).thenReturn(Collections.emptyList());
 
         assertEquals(1, apiService.deleteByApiPathHttpMethodRpcType(apiDO.getApiPath(), apiDO.getHttpMethod(), apiDO.getRpcType()));
@@ -334,7 +332,7 @@ public final class ApiServiceTest {
         apiDTO.setConsume("string");
         apiDTO.setProduce("string");
         apiDTO.setVersion("string");
-        apiDTO.setRpcType("string");
+        apiDTO.setRpcType(RpcTypeEnum.HTTP.getName());
         apiDTO.setState(0);
         apiDTO.setApiOwner("string");
         apiDTO.setApiDesc("string");
