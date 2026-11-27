@@ -31,6 +31,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -38,12 +39,15 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * MockPlugin.
  */
 public class MockPlugin extends AbstractShenyuPlugin {
+
+    private static final int MIN_FINAL_HTTP_STATUS_CODE = 200;
+
+    private static final int MAX_FINAL_HTTP_STATUS_CODE = 599;
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
@@ -54,7 +58,7 @@ public class MockPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        exchange.getResponse().setStatusCode(HttpStatus.valueOf(Optional.ofNullable(mockHandle.getHttpStatusCode()).orElse(200)));
+        exchange.getResponse().setStatusCode(resolveStatusCode(mockHandle.getHttpStatusCode()));
         
         return DataBufferUtils.join(exchange.getRequest().getBody())
                 .switchIfEmpty(Mono.just(DefaultDataBufferFactory.sharedInstance.allocateBuffer(0)))
@@ -66,6 +70,17 @@ public class MockPlugin extends AbstractShenyuPlugin {
                                 .doOnNext(data -> exchange.getResponse()
                                         .getHeaders()
                                         .setContentLength(data.readableByteCount()))));
+    }
+
+    private static HttpStatusCode resolveStatusCode(final Integer configuredStatus) {
+        if (Objects.isNull(configuredStatus)) {
+            return HttpStatus.OK;
+        }
+        if (configuredStatus >= MIN_FINAL_HTTP_STATUS_CODE && configuredStatus <= MAX_FINAL_HTTP_STATUS_CODE) {
+            return HttpStatusCode.valueOf(configuredStatus);
+        }
+        // Keep the existing enum behavior outside the final response range.
+        return HttpStatus.valueOf(configuredStatus);
     }
     
     @Override
