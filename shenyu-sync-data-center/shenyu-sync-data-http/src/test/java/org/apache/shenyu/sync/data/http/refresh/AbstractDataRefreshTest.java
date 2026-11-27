@@ -84,17 +84,21 @@ public final class AbstractDataRefreshTest {
     }
 
     @Test
-    public void refreshShouldIgnoreNewerMd5WhenModifyTimeIsNotNewer() {
+    public void refreshShouldApplyNewMd5EvenWhenModifyTimeIsNotNewer() {
+        // #8445: both last-modify times come from the admin side; with several admin
+        // instances or an admin clock step a genuine update carries an older timestamp,
+        // so a differing md5 must apply
         StubDataRefresh dataRefresh = new StubDataRefresh();
         ConfigData<PluginData> original = config("md5-old", 200L);
         dataRefresh.parsed = original;
         assertTrue(dataRefresh.refresh(new JsonObject()));
 
         dataRefresh.refreshed = false;
-        dataRefresh.parsed = config("md5-new", 100L);
-        assertFalse(dataRefresh.refresh(new JsonObject()));
-        assertFalse(dataRefresh.refreshed);
-        assertSame(original, AbstractDataRefresh.GROUP_CACHE.get(GROUP));
+        final ConfigData<PluginData> latest = config("md5-new", 100L);
+        dataRefresh.parsed = latest;
+        assertTrue(dataRefresh.refresh(new JsonObject()));
+        assertTrue(dataRefresh.refreshed);
+        assertSame(latest, AbstractDataRefresh.GROUP_CACHE.get(GROUP));
     }
 
     @Test
