@@ -79,8 +79,8 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
             ConfigData<?> applied = cacheConfigData();
             // During recovery the snapshot may be identical to the last successful one, but the subscriber state is not.
             boolean restoreApplied = recoveryRequired && Objects.nonNull(applied)
-                    && Objects.equals(applied.getMd5(), result.getMd5())
-                    && result.getLastModifyTime() >= applied.getLastModifyTime();
+                    && Objects.nonNull(result.getMd5())
+                    && Objects.equals(applied.getMd5(), result.getMd5());
             if (!restoreApplied && !isNewerConfig(applied, result, ConfigGroupEnum.PLUGIN)) {
                 return false;
             }
@@ -91,7 +91,10 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
                 throw ex;
             }
             // Advertise the digest only after the subscriber has applied or restored this snapshot.
-            GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
+            if (!restoreApplied || result.getLastModifyTime() > applied.getLastModifyTime()) {
+                // A peer may have the right contents, but an older timestamp. Keep the published version.
+                GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
+            }
             recoveryRequired = false;
             return true;
         }
