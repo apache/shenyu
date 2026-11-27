@@ -115,6 +115,7 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
     @Override
     public void shutdown() {
         this.listener = null;
+        ApplicationConfigCache.getInstance().unwatch(appName, this);
         if (Objects.nonNull(this.executor)) {
             this.executor = SharedResourceHolder.release(this.executorResource, this.executor);
         }

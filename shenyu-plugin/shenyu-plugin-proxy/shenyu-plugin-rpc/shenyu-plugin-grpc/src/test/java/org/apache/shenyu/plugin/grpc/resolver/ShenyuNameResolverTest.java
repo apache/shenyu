@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,18 +55,22 @@ public class ShenyuNameResolverTest {
     private NameResolver.Listener2 listener;
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setUp() {
         cache = ApplicationConfigCache.getInstance();
         cache.invalidate(APP_NAME);
+        resolver = newResolver();
+        listener = mock(NameResolver.Listener2.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ShenyuNameResolver newResolver() {
         NameResolver.Args args = mock(NameResolver.Args.class);
         when(args.getSynchronizationContext()).thenReturn(new SynchronizationContext((thread, error) -> {
             throw new AssertionError(error);
         }));
         SharedResourceHolder.Resource<Executor> resource = mock(SharedResourceHolder.Resource.class);
         when(resource.create()).thenReturn(Runnable::run);
-        resolver = new ShenyuNameResolver(APP_NAME, args, resource);
-        listener = mock(NameResolver.Listener2.class);
+        return new ShenyuNameResolver(APP_NAME, args, resource);
     }
 
     @AfterEach
@@ -134,6 +139,38 @@ public class ShenyuNameResolverTest {
         verify(listener).onError(error.capture());
         assertEquals(Status.Code.UNAVAILABLE, error.getValue().getCode());
         assertEquals("Failed to update server list for " + APP_NAME, error.getValue().getDescription());
+    }
+
+    @Test
+    public void testShutdownUnregistersCurrentWatcher() {
+        resolver = spy(resolver);
+        updateUpstream("127.0.0.1:8080");
+        resolver.start(listener);
+
+        resolver.shutdown();
+        updateUpstream("127.0.0.1:8081");
+
+        verify(resolver, never()).accept(any());
+    }
+
+    @Test
+    public void testShutdownDoesNotRemoveSuccessorWatcher() {
+        updateUpstream("127.0.0.1:8080");
+        resolver.start(listener);
+        final ShenyuNameResolver successor = newResolver();
+        final NameResolver.Listener2 successorListener = mock(NameResolver.Listener2.class);
+        successor.start(successorListener);
+        try {
+            resolver.shutdown();
+            updateUpstream("127.0.0.1:8081");
+
+            verify(listener).onResult(any(NameResolver.ResolutionResult.class));
+            ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
+            verify(successorListener, times(2)).onResult(results.capture());
+            assertEquals(new InetSocketAddress("127.0.0.1", 8081), results.getValue().getAddresses().get(0).getAddresses().get(0));
+        } finally {
+            successor.shutdown();
+        }
     }
 
     private void updateUpstream(final String url) {
