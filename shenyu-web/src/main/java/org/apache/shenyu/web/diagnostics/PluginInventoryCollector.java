@@ -18,6 +18,8 @@
 package org.apache.shenyu.web.diagnostics;
 
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.plugin.capability.PluginCapabilityDescriptor;
+import org.apache.shenyu.common.plugin.capability.PluginCapabilityRegistry;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.web.handler.ShenyuWebHandler;
 
@@ -26,6 +28,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,33 +67,64 @@ public final class PluginInventoryCollector implements SectionCollector {
             return DiagnosticSection.of(NAME, SectionStatus.SKIPPED, observedAt, 0L, "budget exhausted before start");
         }
         List<ShenyuPlugin> plugins = webHandler.getPlugins();
-        List<Map<String, Object>> inventory = new ArrayList<>(plugins.size());
+        List<Map<String, Object>> inventory = new ArrayList<>();
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("count", plugins.size());
+        root.put("collected", 0);
+        root.put("scope", "observed LEGACY chain; not a complete installation catalog");
+        root.put("requestSelection", "UNKNOWN");
+        root.put("plugins", inventory);
+        int bytes = encode(root).length;
+        if (bytes > budget.maxBytes()) {
+            return DiagnosticSection.of(NAME, SectionStatus.TRUNCATED, observedAt, elapsedMs(startNanos), "inventory byte budget too small");
+        }
         boolean complete = true;
         for (ShenyuPlugin plugin : plugins) {
-            if (budget.shouldStop()) {
+            if (budget.shouldStop() || inventory.size() >= 64) {
                 complete = false;
                 break;
             }
-            inventory.add(describe(plugin));
+            Map<String, Object> entry = describe(plugin);
+            int entryBytes = encode(entry).length + 1;
+            if (bytes + entryBytes + 8 > budget.maxBytes()) {
+                complete = false;
+                break;
+            }
+            inventory.add(entry);
+            bytes += entryBytes;
         }
-        Map<String, Object> root = new LinkedHashMap<>();
-        root.put("count", plugins.size());
         root.put("collected", inventory.size());
-        root.put("plugins", inventory);
-        String json = GsonUtils.getInstance().toJson(root);
+        byte[] json = encode(root);
         if (!complete) {
-            return DiagnosticSection.truncated(NAME, observedAt, elapsedMs(startNanos), json.getBytes(StandardCharsets.UTF_8), "budget exhausted during inventory");
+            return DiagnosticSection.truncated(NAME, observedAt, elapsedMs(startNanos), json, "inventory record, time or byte budget exhausted");
         }
         return DiagnosticSection.ok(NAME, observedAt, elapsedMs(startNanos), json);
     }
 
     private Map<String, Object> describe(final ShenyuPlugin plugin) {
         Map<String, Object> entry = new LinkedHashMap<>();
-        String named = plugin.named();
-        entry.put("name", named.isEmpty() ? plugin.getClass().getSimpleName() : named);
-        entry.put("class", plugin.getClass().getName());
+        String named = bounded(plugin.named(), 64);
+        String implementation = bounded(plugin.getClass().getName(), 256);
+        entry.put("name", named.isEmpty() ? bounded(plugin.getClass().getSimpleName(), 64) : named);
+        entry.put("class", implementation);
         entry.put("order", plugin.getOrder());
+        entry.put("implementationVersion", Optional.ofNullable(plugin.getClass().getPackage().getImplementationVersion())
+                .map(value -> bounded(value, 64)).orElse("UNKNOWN"));
+        Optional<PluginCapabilityDescriptor> declaration = PluginCapabilityRegistry.shared().find(named, implementation);
+        entry.put("declarationStatus", declaration.isPresent() ? "DECLARED" : "UNKNOWN");
+        declaration.ifPresent(value -> {
+            entry.put("declaration", value);
+            entry.put("configurationReferenceStatus", Objects.isNull(value.configurationReference()) ? "UNSPECIFIED" : "UNRESOLVED");
+        });
         return entry;
+    }
+
+    private String bounded(final String value, final int maximum) {
+        return Objects.isNull(value) ? "" : value.substring(0, Math.min(value.length(), maximum)).replaceAll("[\\p{Cntrl}]", "_");
+    }
+
+    private byte[] encode(final Object value) {
+        return GsonUtils.getInstance().toJson(value).getBytes(StandardCharsets.UTF_8);
     }
 
     private long elapsedMs(final long startNanos) {
