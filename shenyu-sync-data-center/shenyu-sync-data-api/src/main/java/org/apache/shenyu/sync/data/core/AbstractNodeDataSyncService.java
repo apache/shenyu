@@ -226,6 +226,7 @@ public abstract class AbstractNodeDataSyncService {
         final PluginData data = new PluginData();
         data.setName(pluginKeys[2]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
+        removeListener(removeKey);
     }
 
     protected void cacheSelectorData(final String dataString) {
