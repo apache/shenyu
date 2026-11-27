@@ -72,8 +72,8 @@ shenyu:
         singleEventExecutorPerGroup: true
   register:
     enabled: true
-    registerType: zookeeper #etcd #consul
-    serverLists: localhost:2181 #http://localhost:2379 #localhost:8848
+    registerType: zookeeper #consul
+    serverLists: localhost:2181 #localhost:8848
     props:
   cross:
     enabled: true
