@@ -40,6 +40,15 @@ public interface ClientRegisterConfig {
     Integer getPort();
 
     /**
+     * Gets the scheme advertised by a local URI registration.
+     *
+     * @return the configured scheme, or null to retain the protocol-specific default
+     */
+    default String getProtocol() {
+        return null;
+    }
+
+    /**
      * Gets host.
      * @return host
      */
