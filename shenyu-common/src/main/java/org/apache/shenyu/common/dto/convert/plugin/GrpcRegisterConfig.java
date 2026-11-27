@@ -41,10 +41,10 @@ public class GrpcRegisterConfig implements Serializable {
     private Long maxAggregatedResultCount;
 
     /**
-     * Maximum accumulated payload bytes (UTF-8) of the aggregated response items retained
-     * by a single gRPC call. This bounds the serialized payload bytes, not the exact JVM heap
-     * footprint. A value that is {@code null} or not positive means unlimited, which preserves
-     * the historical behavior.
+     * Maximum accumulated UTF-8 payload bytes retained by one gRPC call. The budget counts
+     * trimmed JSON objects and blank response strings as retained. Transport message limits
+     * apply separately, and decoded JSON objects and HTTP response encoding use additional memory.
+     * A value that is {@code null} or not positive means unlimited.
      */
     private Long maxAggregatedResultBytes;
 

@@ -23,9 +23,13 @@ import org.apache.shenyu.plugin.grpc.exception.ShenyuGrpcException;
 import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -249,6 +253,29 @@ public class MessageWriterTest {
 
         assertTrue(response.getResults().isEmpty());
         verify(call, times(1)).cancel(anyString(), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0x1F603, 0xD800})
+    public void byteBudgetCountsRetainedWhitespaceAndTrimmedJson(final int codePoint) {
+        String whitespace = " \t" + Character.toString(0x3000);
+        String text = Character.toString(codePoint);
+        String payload = "{\"value\":\"" + text + "\"}";
+        ShenyuGrpcResponse response = new ShenyuGrpcResponse();
+        MessageWriter<DynamicMessage> writer = MessageWriter.newInstance(response, 0L, bytes(payload) + bytes(whitespace));
+        ClientCall<?, ?> call = mock(ClientCall.class);
+        writer.bindCall(call);
+
+        writer.onNext(jsonMessage("ignored plain text"));
+        writer.onNext(jsonMessage(whitespace));
+        writer.onNext(jsonMessage("\t " + payload + " \r\n"));
+        assertEquals(List.of(whitespace, Map.of("value", text)), response.getResults());
+        assertFalse(writer.getOverflowFuture().isDone());
+
+        writer.onNext(jsonMessage(" "));
+        assertTrue(writer.getOverflowFuture().isDone());
+        assertTrue(response.getResults().isEmpty());
+        verify(call).cancel(anyString(), any());
     }
 
     @Test

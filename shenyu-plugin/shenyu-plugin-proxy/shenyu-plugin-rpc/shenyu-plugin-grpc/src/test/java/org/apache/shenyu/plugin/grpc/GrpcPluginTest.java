@@ -23,7 +23,14 @@ import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
+import io.grpc.Server;
+import io.grpc.ServerServiceDefinition;
 import io.grpc.Status;
+import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.NettyServerBuilder;
+import io.grpc.stub.ServerCallStreamObserver;
+import io.grpc.stub.ServerCalls;
+import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
@@ -41,6 +48,7 @@ import org.apache.shenyu.plugin.grpc.cache.GrpcExtInfo;
 import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 import org.apache.shenyu.plugin.grpc.context.GrpcConstants;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
+import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,10 +67,14 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -154,6 +166,72 @@ public class GrpcPluginTest {
         StepVerifier.create(response).thenCancel().verify();
 
         assertEquals(1, call.cancellations.get());
+    }
+
+    @Test
+    public void testCancellationLeavesConcurrentRpcOnLoopbackChannelRunning() throws Exception {
+        MetaData streamingMetaData = getMetaData();
+        streamingMetaData.setRpcExt("{\"timeout\":30000,\"methodType\":\"SERVER_STREAMING\"}");
+        MetaData concurrentMetaData = getMetaData();
+        concurrentMetaData.setId("grpc-concurrent");
+        concurrentMetaData.setMethodName("concurrent");
+        concurrentMetaData.setRpcExt(streamingMetaData.getRpcExt());
+        CountDownLatch streamingStarted = new CountDownLatch(1);
+        CountDownLatch upstreamCancelled = new CountDownLatch(1);
+        CompletableFuture<StreamObserver<DynamicMessage>> concurrentResponse = new CompletableFuture<>();
+        MethodDescriptor<DynamicMessage, DynamicMessage> streamingDescriptor = streamingMethod(streamingMetaData);
+        ServerServiceDefinition service = ServerServiceDefinition.builder(streamingDescriptor.getServiceName())
+                .addMethod(streamingDescriptor, ServerCalls.asyncServerStreamingCall((request, response) -> {
+                    ((ServerCallStreamObserver<DynamicMessage>) response).setOnCancelHandler(upstreamCancelled::countDown);
+                    response.onNext(JsonMessage.buildJsonMessage("{\"value\":\"partial\"}"));
+                    streamingStarted.countDown();
+                }))
+                .addMethod(streamingMethod(concurrentMetaData), ServerCalls.asyncServerStreamingCall(
+                        (request, response) -> concurrentResponse.complete(response)))
+                .build();
+        InetAddress loopback = InetAddress.getLoopbackAddress();
+        Server server = NettyServerBuilder.forAddress(new InetSocketAddress(loopback, 0)).addService(service).build().start();
+        try {
+            ManagedChannel channel = NettyChannelBuilder.forAddress(new InetSocketAddress(loopback, server.getPort())).usePlaintext().build();
+            try {
+                putClient(new ShenyuGrpcClient(channel));
+                when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
+                ServerWebExchange streamingExchange = streamingExchange(streamingMetaData);
+                ServerWebExchange concurrentExchange = streamingExchange(concurrentMetaData);
+                RuleData rule = mock(RuleData.class);
+
+                CompletableFuture<Void> streaming = grpcPlugin.doExecute(streamingExchange, chain, selector, rule).toFuture();
+                assertTrue(streamingStarted.await(5, TimeUnit.SECONDS));
+                final CompletableFuture<Void> concurrent = grpcPlugin.doExecute(concurrentExchange, chain, selector, rule).toFuture();
+                final StreamObserver<DynamicMessage> response = concurrentResponse.get(5, TimeUnit.SECONDS);
+                assertTrue(streaming.cancel(false));
+                assertTrue(upstreamCancelled.await(5, TimeUnit.SECONDS));
+                assertFalse(streamingExchange.getAttributes().containsKey(Constants.RPC_RESULT));
+
+                response.onNext(JsonMessage.buildJsonMessage("{\"value\":\"concurrent\"}"));
+                response.onCompleted();
+                concurrent.get(5, TimeUnit.SECONDS);
+                assertEquals(List.of(Map.of("value", "concurrent")), concurrentExchange.getAttribute(Constants.RPC_RESULT));
+                assertFalse(channel.isShutdown());
+            } finally {
+                channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+            }
+        } finally {
+            server.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
+    private MethodDescriptor<DynamicMessage, DynamicMessage> streamingMethod(final MetaData metaData) {
+        DynamicMessage message = JsonMessage.buildJsonMessage();
+        return JsonMessage.createJsonMarshallerMethodDescriptor(metaData.getServiceName(), metaData.getMethodName(),
+                MethodDescriptor.MethodType.SERVER_STREAMING, message, message);
+    }
+
+    private ServerWebExchange streamingExchange(final MetaData metaData) {
+        ServerWebExchange exchange = getServerWebExchange();
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"data\":[{}]}");
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
+        return exchange;
     }
 
     @Test
