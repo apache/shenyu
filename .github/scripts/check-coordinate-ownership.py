@@ -115,6 +115,9 @@ def validate_repository(directory, version, transferred, foundations, state, fai
         if not (present - transferred):
             failures.append("repository holds no main-owned artifacts; handoff_state=transferred needs the retained foundations")
     elif not leaked:
+        # Deliberately inverted from the transferred branch: while state is
+        # preparation the release lane must still see main's own publications,
+        # so an empty transferred side means we cannot verify what it owns.
         failures.append("handoff_state is preparation but no staged coordinate was built; the release lane cannot verify what it still owns")
     missing = sorted(foundations - present)
     if missing:
