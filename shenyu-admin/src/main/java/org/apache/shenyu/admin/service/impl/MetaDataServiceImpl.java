@@ -331,6 +331,15 @@ public class MetaDataServiceImpl implements MetaDataService {
         final List<MetaData> changedMetaData = new LinkedList<>();
         if (metaDataMapper.update(metaDataDO) > 0) {
             publisher.onUpdated(metaDataDO, before);
+            // the path-based config centers store each record under its path; when the
+            // path changed the old node must be deleted or it keeps serving stale data
+            if (Objects.nonNull(before) && !Objects.equals(before.getPath(), metaDataDO.getPath())) {
+                final MetaData removed = MetaDataTransfer.INSTANCE.mapToData(metaDataDTO);
+                removed.setId(before.getId());
+                removed.setPath(before.getPath());
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA,
+                        DataEventTypeEnum.DELETE, Collections.singletonList(removed)));
+            }
             changedMetaData.add(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO));
             // update other rpc_ext for the same service
             final List<MetaDataDO> befores = Optional.ofNullable(metaDataMapper.findByServiceNameAndMethodAndNamespaceId(
