@@ -29,6 +29,8 @@
     <artifactId>shenyu-examples-sdk-springcloud-consumer</artifactId>
 
     <properties>
+        <!-- Development-only until compatible external artifacts are published. -->
+        <shenyu-plugin-store.version>2.7.1-SNAPSHOT</shenyu-plugin-store.version>
         <spring-cloud.version>4.3.3</spring-cloud.version>
     </properties>
 
@@ -88,7 +90,7 @@
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-registry-eureka</artifactId>
-            <version>${project.version}</version>
+            <version>${shenyu-plugin-store.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>servlet-api</artifactId>

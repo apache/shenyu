@@ -1275,7 +1275,7 @@ Bundled resources:
   jackson-core-2.21.7.jar / META-INF/LICENSE
   jackson-databind-2.21.7.jar / META-INF/LICENSE
   jakarta.inject-api-2.0.1.jar / META-INF/LICENSE.txt
-  joda-time-2.3.jar / META-INF/LICENSE.txt
+  joda-time-2.10.5.jar / META-INF/LICENSE.txt
   log4j-api-2.25.5.jar / META-INF/LICENSE
   log4j-to-slf4j-2.25.5.jar / META-INF/LICENSE
   nacos-client-2.2.4.jar / META-INF/LICENSE.txt
