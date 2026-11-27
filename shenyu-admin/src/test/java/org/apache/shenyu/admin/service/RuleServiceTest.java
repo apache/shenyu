@@ -458,6 +458,49 @@ public final class RuleServiceTest {
         verify(ruleMapper, never()).insertSelective(any());
     }
 
+    @Test
+    public void testWebSocketCreateRejectsNegativeIdleTimeoutBeforeWrite() {
+        mockWebSocketPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"timeout\":3000,\"idleTimeout\":-1}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).insertSelective(any());
+        verify(ruleEventPublisher, never()).onCreated(any(), any());
+    }
+
+    @Test
+    public void testWebSocketUpdateRejectsNegativeTimeoutBeforeWrite() {
+        mockWebSocketPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("123");
+        ruleDTO.setHandle("{\"timeout\":-3000}");
+
+        assertThrows(ShenyuAdminException.class, () -> ruleService.createOrUpdate(ruleDTO));
+
+        verify(ruleMapper, never()).updateSelective(any());
+        verify(ruleEventPublisher, never()).onUpdated(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testWebSocketCreateAcceptsNonNegativeTimeouts() {
+        mockWebSocketPlugin();
+        RuleDTO ruleDTO = buildRuleDTO("");
+        ruleDTO.setHandle("{\"timeout\":3000,\"idleTimeout\":60000}");
+        given(ruleMapper.insertSelective(any())).willReturn(1);
+
+        assertEquals(1, ruleService.createOrUpdate(ruleDTO));
+        verify(ruleEventPublisher).onCreated(any(), any());
+    }
+
+    private void mockWebSocketPlugin() {
+        given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
+                .id("789")
+                .name(PluginEnum.WEB_SOCKET.getName())
+                .build());
+    }
+
     private void mockRewritePlugin() {
         given(selectorMapper.selectById("456")).willReturn(buildSelectorDO());
         given(pluginMapper.selectById("789")).willReturn(PluginDO.builder()
