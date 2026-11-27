@@ -185,7 +185,6 @@ resolve_k8s_change() {
   if [[ "${mode}" == "k8s-examples-http" ]]; then
     case "${file}" in
       pom.xml|mvnw|mvnw.cmd|.mvn/*|\
-      shenyu-examples/shenyu-examples-http*/*|\
       shenyu-common/*|shenyu-web/*|shenyu-bootstrap/*|shenyu-admin/*|\
       shenyu-admin-listener/*|shenyu-sync-data-center/*|\
       shenyu-loadbalancer/*|shenyu-protocol/*|shenyu-register-center/*|shenyu-registry/*|\
@@ -463,7 +462,9 @@ while IFS= read -r file; do
   if [[ "${mode}" == "k8s-examples-http" ]]; then
     case "${file}" in
       .github/workflows/k8s-examples-http.yml|.github/scripts/install-k3s*|.github/scripts/free-disk-space*|actions/*|\
-      shenyu-e2e/shenyu-e2e-case/k8s/http-smoke/*)
+      shenyu-e2e/shenyu-e2e-case/k8s/http-smoke/*|shenyu-e2e/shenyu-e2e-case/compose/fixtures/httpbin.py|\
+      shenyu-e2e/pom.xml|shenyu-e2e/shenyu-e2e-client/*|shenyu-e2e/shenyu-e2e-common/*|shenyu-e2e/shenyu-e2e-engine/*|\
+      shenyu-e2e/shenyu-e2e-case/pom.xml|shenyu-e2e/shenyu-e2e-case/shenyu-e2e-case-http/*)
         run_k8s_examples=true
         continue
         ;;
@@ -509,7 +510,7 @@ e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
     {
       "e2e-http-sync-compose": {
         case: "shenyu-e2e-case-http",
-        example_projects: ":shenyu-examples-http"
+        example_projects: ""
       },
       "e2e-springcloud-sync-compose": {
         case: "shenyu-e2e-case-spring-cloud",
