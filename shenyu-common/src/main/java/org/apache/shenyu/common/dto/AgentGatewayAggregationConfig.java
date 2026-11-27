@@ -33,6 +33,30 @@ import java.util.Set;
 /** Strict, secret-free configuration shared by Admin and gateway. */
 public record AgentGatewayAggregationConfig(String revision, List<Server> servers) {
 
+    /** Legacy remote request budget, kept as the default for every existing configuration. */
+    public static final int DEFAULT_REMOTE_REQUEST_BYTES = 8192;
+
+    /** Legacy remote response budget, kept as the default for every existing configuration. */
+    public static final int DEFAULT_REMOTE_RESPONSE_BYTES = 8192;
+
+    /** Smallest configurable remote budget; below this the JSON-RPC envelope itself cannot fit. */
+    public static final int MIN_REMOTE_BYTES = 1024;
+
+    /** Hard maximum for one remote request body, regardless of configuration. */
+    public static final int MAX_REMOTE_REQUEST_BYTES = 65536;
+
+    /**
+     * Hard maximum for one remote response body, regardless of configuration.
+     * This is a per-message ceiling, not a memory guarantee: the body is buffered once per
+     * in-flight request, so the node-wide worst case is the configured budget multiplied by the
+     * in-flight limit and the number of Servers. It is also independent of the rule-handle entry
+     * budget, which must be raised separately before a result this large can be rendered.
+     */
+    public static final int MAX_REMOTE_RESPONSE_BYTES = 1048576;
+
+    /** Single rejection message for a remote payload budget, whatever the parsing layer. */
+    private static final String INVALID_REMOTE_PAYLOAD_BUDGET = "Remote MCP payload budget outside the supported range";
+
     private static final ObjectMapper JSON = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
@@ -74,9 +98,12 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
             }
             List<Server> servers = new ArrayList<>();
             for (JsonNode server : aggregation.get("servers")) {
-                fields(server, Set.of("name", "endpoint", "credentialRef", "credentialVersion"));
+                fields(server, Set.of("name", "endpoint", "credentialRef", "credentialVersion"),
+                        Set.of("remoteRequestBytes", "remoteResponseBytes"));
                 servers.add(new Server(text(server, "name"), URI.create(text(server, "endpoint")),
-                        text(server, "credentialRef"), text(server, "credentialVersion")));
+                        text(server, "credentialRef"), text(server, "credentialVersion"),
+                        budget(server, "remoteRequestBytes", DEFAULT_REMOTE_REQUEST_BYTES, MAX_REMOTE_REQUEST_BYTES),
+                        budget(server, "remoteResponseBytes", DEFAULT_REMOTE_RESPONSE_BYTES, MAX_REMOTE_RESPONSE_BYTES)));
             }
             return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers);
         } catch (Exception error) {
@@ -86,13 +113,48 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
     }
 
     private static void fields(final JsonNode node, final Set<String> expected) {
+        fields(node, expected, Set.of());
+    }
+
+    private static void fields(final JsonNode node, final Set<String> required, final Set<String> optional) {
         if (Objects.isNull(node) || !node.isObject()) {
             throw new IllegalArgumentException("Expected configuration object");
         }
         Set<String> fields = new HashSet<>();
         node.fieldNames().forEachRemaining(fields::add);
-        if (!fields.equals(expected)) {
+        Set<String> allowed = new HashSet<>(required);
+        allowed.addAll(optional);
+        if (!allowed.containsAll(fields) || !fields.containsAll(required)) {
             throw new IllegalArgumentException("Unknown or missing configuration field");
+        }
+    }
+
+    private static int budget(final JsonNode server, final String field, final int fallback, final int maximum) {
+        JsonNode value = server.get(field);
+        if (Objects.isNull(value)) {
+            // Absent optional budget keeps the documented legacy default, never a shared maximum.
+            return fallback;
+        }
+        if (!value.isIntegralNumber() || !value.canConvertToInt()) {
+            throw new IllegalArgumentException(INVALID_REMOTE_PAYLOAD_BUDGET);
+        }
+        int resolved = value.intValue();
+        if (resolved < MIN_REMOTE_BYTES || resolved > maximum) {
+            // Same range rule and same message as validateRemotePayloadBudget, at both layers.
+            throw new IllegalArgumentException(INVALID_REMOTE_PAYLOAD_BUDGET);
+        }
+        return resolved;
+    }
+
+    /**
+     * Validate one remote payload budget pair, shared by Admin persistence and the gateway.
+     * @param requestBytes configured remote request body budget
+     * @param responseBytes configured remote response body budget
+     */
+    public static void validateRemotePayloadBudget(final int requestBytes, final int responseBytes) {
+        if (requestBytes < MIN_REMOTE_BYTES || requestBytes > MAX_REMOTE_REQUEST_BYTES
+                || responseBytes < MIN_REMOTE_BYTES || responseBytes > MAX_REMOTE_RESPONSE_BYTES) {
+            throw new IllegalArgumentException(INVALID_REMOTE_PAYLOAD_BUDGET);
         }
     }
 
@@ -136,8 +198,10 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
         return node.get(field).textValue();
     }
 
-    /** A remote target reference, containing no bearer token. */
-    public record Server(String name, URI endpoint, String credentialRef, String credentialVersion) {
+    /** A remote target reference with immutable payload budgets, containing no bearer token. */
+    public record Server(String name, URI endpoint, String credentialRef, String credentialVersion,
+                         int remoteRequestBytes, int remoteResponseBytes) {
+
         public Server {
             if (Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
                 throw new IllegalArgumentException("Invalid MCP Server target");
@@ -147,6 +211,18 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                     || Objects.isNull(credentialVersion) || !credentialVersion.matches("[A-Za-z0-9_-]{1,48}")) {
                 throw new IllegalArgumentException("Invalid service credential reference");
             }
+            validateRemotePayloadBudget(remoteRequestBytes, remoteResponseBytes);
+        }
+
+        /**
+         * Legacy target without explicit budgets: the fixed 8 KiB transport limit is retained.
+         * @param name stable server name
+         * @param endpoint exact configured endpoint
+         * @param credentialRef service credential reference
+         * @param credentialVersion service credential version
+         */
+        public Server(final String name, final URI endpoint, final String credentialRef, final String credentialVersion) {
+            this(name, endpoint, credentialRef, credentialVersion, DEFAULT_REMOTE_REQUEST_BYTES, DEFAULT_REMOTE_RESPONSE_BYTES);
         }
     }
 }

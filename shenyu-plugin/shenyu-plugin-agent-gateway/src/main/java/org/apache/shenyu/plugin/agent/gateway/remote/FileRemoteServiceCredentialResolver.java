@@ -78,13 +78,15 @@ public final class FileRemoteServiceCredentialResolver implements RemoteServiceC
                     throw new SecurityException("Invalid credential file value");
                 }
             }
+            // The secret file binds name, endpoint, reference and version only; payload budgets stay
+            // trusted plugin configuration and are never read from, or compared against, credential data.
             RemoteServerBinding.Config bound = new RemoteServerBinding.Config(
                 value.get("name").textValue(),
                 URI.create(value.get("endpoint").textValue()),
                 value.get("credentialRef").textValue(),
                 value.get("credentialVersion").textValue()
             );
-            if (!target.equals(bound)) {
+            if (!target.bindsTo(bound)) {
                 throw new SecurityException("Credential target binding mismatch");
             }
             return new RemoteServerBinding.Credential(bound, value.get("bearerToken").textValue());

@@ -18,8 +18,11 @@
 package org.apache.shenyu.common.dto;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -61,6 +64,57 @@ class AgentGatewayAggregationConfigTest {
     void rejectsAmbiguousEndpoints(final String endpoint) {
         String server = "{\"name\":\"orders\",\"endpoint\":\"" + endpoint + "\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)));
+    }
+
+    @Test
+    void defaultsRemotePayloadBudgetsToTheLegacyEightKiB() {
+        String server = "{\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
+        AgentGatewayAggregationConfig.Server parsed = AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)).servers().get(0);
+        assertEquals(AgentGatewayAggregationConfig.DEFAULT_REMOTE_REQUEST_BYTES, parsed.remoteRequestBytes());
+        assertEquals(AgentGatewayAggregationConfig.DEFAULT_REMOTE_RESPONSE_BYTES, parsed.remoteResponseBytes());
+        assertEquals(new AgentGatewayAggregationConfig.Server("orders", URI.create("https://192.0.2.10:443/mcp"),
+                "service/orders", "v1"), parsed);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1024,1024", "65536,1048576", "8192,32768", "16384,8192"})
+    void acceptsRemotePayloadBudgetsWithinHardMaxima(final int requestBytes, final int responseBytes) {
+        AgentGatewayAggregationConfig.Server parsed = AgentGatewayAggregationConfig
+                .parsePluginConfig(wrap(serverWith(String.valueOf(requestBytes), String.valueOf(responseBytes)))).servers().get(0);
+        assertEquals(requestBytes, parsed.remoteRequestBytes());
+        assertEquals(responseBytes, parsed.remoteResponseBytes());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"\"8192\"", "true", "8192.5", "null", "0", "-1", "1023", "65537"})
+    void rejectsInvalidRemoteRequestBudgets(final String value) {
+        assertThrows(IllegalArgumentException.class,
+                () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(serverWith(value, "8192"))));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "-1", "1023", "1048577", "\"8192\"", "8192.0"})
+    void rejectsInvalidRemoteResponseBudgets(final String value) {
+        assertThrows(IllegalArgumentException.class,
+                () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(serverWith("8192", value))));
+    }
+
+    @Test
+    void rejectsUnknownRemoteBudgetFields() {
+        String server = "{\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\",\"remoteResponseBudget\":32768}";
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server)));
+    }
+
+    @Test
+    void validatesRemotePayloadBudgetRangeForSharedCallers() {
+        AgentGatewayAggregationConfig.validateRemotePayloadBudget(8192, 8192);
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.validateRemotePayloadBudget(512, 8192));
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.validateRemotePayloadBudget(8192, 1048577));
+    }
+
+    private static String serverWith(final String requestBytes, final String responseBytes) {
+        return "{\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\","
+                + "\"remoteRequestBytes\":" + requestBytes + ",\"remoteResponseBytes\":" + responseBytes + "}";
     }
 
     private static String wrap(final String servers) {
