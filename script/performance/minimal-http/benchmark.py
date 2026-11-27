@@ -185,22 +185,24 @@ def load(args, url, body, rate, duration, output, gateway=None):
     command = [args.k6, "run", "--quiet", "--out", f"json={output / 'samples.json'}", str(HERE / "load.js")]
     with (output / "k6.log").open("w", encoding="utf-8") as log:
         process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=env)
-        target = psutil.Process(gateway.pid) if gateway else None
-        cpu_before = sum(target.cpu_times()[:2]) if target else 0
-        started, samples = time.monotonic(), []
         try:
+            target = psutil.Process(gateway.pid) if gateway else None
+            cpu_before = sum(target.cpu_times()[:2]) if target else 0
+            started, samples = time.monotonic(), []
             while process.poll() is None:
                 if target:
                     samples.append(target.memory_info().rss)
                 if time.monotonic() - started > duration + 45:
                     raise TimeoutError("Load generator did not finish")
                 time.sleep(0.2)
+            elapsed = time.monotonic() - started
+            cpu = 100 * (sum(target.cpu_times()[:2]) - cpu_before) / elapsed if target else None
+        except psutil.NoSuchProcess as error:
+            raise RuntimeError(f"Gateway exited during load; inspect {output.parent / 'gateway.log'}") from error
         finally:
             if process.poll() is None:
                 process.kill()
                 process.wait(timeout=5)
-        elapsed = time.monotonic() - started
-        cpu = 100 * (sum(target.cpu_times()[:2]) - cpu_before) / elapsed if target else None
     # 99 is a completed run with failed thresholds, useful when bracketing load.
     # Other exits (including external aborts) must not look like gateway saturation.
     if process.returncode not in (0, 99):
