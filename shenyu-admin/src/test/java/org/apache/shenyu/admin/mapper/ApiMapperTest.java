@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.mapper;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.TagDO;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ApiQuery;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Resource;
 import java.sql.Timestamp;
@@ -39,6 +41,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -54,6 +57,9 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private ApiService apiService;
+
+    @Resource
+    private TagMapper tagMapper;
 
     private final ApiDO apiDO = buildApiDO();
 
@@ -114,6 +120,38 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
             apiMapper.deleteByPrimaryKey(first.getId());
             apiMapper.deleteByPrimaryKey(second.getId());
         }
+    }
+
+    @Test
+    @Transactional
+    public void testTagFilterPaginatesDistinctApis() {
+        ApiDO newest = buildApiDO();
+        String prefix = "/tag-pagination/" + newest.getId();
+        newest.setApiPath(prefix + "/newest");
+        newest.setDateCreated(Timestamp.valueOf("2026-01-02 00:00:00"));
+        ApiDO older = buildApiDO();
+        older.setApiPath(prefix + "/older");
+        older.setDateCreated(Timestamp.valueOf("2026-01-01 00:00:00"));
+        ApiDO untagged = buildApiDO();
+        untagged.setApiPath(prefix + "/untagged");
+        apiMapper.insert(newest);
+        apiMapper.insert(older);
+        apiMapper.insert(untagged);
+        String tagId = UUIDUtils.getInstance().generateShortUuid();
+        Timestamp time = Timestamp.valueOf("2026-01-01 00:00:00");
+        tagMapper.insert(TagDO.builder().id(tagId).tagName("pagination").tagDesc("pagination")
+                .parentTagId("0").ext("{}").dateCreated(time).dateUpdated(time).build());
+        saveTags(newest, List.of(tagId, tagId));
+        saveTags(older, List.of(tagId));
+
+        CommonPager<ApiVO> firstPage = apiService.listByPage(new ApiQuery(prefix, null, tagId, new PageParameter(1, 1)));
+        CommonPager<ApiVO> secondPage = apiService.listByPage(new ApiQuery(prefix, null, tagId, new PageParameter(2, 1)));
+        assertAll(
+                () -> assertEquals(2, firstPage.getPage().getTotalCount()),
+                () -> assertEquals(2, firstPage.getPage().getTotalPage()),
+                () -> assertEquals(List.of(newest.getId()), firstPage.getDataList().stream().map(ApiVO::getId).toList()),
+                () -> assertEquals(List.of(older.getId()), secondPage.getDataList().stream().map(ApiVO::getId).toList()));
+        assertEquals(3, apiService.listByPage(new ApiQuery(prefix, null, null, new PageParameter(1, 10))).getPage().getTotalCount());
     }
 
     @Test
@@ -195,6 +233,14 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         List<String> ids = Collections.singletonList(newApiDO.getId());
         int deleteRows = apiMapper.deleteByIds(ids);
         assertEquals(1, deleteRows);
+    }
+
+    private void saveTags(final ApiDO api, final List<String> tagIds) {
+        ApiDTO update = new ApiDTO();
+        update.setId(api.getId());
+        update.setDocument(api.getDocument());
+        update.setTagIds(tagIds);
+        apiService.createOrUpdate(update);
     }
 
     private ApiDO buildApiDO() {
