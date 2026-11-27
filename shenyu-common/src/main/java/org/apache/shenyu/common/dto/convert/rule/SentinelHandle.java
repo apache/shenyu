@@ -65,12 +65,16 @@ public class SentinelHandle {
      */
     private Integer flowRuleControlBehavior = Constants.SENTINEL_FLOW_REJECT;
 
+    /** Whether the flow quota is applied per parameter value. */
     private Integer paramFlowEnable = Constants.FLOW_RULE_ENABLE_OFF;
 
+    /** Source of the parameter value: request header or exchange attribute. */
     private String paramFlowSource;
 
+    /** Header or exchange attribute name to read. */
     private String paramFlowKey;
 
+    /** How to handle requests without a usable parameter value. */
     private String paramFlowMissingKeyPolicy = PARAM_FLOW_SHARED_BUCKET;
 
     /**
@@ -231,6 +235,42 @@ public class SentinelHandle {
     }
 
     /**
+     * Set the parameter flow switch.
+     *
+     * @param paramFlowEnable the parameter flow switch
+     */
+    public void setParamFlowEnable(final Integer paramFlowEnable) {
+        this.paramFlowEnable = paramFlowEnable;
+    }
+
+    /**
+     * Set the parameter source.
+     *
+     * @param paramFlowSource the parameter source
+     */
+    public void setParamFlowSource(final String paramFlowSource) {
+        this.paramFlowSource = paramFlowSource;
+    }
+
+    /**
+     * Set the header or exchange attribute name.
+     *
+     * @param paramFlowKey the header or exchange attribute name
+     */
+    public void setParamFlowKey(final String paramFlowKey) {
+        this.paramFlowKey = paramFlowKey;
+    }
+
+    /**
+     * Set the missing parameter policy.
+     *
+     * @param paramFlowMissingKeyPolicy the missing parameter policy
+     */
+    public void setParamFlowMissingKeyPolicy(final String paramFlowMissingKeyPolicy) {
+        this.paramFlowMissingKeyPolicy = paramFlowMissingKeyPolicy;
+    }
+
+    /**
      * Validate settings specific to the opt-in parameter mode.
      */
     public void validateParamFlow() {
@@ -239,6 +279,9 @@ public class SentinelHandle {
         }
         if (!isParamFlowEnabled()) {
             throw new IllegalArgumentException("paramFlowEnable must be 0 or 1");
+        }
+        if (!Objects.equals(flowRuleEnable, Constants.SENTINEL_ENABLE_FLOW_RULE)) {
+            throw new IllegalArgumentException("paramFlowEnable=1 requires flowRuleEnable=1");
         }
         validateParamFlowSource();
         validateParamFlowThreshold();
@@ -486,6 +529,10 @@ public class SentinelHandle {
                 + flowRuleCount
                 + ", flowRuleControlBehavior="
                 + flowRuleControlBehavior
+                + ", paramFlowEnable=" + paramFlowEnable
+                + ", paramFlowSource=" + paramFlowSource
+                + ", paramFlowKey=" + paramFlowKey
+                + ", paramFlowMissingKeyPolicy=" + paramFlowMissingKeyPolicy
                 + ", degradeRuleEnable="
                 + degradeRuleEnable
                 + ", degradeRuleGrade="

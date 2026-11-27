@@ -111,14 +111,22 @@ COMMENT ON COLUMN dashboard_user.token_version IS 'token version used to revoke 
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-VALUES ('1890000000000000041', '10', 'paramFlowEnable', 'Parameter flow enable (0 or 1)', 1, 2, 20, '{"required":"0","defaultValue":"0","rule":""}');
+VALUES ('1890000000000000041', '10', 'paramFlowEnable', 'Parameter flow enable (0 or 1)', 1, 2, 20, '{"required":"0","defaultValue":"0","rule":"/^[01]$/"}');
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-VALUES ('1890000000000000042', '10', 'paramFlowSource', 'Parameter source (HEADER or EXCHANGE_ATTRIBUTE)', 2, 2, 21, '{"required":"0","defaultValue":"HEADER","rule":""}');
+VALUES ('1890000000000000042', '10', 'paramFlowSource', 'Parameter source', 3, 2, 21, '{"required":"0","defaultValue":"HEADER","rule":""}');
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1890000000000000043', '10', 'paramFlowKey', 'Header or exchange attribute name', 2, 2, 22, '{"required":"0","defaultValue":"","rule":""}');
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
-VALUES ('1890000000000000044', '10', 'paramFlowMissingKeyPolicy', 'Missing parameter policy (SHARED_BUCKET or SKIP)', 2, 2, 23, '{"required":"0","defaultValue":"SHARED_BUCKET","rule":""}');
+VALUES ('1890000000000000044', '10', 'paramFlowMissingKeyPolicy', 'Missing parameter policy', 3, 2, 23, '{"required":"0","defaultValue":"SHARED_BUCKET","rule":""}');
 INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 VALUES ('1890000000000000002', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_ALLOW', 'ALLOW', 'ALLOW', 'Allow requests when the Redis backend fails', 0, 1);
 INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
 VALUES ('1890000000000000003', 'backendFailurePolicy', 'BACKEND_FAILURE_POLICY_REJECT', 'REJECT', 'REJECT', 'Reject requests when the Redis backend fails', 1, 1);
+INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+VALUES ('1890000000000000045', 'paramFlowSource', 'PARAM_FLOW_SOURCE_HEADER', 'HEADER', 'HEADER', 'Read the parameter from a request header', 0, 1);
+INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+VALUES ('1890000000000000046', 'paramFlowSource', 'PARAM_FLOW_SOURCE_EXCHANGE_ATTRIBUTE', 'EXCHANGE_ATTRIBUTE', 'EXCHANGE_ATTRIBUTE', 'Read the parameter from an exchange attribute', 1, 1);
+INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+VALUES ('1890000000000000047', 'paramFlowMissingKeyPolicy', 'PARAM_FLOW_MISSING_KEY_SHARED_BUCKET', 'SHARED_BUCKET', 'SHARED_BUCKET', 'Apply a shared quota to missing values', 0, 1);
+INSERT INTO SHENYU_DICT (ID, TYPE, DICT_CODE, DICT_NAME, DICT_VALUE, "desc", SORT, ENABLED)
+VALUES ('1890000000000000048', 'paramFlowMissingKeyPolicy', 'PARAM_FLOW_MISSING_KEY_SKIP', 'SKIP', 'SKIP', 'Skip parameter flow control for missing values', 1, 1);

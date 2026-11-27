@@ -38,6 +38,7 @@ import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -96,8 +97,8 @@ public class SentinelRuleHandle implements PluginDataHandler {
             return;
         }
         synchronized (RULE_UPDATE_LOCK) {
-            boolean flowEnabled = sentinelHandle.getFlowRuleEnable() == Constants.FLOW_RULE_ENABLE_ON;
-            if (flowEnabled && sentinelHandle.isParamFlowEnabled()) {
+            boolean flowEnabled = sentinelHandle.getFlowRuleEnable() == Constants.SENTINEL_ENABLE_FLOW_RULE;
+            if (sentinelHandle.isParamFlowEnabled()) {
                 replaceParamRule(key, new ParamFlowRule(key).setParamIdx(0).setCount(sentinelHandle.getFlowRuleCount()));
                 CACHED_HANDLE.get().cachedHandle(key, sentinelHandle);
                 replaceFlowRule(key, null);
@@ -129,11 +130,11 @@ public class SentinelRuleHandle implements PluginDataHandler {
     }
 
     private void replaceParamRule(final String key, final ParamFlowRule replacement) {
-        List<ParamFlowRule> current = ParamFlowRuleManager.getRules();
-        List<ParamFlowRule> rules = current.stream().filter(rule -> !key.equals(rule.getResource())).collect(Collectors.toList());
+        List<ParamFlowRule> rules = new ArrayList<>(ParamFlowRuleManager.getRules());
+        boolean removed = rules.removeIf(rule -> key.equals(rule.getResource()));
         if (Objects.nonNull(replacement)) {
             rules.add(replacement);
-        } else if (rules.size() == current.size()) {
+        } else if (!removed) {
             return;
         }
         ParamFlowRuleManager.loadRules(rules);
@@ -141,7 +142,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
 
     private void replaceDegradeRule(final String key, final SentinelHandle handle) {
         List<DegradeRule> rules = DegradeRuleManager.getRules().stream().filter(rule -> !key.equals(rule.getResource())).collect(Collectors.toList());
-        if (Objects.nonNull(handle) && handle.getDegradeRuleEnable() == Constants.DEGRADE_RULE_ENABLE_ON) {
+        if (Objects.nonNull(handle) && handle.getDegradeRuleEnable() == Constants.SENTINEL_ENABLE_DEGRADE_RULE) {
             DegradeRule rule = new DegradeRule(key);
             rule.setCount(handle.getDegradeRuleCount());
             rule.setGrade(handle.getDegradeRuleGrade());

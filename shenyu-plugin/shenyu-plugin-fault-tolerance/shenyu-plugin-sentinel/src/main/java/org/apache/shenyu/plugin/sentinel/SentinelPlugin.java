@@ -81,8 +81,8 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         );
     }
 
-    private Mono<Void> protect(final ServerWebExchange exchange, final ShenyuPluginChain chain, final String resourceName, final SentinelHandle handle) {
-        if (!handle.isParamFlowEnabled() || handle.getFlowRuleEnable() != Constants.FLOW_RULE_ENABLE_ON) {
+    private static Mono<Void> protect(final ServerWebExchange exchange, final ShenyuPluginChain chain, final String resourceName, final SentinelHandle handle) {
+        if (!handle.isParamFlowEnabled()) {
             return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName));
         }
         final EntryConfig entry = new EntryConfig(resourceName, EntryType.OUT, 1, parameterArguments(exchange, handle));
@@ -90,7 +90,7 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         return Mono.just(exchange).hide().flatMap(chain::execute).transform(new SentinelReactorTransformer<>(entry));
     }
 
-    private Object[] parameterArguments(final ServerWebExchange exchange, final SentinelHandle handle) {
+    private static Object[] parameterArguments(final ServerWebExchange exchange, final SentinelHandle handle) {
         Object value = SentinelHandle.PARAM_FLOW_HEADER.equals(handle.getParamFlowSource())
                 ? singleHeader(exchange, handle.getParamFlowKey()) : exchange.getAttribute(handle.getParamFlowKey());
         if (value instanceof String parameter && !parameter.isBlank() && parameter.length() <= MAX_PARAMETER_LENGTH) {
@@ -99,7 +99,7 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
         return handle.skipMissingParamFlowKey() ? new Object[0] : new Object[] {MISSING_PARAMETER_BUCKET};
     }
 
-    private String singleHeader(final ServerWebExchange exchange, final String key) {
+    private static String singleHeader(final ServerWebExchange exchange, final String key) {
         List<String> values = exchange.getRequest().getHeaders().get(key);
         return Objects.nonNull(values) && values.size() == 1 ? values.get(0) : null;
     }

@@ -39,6 +39,8 @@ class SentinelRuleHandleValidatorTest {
 
     @Test
     void rejectsInvalidParameterSettings() {
+        assertInvalid(HEADER_RULE.replace("\"paramFlowEnable\":1", "\"paramFlowEnable\":1,\"flowRuleEnable\":0"),
+                "paramFlowEnable=1 requires flowRuleEnable=1");
         assertInvalid(HEADER_RULE.replace("\"HEADER\"", "\"INVALID\""), "paramFlowSource");
         assertInvalid(HEADER_RULE.replace("X-Quota-Group", " "), "paramFlowKey");
         assertInvalid(HEADER_RULE.replace("Count\":10", "Count\":0"), "flowRuleCount");

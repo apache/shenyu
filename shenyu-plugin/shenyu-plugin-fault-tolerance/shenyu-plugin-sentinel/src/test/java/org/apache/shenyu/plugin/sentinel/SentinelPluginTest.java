@@ -208,6 +208,38 @@ public final class SentinelPluginTest {
     }
 
     @Test
+    public void testConflictingSwitchesPreserveActiveParameterRule() {
+        RuleData rule = parameterRule("invalid-update", "HEADER", QUOTA_HEADER, "SHARED_BUCKET");
+        sentinelRuleHandle.handlerRule(rule);
+        try {
+            SentinelHandle invalid = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
+            invalid.setFlowRuleEnable(0);
+            rule.setHandle(GsonUtils.getGson().toJson(invalid));
+            sentinelRuleHandle.handlerRule(rule);
+            assertEquals(HttpStatus.OK, invoke(rule, quotaRequest("blue")));
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, invoke(rule, quotaRequest("blue")));
+        } finally {
+            sentinelRuleHandle.removeRule(rule);
+        }
+    }
+
+    @Test
+    public void testSameParameterValueHasIndependentQuotasAcrossRules() {
+        RuleData first = parameterRule("first-rule", "HEADER", QUOTA_HEADER, "SHARED_BUCKET");
+        RuleData second = parameterRule("second-rule", "HEADER", QUOTA_HEADER, "SHARED_BUCKET");
+        sentinelRuleHandle.handlerRule(first);
+        sentinelRuleHandle.handlerRule(second);
+        try {
+            assertEquals(HttpStatus.OK, invoke(first, quotaRequest("blue")));
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, invoke(first, quotaRequest("blue")));
+            assertEquals(HttpStatus.OK, invoke(second, quotaRequest("blue")));
+        } finally {
+            sentinelRuleHandle.removeRule(first);
+            sentinelRuleHandle.removeRule(second);
+        }
+    }
+
+    @Test
     public void testMissingAndAmbiguousHeaderShareASeparateBucket() {
         RuleData rule = parameterRule("missing-quota", "HEADER", QUOTA_HEADER, "SHARED_BUCKET");
         sentinelRuleHandle.handlerRule(rule);
@@ -258,10 +290,16 @@ public final class SentinelPluginTest {
         RuleData rule = new RuleData();
         rule.setSelectorId("sentinel");
         rule.setId(id);
-        rule.setHandle("""
-                {"flowRuleEnable":1,"flowRuleCount":1,"degradeRuleEnable":0,"fallbackUri":"",
-                 "paramFlowEnable":1,"paramFlowSource":"%s","paramFlowKey":"%s","paramFlowMissingKeyPolicy":"%s"}
-                """.formatted(source, key, missingPolicy));
+        SentinelHandle handle = new SentinelHandle();
+        handle.setFlowRuleEnable(1);
+        handle.setFlowRuleCount(1);
+        handle.setDegradeRuleEnable(0);
+        handle.setFallbackUri("");
+        handle.setParamFlowEnable(1);
+        handle.setParamFlowSource(source);
+        handle.setParamFlowKey(key);
+        handle.setParamFlowMissingKeyPolicy(missingPolicy);
+        rule.setHandle(GsonUtils.getGson().toJson(handle));
         return rule;
     }
 
