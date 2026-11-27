@@ -231,10 +231,78 @@ public class SwaggerDocParser implements DocParser {
 
         List<DocParameter> requestParameterList = docRequestParameterList.stream()
             .filter(docParameter -> !docParameter.getName().contains("."))
-            .collect(Collectors.toList());
+            .collect(Collectors.toCollection(ArrayList::new));
 
+        if (version == SwaggerVersion.V3) {
+            Set<String> existingNames = requestParameterList.stream().map(DocParameter::getName).collect(Collectors.toSet());
+            buildJsonRequestBodyParameters(docInfo, docRoot).stream()
+                    .filter(parameter -> !existingNames.contains(parameter.getName()))
+                    .forEach(requestParameterList::add);
+        }
         docItem.setRequestParameters(requestParameterList);
         docItem.setRequestHeaders(docHeaderParameterList);
+    }
+
+    private List<DocParameter> buildJsonRequestBodyParameters(final JsonObject docInfo, final JsonObject docRoot) {
+        JsonObject schema = Optional.ofNullable(docInfo.getAsJsonObject("requestBody"))
+                .map(requestBody -> requestBody.getAsJsonObject("content"))
+                .map(content -> content.getAsJsonObject("application/json"))
+                .map(mediaType -> mediaType.get("schema"))
+                .filter(JsonElement::isJsonObject)
+                .map(JsonElement::getAsJsonObject)
+                .orElse(null);
+        if (Objects.isNull(schema)) {
+            return Collections.emptyList();
+        }
+        JsonElement ref = schema.get("$ref");
+        if (Objects.nonNull(ref)) {
+            if (!ref.isJsonPrimitive() || !ref.getAsJsonPrimitive().isString()) {
+                return Collections.emptyList();
+            }
+            String schemaName = getLocalOpenApiSchemaName(ref.getAsString());
+            JsonObject definitions = getSchemaDefinitions(docRoot, SwaggerVersion.V3);
+            JsonElement model = Objects.isNull(definitions) || Objects.isNull(schemaName) || schemaName.isEmpty() ? null : definitions.get(schemaName);
+            if (Objects.isNull(model) || !model.isJsonObject()) {
+                return Collections.emptyList();
+            }
+            schema = model.getAsJsonObject();
+        }
+        return buildRequestBodyFields(schema);
+    }
+
+    private List<DocParameter> buildRequestBodyFields(final JsonObject schema) {
+        JsonObject properties = schema.getAsJsonObject("properties");
+        if (Objects.isNull(properties)) {
+            return Collections.emptyList();
+        }
+        List<String> required = jsonArrayToStringList(schema.getAsJsonArray("required"));
+        List<DocParameter> fields = new ArrayList<>();
+        for (Map.Entry<String, JsonElement> property : properties.entrySet()) {
+            if (!property.getValue().isJsonObject()) {
+                continue;
+            }
+            JsonObject field = property.getValue().getAsJsonObject();
+            JsonElement readOnly = field.get("readOnly");
+            JsonElement type = field.get("type");
+            if (Objects.nonNull(readOnly) && readOnly.isJsonPrimitive() && readOnly.getAsJsonPrimitive().isBoolean() && readOnly.getAsBoolean()
+                    || Objects.nonNull(type) && (!type.isJsonPrimitive() || !type.getAsJsonPrimitive().isString())) {
+                continue;
+            }
+            DocParameter parameter = new DocParameter();
+            parameter.setName(property.getKey());
+            parameter.setType(Objects.isNull(type) ? null : type.getAsString());
+            parameter.setRequired(required.contains(property.getKey()));
+            JsonElement description = field.get("description");
+            if (Objects.nonNull(description) && description.isJsonPrimitive()) {
+                parameter.setDescription(description.getAsString());
+            }
+            JsonElement maxLength = field.get("maxLength");
+            if (Objects.nonNull(maxLength) && maxLength.isJsonPrimitive()) {
+                parameter.setMaxLength(maxLength.getAsString());
+            }
+            fields.add(parameter);
+        }
+        return fields;
     }
 
     protected List<DocParameter> buildResponseParameterList(final JsonObject docInfo, 
@@ -373,8 +441,9 @@ public class SwaggerDocParser implements DocParser {
             }
         } else {
             // v3: #/components/schemas/ModelName
-            if (ref.startsWith("#/components/schemas/")) {
-                ref = ref.substring("#/components/schemas/".length());
+            String schemaName = getLocalOpenApiSchemaName(ref);
+            if (Objects.nonNull(schemaName)) {
+                ref = schemaName;
             }
         }
         
@@ -382,6 +451,11 @@ public class SwaggerDocParser implements DocParser {
         refInfo.isArray = isArray;
         refInfo.ref = ref;
         return refInfo;
+    }
+
+    private String getLocalOpenApiSchemaName(final String ref) {
+        String prefix = "#/components/schemas/";
+        return ref.startsWith(prefix) ? ref.substring(prefix.length()) : null;
     }
 
     /**
