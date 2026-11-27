@@ -18,11 +18,17 @@
 package org.apache.shenyu.common.utils;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -73,6 +79,24 @@ public final class DateUtilsTest {
         assertEquals(localDateTime1.getHour(), localDateTime2.getHour());
         assertEquals(localDateTime1.getMinute(), localDateTime2.getMinute());
         assertEquals(localDateTime1.getSecond(), localDateTime2.getSecond());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "America/New_York, 2026-01-15T12:00:00.123Z, 2026-01-15T07:00:00",
+        "America/New_York, 2026-07-15T12:00:00.123Z, 2026-07-15T08:00:00",
+        "UTC, 2026-01-15T12:00:00.123Z, 2026-01-15T12:00:00",
+        "Asia/Shanghai, 2026-07-15T12:00:00.123Z, 2026-07-15T20:00:00"
+    })
+    @ResourceLock(Resources.TIME_ZONE)
+    public void testFormatLocalDateTimeFromTimestampUsesOffsetAtTimestamp(final String zoneId, final String timestamp, final String expected) {
+        TimeZone original = TimeZone.getDefault();
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone(zoneId));
+            assertEquals(LocalDateTime.parse(expected), DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Instant.parse(timestamp).toEpochMilli()));
+        } finally {
+            TimeZone.setDefault(original);
+        }
     }
     
     @Test
