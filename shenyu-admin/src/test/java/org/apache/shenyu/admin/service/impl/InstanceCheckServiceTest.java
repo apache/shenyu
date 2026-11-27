@@ -49,11 +49,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -909,6 +914,65 @@ public final class InstanceCheckServiceTest {
         assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(freshDeletedDTO));
         assertNotNull(instanceCheckService.getInstanceHealthBeatInfo(onlineDTO));
         verify(instanceInfoService).deleteExpired(anyLong());
+    }
+
+    @Test
+    void testHeartbeatRecreatesRecordEvictedByConcurrentRetentionCleanup() throws Exception {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofMinutes(10));
+        InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8089", InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE, "nsG");
+        instanceCheckService.handleBeatInfo(dto);
+        InstanceInfoVO stale = instanceCheckService.getInstanceHealthBeatInfo(dto);
+        stale.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        stale.setLastHeartBeatTime(System.currentTimeMillis() - Duration.ofHours(1).toMillis());
+
+        CountDownLatch heartbeatEntered = new CountDownLatch(1);
+        CountDownLatch cleanupFinished = new CountDownLatch(1);
+        ConcurrentHashMap<String, InstanceInfoVO> instances = new ConcurrentHashMap<>() {
+            @Override
+            public boolean containsKey(final Object key) {
+                boolean present = super.containsKey(key);
+                awaitCleanup();
+                return present;
+            }
+
+            @Override
+            public InstanceInfoVO compute(final String key,
+                                          final BiFunction<? super String, ? super InstanceInfoVO, ? extends InstanceInfoVO> remappingFunction) {
+                awaitCleanup();
+                return super.compute(key, remappingFunction);
+            }
+
+            // Pause the old two-step lookup after checking existence, or the atomic lookup before it starts.
+            private void awaitCleanup() {
+                heartbeatEntered.countDown();
+                try {
+                    assertTrue(cleanupFinished.await(5, TimeUnit.SECONDS));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new AssertionError(e);
+                }
+            }
+        };
+        instances.put(instanceCheckService.getInstanceKey(dto), stale);
+        ReflectionTestUtils.setField(instanceCheckService, "instanceHealthBeatInfo", instances);
+
+        ExecutorService worker = Executors.newSingleThreadExecutor();
+        try {
+            final Future<Boolean> accepted = worker.submit(() -> instanceCheckService.handleBeatInfo(dto));
+            assertTrue(heartbeatEntered.await(5, TimeUnit.SECONDS));
+            instanceCheckService.purgeExpiredInstances();
+            assertNull(instanceCheckService.getInstanceHealthBeatInfo(dto));
+            cleanupFinished.countDown();
+            assertTrue(accepted.get(5, TimeUnit.SECONDS));
+            InstanceInfoVO renewed = instanceCheckService.getInstanceHealthBeatInfo(dto);
+            assertNotNull(renewed);
+            assertEquals(InstanceStatusEnum.ONLINE.getCode(), renewed.getInstanceState());
+            assertTrue(renewed.getLastHeartBeatTime() > stale.getLastHeartBeatTime());
+        } finally {
+            cleanupFinished.countDown();
+            worker.shutdownNow();
+        }
     }
 
     @Test
