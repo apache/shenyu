@@ -182,8 +182,20 @@ record() {
 docker() {
   if [[ "$1" == network ]]; then record network; return; fi
   if [[ "$1" == ps ]]; then record ps; return; fi
-  local stage=sync
-  if [[ "$3" == *shenyu-examples-websocket-compose.yml ]]; then stage=example; fi
+  local stage
+  case "$3" in
+    */compose/sync/shenyu-sync-*.yml) stage=sync ;;
+    */websocket-fixture-compose.yml)
+      stage=fixture
+      case "$4" in
+        up) [[ "$*" == *" --build "* && "$*" == *" --wait "* ]] || return 99 ;;
+        logs) [[ "$5" == websocket-fixture ]] || return 99 ;;
+        down) ;;
+        *) return 99 ;;
+      esac
+      ;;
+    *) return 99 ;;
+  esac
   record "$stage:$4"
   if [[ "$4" == logs && "$FAIL_LOGS" == true ]]; then return 24; fi
 }
@@ -198,7 +210,6 @@ sh() {
   case "$2" in
     http://localhost:31095/actuator/health) record admin-health ;;
     http://localhost:31195/actuator/health) record gateway-health ;;
-    http://localhost:31191/actuator/health) record example-health ;;
     *) return 99 ;;
   esac
 }
@@ -216,7 +227,7 @@ sleep() { :; }
   }
 }
 
-const webSocketStartup = ['storage', 'network', 'sync:up', 'admin-health', 'gateway-health', 'example:up', 'example-health'];
+const webSocketStartup = ['storage', 'network', 'sync:up', 'admin-health', 'gateway-health', 'fixture:up'];
 for (const [index, stage] of webSocketStartup.entries()) {
   test(`WebSocket Compose stops before Maven when ${stage} fails`, () => {
     const result = runWebSocketCompose(stage);
@@ -229,7 +240,7 @@ for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
   test(`WebSocket Compose retains successful setup, tests and cleanup for ${channel || 'all channels'}`, () => {
     const result = runWebSocketCompose('', channel);
     assert.equal(result.status, 0, result.stderr);
-    const iteration = [...webSocketStartup.slice(2), 'ps', 'maven', 'sync:down', 'example:down'];
+    const iteration = [...webSocketStartup.slice(2), 'ps', 'maven', 'sync:down', 'fixture:down'];
     const iterations = channel ? iteration : [iteration, iteration, iteration].flat();
     assert.deepEqual(result.calls, [...webSocketStartup.slice(0, 2), ...iterations]);
   });
@@ -239,7 +250,7 @@ for (const failLogs of [false, true]) {
   test(`WebSocket Compose retains Maven failure and all diagnostics when logs ${failLogs ? 'fail' : 'succeed'}`, () => {
     const result = runWebSocketCompose('maven', '', failLogs);
     assert.equal(result.status, 1, result.stderr);
-    assert.deepEqual(result.calls, [...webSocketStartup, 'ps', 'maven', 'sync:logs', 'sync:logs', 'example:logs']);
+    assert.deepEqual(result.calls, [...webSocketStartup, 'ps', 'maven', 'sync:logs', 'sync:logs', 'fixture:logs']);
     assert.ok(result.stdout.includes('websocket-sync-e2e-test failed'));
   });
 }
