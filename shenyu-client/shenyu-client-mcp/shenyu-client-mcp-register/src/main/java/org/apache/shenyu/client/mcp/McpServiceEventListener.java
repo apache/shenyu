@@ -277,12 +277,12 @@ public class McpServiceEventListener extends AbstractContextRefreshedEventListen
         final String servletPath = StringUtils.defaultString(this.env.getProperty("spring.mvc.servlet.path"), "");
         final String servletContextPath = StringUtils.defaultString(this.env.getProperty("server.servlet.context-path"), "");
         final String rootPath = concatPaths(servletContextPath, servletPath);
+        final String prefix = concatPaths(getContextPath(), rootPath);
         for (String cp : classPaths) {
+            String classPath = env.resolvePlaceholders(cp);
             for (String mp : methodPaths) {
-                String path = concatPaths(cp, mp);
-                String prefix = concatPaths(getContextPath(), rootPath);
-                String finalPath = concatPaths(prefix, path);
-                combinedPaths.add(finalPath);
+                String path = concatPaths(classPath, env.resolvePlaceholders(mp));
+                combinedPaths.add(concatPaths(prefix, path));
             }
         }
         return combinedPaths;
