@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ai.pii.profile;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -27,9 +26,11 @@ import java.util.Objects;
 
 /**
  * The OpenAI chat completions profile. A request carries {@code messages}
- * whose {@code content} is either a string or an array of typed parts with a
- * {@code text} member; a non streaming response carries the same shape below
- * {@code choices[].message.content}.
+ * whose {@code content} is either a string or an array of typed parts, and a
+ * non streaming response carries the same shape below
+ * {@code choices[].message.content}. Besides the plain {@code text} of a part,
+ * the nested text of {@code document} and {@code file} parts and the arguments
+ * of the tool calls of a message are extracted too.
  */
 public class OpenAiChatProfile implements PiiProtocolProfile {
 
@@ -75,30 +76,17 @@ public class OpenAiChatProfile implements PiiProtocolProfile {
 
     private void collectContentSlots(final JsonObject message, final List<PiiTextSlot> slots) {
         JsonElement content = message.get("content");
-        if (Objects.isNull(content)) {
-            return;
-        }
-        if (content.isJsonPrimitive() && content.getAsJsonPrimitive().isString()) {
-            PiiTextSlot slot = PiiTextSlot.ofMember(message, "content");
-            if (Objects.nonNull(slot)) {
-                slots.add(slot);
-            }
-            return;
-        }
-        if (content.isJsonArray()) {
-            collectPartTextSlots(content.getAsJsonArray(), slots);
-        }
-    }
-
-    private void collectPartTextSlots(final JsonArray parts, final List<PiiTextSlot> slots) {
-        for (JsonElement part : parts) {
-            if (!part.isJsonObject()) {
-                continue;
-            }
-            PiiTextSlot slot = PiiTextSlot.ofMember(part.getAsJsonObject(), "text");
-            if (Objects.nonNull(slot)) {
-                slots.add(slot);
+        if (Objects.nonNull(content)) {
+            if (content.isJsonPrimitive() && content.getAsJsonPrimitive().isString()) {
+                PiiTextSlot slot = PiiTextSlot.ofMember(message, "content");
+                if (Objects.nonNull(slot)) {
+                    slots.add(slot);
+                }
+            } else if (content.isJsonArray()) {
+                PiiContentParts.collectPartSlots(content.getAsJsonArray(), slots);
             }
         }
+        // an assistant message can embed identifiers in the tool call arguments
+        PiiContentParts.collectToolCallSlots(message, slots);
     }
 }
