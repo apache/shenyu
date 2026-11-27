@@ -31,6 +31,7 @@
         <module>shenyu-plugin-key-auth</module>
         <module>shenyu-plugin-oauth2</module>
         <module>shenyu-plugin-sign</module>
+        <module>shenyu-plugin-message-signature</module>
         <module>shenyu-plugin-cryptor</module>
         <module>shenyu-plugin-basic-auth</module>
     </modules>
