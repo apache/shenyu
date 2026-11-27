@@ -124,6 +124,8 @@ services:
       - "9300:9300"
     environment:
       - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+      # The bundled JDK in 8.2.3 can fail before Elasticsearch starts when cgroup v2 has no memory controller (JDK-8287073).
+      - "JDK_JAVA_OPTIONS=-XX:-UseContainerSupport"
       - discovery.type=single-node
       - xpack.security.enabled=false
     healthcheck:
