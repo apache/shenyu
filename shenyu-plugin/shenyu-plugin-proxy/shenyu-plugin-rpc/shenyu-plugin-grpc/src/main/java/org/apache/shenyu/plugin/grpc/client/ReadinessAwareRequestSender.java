@@ -75,7 +75,11 @@ final class ReadinessAwareRequestSender {
     }
 
     private void drainLoop() {
-        while (!terminal && cursor.get() < requests.size() && observer.isReady()) {
+        while (!terminal && cursor.get() < requests.size()) {
+            // The call can terminate while the transport is reporting readiness.
+            if (!observer.isReady() || terminal) {
+                return;
+            }
             int index = cursor.getAndIncrement();
             try {
                 observer.onNext(requests.get(index));

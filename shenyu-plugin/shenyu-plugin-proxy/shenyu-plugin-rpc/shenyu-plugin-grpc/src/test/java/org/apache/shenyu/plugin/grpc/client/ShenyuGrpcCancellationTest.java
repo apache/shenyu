@@ -57,7 +57,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,6 +83,27 @@ class ShenyuGrpcCancellationTest {
         assertEquals(1, call.cancellations.get());
         assertTrue(call.serverCancelled.isDone());
         assertTrue(result.isCancelled());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = MethodDescriptor.MethodType.class, names = {"CLIENT_STREAMING", "BIDI_STREAMING"})
+    void cancellationDuringReadinessCheckStopsPendingRequest(final MethodDescriptor.MethodType type) {
+        RecordingCall call = spy(new RecordingCall());
+        call.closeOnCancel = false;
+        doReturn(false).when(call).isReady();
+        CompletableFuture<ShenyuGrpcResponse> result = start(call, type);
+        doAnswer(ignored -> {
+            // The transport sampled writable, then the caller cancelled before the result reached the sender.
+            assertTrue(result.cancel(true));
+            return true;
+        }).when(call).isReady();
+
+        call.listener.onReady();
+
+        assertTrue(result.isCancelled());
+        assertEquals(1, call.cancellations.get());
+        verify(call, never()).sendMessage(any());
+        verify(call, never()).halfClose();
     }
 
     @Test
