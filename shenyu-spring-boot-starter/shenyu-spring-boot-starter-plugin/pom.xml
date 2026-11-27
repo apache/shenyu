@@ -47,6 +47,7 @@
         <module>shenyu-spring-boot-starter-plugin-response</module>
         <module>shenyu-spring-boot-starter-plugin-param-mapping</module>
         <module>shenyu-spring-boot-starter-plugin-cryptor</module>
+        <module>shenyu-spring-boot-starter-plugin-jwe</module>
         <module>shenyu-spring-boot-starter-plugin-websocket</module>
         <module>shenyu-spring-boot-starter-plugin-dubbo</module>
         <module>shenyu-spring-boot-starter-plugin-uri</module>

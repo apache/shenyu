@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.jwe;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.jose4j.jwe.JsonWebEncryption;
@@ -41,6 +42,7 @@ import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -138,6 +140,65 @@ class JwePayloadPluginTest {
     }
 
     @Test
+    void onlyTheMatchedNamespaceMayUseItsRotationKeys() throws Exception {
+        JweRoute a = new JweRoute(Map.of("old", (RSAPrivateKey) gateway.getPrivate(), "new", (RSAPrivateKey) client.getPrivate()), null, null);
+        JweRoute b = new JweRoute(Map.of("old", (RSAPrivateKey) client.getPrivate()), null, null);
+        JwePayloadPlugin plugin = new JwePayloadPlugin(Map.of(new JwePayloadPlugin.RuleKey("first", "echo"), a,
+                new JwePayloadPlugin.RuleKey("second", "echo"), b), 4096, 1024);
+        String before = compact(gateway, JSON, "old");
+        String after = compact(client, JSON, "new");
+        for (String compact : new String[]{before, after}) {
+            MockServerWebExchange exchange = incoming(compact);
+            StepVerifier.create(plugin.doExecute(exchange, forwarded -> {
+                forwarded.getResponse().setStatusCode(HttpStatus.ACCEPTED);
+                return forwarded.getResponse().setComplete();
+            }, null, RuleData.builder().namespaceId("first").id("echo").build())).verifyComplete();
+            assertEquals(HttpStatus.ACCEPTED, exchange.getResponse().getStatusCode());
+        }
+        for (String compact : new String[]{before, after, compact(client, JSON), compact(client, JSON, "retired")}) {
+            MockServerWebExchange exchange = incoming(compact);
+            StepVerifier.create(plugin.doExecute(exchange, ignored -> fail("unexpected forward"), null,
+                    RuleData.builder().namespaceId("second").id("echo").build())).verifyComplete();
+            assertEquals(HttpStatus.BAD_REQUEST, exchange.getResponse().getStatusCode());
+        }
+        MockServerWebExchange missing = incoming(before);
+        StepVerifier.create(plugin.doExecute(missing, ignored -> fail("missing namespace"), null, RuleData.builder().id("echo").build())).verifyComplete();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, missing.getResponse().getStatusCode());
+    }
+
+    @Test
+    void responseCarriesOnlyTheOperatorSelectedRecipientId() throws Exception {
+        JweRoute outbound = new JweRoute(Map.of(), "active", (RSAPublicKey) client.getPublic());
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/echo").contentType(MediaType.APPLICATION_JSON).body("{}"));
+        StepVerifier.create(run(exchange, outbound, forwarded -> {
+            forwarded.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            return forwarded.getResponse().writeWith(Mono.just(forwarded.getResponse().bufferFactory().wrap(JSON)));
+        })).verifyComplete();
+        JsonWebEncryption result = new JsonWebEncryption();
+        result.setCompactSerialization(exchange.getResponse().getBodyAsString().block());
+        assertEquals("active", result.getKeyIdHeaderValue());
+        result.setKey(client.getPrivate());
+        assertArrayEquals(JSON, result.getPlaintextBytes());
+    }
+
+    @Test
+    void decryptedBodyMustFitItsOwnLimitEvenWhenEnvelopeFits() throws Exception {
+        JwePayloadPlugin plugin = new JwePayloadPlugin(Map.of(new JwePayloadPlugin.RuleKey("ns", "id"), both()), 4096, JSON.length - 1);
+        MockServerWebExchange exchange = incoming(compact(gateway, JSON));
+        StepVerifier.create(plugin.doExecute(exchange, ignored -> fail("unexpected forward"), null,
+                RuleData.builder().namespaceId("ns").id("id").build())).verifyComplete();
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
+    void ciphertextCannotBeReplayedFromAnEarlierRetryCache() throws Exception {
+        MockServerWebExchange exchange = incoming(compact(gateway, JSON));
+        exchange.getAttributes().put(Constants.CACHED_REQUEST_BODY, Flux.empty());
+        StepVerifier.create(run(exchange, both(), ignored -> fail("unexpected forward"))).verifyComplete();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exchange.getResponse().getStatusCode());
+    }
+
+    @Test
     void requestOnlyLeavesResponseUnwrapped() throws Exception {
         MockServerWebExchange exchange = incoming(compact(gateway, JSON));
         StepVerifier.create(run(exchange, new JweRoute((RSAPrivateKey) gateway.getPrivate(), null), forwarded ->
@@ -146,7 +207,8 @@ class JwePayloadPluginTest {
     }
 
     private Mono<Void> run(final MockServerWebExchange exchange, final JweRoute route, final ShenyuPluginChain chain) {
-        return new JwePayloadPlugin(Map.of("route", route)).doExecute(exchange, chain, null, RuleData.builder().id("route").build());
+        return new JwePayloadPlugin(Map.of("route", route)).doExecute(exchange, chain, null,
+                RuleData.builder().namespaceId(Constants.SYS_DEFAULT_NAMESPACE_ID).id("route").build());
     }
 
     private JweRoute both() {
@@ -158,7 +220,14 @@ class JwePayloadPluginTest {
     }
 
     private String compact(final KeyPair pair, final byte[] clear) throws Exception {
+        return compact(pair, clear, null);
+    }
+
+    private String compact(final KeyPair pair, final byte[] clear, final String kid) throws Exception {
         JsonWebEncryption jwe = new JsonWebEncryption();
+        if (Objects.nonNull(kid)) {
+            jwe.setKeyIdHeaderValue(kid);
+        }
         jwe.setAlgorithmHeaderValue("RSA-OAEP-256");
         jwe.setEncryptionMethodHeaderParameter("A256GCM");
         jwe.setContentTypeHeaderValue("application/json");

@@ -28,5 +28,15 @@ An opted-in HTTP POST route MUST independently support request decryption and re
 - **WHEN** the envelope is invalid, a buffer exceeds its bound, or an upstream representation cannot be encrypted
 - **THEN** the request is rejected or an empty gateway error is returned, without exposing the protected body
 
+#### Scenario: Isolated keys during rotation
+
+- **WHEN** two namespaces use the same rule ID and a deployment accepts overlapping old and new decryption key IDs for one rule
+- **THEN** use only that namespace and rule's trusted key ring, reject missing or unknown key IDs, and encrypt responses only to the configured active recipient
+
+#### Scenario: Separate representation limits
+
+- **WHEN** the wire envelope or clear JSON exceeds its configured limit or a smaller configured codec ceiling
+- **THEN** reject oversized input with 413 before forwarding, or return an empty 502 if the response cannot fit its limits
+
 Source SPEC comments:
 - https://github.com/apache/shenyu/issues/8659#issuecomment-7220918184

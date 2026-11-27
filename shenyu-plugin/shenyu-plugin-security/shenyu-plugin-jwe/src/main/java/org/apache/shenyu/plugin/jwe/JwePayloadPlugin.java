@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.jwe;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
@@ -28,6 +29,7 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -39,20 +41,33 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /** Transform bounded JSON on explicitly matched HTTP routes; never write upstream plaintext on encryption failure. */
 public final class JwePayloadPlugin extends AbstractShenyuPlugin {
 
     private static final int ORDER = 99;
 
-    private static final int BODY_LIMIT = 1024 * 1024;
-
     private static final MediaType JOSE = new MediaType("application", "jose");
 
-    private final Map<String, JweRoute> routes;
+    private final Map<RuleKey, JweRoute> routes;
+
+    private final int ciphertextLimit;
+
+    private final int plaintextLimit;
 
     public JwePayloadPlugin(final Map<String, JweRoute> routes) {
+        this(routes.entrySet().stream().collect(Collectors.toMap(entry -> new RuleKey(Constants.SYS_DEFAULT_NAMESPACE_ID, entry.getKey()), Map.Entry::getValue)),
+                Constants.BYTES_PER_MB, Constants.BYTES_PER_MB);
+    }
+
+    public JwePayloadPlugin(final Map<RuleKey, JweRoute> routes, final int ciphertextLimit, final int plaintextLimit) {
+        if (ciphertextLimit <= 0 || plaintextLimit <= 0) {
+            throw new IllegalArgumentException("JWE byte limits must be positive");
+        }
         this.routes = Map.copyOf(routes);
+        this.ciphertextLimit = ciphertextLimit;
+        this.plaintextLimit = plaintextLimit;
     }
 
     @Override
@@ -67,7 +82,7 @@ public final class JwePayloadPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        JweRoute route = Objects.isNull(rule.getId()) ? null : routes.get(rule.getId());
+        JweRoute route = findRoute(rule);
         ServerHttpResponse response = exchange.getResponse();
         if (Objects.isNull(route)) {
             return reject(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -79,23 +94,45 @@ public final class JwePayloadPlugin extends AbstractShenyuPlugin {
         if (!mediaMatches(headers, route.decrypts() ? JOSE : MediaType.APPLICATION_JSON)) {
             return reject(response, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         }
-        return collect(exchange.getRequest().getBody()).flatMap(data -> Mono.fromCallable(() -> {
-            if (route.decrypts()) {
-                return route.decrypt(data);
-            }
-            JweRoute.requireJson(data);
-            return data;
-        }).subscribeOn(Schedulers.boundedElastic()))
+        if (route.decrypts() && exchange.getAttributes().containsKey(Constants.CACHED_REQUEST_BODY)) {
+            // An HTTP retry cache created before decryption would replay the wrong representation.
+            return reject(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return requestBody(exchange, route)
                 .onErrorResume(DataBufferLimitException.class, ex -> reject(response, HttpStatus.PAYLOAD_TOO_LARGE).then(Mono.empty()))
                 .onErrorResume(Exception.class, ex -> reject(response, HttpStatus.BAD_REQUEST).then(Mono.empty()))
                 .flatMap(body -> chain.execute(exchange.mutate().request(request(exchange, body))
                         .response(route.encrypts() ? encryptedResponse(response, route) : response).build()));
     }
 
+    private Mono<byte[]> requestBody(final ServerWebExchange exchange, final JweRoute route) {
+        int inputLimit = route.decrypts() ? ciphertextLimit : plaintextLimit;
+        return collect(exchange.getRequest().getBody(), inputLimit).flatMap(data -> Mono.fromCallable(() -> {
+            if (route.decrypts()) {
+                return route.decrypt(data, plaintextLimit);
+            }
+            JweRoute.requireJson(data);
+            return data;
+        }).subscribeOn(Schedulers.boundedElastic()));
+    }
+
+    private JweRoute findRoute(final RuleData rule) {
+        if (Objects.isNull(rule.getNamespaceId()) || rule.getNamespaceId().isBlank() || Objects.isNull(rule.getId()) || rule.getId().isBlank()) {
+            return null;
+        }
+        return routes.get(new RuleKey(rule.getNamespaceId(), rule.getId()));
+    }
+
     private static boolean mediaMatches(final HttpHeaders headers, final MediaType expected) {
-        MediaType actual = headers.getContentType();
-        return Objects.nonNull(actual) && expected.getType().equalsIgnoreCase(actual.getType())
-                && expected.getSubtype().equalsIgnoreCase(actual.getSubtype()) && !headers.containsKey(HttpHeaders.CONTENT_ENCODING);
+        if (headers.containsKey(HttpHeaders.CONTENT_ENCODING) || headers.getOrEmpty(HttpHeaders.CONTENT_TYPE).size() != 1) {
+            return false;
+        }
+        try {
+            MediaType actual = headers.getContentType();
+            return Objects.nonNull(actual) && expected.getType().equalsIgnoreCase(actual.getType()) && expected.getSubtype().equalsIgnoreCase(actual.getSubtype());
+        } catch (InvalidMediaTypeException ex) {
+            return false;
+        }
     }
 
     private static ServerHttpRequestDecorator request(final ServerWebExchange exchange, final byte[] body) {
@@ -115,15 +152,19 @@ public final class JwePayloadPlugin extends AbstractShenyuPlugin {
         };
     }
 
-    private static ServerHttpResponse encryptedResponse(final ServerHttpResponse delegate, final JweRoute route) {
+    private ServerHttpResponse encryptedResponse(final ServerHttpResponse delegate, final JweRoute route) {
         return new ServerHttpResponseDecorator(delegate) {
             @Override
             public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
-                return collect(body).flatMap(data -> Mono.fromCallable(() -> {
+                return collect(body, plaintextLimit).flatMap(data -> Mono.fromCallable(() -> {
                     if (!mediaMatches(getHeaders(), MediaType.APPLICATION_JSON)) {
                         throw new IllegalArgumentException("Expected a JSON response");
                     }
-                    return route.encrypt(data);
+                    byte[] compact = route.encrypt(data);
+                    if (compact.length > ciphertextLimit) {
+                        throw new DataBufferLimitException("Encrypted response too large");
+                    }
+                    return compact;
                 }).subscribeOn(Schedulers.boundedElastic()))
                         .onErrorResume(Exception.class, ex -> reject(delegate, HttpStatus.BAD_GATEWAY).then(Mono.empty()))
                         .flatMap(compact -> {
@@ -141,10 +182,10 @@ public final class JwePayloadPlugin extends AbstractShenyuPlugin {
         };
     }
 
-    private static Mono<byte[]> collect(final Publisher<? extends DataBuffer> body) {
-        return DataBufferUtils.join(Flux.from(body), BODY_LIMIT).map(buffer -> {
+    private static Mono<byte[]> collect(final Publisher<? extends DataBuffer> body, final int limit) {
+        return DataBufferUtils.join(Flux.from(body), limit).map(buffer -> {
             try {
-                if (buffer.readableByteCount() > BODY_LIMIT) {
+                if (buffer.readableByteCount() > limit) {
                     throw new DataBufferLimitException("Payload too large");
                 }
                 byte[] bytes = new byte[buffer.readableByteCount()];
@@ -172,5 +213,14 @@ public final class JwePayloadPlugin extends AbstractShenyuPlugin {
         response.setStatusCode(status);
         response.getHeaders().setContentLength(0);
         return response.setComplete();
+    }
+
+    /** Deployment trust is scoped by both the synchronized namespace and rule identity. */
+    public record RuleKey(String namespaceId, String ruleId) {
+        public RuleKey {
+            if (namespaceId.isBlank() || ruleId.isBlank()) {
+                throw new IllegalArgumentException("Namespace and rule IDs must be nonblank");
+            }
+        }
     }
 }
