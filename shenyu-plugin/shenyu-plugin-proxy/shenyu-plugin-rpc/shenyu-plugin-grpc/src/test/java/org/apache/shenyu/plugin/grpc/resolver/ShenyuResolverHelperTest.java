@@ -18,28 +18,33 @@
 package org.apache.shenyu.plugin.grpc.resolver;
 
 import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * The Test Case For {@link ShenyuResolverHelper}.
  */
-@ExtendWith(MockitoExtension.class)
 public class ShenyuResolverHelperTest {
 
-    private GrpcUpstream grpcUpstream;
+    @ParameterizedTest
+    @CsvSource({
+        "localhost:38888, localhost, 38888",
+        "127.0.0.1:38888, 127.0.0.1, 38888",
+        "[2001:db8::1]:38889, 2001:db8::1, 38889"
+    })
+    void convertToEquivalentAddressGroup(final String endpoint, final String host, final int port) throws UnknownHostException {
+        final GrpcUpstream upstream = GrpcUpstream.builder().upstreamUrl(endpoint).status(true).build();
 
-    @BeforeEach
-    public void setUp() {
-        grpcUpstream = GrpcUpstream.builder().upstreamHost("localhost:38888").upstreamUrl("localhost:38888").status(true).build();
-    }
+        final InetSocketAddress address = (InetSocketAddress)
+                ShenyuResolverHelper.convertToEquivalentAddressGroup(upstream).getAddresses().get(0);
 
-    @Test
-    public void convertToEquivalentAddressGroup() {
-        assertNotNull(ShenyuResolverHelper.convertToEquivalentAddressGroup(grpcUpstream));
+        assertEquals(InetAddress.getByName(host), address.getAddress());
+        assertEquals(port, address.getPort());
     }
 }
