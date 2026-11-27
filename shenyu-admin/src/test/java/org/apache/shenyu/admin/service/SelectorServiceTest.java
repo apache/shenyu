@@ -472,6 +472,16 @@ public final class SelectorServiceTest {
     }
 
     @Test
+    public void testImportRejectsInvalidSelectorBeforeWrite() {
+        SelectorDTO invalid = new SelectorDTO();
+        invalid.setName("invalid-selector");
+
+        assertThrows(ShenyuAdminException.class, () -> selectorService.importData(Collections.singletonList(invalid)));
+
+        verify(selectorMapper, never()).insertSelective(any());
+    }
+
+    @Test
     public void testGlobalImportPublishesOneEventPerNamespace() {
         SelectorDTO first = buildSelectorDTO("first");
         first.setNamespaceId("namespace-a");
@@ -609,6 +619,7 @@ public final class SelectorServiceTest {
         selectorDTO.setMatchMode(1);
         selectorDTO.setContinued(true);
         selectorDTO.setSort(1);
+        selectorDTO.setMatchRestful(false);
         selectorDTO.setLogged(true);
         SelectorConditionDTO selectorConditionDTO1 = new SelectorConditionDTO();
         selectorConditionDTO1.setId("111");
