@@ -58,6 +58,8 @@ public class SwaggerDocParser implements DocParser {
 
     private static final String SCHEMA_MAX_LENGTH = "maxLength";
 
+    private static final String PARAMETER_PATH_SEPARATOR = ".";
+
     private static final Set<String> SCALAR_PARAMETER_TYPES = Set.of("boolean", "integer", "number", "string");
 
     /**
@@ -224,7 +226,7 @@ public class SwaggerDocParser implements DocParser {
                 } else {
                     docRequestParameterList.add(docParameter);
                     // A scalar operation parameter uses its declared name on the wire.
-                    if (hasInlineSchema && docParameter.getName().contains(".")) {
+                    if (hasInlineSchema && docParameter.getName().contains(PARAMETER_PATH_SEPARATOR)) {
                         literalDottedParameters.add(docParameter);
                     }
                 }
@@ -232,12 +234,12 @@ public class SwaggerDocParser implements DocParser {
         }
 
         Map<String, List<DocParameter>> collect = docRequestParameterList.stream()
-            .filter(docParameter -> docParameter.getName().contains(".") && !literalDottedParameters.contains(docParameter))
+            .filter(docParameter -> docParameter.getName().contains(PARAMETER_PATH_SEPARATOR) && !literalDottedParameters.contains(docParameter))
             .map(docParameter -> {
                 String name = docParameter.getName();
-                int index = name.indexOf('.');
+                int index = name.indexOf(PARAMETER_PATH_SEPARATOR);
                 String module = name.substring(0, index);
-                String newName = name.substring(index + 1);
+                String newName = name.substring(index + PARAMETER_PATH_SEPARATOR.length());
                 DocParameter ret = DocParameter.copy(docParameter);
                 ret.setName(newName);
                 ret.setModule(module);
@@ -254,7 +256,7 @@ public class SwaggerDocParser implements DocParser {
         });
 
         List<DocParameter> requestParameterList = docRequestParameterList.stream()
-            .filter(docParameter -> !docParameter.getName().contains(".") || literalDottedParameters.contains(docParameter))
+            .filter(docParameter -> !docParameter.getName().contains(PARAMETER_PATH_SEPARATOR) || literalDottedParameters.contains(docParameter))
             .collect(Collectors.toList());
 
         docItem.setRequestParameters(requestParameterList);
