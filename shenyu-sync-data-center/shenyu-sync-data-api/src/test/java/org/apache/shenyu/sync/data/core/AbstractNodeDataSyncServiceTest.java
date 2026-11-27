@@ -42,14 +42,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -124,13 +125,56 @@ public class AbstractNodeDataSyncServiceTest {
         assertEquals("testPlugin", captor.getValue().getName());
     }
 
-
     @Test
     public void testUnCacheDiscoveryUpstreamDataIgnoresShortKeys() {
         // a short/malformed removal key must not throw AIOOBE — sibling unCache methods
         // all guard their key arrays before indexing
         assertDoesNotThrow(() -> nodeDataSyncService.unCacheDiscoveryUpstreamData("namespace.discovery"));
         verify(discoveryUpstreamDataSubscriber, never()).unSubscribe(any(DiscoveryUpstreamKey.class));
+    }
+
+    @Test
+    public void testUnCachePluginDataRemovesListenerLikeSiblingCaches() {
+        final java.util.List<String> removedKeys = new java.util.ArrayList<>();
+        final AbstractNodeDataSyncService service = new AbstractNodeDataSyncServiceImpl(
+                changeData, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, shenyuConfig) {
+            @Override
+            protected void doRemoveListener(final String removeKey) {
+                removedKeys.add(removeKey);
+            }
+        };
+
+        service.unCachePluginData("namespace.plugin.testPlugin");
+
+        assertTrue(removedKeys.contains("namespace.plugin.testPlugin"),
+                "unCachePluginData must remove the per-plugin listener like the sibling unCache methods do");
+    }
+
+    @Test
+    public void testUnCachePluginDataRemovesThePerPluginListListeners() {
+        final java.util.List<String> removedKeys = new java.util.ArrayList<>();
+        final AbstractNodeDataSyncService service = new AbstractNodeDataSyncServiceImpl(
+                changeData, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers,
+                proxySelectorDataSubscribers, discoveryUpstreamDataSubscribers, shenyuConfig) {
+            @Override
+            protected void doRemoveListener(final String removeKey) {
+                removedKeys.add(removeKey);
+            }
+        };
+
+        when(changeData.getSelectorDataId()).thenReturn("selector");
+
+        service.unCachePluginData("namespace.plugin.testPlugin");
+
+        // watcherPlugin registered one selector list and two watchCommonList listeners for
+        // this plugin; deleting the plugin must drop all three together with the plugin key
+        assertTrue(removedKeys.contains("namespace.selector.testPlugin.list"),
+                "the per-plugin selector list listener must be removed when the plugin is deleted");
+        assertTrue(removedKeys.contains("namespace.proxy.selector.testPlugin.list"),
+                "the per-plugin proxy-selector list listener must be removed when the plugin is deleted");
+        assertTrue(removedKeys.contains("namespace.discovery.testPlugin.list"),
+                "the per-plugin discovery list listener must be removed when the plugin is deleted");
     }
 
     @Test

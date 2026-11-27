@@ -226,6 +226,17 @@ public abstract class AbstractNodeDataSyncService {
         final PluginData data = new PluginData();
         data.setName(pluginKeys[2]);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
+        removeListener(removeKey);
+        // watcherPlugin also registered three per-plugin list listeners for this plugin;
+        // the plugin is gone, so those listeners must go with it
+        final String namespace = pluginKeys[0];
+        final String pluginName = pluginKeys[2];
+        removeListener(namespace + DefaultNodeConstants.JOIN_POINT + changeData.getSelectorDataId()
+                + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST);
+        removeListener(namespace + DefaultNodeConstants.JOIN_POINT + NacosPathConstants.PROXY_SELECTOR_DATA_ID
+                + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST);
+        removeListener(namespace + DefaultNodeConstants.JOIN_POINT + NacosPathConstants.DISCOVERY_DATA_ID
+                + DefaultNodeConstants.JOIN_POINT + pluginName + DefaultNodeConstants.POINT_LIST);
     }
 
     protected void cacheSelectorData(final String dataString) {
