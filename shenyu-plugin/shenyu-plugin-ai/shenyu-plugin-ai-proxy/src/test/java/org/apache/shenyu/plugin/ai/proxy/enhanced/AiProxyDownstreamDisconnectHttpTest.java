@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced;
 
+import io.netty.channel.ChannelOption;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -34,11 +35,13 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
@@ -46,7 +49,9 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
+import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.server.HttpServer;
+import reactor.test.StepVerifier;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,7 +64,9 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -78,6 +85,8 @@ import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protoc
 class AiProxyDownstreamDisconnectHttpTest {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(10);
+
+    private static final int SOCKET_BUFFER_BYTES = 32 * 1024;
 
     private static final long POLL_MILLIS = 20L;
 
@@ -102,6 +111,28 @@ class AiProxyDownstreamDisconnectHttpTest {
         try (Probe probe = new Probe(Flux.just(FIRST_CHUNK).concatWith(Flux.never()))) {
             probe.disconnectAfterFirstChunk();
             assertInterrupted(probe);
+        }
+    }
+
+    @Test
+    void pausedDownstreamResumesWithoutAnUpstreamIdleTimeout() {
+        final AiProxyTransportProperties properties = new AiProxyTransportProperties();
+        properties.setStreamingIdleTimeout(Duration.ofSeconds(1));
+        final int maxEvents = 512;
+        final String event = FIRST_CHUNK.replace("hello", "a".repeat(64 * 1024));
+        final AtomicInteger sent = new AtomicInteger();
+        final AtomicBoolean readerResuming = new AtomicBoolean();
+        final Flux<String> stream = Flux.range(0, maxEvents).takeUntil(ignored -> readerResuming.get()).map(index -> event)
+                .doOnNext(ignored -> sent.incrementAndGet()).concatWithValues(TERMINAL_CHUNK);
+        try (Probe probe = new Probe(stream, properties)) {
+            long bytesRead = probe.consumeWithPausedDemand(Duration.ofSeconds(2), () -> {
+                assertTrue(sent.get() < maxEvents, "the paused reader must backpressure the upstream");
+                readerResuming.set(true);
+            });
+            assertEquals((long) event.length() * sent.get() + TERMINAL_CHUNK.length(), bytesRead);
+            assertSingleObservation(probe);
+            assertEquals(AiCallOutcome.SUCCESS, probe.terminal().outcome());
+            assertEquals(1, probe.upstreamCalls());
         }
     }
 
@@ -223,6 +254,10 @@ class AiProxyDownstreamDisconnectHttpTest {
         private volatile Disposable client;
 
         Probe(final Flux<String> upstreamBody) {
+            this(upstreamBody, new AiProxyTransportProperties());
+        }
+
+        Probe(final Flux<String> upstreamBody, final AiProxyTransportProperties properties) {
             this.selectorId = "downstream-disconnect-" + SEQUENCE.incrementAndGet();
             this.upstream = HttpServer.create().host("127.0.0.1").port(0)
                     .handle((request, response) -> {
@@ -261,7 +296,7 @@ class AiProxyDownstreamDisconnectHttpTest {
             handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(selectorId, Constants.DEFAULT_RULE), handle);
             AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                     new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
-                    new WebClientAiProxyTransport(WebClient.builder().build()))
+                    new WebClientAiProxyTransport(WebClient.builder().build(), properties))
                     .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
                     .observer(observer)
                     .build();
@@ -274,7 +309,8 @@ class AiProxyDownstreamDisconnectHttpTest {
             }).build());
             final DisposableServer bound;
             try {
-                bound = HttpServer.create().host("127.0.0.1").port(0).handle(adapter).bindNow();
+                bound = HttpServer.create().host("127.0.0.1").port(0)
+                        .childOption(ChannelOption.SO_SNDBUF, SOCKET_BUFFER_BYTES).handle(adapter).bindNow();
             } catch (RuntimeException error) {
                 this.upstream.disposeNow();
                 throw error;
@@ -294,6 +330,27 @@ class AiProxyDownstreamDisconnectHttpTest {
 
         void consumeFully() {
             incoming().doOnNext(DataBufferUtils::release).then().block(TIMEOUT);
+        }
+
+        long consumeWithPausedDemand(final Duration pause, final Runnable checkPressure) {
+            AtomicLong bytesRead = new AtomicLong();
+            StepVerifier.create(incoming().map(buffer -> {
+                try {
+                    return bytesRead.addAndGet(buffer.readableByteCount());
+                } finally {
+                    DataBufferUtils.release(buffer);
+                }
+            }), 1)
+                    .expectNextMatches(bytes -> bytes > 0)
+                    .then(() -> {
+                        assertFalse(await(terminalRecorded, pause), () -> "stream terminated during the downstream pause: " + terminal());
+                        checkPressure.run();
+                    })
+                    .thenRequest(Long.MAX_VALUE)
+                    .thenConsumeWhile(bytes -> true)
+                    .expectComplete()
+                    .verify(TIMEOUT);
+            return bytesRead.get();
         }
 
         void consumeToleratingFailure() {
@@ -319,7 +376,9 @@ class AiProxyDownstreamDisconnectHttpTest {
         }
 
         private Flux<DataBuffer> incoming() {
-            return WebClient.create().post().uri("http://127.0.0.1:" + gateway.port() + "/chat")
+            HttpClient client = HttpClient.create().option(ChannelOption.SO_RCVBUF, SOCKET_BUFFER_BYTES);
+            return WebClient.builder().clientConnector(new ReactorClientHttpConnector(client)).build()
+                    .post().uri("http://127.0.0.1:" + gateway.port() + "/chat")
                     .header("Content-Type", "application/json")
                     .bodyValue(REQUEST_BODY)
                     .retrieve().bodyToFlux(DataBuffer.class);
@@ -355,8 +414,12 @@ class AiProxyDownstreamDisconnectHttpTest {
         }
 
         private static boolean await(final CountDownLatch latch) {
+            return await(latch, TIMEOUT);
+        }
+
+        private static boolean await(final CountDownLatch latch, final Duration timeout) {
             try {
-                return latch.await(TIMEOUT.getSeconds(), TimeUnit.SECONDS);
+                return latch.await(timeout.toMillis(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return false;
