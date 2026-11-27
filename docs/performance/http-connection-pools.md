@@ -199,3 +199,8 @@ python script/performance/http-pool/report.py \
   --before /tmp/http-pool-before/results.json \
   --after /tmp/http-pool-after/results.json --output docs/performance
 ```
+
+The report requires matching Java runtime and k6 versions, build JDK, build host
+OS and logical CPU count, and JVM flags. JFR runtime versions must also match
+when recorded for both arms. If these checks fail, the existing report and
+retained samples are kept.
