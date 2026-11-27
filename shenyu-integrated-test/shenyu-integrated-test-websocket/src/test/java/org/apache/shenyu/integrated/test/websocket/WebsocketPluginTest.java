@@ -17,13 +17,16 @@
 
 package org.apache.shenyu.integrated.test.websocket;
 
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -37,6 +40,11 @@ public class WebsocketPluginTest extends AbstractPluginDataInit {
     private static final Logger LOG = LoggerFactory.getLogger(WebsocketPluginTest.class);
 
     private static final String WEBSOCKET_URI = "ws://localhost:9195/ws-native/myWebSocket?token=Jack";
+
+    @BeforeAll
+    static void configureFixture() throws IOException {
+        WebsocketFixtureRoute.install(PluginEnum.WEB_SOCKET, "/ws-native/myWebSocket", 8868, "ws://");
+    }
 
     @Test
     public void testWebsocket() throws URISyntaxException, InterruptedException {
@@ -61,10 +69,14 @@ public class WebsocketPluginTest extends AbstractPluginDataInit {
             public void onError(final Exception e) {
             }
         };
-        webSocketClient.connectBlocking();
-        webSocketClient.send(sendMessage);
-        String receivedMessage = blockingQueue.poll(10, TimeUnit.SECONDS);
-        assertThat(receivedMessage, is("apache shenyu server send to Jack message : -> " + sendMessage));
+        try {
+            assertThat(webSocketClient.connectBlocking(15, TimeUnit.SECONDS), is(true));
+            webSocketClient.send(sendMessage);
+            String receivedMessage = blockingQueue.poll(10, TimeUnit.SECONDS);
+            assertThat(receivedMessage, is("apache shenyu server send to Jack message : -> " + sendMessage));
+        } finally {
+            webSocketClient.closeBlocking();
+        }
     }
 
 }

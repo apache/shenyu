@@ -118,6 +118,7 @@ jobs:
         run: echo "projects=$(python3 .github/scripts/resolve-example-projects.py "$INTEGRATION_CASE")" >> "$GITHUB_OUTPUT"
 
       - name: Build examples
+        if: steps.examples.outputs.projects != ''
         shell: bash
         run: |
           exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Pexample -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -pl "${{ steps.examples.outputs.projects }}" -am -f ./shenyu-examples/pom.xml
@@ -129,8 +130,15 @@ jobs:
       - name: Verify integrated test image
         run: docker image inspect apache/${{ matrix.case }}:latest --format '{{.Id}}'
       - name: Start docker compose
+        env:
+          INTEGRATION_CASE: ${{ matrix.case }}
+          EXAMPLE_PROJECTS: ${{ steps.examples.outputs.projects }}
         run: |
-          if ! docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml up -d; then
+          flags=(-d)
+          if [[ -z "$EXAMPLE_PROJECTS" ]]; then
+            flags+=(--build --wait --wait-timeout 180)
+          fi
+          if ! docker compose -f "./shenyu-integrated-test/$INTEGRATION_CASE/docker-compose.yml" up "${flags[@]}"; then
             docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml ps --all || true
             docker compose -f ./shenyu-integrated-test/${{ matrix.case }}/docker-compose.yml logs --no-color --tail=200 || true
             exit 1

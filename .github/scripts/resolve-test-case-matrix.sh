@@ -452,6 +452,10 @@ while IFS= read -r file; do
   # Changes to the workflow or shared preparation code must exercise the matrix.
   if [[ "${mode}" == "integration" ]]; then
     case "${file}" in
+      shenyu-e2e/shenyu-e2e-case/compose/fixtures/websocket/*)
+        add_unique integration_cases "shenyu-integrated-test-websocket"
+        continue
+        ;;
       .github/workflows/integrated-test.yml|.github/scripts/resolve-example-projects.py|.github/scripts/resolve-test-case-matrix*|actions/*)
         full_required=true
         continue
@@ -526,7 +530,7 @@ e2e_matrix="$(printf '%s\n' "${e2e_cases[@]}" | jq -R . | jq -cs '
       },
       "e2e-websocket-sync-compose": {
         case: "shenyu-e2e-case-websocket",
-        example_projects: ":shenyu-example-spring-native-websocket"
+        example_projects: ""
       },
       "e2e-logging-rocketmq-compose": {
         case: "shenyu-e2e-case-logging-rocketmq",

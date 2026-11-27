@@ -39,9 +39,7 @@ for sync in "${SYNC_ARRAY[@]}"; do
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml up -d --quiet-pull
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
-  docker compose -f "${PRGDIR}"/shenyu-examples-websocket-compose.yml up -d --quiet-pull
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31191/actuator/health
-  sleep 10s
+  docker compose -f "${PRGDIR}"/websocket-fixture-compose.yml up --build --wait --quiet-pull
   docker ps -a
   ## run e2e-test
   if ! bash .github/scripts/maven-with-retry.sh ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-websocket -am test; then
@@ -53,12 +51,12 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "shenyu-bootstrap log:"
     echo "------------------"
     docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml logs shenyu-bootstrap || true
-    echo "shenyu-examples-websocket log:"
+    echo "WebSocket fixture log:"
     echo "------------------"
-    docker compose -f "${PRGDIR}"/shenyu-examples-websocket-compose.yml logs shenyu-examples-websocket || true
+    docker compose -f "${PRGDIR}"/websocket-fixture-compose.yml logs websocket-fixture || true
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down
-  docker compose -f "${PRGDIR}"/shenyu-examples-websocket-compose.yml down
+  docker compose -f "${PRGDIR}"/websocket-fixture-compose.yml down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done

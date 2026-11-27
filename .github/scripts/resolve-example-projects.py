@@ -37,6 +37,15 @@ def resolve(case, root=ROOT):
     for path in directory.rglob("*"):
         if "target" not in path.parts and path.suffix in (".sh", ".yaml", ".yml"):
             images.update(IMAGE.findall(path.read_text()))
+    if not images and (directory / "docker-compose.yml").is_file():
+        compose = (directory / "docker-compose.yml").read_text(encoding="utf-8")
+        contexts = re.findall(r"^      context: (\S+)$", compose, re.MULTILINE)
+        fixtures = root / "shenyu-e2e/shenyu-e2e-case/compose/fixtures"
+        if contexts:
+            paths = [(directory / context).resolve() for context in contexts]
+            if all(path.parent == fixtures.resolve() and (path / "Dockerfile").is_file() for path in paths):
+                return ""
+            raise ValueError(f"Missing Compose fixture build context for {case}")
     if not images:
         raise ValueError(f"No example images found for {case}; inspect its deployment before enabling CI")
     artifacts = {

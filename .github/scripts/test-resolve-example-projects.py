@@ -33,7 +33,13 @@ class ExampleProjectsTest(unittest.TestCase):
             if dockerfile.parent.name == "shenyu-integrated-test-upload-plugin":
                 continue
             with self.subTest(case=dockerfile.parent.name):
-                projects = RESOLVER.resolve(dockerfile.parent.name).split(",")
+                resolved = RESOLVER.resolve(dockerfile.parent.name)
+                if not resolved:
+                    self.assertIn(dockerfile.parent.name, {
+                        "shenyu-integrated-test-websocket", "shenyu-integrated-test-grpc", "shenyu-integrated-test-k8s-ingress-grpc",
+                    })
+                    continue
+                projects = resolved.split(",")
                 self.assertTrue(all(project.startswith(":shenyu-example") for project in projects))
                 self.assertEqual(len(projects), len(set(projects)))
 
@@ -49,6 +55,20 @@ class ExampleProjectsTest(unittest.TestCase):
         for case in ("../pom.xml", "shenyu-integrated-test-missing", "shenyu-integrated-test-upload-plugin"):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 RESOLVER.resolve(case)
+
+    def test_websocket_fixture_uses_compose_build(self):
+        self.assertEqual("", RESOLVER.resolve("shenyu-integrated-test-websocket"))
+
+    def test_missing_compose_fixture_fails(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            case = root / "shenyu-integrated-test/shenyu-integrated-test-websocket"
+            case.mkdir(parents=True)
+            (case / "pom.xml").touch()
+            original = RESOLVER.ROOT / case.relative_to(root) / "docker-compose.yml"
+            (case / "docker-compose.yml").write_bytes(original.read_bytes())
+            with self.assertRaisesRegex(ValueError, "Missing Compose fixture build context"):
+                RESOLVER.resolve(case.name, root)
 
     def test_unknown_image_fails_instead_of_silently_omitting_backend(self):
         with tempfile.TemporaryDirectory() as temporary:
