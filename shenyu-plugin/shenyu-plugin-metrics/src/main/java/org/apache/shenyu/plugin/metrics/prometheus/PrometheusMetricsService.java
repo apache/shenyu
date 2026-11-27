@@ -18,7 +18,9 @@
 package org.apache.shenyu.plugin.metrics.prometheus;
 
 import io.prometheus.client.Collector;
+import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Predicate;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
 import io.prometheus.jmx.JmxCollector;
@@ -34,9 +36,15 @@ import javax.management.MalformedObjectNameException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Prometheus metric service.
@@ -96,9 +104,12 @@ public final class PrometheusMetricsService implements MetricsService {
         } else {
             inetSocketAddress = new InetSocketAddress(host, port);
         }
+        Properties props = config.getProps();
+        CollectorRegistry registry = Objects.nonNull(props) && Boolean.parseBoolean(props.getProperty("jvm_enabled"))
+                ? JvmMetricsRegistry.INSTANCE : CollectorRegistry.defaultRegistry;
         register(config);
         try {
-            server = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
+            server = new HTTPServer(inetSocketAddress, registry, true);
             LOG.info(String.format("Prometheus metrics HTTP server `%s:%s` start success.", inetSocketAddress.getHostString(), inetSocketAddress.getPort()));
         } catch (final IOException ex) {
             unregisterOwnedCollectors();
@@ -121,14 +132,6 @@ public final class PrometheusMetricsService implements MetricsService {
     private void registerConfiguredCollectors(final MetricsConfig config) {
         registerCollector(new LoggingQueueMetricsCollector());
         registerCollector(new AgentCatalogMetricsCollector());
-        String jvmEnabled = String.valueOf(config.getProps().getProperty("jvm_enabled"));
-        if (StringUtils.isNotEmpty(jvmEnabled)) {
-            boolean enabled = Boolean.parseBoolean(jvmEnabled);
-            if (enabled) {
-                // DefaultExports is initialized once for the shared JVM registry.
-                DefaultExports.initialize();
-            }
-        }
         try {
             String jmxConfig = config.getJmxConfig();
             if (!"null".equals(jmxConfig) && StringUtils.isNotEmpty(jmxConfig)) {
@@ -148,6 +151,54 @@ public final class PrometheusMetricsService implements MetricsService {
         ownedCollectors.forEach(CollectorRegistry.defaultRegistry::unregister);
         ownedCollectors.clear();
         registered.set(false);
+    }
+
+    private static final class JvmMetricsRegistry extends CollectorRegistry {
+
+        private static final List<String> FAMILY_SUFFIXES = List.of("_total", "_created", "_sum", "_count", "_bucket", "_info", "_gsum", "_gcount");
+
+        // MemoryAllocationExports registers JVM notification listeners on construction.
+        private static final CollectorRegistry INSTANCE = new JvmMetricsRegistry();
+
+        private JvmMetricsRegistry() {
+            super(true);
+            DefaultExports.register(this);
+        }
+
+        @Override
+        public Enumeration<MetricFamilySamples> metricFamilySamples() {
+            return Collections.enumeration(mergeSamples(Collections.list(defaultRegistry.metricFamilySamples()), Collections.list(super.metricFamilySamples())));
+        }
+
+        @Override
+        public Enumeration<MetricFamilySamples> filteredMetricFamilySamples(final Predicate<String> sampleNameFilter) {
+            if (Objects.isNull(sampleNameFilter)) {
+                return metricFamilySamples();
+            }
+            List<MetricFamilySamples> jvm = Collections.list(super.filteredMetricFamilySamples(sampleNameFilter));
+            if (jvm.isEmpty()) {
+                return defaultRegistry.filteredMetricFamilySamples(sampleNameFilter);
+            }
+            // Include sibling samples so an exported shared family still takes precedence.
+            Set<String> jvmNames = metricNames(jvm);
+            jvm.forEach(family -> FAMILY_SUFFIXES.forEach(suffix -> jvmNames.add(family.name + suffix)));
+            List<MetricFamilySamples> shared = Collections.list(
+                    defaultRegistry.filteredMetricFamilySamples(name -> sampleNameFilter.test(name) || jvmNames.contains(name)));
+            return Collections.enumeration(mergeSamples(shared, jvm).stream()
+                    .map(family -> family.filter(sampleNameFilter))
+                    .filter(Objects::nonNull)
+                    .toList());
+        }
+
+        private List<MetricFamilySamples> mergeSamples(final List<MetricFamilySamples> shared, final List<MetricFamilySamples> jvm) {
+            Set<String> sharedNames = metricNames(shared);
+            jvm.stream().filter(family -> Arrays.stream(family.getNames()).noneMatch(sharedNames::contains)).forEach(shared::add);
+            return shared;
+        }
+
+        private Set<String> metricNames(final List<MetricFamilySamples> samples) {
+            return samples.stream().flatMap(family -> Arrays.stream(family.getNames())).collect(Collectors.toSet());
+        }
     }
 }
 
