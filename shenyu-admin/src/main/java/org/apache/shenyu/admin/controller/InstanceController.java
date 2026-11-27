@@ -21,6 +21,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.apache.shenyu.admin.aspect.annotation.RestApi;
 import org.apache.shenyu.register.common.dto.InstanceBeatInfoDTO;
+import org.apache.shenyu.register.common.protocol.RegistrationLeaseProtocol;
+import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.InstanceQuery;
@@ -39,8 +41,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -143,15 +147,31 @@ public class InstanceController implements PagedController<InstanceQueryConditio
     }
 
     /**
-     * receive beat.
+     * receive beat. Legacy v1 callers get the exact legacy plain-text response; a
+     * caller that advertises the {@code registration-lease-v1} capability receives a
+     * structured lease response instead.
      *
+     * @param capabilities the client capability header, may be absent
      * @param instanceBeatInfoDTO instanceBeatInfoDTO.
-     * @return {@linkplain ShenyuAdminResult}
+     * @return the legacy status string, or a structured lease response
      */
     @PostMapping("/beat")
-    public String beat(@Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    public Object beat(@RequestHeader(name = RegistrationProtocol.CAPABILITIES_HEADER, required = false)
+                       final String capabilities,
+                       @Valid @RequestBody final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+        if (presentsLeaseCapability(capabilities)) {
+            return instanceCheckService.handleLeaseBeat(instanceBeatInfoDTO);
+        }
         boolean accepted = instanceCheckService.handleBeatInfo(instanceBeatInfoDTO);
         return accepted ? ShenyuResultMessage.SUCCESS : ShenyuResultMessage.PARAMETER_ERROR;
+    }
+
+    private boolean presentsLeaseCapability(final String capabilities) {
+        if (Objects.isNull(capabilities) || capabilities.isBlank()) {
+            return false;
+        }
+        return Arrays.stream(capabilities.split(","))
+                .anyMatch(token -> RegistrationLeaseProtocol.CAPABILITY.equals(token.trim()));
     }
 
     /**

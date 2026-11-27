@@ -28,6 +28,7 @@ import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
+import org.apache.shenyu.register.common.protocol.RegistrationLeaseProtocol;
 import org.apache.shenyu.common.utils.AesUtils;
 import org.apache.shenyu.common.utils.BoundServerPort;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -44,6 +45,7 @@ import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +60,9 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.LongSupplier;
 
 public class HeartbeatListener {
@@ -73,9 +77,22 @@ public class HeartbeatListener {
 
     private static final long MAX_LOGIN_RETRY_DELAY_SECONDS = 60L;
 
+    /**
+     * Compact renewals carry the full instance observation only once per this many
+     * consecutive renewals; the lease identity alone proves liveness in between.
+     */
+    private static final int LEASE_INFO_EVERY = 12;
+
     private static final String HEARTBEAT_TIMEOUT_MS = "heartbeatTimeoutMs";
 
     private static final String HEARTBEAT_DIRECT_EXECUTION = "heartbeatDirectExecution";
+
+    /**
+     * Client-side opt-in for the server-issued registration lease. When absent or
+     * false, the reporter keeps the exact legacy v1 wire: no capability header and no
+     * lease payload fields.
+     */
+    private static final String REGISTRATION_LEASE = "registrationLease";
 
     private static final long DEFAULT_DEADLINE_MS = 4000L;
 
@@ -89,6 +106,8 @@ public class HeartbeatListener {
 
     private final long deadlineMs;
 
+    private final boolean leaseNegotiationEnabled;
+
     private final Map<String, AtomicBoolean> inFlight = new ConcurrentHashMap<>();
 
     private final ShenyuConfig shenyuConfig;
@@ -97,6 +116,9 @@ public class HeartbeatListener {
 
     // Heartbeat workers update retry state independently for each Admin.
     private final Map<String, LoginRetry> loginRetries = new ConcurrentHashMap<>();
+
+    // Lease state independently for each Admin: a mixed cluster negotiates per server.
+    private final Map<String, ServerLeaseState> leaseStates = new ConcurrentHashMap<>();
 
     private String username;
 
@@ -154,6 +176,7 @@ public class HeartbeatListener {
         this.deadlineMs = parseDeadlineMs(timeoutProp);
         String directProp = config.getProps().getProperty(HEARTBEAT_DIRECT_EXECUTION);
         this.directExecution = Boolean.parseBoolean(directProp);
+        this.leaseNegotiationEnabled = Boolean.parseBoolean(config.getProps().getProperty(REGISTRATION_LEASE));
         if (Objects.nonNull(beatExecutor)) {
             this.beatExecutor = beatExecutor;
         } else if (this.directExecution) {
@@ -255,6 +278,13 @@ public class HeartbeatListener {
 
     private void sendHeartbeat(final InstanceBeatInfoDTO instanceBeatInfoDTO) {
         for (String server : serverList) {
+            if (leaseNegotiationEnabled) {
+                ServerLeaseState lease = leaseStates.computeIfAbsent(server, key -> new ServerLeaseState());
+                if (!lease.isDue(nanoTime.getAsLong())) {
+                    LOG.debug("Heartbeat to admin url :{} waits for its negotiated interval, skipping.", server);
+                    continue;
+                }
+            }
             AtomicBoolean serverInFlight = null;
             if (!directExecution) {
                 serverInFlight = inFlight.computeIfAbsent(server, k -> new AtomicBoolean(false));
@@ -292,6 +322,14 @@ public class HeartbeatListener {
                             if (Objects.nonNull(finalInFlight)) {
                                 finalInFlight.set(false);
                             }
+                            if (leaseNegotiationEnabled) {
+                                // a timed-out beat never produced a lease response, so the
+                                // next attempt waits for the negotiated interval, not the tick
+                                ServerLeaseState timedOut = leaseStates.get(server);
+                                if (Objects.nonNull(timedOut)) {
+                                    timedOut.deferAfterFailure(nanoTime.getAsLong());
+                                }
+                            }
                             LOG.warn("Heartbeat to admin url :{} timed out after {} ms deadline.", server, deadlineMs);
                         }
                     }, deadlineMs, TimeUnit.MILLISECONDS);
@@ -302,16 +340,49 @@ public class HeartbeatListener {
         }
     }
 
-    private void sendHeartbeatToServer(final String server, final InstanceBeatInfoDTO instanceBeatInfoDTO) {
+    private void sendHeartbeatToServer(final String server, final InstanceBeatInfoDTO baseBeat) {
         String concat = server.concat(Constants.BEAT_URI_PATH);
         LoginRetry retry = loginRetries.get(server);
+        if (!leaseNegotiationEnabled) {
+            // exact legacy v1 wire: no capability header, no lease payload fields
+            sendLegacyHeartbeat(server, concat, baseBeat, retry);
+            return;
+        }
+        ServerLeaseState lease = leaseStates.computeIfAbsent(server, key -> new ServerLeaseState());
         String token = null;
         try {
             token = getAccessToken(server);
             if (StringUtils.isBlank(token)) {
                 return;
             }
-            beatSender.doHeartBeat(GsonUtils.getInstance().toJson(instanceBeatInfoDTO), concat, Constants.HEARTBEAT, token);
+            String json = GsonUtils.getInstance().toJson(leasePayload(lease, baseBeat));
+            String body = beatSender.doLeaseHeartBeat(json, concat, Constants.HEARTBEAT, token);
+            handleBeatResponse(server, lease, body);
+            if (Objects.nonNull(retry)) {
+                loginRetries.remove(server, retry);
+            }
+        } catch (HttpResponseException e) {
+            if (e.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED && Objects.nonNull(token)) {
+                invalidateRejectedToken(server, token);
+            }
+            lease.deferAfterFailure(nanoTime.getAsLong());
+            LOG.error("HeartBeat admin url :{} returned HTTP {}, will retry.", server, e.getStatusCode());
+        } catch (Exception e) {
+            lease.deferAfterFailure(nanoTime.getAsLong());
+            LOG.error("HeartBeat admin url :{} is fail, will retry.", server, e);
+            // This is a periodic reporter, not a failback registration: retry after a bounded, jittered delay.
+        }
+    }
+
+    private void sendLegacyHeartbeat(final String server, final String url, final InstanceBeatInfoDTO instanceBeatInfoDTO,
+                                     final LoginRetry retry) {
+        String token = null;
+        try {
+            token = getAccessToken(server);
+            if (StringUtils.isBlank(token)) {
+                return;
+            }
+            beatSender.doHeartBeat(GsonUtils.getInstance().toJson(instanceBeatInfoDTO), url, Constants.HEARTBEAT, token);
             if (Objects.nonNull(retry)) {
                 loginRetries.remove(server, retry);
             }
@@ -322,7 +393,63 @@ public class HeartbeatListener {
             LOG.error("HeartBeat admin url :{} returned HTTP {}, will retry.", server, e.getStatusCode());
         } catch (Exception e) {
             LOG.error("HeartBeat admin url :{} is fail, will retry.", server, e);
-            // This is a periodic reporter, not a failback registration: retry on the next tick.
+        }
+    }
+
+    /**
+     * Build the wire payload for one Admin: a compact lease renewal carries the
+     * identity and the lease id, while the full instance observation is attached only
+     * on (re-)registration and periodically, so a beat stays a liveness proof instead
+     * of an accidental full re-registration.
+     *
+     * @param lease the lease state of the target Admin
+     * @param baseBeat the observed instance state of this process
+     * @return the payload for one beat
+     */
+    private InstanceBeatInfoDTO leasePayload(final ServerLeaseState lease, final InstanceBeatInfoDTO baseBeat) {
+        InstanceBeatInfoDTO payload = new InstanceBeatInfoDTO();
+        payload.setInstanceIp(baseBeat.getInstanceIp());
+        payload.setInstancePort(baseBeat.getInstancePort());
+        payload.setInstanceType(baseBeat.getInstanceType());
+        payload.setNamespaceId(baseBeat.getNamespaceId());
+        payload.setLeaseId(lease.getLeaseId());
+        if (StringUtils.isBlank(lease.getLeaseId()) || lease.shouldRefreshObservation()) {
+            payload.setInstanceInfo(baseBeat.getInstanceInfo());
+        }
+        return payload;
+    }
+
+    /**
+     * Interpret one beat response body. A plain legacy marker keeps the v1 cadence, a
+     * structured lease response advances or resets the lease state, and anything else
+     * fails the send like the legacy sender did.
+     *
+     * @param server the target Admin url
+     * @param lease the lease state of the target Admin
+     * @param body the raw response body
+     * @throws IOException when the body is neither the legacy marker nor a lease document
+     */
+    private void handleBeatResponse(final String server, final ServerLeaseState lease,
+                                    final String body) throws IOException {
+        final long now = nanoTime.getAsLong();
+        if (Objects.equals(Constants.SUCCESS, body)) {
+            lease.legacy(now);
+            return;
+        }
+        if (StringUtils.isBlank(body) || !body.trim().startsWith("{")) {
+            throw new IOException("Admin returned a non-success response for heartbeat at " + server);
+        }
+        RegistrationLeaseProtocol.LeaseResponse response =
+                GsonUtils.getInstance().fromJson(body, RegistrationLeaseProtocol.LeaseResponse.class);
+        if (Objects.isNull(response) || StringUtils.isBlank(response.code())) {
+            throw new IOException("Admin returned an unreadable lease response at " + server);
+        }
+        switch (response.code()) {
+            case RegistrationLeaseProtocol.OK -> lease.granted(response, now);
+            case RegistrationLeaseProtocol.STALE_LEASE, RegistrationLeaseProtocol.EXPIRED,
+                    RegistrationLeaseProtocol.LEASE_NOT_ENABLED, RegistrationLeaseProtocol.INVALID_REQUEST ->
+                    lease.reRegister(now);
+            default -> throw new IOException("Admin returned an unknown lease code at " + server);
         }
     }
 
@@ -400,6 +527,23 @@ public class HeartbeatListener {
          * @throws Exception exception
          */
         void doHeartBeat(String json, String url, String type, String token) throws Exception;
+
+        /**
+         * Send heartbeat with the registration lease capability and return the raw
+         * response body. The default delegates to the legacy sender and reports the
+         * success marker, so senders that are not lease-aware keep their behavior.
+         *
+         * @param json json payload
+         * @param url url
+         * @param type type
+         * @param token token
+         * @return the raw response body
+         * @throws Exception exception
+         */
+        default String doLeaseHeartBeat(String json, String url, String type, String token) throws Exception {
+            doHeartBeat(json, url, type, token);
+            return Constants.SUCCESS;
+        }
     }
 
     public static class DefaultBeatSender implements BeatSender {
@@ -412,6 +556,68 @@ public class HeartbeatListener {
         @Override
         public void doHeartBeat(final String json, final String url, final String type, final String token) throws Exception {
             RegisterUtils.doHeartBeat(json, url, type, token);
+        }
+
+        @Override
+        public String doLeaseHeartBeat(final String json, final String url, final String type, final String token) throws Exception {
+            return RegisterUtils.doLeaseHeartBeat(json, url, type, token);
+        }
+    }
+
+    /**
+     * Per-Admin lease state. A mixed cluster negotiates independently per server: a
+     * server that answers with the legacy marker keeps the v1 cadence, a server that
+     * grants a lease moves to the server-issued interval, and a rejected lease falls
+     * back to immediate re-registration.
+     */
+    static final class ServerLeaseState {
+
+        private volatile String leaseId;
+
+        private volatile int intervalSeconds = CHECK_PERIOD;
+
+        private volatile long nextDueNanos;
+
+        private final AtomicInteger renewalCount = new AtomicInteger();
+
+        String getLeaseId() {
+            return leaseId;
+        }
+
+        boolean isDue(final long nowNanos) {
+            return nowNanos >= nextDueNanos;
+        }
+
+        boolean shouldRefreshObservation() {
+            return renewalCount.get() % LEASE_INFO_EVERY == 0;
+        }
+
+        void granted(final RegistrationLeaseProtocol.LeaseResponse response, final long nowNanos) {
+            this.leaseId = response.leaseId();
+            this.intervalSeconds = Objects.nonNull(response.intervalSeconds()) && response.intervalSeconds() > 0
+                    ? response.intervalSeconds() : CHECK_PERIOD;
+            renewalCount.incrementAndGet();
+            this.nextDueNanos = nowNanos + TimeUnit.SECONDS.toNanos(intervalSeconds);
+        }
+
+        void reRegister(final long nowNanos) {
+            this.leaseId = null;
+            this.intervalSeconds = CHECK_PERIOD;
+            renewalCount.set(0);
+            // the next tick re-registers with a blank lease id and a full observation
+            this.nextDueNanos = nowNanos;
+        }
+
+        void legacy(final long nowNanos) {
+            this.leaseId = null;
+            this.intervalSeconds = CHECK_PERIOD;
+            this.nextDueNanos = nowNanos + TimeUnit.SECONDS.toNanos(CHECK_PERIOD);
+        }
+
+        void deferAfterFailure(final long nowNanos) {
+            long base = TimeUnit.SECONDS.toNanos(intervalSeconds);
+            long jitter = ThreadLocalRandom.current().nextLong(base / 10 + 1);
+            this.nextDueNanos = nowNanos + base + jitter;
         }
     }
 

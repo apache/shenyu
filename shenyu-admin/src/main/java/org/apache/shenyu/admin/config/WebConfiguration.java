@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.config;
 
 import org.apache.shenyu.admin.config.properties.RegistrationFencingProperties;
+import org.apache.shenyu.admin.config.properties.RegistrationLeaseProperties;
 import org.apache.shenyu.register.common.protocol.RegistrationProtocol;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -35,18 +36,23 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private final RegistrationFencingProperties fencingProperties;
 
+    private final RegistrationLeaseProperties leaseProperties;
+
     public WebConfiguration() {
         this.fencingProperties = new RegistrationFencingProperties();
+        this.leaseProperties = new RegistrationLeaseProperties();
     }
 
     @Autowired
-    public WebConfiguration(final RegistrationFencingProperties fencingProperties) {
+    public WebConfiguration(final RegistrationFencingProperties fencingProperties,
+                            final RegistrationLeaseProperties leaseProperties) {
         this.fencingProperties = fencingProperties;
+        this.leaseProperties = leaseProperties;
     }
 
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
-        registry.addInterceptor(new RegistrationProtocolInterceptor(fencingProperties)).addPathPatterns(
+        registry.addInterceptor(new RegistrationProtocolInterceptor(fencingProperties, leaseProperties)).addPathPatterns(
                 RegistrationProtocol.META_PATH, RegistrationProtocol.URI_PATH, RegistrationProtocol.API_DOC_PATH,
                 RegistrationProtocol.DISCOVERY_CONFIG_PATH, RegistrationProtocol.MCP_TOOLS_PATH,
                 RegistrationProtocol.OFFLINE_PATH, RegistrationProtocol.BEAT_URI_PATH);
