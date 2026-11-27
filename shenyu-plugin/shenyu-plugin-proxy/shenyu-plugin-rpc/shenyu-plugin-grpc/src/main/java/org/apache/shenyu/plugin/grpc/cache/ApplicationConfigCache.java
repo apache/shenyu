@@ -134,6 +134,16 @@ public final class ApplicationConfigCache {
     }
 
     /**
+     * Remove a watcher only while it still owns the selector registration.
+     *
+     * @param selectorId selector ID
+     * @param consumer registered watcher
+     */
+    public void unwatch(final String selectorId, final Consumer<Object> consumer) {
+        watchUpstreamListener.remove(selectorId, consumer);
+    }
+
+    /**
      * Gets instance.
      *
      * @return the instance
