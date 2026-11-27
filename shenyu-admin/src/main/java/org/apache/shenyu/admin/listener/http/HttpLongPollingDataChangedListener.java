@@ -341,6 +341,10 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
+        return compareChangedGroup(request, true);
+    }
+
+    private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request, final boolean refreshStaleCache) {
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
         String namespaceId = getNamespaceId(request);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
@@ -350,11 +354,12 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
-            long clientModifyTime = NumberUtils.toLong(params[1]);
 
             ConfigDataCache serverCache = CACHE.get(buildCacheKey(namespaceId, group.name()));
-            // do check.
-            if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
+            boolean changed = refreshStaleCache
+                    ? this.checkCacheDelayAndUpdate(serverCache, clientMd5, NumberUtils.toLong(params[1]))
+                    : isMd5Changed(serverCache, clientMd5);
+            if (changed) {
                 changedGroup.add(group);
             }
         }
@@ -375,7 +380,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      */
     private boolean checkCacheDelayAndUpdate(final ConfigDataCache serverCache, final String clientMd5, final long clientModifyTime) {
         // is the same, doesn't need to be updated
-        if (StringUtils.equals(clientMd5, serverCache.getMd5())) {
+        if (!isMd5Changed(serverCache, clientMd5)) {
             return false;
         }
         // if the md5 value is different, it is necessary to compare lastModifyTime.
@@ -394,18 +399,22 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         ConfigDataCache latest = CACHE.get(configDataCacheKey);
         if (latest != serverCache) {
-            return !StringUtils.equals(clientMd5, latest.getMd5());
+            return isMd5Changed(latest, clientMd5);
         }
         Object refreshLock = refreshLocks.computeIfAbsent(serverCache.getNamespaceId(), key -> new Object());
         synchronized (refreshLock) {
             latest = CACHE.get(configDataCacheKey);
             if (latest != serverCache) {
-                return !StringUtils.equals(clientMd5, latest.getMd5());
+                return isMd5Changed(latest, clientMd5);
             }
             this.refreshLocalCache(serverCache.getNamespaceId());
             latest = CACHE.get(configDataCacheKey);
-            return !StringUtils.equals(clientMd5, latest.getMd5());
+            return isMd5Changed(latest, clientMd5);
         }
+    }
+
+    private static boolean isMd5Changed(final ConfigDataCache serverCache, final String clientMd5) {
+        return !StringUtils.equals(clientMd5, serverCache.getMd5());
     }
 
     /**
@@ -610,21 +619,19 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 return;
             }
             try {
-                if (Objects.nonNull(cacheRebuildCoordinator)) {
-                    // Publication may race the request thread's first comparison. Registration and
-                    // notification share this scheduler, so recheck before entering the wait queue.
-                    List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
-                    if (CollectionUtils.isNotEmpty(changedGroups)) {
-                        sendResponse(changedGroups);
-                        return;
-                    }
+                // Publication may race the request thread's first comparison. Registration and
+                // notification share this scheduler, so recheck the published MD5s before waiting.
+                List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest(), false);
+                if (CollectionUtils.isNotEmpty(changedGroups)) {
+                    sendResponse(changedGroups);
+                    return;
                 }
                 BlockingQueue<LongPollingClient> namespaceClients = clientsMap.computeIfAbsent(
                         namespaceId, k -> new ArrayBlockingQueue<>(1024));
                 this.asyncTimeoutFuture = scheduler.schedule(() -> {
-                    List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
-                    sendResponse(changedGroups);
-                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(changedGroups));
+                    List<ConfigGroupEnum> groupsAtTimeout = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
+                    sendResponse(groupsAtTimeout);
+                    log.debug("LongPollingClient {} ", GsonUtils.getInstance().toJson(groupsAtTimeout));
                 }, timeoutTime, TimeUnit.MILLISECONDS);
                 if (shouldReportInstance(port)) {
                     long interval = Objects.nonNull(httpSyncProperties) && httpSyncProperties.getHeartbeatInterval() > 0
