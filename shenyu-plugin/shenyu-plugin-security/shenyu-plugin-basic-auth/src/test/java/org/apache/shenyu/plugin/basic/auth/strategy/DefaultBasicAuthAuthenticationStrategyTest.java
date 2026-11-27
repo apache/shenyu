@@ -78,4 +78,100 @@ public class DefaultBasicAuthAuthenticationStrategyTest {
         Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy.authenticate(defaultBasicAuthRuleHandle, null));
     }
 
+    @Test
+    public void testAuthenticateWithRfc7617BasicCredential() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertTrue(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "Basic dGVzdDp0ZXN0MTIz"));
+    }
+
+    @Test
+    public void testAuthenticateWithLowercaseBasicScheme() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertTrue(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "basic dGVzdDp0ZXN0MTIz"));
+    }
+
+    @Test
+    public void testAuthenticateWithUppercaseBasicScheme() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertTrue(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "BASIC dGVzdDp0ZXN0MTIz"));
+    }
+
+    @Test
+    public void testAuthenticateWithMultipleSpacesAfterBasicScheme() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertTrue(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "Basic    dGVzdDp0ZXN0MTIz"));
+    }
+
+    @Test
+    public void testAuthenticateWithSurroundingWhitespace() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertTrue(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "  Basic dGVzdDp0ZXN0MTIz  "));
+    }
+
+    @Test
+    public void testAuthenticateWithWrongBasicPassword() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "Basic dGVzdDp0ZXN0NDU2"));
+    }
+
+    @Test
+    public void testAuthenticateWithInvalidBase64Token() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "Basic !!!not-base64!!!"));
+    }
+
+    @Test
+    public void testAuthenticateWithEmptyBasicToken() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy.authenticate(defaultBasicAuthRuleHandle, "Basic "));
+    }
+
+    @Test
+    public void testAuthenticateWithInvalidUtf8Token() {
+        String handleJson = "{\"authorization\":\"test:test123\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy.authenticate(defaultBasicAuthRuleHandle, "Basic /w=="));
+    }
+
+    @Test
+    public void testAuthenticateWithFullBasicHeaderConfigured() {
+        String handleJson = "{\"authorization\":\"Basic dGVzdDp0ZXN0MTIz\"}";
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = defaultBasicAuthAuthenticationStrategy.parseHandleJson(handleJson);
+
+        Assertions.assertTrue(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "Basic dGVzdDp0ZXN0MTIz"));
+    }
+
+    @Test
+    public void testAuthenticateWithNullConfiguredAuthorization() {
+        DefaultBasicAuthRuleHandle defaultBasicAuthRuleHandle = new DefaultBasicAuthRuleHandle();
+
+        Assertions.assertFalse(defaultBasicAuthAuthenticationStrategy
+                .authenticate(defaultBasicAuthRuleHandle, "Basic dGVzdDp0ZXN0MTIz"));
+    }
+
 }
