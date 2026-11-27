@@ -256,4 +256,33 @@ public class SwaggerDocParserTest {
         assertEquals("X-Region", header.getName());
         assertEquals("8", header.getMaxLength());
     }
+
+    @Test
+    void preservesLiteralDottedScalarWithoutChangingModelExpansion() {
+        JsonObject root = GsonUtils.getInstance().fromJson("""
+                {
+                  "openapi":"3.0.3",
+                  "info":{"title":"Orders","version":"1"},
+                  "paths":{"/orders":{"get":{
+                    "parameters":[
+                      {"name":"filter.status","in":"query","required":true,"schema":{"type":"string"}},
+                      {"name":"filters","in":"query","schema":{"$ref":"#/components/schemas/Filters"}}
+                    ],
+                    "responses":{"200":{"description":"OK"}}
+                  }}},
+                  "components":{"schemas":{"Filters":{"type":"object","properties":{
+                    "filter.page":{"type":"integer"}
+                  }}}}
+                }
+                """, JsonObject.class);
+
+        DocItem item = swaggerDocParser.parseJson(root).getDocModuleList().get(0).getDocItems().get(0);
+        List<DocParameter> parameters = item.getRequestParameters();
+        assertEquals(List.of("filter.status", "filter"), parameters.stream().map(DocParameter::getName).toList());
+        assertEquals("string", parameters.get(0).getType());
+        assertTrue(parameters.get(0).isRequired());
+        assertEquals("object", parameters.get(1).getType());
+        assertEquals(List.of("page"), parameters.get(1).getRefs().stream().map(DocParameter::getName).toList());
+        assertEquals("integer", parameters.get(1).getRefs().get(0).getType());
+    }
 }

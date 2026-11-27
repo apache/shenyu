@@ -38,6 +38,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -192,6 +193,7 @@ public class SwaggerDocParser implements DocParser {
         Optional<JsonArray> parametersOptional = Optional.ofNullable(docInfo.getAsJsonArray("parameters"));
         JsonArray parameters = parametersOptional.orElse(new JsonArray());
         List<DocParameter> docRequestParameterList = new ArrayList<>();
+        Set<DocParameter> literalDottedParameters = new HashSet<>();
         List<DocParameter> docHeaderParameterList = new ArrayList<>();
         
         for (int i = 0; i < parameters.size(); i++) {
@@ -221,12 +223,16 @@ public class SwaggerDocParser implements DocParser {
                     docHeaderParameterList.add(docParameter);
                 } else {
                     docRequestParameterList.add(docParameter);
+                    // A scalar operation parameter uses its declared name on the wire.
+                    if (hasInlineSchema && docParameter.getName().contains(".")) {
+                        literalDottedParameters.add(docParameter);
+                    }
                 }
             }
         }
 
         Map<String, List<DocParameter>> collect = docRequestParameterList.stream()
-            .filter(docParameter -> docParameter.getName().contains("."))
+            .filter(docParameter -> docParameter.getName().contains(".") && !literalDottedParameters.contains(docParameter))
             .map(docParameter -> {
                 String name = docParameter.getName();
                 int index = name.indexOf('.');
@@ -248,7 +254,7 @@ public class SwaggerDocParser implements DocParser {
         });
 
         List<DocParameter> requestParameterList = docRequestParameterList.stream()
-            .filter(docParameter -> !docParameter.getName().contains("."))
+            .filter(docParameter -> !docParameter.getName().contains(".") || literalDottedParameters.contains(docParameter))
             .collect(Collectors.toList());
 
         docItem.setRequestParameters(requestParameterList);
