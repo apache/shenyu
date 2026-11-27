@@ -20,8 +20,10 @@ package org.apache.shenyu.common.utils;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -52,5 +54,50 @@ class InitialSyncApplicationTest {
         CompletableFuture<Void> result = InitialSyncApplication.run(() -> InitialSyncApplication.register(deferred));
         deferred.completeExceptionally(new IllegalStateException("failed application"));
         assertTrue(result.isCompletedExceptionally());
+    }
+
+    @Test
+    void testObserveTracksDeferredWorkWithoutFailFastScope() {
+        assertFalse(InitialSyncApplication.isActive());
+        CompletableFuture<Void> deferred = new CompletableFuture<>();
+        CompletableFuture<Void> result = InitialSyncApplication.observe(() -> {
+            assertFalse(InitialSyncApplication.isActive());
+            InitialSyncApplication.register(deferred);
+        });
+
+        assertFalse(InitialSyncApplication.isActive());
+        assertFalse(result.isDone());
+        deferred.complete(null);
+        result.join();
+    }
+
+    @Test
+    void testObserveInsideRunInheritsFailFastAndPropagatesDeferredFailure() {
+        CompletableFuture<Void> deferred = new CompletableFuture<>();
+        CompletableFuture<Void> result = InitialSyncApplication.run(() -> {
+            assertTrue(InitialSyncApplication.isActive());
+            InitialSyncApplication.observe(() -> {
+                assertTrue(InitialSyncApplication.isActive());
+                InitialSyncApplication.register(deferred);
+            });
+            assertTrue(InitialSyncApplication.isActive());
+        });
+
+        assertFalse(InitialSyncApplication.isActive());
+        assertFalse(result.isDone());
+        IllegalStateException failure = new IllegalStateException("nested application failed");
+        deferred.completeExceptionally(failure);
+        assertSame(failure, assertThrows(CompletionException.class, result::join).getCause());
+    }
+
+    @Test
+    void testReportFailureKeepsFirstRejection() {
+        IllegalStateException first = new IllegalStateException("first rejection");
+        CompletableFuture<Void> result = InitialSyncApplication.observe(() -> {
+            InitialSyncApplication.reportFailure(first);
+            InitialSyncApplication.reportFailure(new IllegalStateException("second rejection"));
+        });
+
+        assertSame(first, assertThrows(CompletionException.class, result::join).getCause());
     }
 }

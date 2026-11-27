@@ -17,12 +17,14 @@
 
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.shenyu.common.config.ShenyuConfig;
 import org.apache.shenyu.common.dto.PluginData;
@@ -35,6 +37,7 @@ import org.apache.shenyu.plugin.sync.data.websocket.LegacyPluginDataSubscriber;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.InitialSyncApplication;
 import org.apache.shenyu.sync.data.api.AiProxyApiKeyDataSubscriber;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamDataSubscriber;
@@ -163,8 +166,7 @@ public final class WebsocketDataHandlerTest {
 
     @Test
     public void testFailedScopedRefreshIsNotDeduplicated() {
-        final org.apache.shenyu.plugin.base.handler.PluginDataHandler pluginHandler =
-                mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
+        final var pluginHandler = mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
         Mockito.when(pluginHandler.pluginNamed()).thenReturn("divide");
         final CommonPluginDataSubscriber subscriber = new CommonPluginDataSubscriber(Collections.singletonList(pluginHandler),
                 mock(ApplicationEventPublisher.class), new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
@@ -191,6 +193,70 @@ public final class WebsocketDataHandlerTest {
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test"), DataEventTypeEnum.REFRESH.name());
         websocketDataHandler.executor(ConfigGroupEnum.PLUGIN, getJson("plugin_test_2"), DataEventTypeEnum.REFRESH.name());
         Mockito.verify(pluginDataSubscriber, Mockito.times(2)).refreshPluginDataAll();
+    }
+
+    @Test
+    public void testRejectedRuleUpdateRetriedWithoutSkippingOtherRows() {
+        final var pluginHandler = mock(org.apache.shenyu.plugin.base.handler.PluginDataHandler.class);
+        Mockito.when(pluginHandler.pluginNamed()).thenReturn("divide");
+        Mockito.doThrow(new IllegalStateException("rule rejected")).doNothing().when(pluginHandler)
+                .handlerRule(Mockito.argThat(rule -> "rejected-rule".equals(rule.getId())));
+        PluginDataSubscriber subscriber = new CommonPluginDataSubscriber(List.of(pluginHandler), mock(ApplicationEventPublisher.class),
+                new ShenyuConfig.SelectorMatchCache(), new ShenyuConfig.RuleMatchCache());
+        WebsocketDataHandler handler = new WebsocketDataHandler(subscriber, List.of(), List.of(), List.of(), List.of(), List.of());
+        RuleData rejected = ruleUpdate("rejected-rule");
+        RuleData accepted = ruleUpdate("accepted-rule");
+        final String json = GsonUtils.getInstance().toJson(List.of(rejected, accepted));
+        try {
+            handler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+            verify(pluginHandler).handlerRule(accepted);
+
+            handler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+            handler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+            verify(pluginHandler, Mockito.times(2)).handlerRule(rejected);
+            verify(pluginHandler, Mockito.times(2)).handlerRule(accepted);
+        } finally {
+            BaseDataCache.getInstance().removeRuleData(rejected);
+            BaseDataCache.getInstance().removeRuleData(accepted);
+        }
+    }
+
+    @Test
+    public void testPendingRuleUpdateIsCoalescedAndRetriedAfterFailure() {
+        CompletableFuture<Void> deferred = new CompletableFuture<>();
+        Mockito.doAnswer(invocation -> {
+            InitialSyncApplication.register(deferred);
+            return null;
+        }).doNothing().when(pluginDataSubscriber).onRuleSubscribe(Mockito.any(RuleData.class));
+        final String json = GsonUtils.getInstance().toJson(List.of(ruleUpdate("deferred-rule")));
+
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+        verify(pluginDataSubscriber).onRuleSubscribe(Mockito.any(RuleData.class));
+
+        deferred.completeExceptionally(new IllegalStateException("deferred rule rejected"));
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, json, DataEventTypeEnum.UPDATE.name());
+        verify(pluginDataSubscriber, Mockito.times(2)).onRuleSubscribe(Mockito.any(RuleData.class));
+    }
+
+    @Test
+    public void testThrownRuleUpdateFailureInvalidatesPreviousPayload() {
+        RuleData applied = ruleUpdate("applied-rule");
+        RuleData rejected = ruleUpdate("unexpected-failure");
+        Mockito.doThrow(new IllegalStateException("application failed")).when(pluginDataSubscriber).onRuleSubscribe(rejected);
+        String previous = GsonUtils.getInstance().toJson(List.of(applied));
+        String invalid = GsonUtils.getInstance().toJson(List.of(ruleUpdate("partial-update"), rejected));
+
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, previous, DataEventTypeEnum.UPDATE.name());
+        assertThrows(IllegalStateException.class, () -> websocketDataHandler.executor(ConfigGroupEnum.RULE, invalid, DataEventTypeEnum.UPDATE.name()));
+        websocketDataHandler.executor(ConfigGroupEnum.RULE, previous, DataEventTypeEnum.UPDATE.name());
+
+        verify(pluginDataSubscriber, Mockito.times(2)).onRuleSubscribe(applied);
+    }
+
+    private RuleData ruleUpdate(final String ruleId) {
+        return RuleData.builder().id(ruleId).selectorId("rule-update-selector").pluginName("divide").namespaceId("namespace-a").sort(1).build();
     }
 
     @Test
