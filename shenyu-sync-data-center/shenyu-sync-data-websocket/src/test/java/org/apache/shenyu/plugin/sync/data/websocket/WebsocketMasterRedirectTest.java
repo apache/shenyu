@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -137,13 +138,14 @@ class WebsocketMasterRedirectTest {
         server.replyMode = false;
         createService(Collections.singletonList(server.url()));
         ShenyuWebsocketClient client = clients().get(0);
+        final WebSocket requestingPeer = server.modeRequest.get(5, TimeUnit.SECONDS);
 
         check();
 
         assertEquals(1, clients().size());
         assertSame(client, clients().get(0));
         assertTrue(client.isOpen());
-        server.sendMode();
+        server.sendMode(requestingPeer);
         awaitModes();
         check();
         assertSame(client, clients().get(0));
@@ -259,13 +261,13 @@ class WebsocketMasterRedirectTest {
 
         private final CountDownLatch closed = new CountDownLatch(1);
 
+        private final CompletableFuture<WebSocket> modeRequest = new CompletableFuture<>();
+
         private final AtomicInteger opens = new AtomicInteger();
 
         private volatile String masterUrl;
 
         private volatile boolean replyMode = true;
-
-        private volatile WebSocket connection;
 
         private volatile ClientHandshake handshake;
 
@@ -278,14 +280,13 @@ class WebsocketMasterRedirectTest {
             return "ws://127.0.0.1:" + getPort() + "/websocket";
         }
 
-        private void sendMode() {
-            connection.send(GsonUtils.getInstance().toJson(Map.of("eventType", "RUNNING_MODE", "runningMode", "CLUSTER",
+        private void sendMode(final WebSocket socket) {
+            socket.send(GsonUtils.getInstance().toJson(Map.of("eventType", "RUNNING_MODE", "runningMode", "CLUSTER",
                     "isMaster", master, "masterUrl", master ? url() : masterUrl)));
         }
 
         @Override
         public void onOpen(final WebSocket socket, final ClientHandshake clientHandshake) {
-            connection = socket;
             handshake = clientHandshake;
             opens.incrementAndGet();
         }
@@ -297,8 +298,12 @@ class WebsocketMasterRedirectTest {
 
         @Override
         public void onMessage(final WebSocket socket, final String message) {
-            if ("RUNNING_MODE".equals(message) && replyMode) {
-                sendMode();
+            if ("RUNNING_MODE".equals(message)) {
+                if (replyMode) {
+                    sendMode(socket);
+                } else {
+                    modeRequest.complete(socket);
+                }
             } else if ("MYSELF".equals(message) && master) {
                 socket.send("{\"groupType\":\"PLUGIN\",\"eventType\":\"CREATE\",\"data\":[{\"id\":\"divide\",\"name\":\"divide\",\"enabled\":true}]}");
             }
