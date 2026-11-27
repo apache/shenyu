@@ -20,6 +20,7 @@ package org.apache.shenyu.register.client.api;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.timer.Timer;
 import org.apache.shenyu.common.timer.WheelTimerFactory;
+import org.apache.shenyu.register.client.api.ClientRegistrationDiagnostics.FailureCategory;
 import org.apache.shenyu.register.client.api.retry.FailureRegistryTask;
 import org.apache.shenyu.register.common.dto.ApiDocRegisterDTO;
 import org.apache.shenyu.register.common.dto.McpToolsRegisterDTO;
@@ -30,7 +31,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeoutException;
 
 /**
  * FailbackRegistryRepository .
@@ -57,11 +60,13 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      */
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
+        String identity = metaDataKey(metadata);
         try {
-            this.doPersistInterface(metadata);
+            recordPersisted(identity, this.doPersistInterface(metadata));
         } catch (Exception ex) {
             //If a failure occurs, it needs to be added to the retry list.
             logger.warn("Failed to persistInterface {}, cause:{}", metadata, ex.getMessage());
+            ClientRegistrationDiagnostics.getInstance().recordRetrying(identity, categoryOf(ex), ex.getMessage(), this);
             this.addFailureMetaDataRegister(metadata);
         }
     }
@@ -73,11 +78,13 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      */
     @Override
     public void persistURI(final URIRegisterDTO registerDTO) {
+        String identity = uriKey(registerDTO);
         try {
-            this.doPersistURI(registerDTO);
+            recordPersisted(identity, this.doPersistURI(registerDTO));
         } catch (Exception ex) {
             //If a failure occurs, it needs to be added to the retry list.
             logger.warn("Failed to persistURI {}, cause:{}", registerDTO, ex.getMessage());
+            ClientRegistrationDiagnostics.getInstance().recordRetrying(identity, categoryOf(ex), ex.getMessage(), this);
             this.addFailureUriDataRegister(registerDTO);
         }
     }
@@ -89,20 +96,24 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      */
     @Override
     public void persistApiDoc(final ApiDocRegisterDTO registerDTO) {
+        String identity = apiDocKey(registerDTO);
         try {
-            this.doPersistApiDoc(registerDTO);
+            recordPersisted(identity, this.doPersistApiDoc(registerDTO));
         } catch (Exception ex) {
             logger.warn("Failed to persistApiDoc {}, cause:{}", registerDTO, ex.getMessage());
+            ClientRegistrationDiagnostics.getInstance().recordRetrying(identity, categoryOf(ex), ex.getMessage(), this);
             this.addFailureApiDocRegister(registerDTO);
         }
     }
 
     @Override
     public void persistMcpTools(final McpToolsRegisterDTO registerDTO) {
+        String identity = mcpKey(registerDTO);
         try {
-            this.doPersistMcpTools(registerDTO);
+            recordPersisted(identity, this.doPersistMcpTools(registerDTO));
         } catch (Exception ex) {
             logger.warn("Failed to persistMcpTools {}, cause:{}", registerDTO, ex.getMessage());
+            ClientRegistrationDiagnostics.getInstance().recordRetrying(identity, categoryOf(ex), ex.getMessage(), this);
             this.addFailureMcpDocRegister(registerDTO);
         }
     }
@@ -111,8 +122,9 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * doPersistApiDoc.
      *
      * @param apiDocRegisterDTO apiDocRegisterDTO
+     * @return whether the registration was actually sent (false when deliberately skipped)
      */
-    protected abstract void doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
+    protected abstract boolean doPersistApiDoc(ApiDocRegisterDTO apiDocRegisterDTO);
 
     /**
      * Add failure meta data register.
@@ -123,8 +135,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected <T> void addFailureMetaDataRegister(final T t) {
         if (t instanceof MetaDataRegisterDTO) {
             MetaDataRegisterDTO dto = (MetaDataRegisterDTO) t;
-            String fullPath = metaDataIdentity(dto);
-            addToFail(new Holder(t, fullPath, Constants.META_TYPE));
+            addToFail(new Holder(t, metaDataIdentity(dto), Constants.META_TYPE));
         }
     }
 
@@ -137,9 +148,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected <T> void addFailureUriDataRegister(final T t) {
         if (t instanceof URIRegisterDTO) {
             URIRegisterDTO dto = (URIRegisterDTO) t;
-            String address = String.join(":", value(dto.getNamespaceId()), value(dto.getProtocol()), value(dto.getAppName()),
-                    value(dto.getContextPath()), value(dto.getRpcType()), value(dto.getHost()), value(dto.getPort()));
-            addToFail(new Holder(t, address, Constants.URI));
+            addToFail(new Holder(t, uriPathIdentity(dto), Constants.URI));
         }
     }
 
@@ -152,9 +161,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected <T> void addFailureApiDocRegister(final T t) {
         if (t instanceof ApiDocRegisterDTO) {
             ApiDocRegisterDTO dto = (ApiDocRegisterDTO) t;
-            String address = String.join(":", value(dto.getContextPath()), value(dto.getApiPath()), value(dto.getHttpMethod()),
-                    value(dto.getRpcType()), value(dto.getVersion()));
-            addToFail(new Holder(t, address, Constants.API_DOC_TYPE));
+            addToFail(new Holder(t, apiDocIdentity(dto), Constants.API_DOC_TYPE));
         }
     }
 
@@ -167,9 +174,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
     protected <T> void addFailureMcpDocRegister(final T t) {
         if (t instanceof McpToolsRegisterDTO) {
             McpToolsRegisterDTO dto = (McpToolsRegisterDTO) t;
-            MetaDataRegisterDTO metaDataRegisterDTO = dto.getMetaDataRegisterDTO();
-            String address = String.join(":", value(dto.getNamespaceId()), metaDataIdentity(metaDataRegisterDTO));
-            addToFail(new Holder(dto, address, Constants.MCP_TOOLS_TYPE));
+            addToFail(new Holder(dto, mcpPath(dto), Constants.MCP_TOOLS_TYPE));
         }
     }
 
@@ -177,6 +182,50 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         return String.join(":", value(dto.getNamespaceId()), value(dto.getRpcType()), value(dto.getAppName()),
                 value(dto.getContextPath()), value(dto.getServiceName()), value(dto.getMethodName()),
                 value(dto.getParameterTypes()), value(dto.getRuleName()), value(dto.getHost()), value(dto.getPort()), value(dto.getPath()));
+    }
+
+    private static String uriPathIdentity(final URIRegisterDTO dto) {
+        return String.join(":", value(dto.getNamespaceId()), value(dto.getProtocol()), value(dto.getAppName()),
+                value(dto.getContextPath()), value(dto.getRpcType()), value(dto.getHost()), value(dto.getPort()));
+    }
+
+    private static String apiDocIdentity(final ApiDocRegisterDTO dto) {
+        return String.join(":", value(dto.getContextPath()), value(dto.getApiPath()), value(dto.getHttpMethod()),
+                value(dto.getRpcType()), value(dto.getVersion()));
+    }
+
+    static String uriKey(final URIRegisterDTO dto) {
+        return uriPathIdentity(dto) + ":" + Constants.URI;
+    }
+
+    static String metaDataKey(final MetaDataRegisterDTO dto) {
+        return metaDataIdentity(dto) + ":" + Constants.META_TYPE;
+    }
+
+    static String apiDocKey(final ApiDocRegisterDTO dto) {
+        return apiDocIdentity(dto) + ":" + Constants.API_DOC_TYPE;
+    }
+
+    static String mcpKey(final McpToolsRegisterDTO dto) {
+        return mcpPath(dto) + ":" + Constants.MCP_TOOLS_TYPE;
+    }
+
+    private static String mcpPath(final McpToolsRegisterDTO dto) {
+        MetaDataRegisterDTO metadata = dto.getMetaDataRegisterDTO();
+        return Objects.isNull(metadata)
+                ? value(dto.getNamespaceId())
+                : String.join(":", value(dto.getNamespaceId()), metaDataIdentity(metadata));
+    }
+
+    private static FailureCategory categoryOf(final Exception ex) {
+        Throwable cursor = ex;
+        while (Objects.nonNull(cursor)) {
+            if (cursor instanceof TimeoutException) {
+                return FailureCategory.TIMEOUT;
+            }
+            cursor = cursor.getCause();
+        }
+        return FailureCategory.TRANSPORT;
     }
 
     private static String value(final Object value) {
@@ -209,7 +258,9 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      * @param key the key
      */
     public void remove(final String key) {
-        concurrentHashMap.remove(key);
+        if (Objects.nonNull(concurrentHashMap.remove(key))) {
+            ClientRegistrationDiagnostics.getInstance().recordRemoved(key, this);
+        }
     }
 
     /**
@@ -222,6 +273,7 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         Holder holder = concurrentHashMap.get(key);
         if (Objects.nonNull(holder) && holder.getRetryTask() == retryTask) {
             concurrentHashMap.remove(key, holder);
+            ClientRegistrationDiagnostics.getInstance().recordExhausted(key, this);
         }
     }
 
@@ -236,7 +288,13 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         if (Objects.isNull(holder)) {
             return;
         }
-        persist(holder);
+        ClientRegistrationDiagnostics.getInstance().recordAttempt(key, this);
+        try {
+            recordPersisted(key, persist(holder));
+        } catch (RuntimeException ex) {
+            ClientRegistrationDiagnostics.getInstance().recordRetrying(key, categoryOf(ex), ex.getMessage(), this);
+            throw ex;
+        }
     }
 
     /**
@@ -262,9 +320,11 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         if (Objects.isNull(holder) || holder.getRetryTask() != retryTask || !concurrentHashMap.remove(key, holder)) {
             return;
         }
+        ClientRegistrationDiagnostics.getInstance().recordAttempt(key, this);
         try {
-            persist(holder);
+            recordPersisted(key, persist(holder));
         } catch (RuntimeException ex) {
+            ClientRegistrationDiagnostics.getInstance().recordRetrying(key, categoryOf(ex), ex.getMessage(), this);
             // A newer failure has its own timer task; otherwise retain this task's retry.
             if (Objects.isNull(concurrentHashMap.putIfAbsent(key, holder))) {
                 throw ex;
@@ -272,23 +332,57 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
         }
     }
 
-    private void persist(final Holder holder) {
+    /**
+     * Retire the entries observed by this repository on orderly close. Entries observed by
+     * another repository in the same process are left untouched. Subclasses overriding this
+     * must call {@code super.closeRepository()}.
+     */
+    @Override
+    public void closeRepository() {
+        ClientRegistrationDiagnostics.getInstance().retireAll(this);
+    }
+
+    /**
+     * Failure keys currently owned by the failback layer (package-private for tests).
+     *
+     * @return the pending failure keys
+     */
+    Set<String> pendingFailureKeys() {
+        return Set.copyOf(concurrentHashMap.keySet());
+    }
+
+    /**
+     * The retry task currently owning the pending registration (package-private for tests).
+     *
+     * @param key the registration key
+     * @return the owning retry task, or {@code null} when nothing is pending
+     */
+    FailureRegistryTask pendingFailureTask(final String key) {
+        Holder holder = concurrentHashMap.get(key);
+        return Objects.isNull(holder) ? null : holder.getRetryTask();
+    }
+
+    private void recordPersisted(final String identity, final boolean sent) {
+        if (sent) {
+            ClientRegistrationDiagnostics.getInstance().recordRegistered(identity, this);
+        } else {
+            ClientRegistrationDiagnostics.getInstance().recordSkipped();
+        }
+    }
+
+    private boolean persist(final Holder holder) {
         String type = holder.getType();
         switch (type) {
             case Constants.URI:
-                this.doPersistURI((URIRegisterDTO) holder.getObj());
-                break;
+                return this.doPersistURI((URIRegisterDTO) holder.getObj());
             case Constants.META_TYPE:
-                this.doPersistInterface((MetaDataRegisterDTO) holder.getObj());
-                break;
+                return this.doPersistInterface((MetaDataRegisterDTO) holder.getObj());
             case Constants.API_DOC_TYPE:
-                this.doPersistApiDoc((ApiDocRegisterDTO) holder.getObj());
-                break;
+                return this.doPersistApiDoc((ApiDocRegisterDTO) holder.getObj());
             case Constants.MCP_TOOLS_TYPE:
-                this.doPersistMcpTools((McpToolsRegisterDTO) holder.getObj());
-                break;
+                return this.doPersistMcpTools((McpToolsRegisterDTO) holder.getObj());
             default:
-                break;
+                return false;
         }
     }
 
@@ -297,21 +391,21 @@ public abstract class FailbackRegistryRepository implements ShenyuClientRegister
      *
      * @param registerDTO the register dto
      */
-    protected abstract void doPersistURI(URIRegisterDTO registerDTO);
+    protected abstract boolean doPersistURI(URIRegisterDTO registerDTO);
 
     /**
      * Do persist interface.
      *
      * @param registerDTO the register dto
      */
-    protected abstract void doPersistInterface(MetaDataRegisterDTO registerDTO);
+    protected abstract boolean doPersistInterface(MetaDataRegisterDTO registerDTO);
 
     /**
      * Do persist interface.
      *
      * @param registerDTO registerDTO the register dto
      */
-    protected abstract void doPersistMcpTools(McpToolsRegisterDTO registerDTO);
+    protected abstract boolean doPersistMcpTools(McpToolsRegisterDTO registerDTO);
 
     private static class Holder {
 

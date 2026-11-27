@@ -24,6 +24,7 @@ import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientMetadataExe
 import org.apache.shenyu.client.core.disruptor.subcriber.ShenyuClientURIExecutorSubscriber;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
+import org.apache.shenyu.register.client.api.ClientRegistrationDiagnostics;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.type.DataTypeParent;
 
@@ -114,5 +115,7 @@ public class ShenyuClientRegisterEventPublisher {
     public void publishEvent(final DataTypeParent data) {
         DisruptorProvider<DataTypeParent> provider = providerManage.getProvider();
         provider.onData(data);
+        // counted after the enqueue attempt succeeded, not before
+        ClientRegistrationDiagnostics.getInstance().recordQueuedEvent();
     }
 }

@@ -51,7 +51,7 @@ import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -112,7 +112,7 @@ public final class FailbackRegistryRepositoryTest {
             retry.get(5, TimeUnit.SECONDS);
             assertEquals(1, getFailureMapSize());
             verify(timer, times(2)).add(any());
-            doNothing().when(repository).doPersistURI(same(newer));
+            doReturn(true).when(repository).doPersistURI(same(newer));
             repository.retry(key);
             verify(repository, times(2)).doPersistURI(same(newer));
             assertEquals(0, getFailureMapSize());
@@ -130,7 +130,7 @@ public final class FailbackRegistryRepositoryTest {
         String key = getFirstKeyFromFailureMap();
         assertThrows(IllegalStateException.class, () -> repository.retry(key));
         assertEquals(1, getFailureMapSize());
-        doNothing().when(repository).doPersistURI(original);
+        doReturn(true).when(repository).doPersistURI(original);
         repository.retry(key);
         assertEquals(0, getFailureMapSize());
         repository.retry(key);
@@ -165,7 +165,7 @@ public final class FailbackRegistryRepositoryTest {
         TaskEntity newerTaskEntity = mock(TaskEntity.class);
         when(newerTaskEntity.getTimer()).thenReturn(timer);
         when(newerTaskEntity.getTimerTask()).thenReturn(newerTask);
-        doNothing().when(repository).doPersistURI(same(newer));
+        doReturn(true).when(repository).doPersistURI(same(newer));
         newerTask.run(newerTaskEntity);
         assertEquals(0, getFailureMapSize());
     }
@@ -308,7 +308,7 @@ public final class FailbackRegistryRepositoryTest {
         repository.persistInterface(latest);
 
         assertEquals(1, getFailureMapSize());
-        doNothing().when(repository).doPersistInterface(any());
+        doReturn(true).when(repository).doPersistInterface(any());
         clearInvocations(repository);
         repository.accept(getFirstKeyFromFailureMap());
         verify(repository).doPersistInterface(latest);
@@ -431,23 +431,23 @@ public final class FailbackRegistryRepositoryTest {
     private static class TestFailbackRegistryRepository extends FailbackRegistryRepository {
 
         @Override
-        protected void doPersistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
-            /* Test implementation */
+        protected boolean doPersistApiDoc(final ApiDocRegisterDTO apiDocRegisterDTO) {
+            return true;
         }
 
         @Override
-        protected void doPersistURI(final URIRegisterDTO registerDTO) {
-            /* Test implementation */
+        protected boolean doPersistURI(final URIRegisterDTO registerDTO) {
+            return true;
         }
 
         @Override
-        protected void doPersistInterface(final MetaDataRegisterDTO registerDTO) {
-            /* Test implementation */
+        protected boolean doPersistInterface(final MetaDataRegisterDTO registerDTO) {
+            return true;
         }
 
         @Override
-        protected void doPersistMcpTools(final McpToolsRegisterDTO registerDTO) {
-            /* Test implementation */
+        protected boolean doPersistMcpTools(final McpToolsRegisterDTO registerDTO) {
+            return true;
         }
     }
 }
