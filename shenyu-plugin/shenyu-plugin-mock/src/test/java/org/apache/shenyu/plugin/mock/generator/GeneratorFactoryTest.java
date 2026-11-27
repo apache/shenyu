@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
@@ -59,6 +60,9 @@ public class GeneratorFactoryTest {
 
     @Test
     public void testJsonRequestBodyUsesUtf8() {
+        if (Boolean.getBoolean("mock.requireNonUtf8")) {
+            assertThat(Charset.defaultCharset(), is(StandardCharsets.US_ASCII));
+        }
         String body = "{\"city\":\"北京\"}";
         MockRequest request = MockRequest.Builder.builder().body(body.getBytes(StandardCharsets.UTF_8)).build();
 
