@@ -44,20 +44,29 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
      * configured weights (#8441): selectors whose upstream lists share an address
      * never share smooth weighted round-robin counters, and the bounded cache
      * evicts pools orphaned by reorders or weight changes.
+     *
+     * <p>Eviction intent (#8441 review): the bound (1000) is sized to sit comfortably above
+     * the realistic live key count — one key per selector per configured-weight revision
+     * per circuit-breaker/canary subset — so a live pool is evicted only in a pathological
+     * configuration; a freshly created pool starts its smooth cycle from zero, which is the
+     * same warm-up behavior as a gateway restart, not a distribution regression to guard
+     * against here.</p>
      */
-    private final Map<List<String>, ConcurrentMap<UpstreamIdentity, WeightedRoundRobin>> methodWeightMap =
+    private final Map<List<String>, ConcurrentMap<UpstreamIdentity, WeightedRoundRobin>> poolByUpstreamSet =
             new WindowTinyLFUMap<>(Constants.CACHE_MAX_COUNT);
 
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
         List<String> stateKey = new ArrayList<>(upstreamList.size());
         for (Upstream upstream : upstreamList) {
-            // the configured weight, not the warm-up adjusted one, so warm-up
-            // ramping does not rotate pools and reset the counters each call
+            // the configured weight, not the warm-up adjusted one: this only keeps a warm-up
+            // tick from rotating to a different pool and zeroing the whole pool's counters.
+            // Inside the pool a warm-up-adjusted weight still re-arms the entry's own counter
+            // (weight != getWeight() below), which is pre-existing smooth-WRR warm-up behavior.
             stateKey.add(upstream.identity().markerKey() + ':' + upstream.getWeight());
         }
         ConcurrentMap<UpstreamIdentity, WeightedRoundRobin> map =
-                methodWeightMap.computeIfAbsent(List.copyOf(stateKey), k -> new ConcurrentHashMap<>(16));
+                poolByUpstreamSet.computeIfAbsent(List.copyOf(stateKey), k -> new ConcurrentHashMap<>(16));
         long totalWeight = 0;
         long maxCurrent = Long.MIN_VALUE;
         Upstream selectedInvoker = null;

@@ -279,22 +279,31 @@ public final class RoundRobinLoadBalanceTest {
     }
 
     /**
-     * Reordering a selector's upstream list starts a fresh pool and the old
-     * state never leaks into the new order.
+     * Reordering a selector's list while keeping the first address — the shape the old
+     * first-URL keying collapsed into one pool, because [ro-a, ro-b] and [ro-a, ro-c]
+     * both keyed on "ro-a:8080" — must give the new set a fresh pool. With isolated
+     * state the second window is an exact 1:1 smooth alternation; the shared pool of
+     * the old implementation injects the stale ro-a counter skew and deviates.
      */
     @Test
     public void reorderedUpstreamListStartsFreshState() {
         Upstream a = Upstream.builder().url("ro-a:8080").weight(1).status(true).build();
-        Upstream b = Upstream.builder().url("ro-b:8080").weight(9).status(true).build();
+        Upstream heavyB = Upstream.builder().url("ro-b:8080").weight(1000).status(true).build();
         RoundRobinLoadBalancer loadBalancer = new RoundRobinLoadBalancer();
-        List<Upstream> original = List.of(a, b);
+        List<Upstream> original = List.of(a, heavyB);
         Map<String, Integer> counts = new HashMap<>();
         IntStream.range(0, 10000).forEach(i ->
                 counts.merge(loadBalancer.select(original, new LoadBalanceData()).getUrl(), 1, Integer::sum));
-        assertEquals(1000, counts.get("ro-a:8080").intValue());
-        List<Upstream> reordered = List.of(b, a);
+        assertTrue(counts.get("ro-a:8080").intValue() <= 10,
+                "1:1000 over 10000 picks picks ro-a about ten times: " + counts);
+        // the reordered list keeps the first address but changes the set: a fresh pool
+        // must yield the exact 1:1 smooth alternation, with no stale skew from "ro-a"
+        Upstream c = Upstream.builder().url("ro-c:8080").weight(1).status(true).build();
+        List<Upstream> reordered = List.of(a, c);
+        Map<String, Integer> reorderedCounts = new HashMap<>();
         IntStream.range(0, 10000).forEach(i ->
-                counts.merge(loadBalancer.select(reordered, new LoadBalanceData()).getUrl(), 1, Integer::sum));
-        assertEquals(1000, counts.get("ro-a:8080").intValue() - 1000);
+                reorderedCounts.merge(loadBalancer.select(reordered, new LoadBalanceData()).getUrl(), 1, Integer::sum));
+        assertEquals(5000, reorderedCounts.get("ro-a:8080").intValue());
+        assertEquals(5000, reorderedCounts.get("ro-c:8080").intValue());
     }
 }

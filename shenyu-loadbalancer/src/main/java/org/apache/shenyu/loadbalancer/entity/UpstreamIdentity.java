@@ -46,9 +46,11 @@ public final class UpstreamIdentity {
         this.group = group;
         this.version = version;
         boolean hasVariant = Objects.nonNull(group) || Objects.nonNull(version);
-        this.hashKey = hasVariant ? GsonUtils.getInstance().toJson(new String[]{protocol, url, group, version}) : url;
-        this.leastActiveKey = hasVariant ? GsonUtils.getInstance().toJson(new String[]{domain, group, version}) : domain;
+        // the marker serialises the full identity once; the hash ring key only needs its own
+        // JSON array when a group or version actually widens the bare address (#8441 review)
         this.markerKey = GsonUtils.getInstance().toJson(new String[]{protocol, url, group, version});
+        this.hashKey = hasVariant ? markerKey : url;
+        this.leastActiveKey = hasVariant ? GsonUtils.getInstance().toJson(new String[]{domain, group, version}) : domain;
     }
 
     /**

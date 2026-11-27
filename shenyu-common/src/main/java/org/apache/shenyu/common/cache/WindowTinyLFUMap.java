@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * this cache is provided by caffeine, the cache has two implements including weak-key cache and strong-key cache.<br>
@@ -117,6 +118,13 @@ public class WindowTinyLFUMap<K, V> extends AbstractMap<K, V> implements Seriali
     @Override
     public V get(final Object key) {
         return cache.getIfPresent(key);
+    }
+    
+    @Override
+    public V computeIfAbsent(final K key, final Function<? super K, ? extends V> mappingFunction) {
+        // Caffeine's ConcurrentMap view performs an atomic compute, unlike Map's default
+        // get-then-put: concurrent first accesses of one key must yield exactly one value
+        return cache.asMap().computeIfAbsent(key, mappingFunction);
     }
     
     @Override

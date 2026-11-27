@@ -20,7 +20,12 @@ package org.apache.shenyu.common.cache;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * WindowTinyLFUMapTest.
@@ -50,5 +55,49 @@ public class WindowTinyLFUMapTest {
         map.put(key2, "1");
         Assert.assertEquals(map.get(key1), map.get(key2));
         Assert.assertEquals(1, map.size());
+    }
+    
+    /**
+     * Several threads must not build their own value for the same first-access key:
+     * Map's default get-then-put computeIfAbsent lets every racer run the mapping
+     * function and keeps only one winner's value, silently discarding the mutations
+     * the losers already applied to their own instances (#8441 review).
+     */
+    @Test
+    public void computeIfAbsentIsAtomicForConcurrentFirstAccessOfOneKey() throws Exception {
+        final WindowTinyLFUMap<String, Object> map = new WindowTinyLFUMap<>(1000);
+        final int threads = 8;
+        final CountDownLatch start = new CountDownLatch(1);
+        final AtomicInteger constructions = new AtomicInteger();
+        final List<Object> results = new CopyOnWriteArrayList<>();
+        final List<Thread> workers = new ArrayList<>();
+        for (int i = 0; i < threads; i++) {
+            final Thread worker = new Thread(() -> {
+                try {
+                    start.await();
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt();
+                }
+                results.add(map.computeIfAbsent("race-key", k -> {
+                    constructions.incrementAndGet();
+                    // hold the mapping open so every racer is inside at once on the
+                    // non-atomic default implementation
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return new Object();
+                }));
+            });
+            worker.start();
+            workers.add(worker);
+        }
+        start.countDown();
+        for (Thread worker : workers) {
+            worker.join();
+        }
+        Assert.assertEquals(1, constructions.get());
+        Assert.assertEquals(1, results.stream().distinct().count());
     }
 }
