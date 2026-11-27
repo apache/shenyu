@@ -71,6 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -972,6 +973,58 @@ public final class InstanceCheckServiceTest {
         } finally {
             cleanupFinished.countDown();
             worker.shutdownNow();
+        }
+    }
+
+    @Test
+    void testInFlightRenewalWinsAgainstConcurrentCleanup() throws Exception {
+        when(instanceRetentionProperties.isEnabled()).thenReturn(true);
+        when(instanceRetentionProperties.getTtl()).thenReturn(Duration.ofMinutes(10));
+        final Clock clock = mock(Clock.class);
+        final long now = System.currentTimeMillis();
+        when(clock.millis()).thenReturn(now);
+        final InstanceCheckService service = new InstanceCheckService(instanceInfoService, registrationFencingGuard, instanceRetentionProperties, clock);
+        final InstanceBeatInfoDTO dto = buildDTO("127.0.0.1", "8089", InstanceTypeConstants.BOOTSTRAP_INSTANCE_TYPE, "nsG");
+        service.handleBeatInfo(dto);
+        final String key = service.getInstanceKey(dto);
+        final InstanceInfoVO existing = service.getInstanceHealthBeatInfo(dto);
+        existing.setInstanceState(InstanceStatusEnum.DELETED.getCode());
+        existing.setLastHeartBeatTime(now - Duration.ofHours(1).toMillis());
+        final CountDownLatch inUpdate = new CountDownLatch(1);
+        final CountDownLatch inPurge = new CountDownLatch(1);
+        final CountDownLatch finishUpdate = new CountDownLatch(1);
+        final ConcurrentHashMap<String, InstanceInfoVO> instances = new ConcurrentHashMap<>() {
+            @Override
+            public InstanceInfoVO computeIfPresent(final String name,
+                    final BiFunction<? super String, ? super InstanceInfoVO, ? extends InstanceInfoVO> remapping) {
+                inPurge.countDown();
+                return super.computeIfPresent(name, remapping);
+            }
+        };
+        instances.put(key, existing);
+        ReflectionTestUtils.setField(service, "instanceHealthBeatInfo", instances);
+        when(clock.millis()).thenAnswer(ignored -> {
+            inUpdate.countDown();
+            assertTrue(finishUpdate.await(5, TimeUnit.SECONDS));
+            return now;
+        });
+        final ExecutorService workers = Executors.newFixedThreadPool(2);
+        try {
+            final Future<Boolean> heartbeat = workers.submit(() -> service.handleBeatInfo(dto));
+            assertTrue(inUpdate.await(5, TimeUnit.SECONDS));
+            final Future<?> purge = workers.submit(service::purgeExpiredInstances);
+            assertTrue(inPurge.await(5, TimeUnit.SECONDS));
+            finishUpdate.countDown();
+            assertTrue(heartbeat.get(5, TimeUnit.SECONDS));
+            purge.get(5, TimeUnit.SECONDS);
+            assertSame(existing, service.getInstanceHealthBeatInfo(dto));
+            assertEquals(now, existing.getLastHeartBeatTime());
+            assertEquals(InstanceStatusEnum.DELETED.getCode(), existing.getInstanceState());
+            ReflectionTestUtils.invokeMethod(service, "doCheck");
+            assertEquals(InstanceStatusEnum.ONLINE.getCode(), existing.getInstanceState());
+        } finally {
+            finishUpdate.countDown();
+            workers.shutdownNow();
         }
     }
 
