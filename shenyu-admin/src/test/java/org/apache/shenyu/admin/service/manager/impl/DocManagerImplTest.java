@@ -83,7 +83,8 @@ public class DocManagerImplTest {
         Assertions.assertEquals(EventType.REGISTER, document.getEventType());
         DocItem docItem = GsonUtils.getInstance().fromJson(document.getDocument(), DocItem.class);
         Assertions.assertEquals("Get path variable", docItem.getSummary());
-        Assertions.assertEquals(docItem.getName(), document.getApiPath());
+        Assertions.assertEquals("/order/path/{id}/{name}", document.getApiPath());
+        Assertions.assertEquals(document.getApiPath(), docItem.getName());
         ApiDocRegisterDTO.ApiExt ext = GsonUtils.getInstance().fromJson(document.getExt(), ApiDocRegisterDTO.ApiExt.class);
         Assertions.assertEquals("127.0.0.1", ext.getHost());
         Assertions.assertEquals(8190, ext.getPort());

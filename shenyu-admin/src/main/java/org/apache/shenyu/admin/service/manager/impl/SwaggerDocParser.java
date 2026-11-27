@@ -30,6 +30,7 @@ import org.apache.shenyu.admin.model.bean.DocItem;
 import org.apache.shenyu.admin.model.bean.DocModule;
 import org.apache.shenyu.admin.model.bean.DocParameter;
 import org.apache.shenyu.admin.service.manager.DocParser;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.SwaggerVersion;
 import org.apache.shenyu.common.utils.GsonUtils;
 
@@ -132,9 +133,10 @@ public class SwaggerDocParser implements DocParser {
     }
 
     protected DocItem buildDocItem(final JsonObject docInfo, final JsonObject docRoot, final SwaggerVersion version) {
-        String apiName = docInfo.get("real_req_path").getAsString();
+        String operationPath = docInfo.get("real_req_path").getAsString();
         String basePath = docInfo.get("basePath").getAsString();
-        apiName = basePath + apiName;
+        String apiName = basePath.endsWith(Constants.PATH_SEPARATOR) && operationPath.startsWith(Constants.PATH_SEPARATOR)
+                ? basePath.substring(0, basePath.length() - 1) + operationPath : basePath + operationPath;
 
         DocItem docItem = new DocItem();
         docItem.setName(apiName);
