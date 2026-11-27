@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -344,11 +345,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
         String namespaceId = getNamespaceId(request);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
-            // md5,lastModifyTime
-            String[] params = StringUtils.split(request.getParameter(group.name()), ',');
-            if (Objects.isNull(params) || params.length != 2) {
-                throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
-            }
+            String[] params = groupVersion(request, group);
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
 
@@ -359,6 +356,15 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             }
         }
         return changedGroup;
+    }
+
+    private static String[] groupVersion(final HttpServletRequest request, final ConfigGroupEnum group) {
+        String version = request.getParameter(group.name());
+        String[] parts = StringUtils.split(version, ',');
+        if (Objects.isNull(parts) || parts.length != 2) {
+            throw new ShenyuException("group param invalid:" + version);
+        }
+        return parts;
     }
 
     public static String buildCacheKey(final String namespaceId, final String group) {
@@ -493,7 +499,15 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 return;
             }
             List<LongPollingClient> targetClients = new ArrayList<>(namespaceClients.size());
-            namespaceClients.drainTo(targetClients);
+            ConfigDataCache published = CACHE.get(buildCacheKey(namespaceId, groupKey.name()));
+            // A re-sync or delayed notification can describe a snapshot a waiting gateway already has.
+            namespaceClients.removeIf(client -> {
+                if (Objects.nonNull(published) && StringUtils.equals(published.getMd5(), client.groupMd5s.get(groupKey))) {
+                    return false;
+                }
+                targetClients.add(client);
+                return true;
+            });
             if (targetClients.size() > httpSyncProperties.getNotifyBatchSize()) {
                 List<List<LongPollingClient>> partitionClients = Lists.partition(targetClients, httpSyncProperties.getNotifyBatchSize());
                 partitionClients.forEach(item -> scheduler.execute(() -> doRun(item)));
@@ -564,6 +578,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          */
         private final AtomicBoolean isCompleted = new AtomicBoolean(false);
 
+        private final Map<ConfigGroupEnum, String> groupMd5s = new EnumMap<>(ConfigGroupEnum.class);
+
         /**
          * Instantiates a new Long polling client.
          *
@@ -618,6 +634,10 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                         sendResponse(changedGroups);
                         return;
                     }
+                }
+                HttpServletRequest request = (HttpServletRequest) asyncContext.getRequest();
+                for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+                    groupMd5s.put(group, groupVersion(request, group)[0]);
                 }
                 BlockingQueue<LongPollingClient> namespaceClients = clientsMap.computeIfAbsent(
                         namespaceId, k -> new ArrayBlockingQueue<>(1024));
