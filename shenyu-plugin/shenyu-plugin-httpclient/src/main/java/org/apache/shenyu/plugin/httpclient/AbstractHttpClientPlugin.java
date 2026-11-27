@@ -41,6 +41,7 @@ import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.LogUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.circuitbreaker.ShenyuLocalRejectException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
@@ -123,7 +124,7 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
                 .onErrorMap(AbstractHttpClientPlugin::mapUpstreamTimeout)
-                .onErrorMap(DataBufferLimitException.class, th -> new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                .onErrorMap(DataBufferLimitException.class, th -> new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE,
                         "Request body exceeds the maxInMemorySize limit and cannot be cached for retry", th))
                 .flatMap(o -> {
                     HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);

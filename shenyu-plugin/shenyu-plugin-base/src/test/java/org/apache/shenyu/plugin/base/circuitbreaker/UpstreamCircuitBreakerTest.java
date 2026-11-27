@@ -19,6 +19,8 @@ package org.apache.shenyu.plugin.base.circuitbreaker;
 
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
@@ -45,6 +47,80 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public final class UpstreamCircuitBreakerTest {
 
     private static final String KEY = "selector:http://127.0.0.1:9090";
+
+
+
+    @Test
+    public void failoverLocalRejectOnHealthyUpstreamDoesNotOpenBreaker() {
+        final Upstream upstream = Upstream.builder().url("http://localhost:8082").build();
+        final String key = UpstreamCircuitBreaker.buildKey("selector-failover", upstream);
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        try {
+            // FAILOVER with a single admitted upstream: every attempt fails with the
+            // gateway-local marker before reaching the network — must not count
+            for (int i = 0; i < 6; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                                Mono.error(new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")), key))
+                        .expectError(ShenyuLocalRejectException.class)
+                        .verify();
+            }
+            assertTrue(breaker.isRequestAllowed(key), "failover-erased local rejections must not open the breaker");
+        } finally {
+            breaker.reset(key);
+        }
+    }
+
+    @Test
+    public void localRejectDoesNotRecordUpstreamFailure() {
+        final Upstream upstream = Upstream.builder().url("http://localhost:8080").build();
+        final String key = UpstreamCircuitBreaker.buildKey("selector-local-reject", upstream);
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        try {
+            // three gateway-local rejections must not open the breaker
+            for (int i = 0; i < 3; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                                Mono.error(new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")), key))
+                        .expectError(ShenyuLocalRejectException.class)
+                        .verify();
+            }
+            assertTrue(breaker.isRequestAllowed(key), "gateway-local rejections must not count as upstream failures");
+
+            // a plain upstream failure still records normally
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new RuntimeException("upstream down")), key))
+                    .expectError(RuntimeException.class)
+                    .verify();
+
+            // threshold genuine failures open the breaker (classification is not a blanket skip)
+            for (int i = 0; i < 4; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.error(new RuntimeException("upstream down")), key))
+                        .expectError(RuntimeException.class)
+                        .verify();
+            }
+            assertFalse(breaker.isRequestAllowed(key), "genuine upstream failures must still open the breaker");
+        } finally {
+            breaker.reset(key);
+        }
+    }
+
+    @Test
+    public void upstreamTimeout408StillRecordsFailure() {
+        final Upstream upstream = Upstream.builder().url("http://localhost:8081").build();
+        final String key = UpstreamCircuitBreaker.buildKey("selector-408", upstream);
+        final UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        try {
+            // 408 is emitted by the retry strategy for exhausted upstream timeouts — an
+            // upstream failure that must keep counting (not a gateway-local rejection)
+            for (int i = 0; i < 6; i++) {
+                StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                                Mono.error(new ResponseStatusException(HttpStatus.REQUEST_TIMEOUT, "upstream timed out")), key))
+                        .expectError(ResponseStatusException.class)
+                        .verify();
+            }
+            assertFalse(breaker.isRequestAllowed(key), "408 upstream timeouts must still open the breaker");
+        } finally {
+            breaker.reset(key);
+        }
+    }
 
     @Test
     public void testRequestsAllowedByDefault() {
@@ -179,6 +255,32 @@ public final class UpstreamCircuitBreakerTest {
             assertTrue(breaker.tryAcquireHalfOpenProbe(KEY));
             StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(Mono.empty(), KEY, true)).verifyComplete();
             assertTrue(breaker.isRequestAllowed(KEY));
+        } finally {
+            breaker.reset(KEY);
+        }
+    }
+
+    @Test
+    public void testLocalRejectReleasesProbeWithoutConsumingWaitWindow() throws Exception {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        breaker.reset(KEY);
+        try {
+            for (int index = 0; index < 3; index++) {
+                breaker.recordFailure(KEY);
+            }
+            elapseWaitWindow(breaker);
+            assertTrue(breaker.tryAcquireHalfOpenProbe(KEY));
+            // an invalid probe: the gateway rejected the request before it reached the
+            // upstream, so the slot is released and the breaker re-opens with the wait
+            // window already elapsed
+            StepVerifier.create(UpstreamCircuitBreaker.recordOutcome(
+                            Mono.error(new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large")),
+                            KEY, true))
+                    .expectError(ShenyuLocalRejectException.class)
+                    .verify();
+            // a fresh probe is granted immediately, without waiting another window
+            assertTrue(breaker.tryAcquireHalfOpenProbe(KEY),
+                    "a gateway-local probe rejection must release the slot without consuming the wait window");
         } finally {
             breaker.reset(KEY);
         }

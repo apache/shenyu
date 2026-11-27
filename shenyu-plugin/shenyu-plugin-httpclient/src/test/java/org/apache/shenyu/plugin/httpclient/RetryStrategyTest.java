@@ -23,6 +23,7 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.loadbalancer.cache.UpstreamCacheManager;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.circuitbreaker.ShenyuLocalRejectException;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.UpstreamAttemptOwner;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
@@ -341,6 +342,29 @@ public class RetryStrategyTest {
         // the failed attempt released itself: a failing upstream must not keep looking busy (#8158)
         assertEquals(1, standby.getInflight().get(), "a failed retry attempt releases its own reservation");
         assertNull(owner.current(), "no ownership survives a failed attempt");
+    }
+
+    @Test
+    void testFailoverPropagatesLocalRejectWithoutConsumingRetries() {
+        AbstractHttpClientPlugin<String> plugin = mock(AbstractHttpClientPlugin.class);
+        ServerWebExchange exchange = createFailoverExchange("http://localhost:8080/test?mode=retry");
+        exchange.getAttributes().put(Constants.LOAD_BALANCE, "leastActive");
+        exchange.getAttributes().put(Constants.DIVIDE_SELECTOR_ID, "selector-8158-reject");
+        UpstreamCacheManager cacheManager = mock(UpstreamCacheManager.class);
+        final ShenyuLocalRejectException marker =
+                new ShenyuLocalRejectException(HttpStatus.PAYLOAD_TOO_LARGE, "request entity is too large");
+
+        try (MockedStatic<UpstreamCacheManager> cacheMock = mockStatic(UpstreamCacheManager.class)) {
+            cacheMock.when(UpstreamCacheManager::getInstance).thenReturn(cacheManager);
+            StepVerifier.create(new DefaultRetryStrategy<>(plugin).executeFailover(
+                            Mono.error(marker), exchange, Duration.ofSeconds(5), 3,
+                            Duration.ZERO, throwable -> true))
+                    .expectErrorMatches(th -> th == marker)
+                    .verify();
+        }
+        // no retry was consumed: no candidate lookup and no upstream request ran
+        verifyNoInteractions(plugin);
+        verifyNoInteractions(cacheManager);
     }
 
     @Test
