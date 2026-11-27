@@ -19,7 +19,7 @@ package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -28,7 +28,12 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The type meta data refresh.
@@ -40,6 +45,14 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
     private static final Logger LOG = LoggerFactory.getLogger(MetaDataRefresh.class);
 
     private final List<MetaDataSubscriber> metaDataSubscribers;
+
+    // A subscriber can install a row and then throw. Keep it until all subscribers have removed it.
+    private final Map<String, MetaData> subscribedMetadata = new LinkedHashMap<>();
+
+    // Long-polling threads read this without waiting for a subscriber callback.
+    private volatile ConfigData<MetaData> appliedConfig;
+
+    private boolean incomplete;
 
     public MetaDataRefresh(final List<MetaDataSubscriber> metaDataSubscribers) {
         this.metaDataSubscribers = metaDataSubscribers;
@@ -57,22 +70,69 @@ public class MetaDataRefresh extends AbstractDataRefresh<MetaData> {
     }
 
     @Override
-    protected boolean updateCacheIfNeed(final ConfigData<MetaData> result) {
-        return updateCacheIfNeed(result, ConfigGroupEnum.META_DATA);
+    protected synchronized boolean updateCacheIfNeed(final ConfigData<MetaData> result) {
+        if (Objects.nonNull(appliedConfig) && appliedConfig.getLastModifyTime() >= result.getLastModifyTime()) {
+            return false;
+        }
+        if (!incomplete && Objects.nonNull(appliedConfig) && Objects.equals(appliedConfig.getMd5(), result.getMd5())) {
+            return false;
+        }
+        if (!reconcile(result.getData())) {
+            return false;
+        }
+        appliedConfig = result;
+        return true;
     }
 
     @Override
     public ConfigData<?> cacheConfigData() {
-        return GROUP_CACHE.get(ConfigGroupEnum.META_DATA);
+        return appliedConfig;
     }
 
     @Override
-    protected void refresh(final List<MetaData> data) {
-        if (CollectionUtils.isEmpty(data)) {
+    public Boolean refresh(final JsonObject data) {
+        JsonObject metadata = convert(data);
+        return Objects.nonNull(metadata) && updateCacheIfNeed(fromJson(metadata));
+    }
+
+    @Override
+    protected synchronized void refresh(final List<MetaData> data) {
+        reconcile(data);
+    }
+
+    private boolean reconcile(final List<MetaData> data) {
+        List<MetaData> rows = ListUtils.emptyIfNull(data);
+        List<MetaData> snapshot = rows.stream().filter(Objects::nonNull).toList();
+        if (!rows.isEmpty() && snapshot.isEmpty()) {
+            LOG.warn("ignore HTTP metadata snapshot containing only null rows");
+            return false;
+        }
+        if (snapshot.size() != rows.size()) {
+            LOG.warn("ignore null item in HTTP metadata snapshot");
+        }
+        incomplete = true;
+        unsubscribeMissingMetadata(snapshot);
+        if (snapshot.isEmpty()) {
             LOG.info("clear all metaData cache");
             metaDataSubscribers.forEach(MetaDataSubscriber::refresh);
         } else {
-            data.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));
+            snapshot.forEach(metaData -> {
+                subscribedMetadata.put(metaData.getId(), metaData);
+                metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData));
+            });
         }
+        incomplete = false;
+        return true;
+    }
+
+    private void unsubscribeMissingMetadata(final List<MetaData> snapshot) {
+        Set<String> currentIds = snapshot.stream().map(MetaData::getId).collect(Collectors.toSet());
+        subscribedMetadata.values().removeIf(metaData -> {
+            if (currentIds.contains(metaData.getId())) {
+                return false;
+            }
+            metaDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(metaData));
+            return true;
+        });
     }
 }
