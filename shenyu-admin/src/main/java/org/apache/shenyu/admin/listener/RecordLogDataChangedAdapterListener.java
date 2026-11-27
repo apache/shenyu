@@ -23,6 +23,8 @@ import org.apache.shenyu.admin.model.event.AdminDataModelChangedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 /**
  * RecordLogDataChangedAdapterListener.
  */
@@ -42,7 +44,8 @@ public class RecordLogDataChangedAdapterListener implements DataChangedListener,
         }
         final OperationRecordLog log = new OperationRecordLog();
         log.setColor(event.getType().getColor());
-        log.setContext(event.buildContext());
+        log.setContext(Objects.isNull(event.getRequestId()) ? event.buildContext()
+                : "[request_id=" + event.getRequestId() + "] " + event.buildContext());
         log.setOperationTime(event.getDate());
         log.setOperationType(event.getType().getTypeName());
         log.setOperator(event.getOperator());

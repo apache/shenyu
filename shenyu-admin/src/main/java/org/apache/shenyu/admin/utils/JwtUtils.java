@@ -159,7 +159,8 @@ public final class JwtUtils {
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException e) {
-            LOG.error("jwt decode fail, token: {} ", token, e);
+            // The authentication boundary records one bounded, token-free failure.
+            // Verification exceptions can embed untrusted JWT contents; do not log them here.
         }
         return false;
     }
