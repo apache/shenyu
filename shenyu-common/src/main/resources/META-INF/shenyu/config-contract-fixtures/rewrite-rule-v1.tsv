@@ -1,0 +1,38 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# id\tadminAccepted\tupdateAction\tsource\trequestPath\trewrittenAttribute\tmetadata\tcontextPath
+missing	true	RETAIN	@missing	/old	/new	none	@missing
+blank	true	CLEAR	@blank	/old	@none	none	@missing
+empty-object	true	REPLACE	{}	/old	@none	none	@missing
+literal-null	false	EVICT	null	/old	@none	none	@missing
+malformed	false	THROW_RETAIN	{	/old	/new	none	@missing
+two-field	true	REPLACE	{"regex":"test","replace":"rewrite"}	/shenyu/test	/shenyu/rewrite	none	@missing
+nullable-defaults	true	REPLACE	{"regex":"/old","replace":"/new","percentage":null,"rewriteMetaData":null}	/old	/new	none	@missing
+zero	true	REPLACE	{"regex":"/old","replace":"/new","percentage":0}	/old	@none	none	@missing
+hundred	true	REPLACE	{"regex":"/old","replace":"/new","percentage":100}	/old	/new	none	@missing
+negative	true	REPLACE	{"regex":"/old","replace":"/new","percentage":-1}	/old	@none	none	@missing
+over-hundred	true	REPLACE	{"regex":"/old","replace":"/new","percentage":101}	/old	/new	none	@missing
+coercion-and-unknown	true	REPLACE	{"regex":"/old","replace":"/new","percentage":"100","extra":"ignored"}	/old	/new	none	@missing
+incomplete	true	REPLACE	{"regex":"[a"}	/old	@none	none	@missing
+capture	true	REPLACE	{"regex":"/(old)","replace":"/new/$1"}	/old	/new/old	none	@missing
+placeholder	true	REPLACE	{"regex":"/shenyu/{id}","replace":"/target/{id}"}	/shenyu/42	/target/42	none	@missing
+invalid-regex	false	EVICT	{"regex":"[a","replace":"/new"}	/old	@none	none	@missing
+invalid-replacement	false	EVICT	{"regex":"test","replace":"/new/$1"}	/old	@none	none	@missing
+invalid-secret-group	false	EVICT	{"regex":"test","replace":"/${SECRET}"}	/old	@none	none	@missing
+metadata-enabled	true	REPLACE	{"regex":"/old","replace":"/new","rewriteMetaData":true}	/old	/new	enabled	@missing
+metadata-disabled	true	REPLACE	{"regex":"/old","replace":"/new","rewriteMetaData":true}	/old	/new	disabled	@missing
+metadata-missing	true	REPLACE	{"regex":"/old","replace":"/new","rewriteMetaData":true}	/old	/new	missing	@missing
+metadata-context	true	REPLACE	{"regex":"/ctx/old","replace":"/new","rewriteMetaData":true}	/ctx/old	/new	enabled	/ctx
