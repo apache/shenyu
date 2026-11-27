@@ -152,9 +152,9 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                     selectorCache, CacheResolution.NOT_CONSULTED);
             return doExecute(exchange, chain, selectorData, rule);
         }
-        // consult the bounded per-path match cache first when it is enabled.
-        // on a cache miss, match the current rule list with the default strategy.
-        RuleData ruleData = obtainRuleDataCacheIfEnabled(path);
+        // Consult the bounded selector-scoped rule cache when it is enabled.
+        // On a cache miss, match the current rule list with the default strategy.
+        RuleData ruleData = obtainRuleDataCacheIfEnabled(selectorData.getId(), path);
         CacheResolution ruleCache = Objects.nonNull(ruleData) ? CacheResolution.POSITIVE_HIT
                 : cacheResolution(ruleMatchConfig.getCache().getEnabled());
         if (Objects.nonNull(ruleData) && Objects.isNull(ruleData.getId())) {
@@ -163,7 +163,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             return handleRuleIfNull(pluginName, exchange, chain);
         }
         if (Objects.isNull(ruleData)) {
-            ruleData = defaultMatchRule(exchange, selectors, rules, path);
+            ruleData = defaultMatchRule(exchange, rules, selectorData.getId(), path);
             if (Objects.isNull(ruleData)) {
                 reportDecision(Decision.RULE_UNMATCHED, selectorData, null, false,
                         selectorCache, ruleCache);
@@ -236,8 +236,8 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return selectorMatchConfig.getCache().getEnabled() ? MatchDataCache.getInstance().obtainSelectorData(named(), path) : null;
     }
     
-    private RuleData obtainRuleDataCacheIfEnabled(final String path) {
-        return ruleMatchConfig.getCache().getEnabled() ? MatchDataCache.getInstance().obtainRuleData(named(), path) : null;
+    private RuleData obtainRuleDataCacheIfEnabled(final String selectorId, final String path) {
+        return ruleMatchConfig.getCache().getEnabled() ? MatchDataCache.getInstance().obtainRuleData(named(), selectorId, path) : null;
     }
 
     private void cacheSelectorData(final String path, final SelectorData selectorData) {
@@ -261,7 +261,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private void cacheRuleData(final String path, final RuleData ruleData) {
+    private void cacheRuleData(final String selectorId, final String path, final RuleData ruleData) {
         // if the ruleCache is disabled or rule data is null, not cache rule data.
         if (Boolean.FALSE.equals(ruleMatchConfig.getCache().getEnabled()) || Objects.isNull(ruleData)
                 || Boolean.TRUE.equals(ruleData.getMatchRestful())) {
@@ -271,14 +271,14 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         long maximumSize = ruleMatchConfig.getCache().getMaximumSize();
         long ttl = ruleMatchConfig.getCache().getTtl();
         if (StringUtils.isBlank(ruleData.getId())) {
-            MatchDataCache.getInstance().cacheRuleData(path, ruleData, initialCapacity, maximumSize, ttl);
+            MatchDataCache.getInstance().cacheRuleData(selectorId, path, ruleData, initialCapacity, maximumSize, ttl);
             return;
         }
         List<ConditionData> conditionList = ruleData.getConditionDataList();
         if (CollectionUtils.isNotEmpty(conditionList)) {
             boolean isUriCondition = conditionList.stream().allMatch(v -> URI_CONDITION_TYPE.equals(v.getParamType()));
             if (isUriCondition) {
-                MatchDataCache.getInstance().cacheRuleData(path, ruleData, initialCapacity, maximumSize, ttl);
+                MatchDataCache.getInstance().cacheRuleData(selectorId, path, ruleData, initialCapacity, maximumSize, ttl);
             }
         }
     }
@@ -396,23 +396,21 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         }
     }
     
-    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<SelectorData> selectors,
-                                      final List<RuleData> rules, final String path) {
+    private RuleData defaultMatchRule(final ServerWebExchange exchange, final List<RuleData> rules, final String selectorId, final String path) {
         Pair<Boolean, RuleData> matchRulePair = matchRule(exchange, rules);
         RuleData ruleData = matchRulePair.getRight();
         if (Objects.nonNull(ruleData)) {
             // cache rule data
             if (matchRulePair.getLeft() && rules.stream().filter(RuleData::getEnabled)
                     .allMatch(rule -> !Boolean.TRUE.equals(rule.getMatchRestful()) && pathOnlyConditions(rule.getConditionDataList()))) {
-                cacheRuleData(path, ruleData);
+                cacheRuleData(selectorId, path, ruleData);
             }
             return ruleData;
         } else {
-            // The rule cache key carries no selector id, so a negative entry additionally
-            // requires the whole selector set to be decided by the path.
-            if (matchRulePair.getLeft() && pathOnlySelectorSet(selectors) && pathOnlyRuleSet(rules)) {
-                RuleData emptyRuleData = RuleData.builder().pluginName(named()).build();
-                cacheRuleData(path, emptyRuleData);
+            // Selector identity is in the key; all rule candidates must still be path-only.
+            if (matchRulePair.getLeft() && pathOnlyRuleSet(rules)) {
+                RuleData emptyRuleData = RuleData.builder().pluginName(named()).selectorId(selectorId).build();
+                cacheRuleData(selectorId, path, emptyRuleData);
             }
             return null;
         }

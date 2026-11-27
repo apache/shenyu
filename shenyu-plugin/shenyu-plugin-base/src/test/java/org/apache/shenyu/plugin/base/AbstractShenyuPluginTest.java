@@ -44,11 +44,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -422,6 +425,90 @@ public final class AbstractShenyuPluginTest {
     public void clear() {
         MatchDataCache.getInstance().cleanSelectorData();
         MatchDataCache.getInstance().cleanRuleDataData();
+    }
+
+    @Test
+    public void ruleCacheMustNotReuseAnotherSelectorsRule() {
+        SelectorData first = cacheTenantSelector("first", "a");
+        SelectorData second = cacheTenantSelector("second", "b");
+        final RuleData firstRule = cachePathRule("first-rule", first.getId(), "/x");
+        final RuleData secondRule = cachePathRule("second-rule", second.getId(), "/x");
+        ServerWebExchange firstExchange = tenantExchange("a");
+        ServerWebExchange secondExchange = tenantExchange("b");
+
+        testShenyuPlugin.execute(firstExchange, shenyuPluginChain).block();
+        testShenyuPlugin.execute(secondExchange, shenyuPluginChain).block();
+        testShenyuPlugin.execute(firstExchange, shenyuPluginChain).block();
+
+        verify(testShenyuPlugin, times(2)).doExecute(firstExchange, shenyuPluginChain, first, firstRule);
+        verify(testShenyuPlugin).doExecute(secondExchange, shenyuPluginChain, second, secondRule);
+        verify(testShenyuPlugin, never()).doExecute(secondExchange, shenyuPluginChain, second, firstRule);
+    }
+
+    @Test
+    public void ruleCacheMissMustNotSuppressAnotherSelector() {
+        SelectorData first = cacheTenantSelector("first", "a");
+        SelectorData second = cacheTenantSelector("second", "b");
+        cachePathRule("first-rule", first.getId(), "/other");
+        final RuleData secondRule = cachePathRule("second-rule", second.getId(), "/x");
+        ServerWebExchange firstExchange = tenantExchange("a");
+        ServerWebExchange secondExchange = tenantExchange("b");
+        ShenyuPluginChain chain = ignored -> Mono.empty();
+
+        testShenyuPlugin.execute(firstExchange, chain).block();
+        testShenyuPlugin.execute(secondExchange, chain).block();
+
+        verify(testShenyuPlugin, never()).doExecute(eq(firstExchange), any(), any(), any());
+        verify(testShenyuPlugin).doExecute(secondExchange, chain, second, secondRule);
+    }
+
+    @Test
+    public void ruleCacheHitMustNotHideAnotherSelectorsMiss() {
+        SelectorData first = cacheTenantSelector("first", "a");
+        SelectorData second = cacheTenantSelector("second", "b");
+        final RuleData firstRule = cachePathRule("first-rule", first.getId(), "/x");
+        cachePathRule("second-rule", second.getId(), "/other");
+        ServerWebExchange firstExchange = tenantExchange("a");
+        ServerWebExchange secondExchange = tenantExchange("b");
+        ShenyuPluginChain chain = ignored -> Mono.empty();
+
+        testShenyuPlugin.execute(firstExchange, chain).block();
+        testShenyuPlugin.execute(secondExchange, chain).block();
+
+        verify(testShenyuPlugin).doExecute(firstExchange, chain, first, firstRule);
+        verify(testShenyuPlugin, never()).doExecute(eq(secondExchange), any(), any(), any());
+        assertNull(MatchDataCache.getInstance().obtainSelectorData("SHENYU", "/x"));
+    }
+
+    private SelectorData cacheTenantSelector(final String id, final String tenant) {
+        ConditionData condition = new ConditionData();
+        condition.setParamType("header");
+        condition.setParamName("X-Tenant");
+        condition.setOperator("=");
+        condition.setParamValue(tenant);
+        SelectorData selector = SelectorData.builder().id(id).pluginName("SHENYU").enabled(true)
+                .continued(true).logged(false).matchRestful(false).matchMode(0).sort(0)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).conditionList(Collections.singletonList(condition)).build();
+        BaseDataCache.getInstance().cachePluginData(pluginData);
+        BaseDataCache.getInstance().cacheSelectData(selector);
+        return selector;
+    }
+
+    private RuleData cachePathRule(final String id, final String selectorId, final String path) {
+        ConditionData condition = new ConditionData();
+        condition.setParamType("uri");
+        condition.setParamName("/");
+        condition.setOperator("=");
+        condition.setParamValue(path);
+        RuleData rule = RuleData.builder().id(id).pluginName("SHENYU").selectorId(selectorId)
+                .enabled(true).logged(false).matchRestful(false).matchMode(0).sort(0)
+                .conditionDataList(Collections.singletonList(condition)).build();
+        BaseDataCache.getInstance().cacheRuleData(rule);
+        return rule;
+    }
+
+    private ServerWebExchange tenantExchange(final String tenant) {
+        return MockServerWebExchange.from(MockServerHttpRequest.get("/x").header("X-Tenant", tenant));
     }
 
     private void clearCache() {
