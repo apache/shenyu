@@ -126,6 +126,7 @@ services:
       - "31195:9195"
     environment:
       - TZ=Asia/Beijing
+      - shenyu.endpoint.raw-data.enabled=true
       - shenyu.sync.websocket.urls=ws://shenyu-admin-1:9095/websocket,ws://shenyu-admin-2:9095/websocket
       - shenyu.sync.websocket.token=shenyu-sync-token
       - shenyu.sync.websocket.allowOrigin=ws://localhost:9195

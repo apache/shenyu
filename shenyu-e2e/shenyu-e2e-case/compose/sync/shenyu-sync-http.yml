@@ -84,6 +84,7 @@ services:
       - "31195:9195"
     environment:
       - TZ=Asia/Beijing
+      - shenyu.endpoint.raw-data.enabled=true
       - shenyu.sync.http.url=http://shenyu-admin:9095
       - shenyu.sync.http.username=admin
       - shenyu.sync.http.password=123456

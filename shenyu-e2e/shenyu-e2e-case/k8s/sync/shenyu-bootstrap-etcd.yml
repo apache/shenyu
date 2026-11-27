@@ -56,6 +56,8 @@ spec:
           env:
             - name: TZ
               value: Asia/Beijing
+            - name: SHENYU_ENDPOINT_RAWDATA_ENABLED
+              value: "true"
             - name: SPRING_PROFILES_ACTIVE
               value: bootstrap-sync-etcd
           volumeMounts:
