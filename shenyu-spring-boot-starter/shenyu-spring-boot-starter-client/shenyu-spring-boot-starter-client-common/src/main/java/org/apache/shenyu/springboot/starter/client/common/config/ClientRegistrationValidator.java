@@ -158,11 +158,17 @@ public final class ClientRegistrationValidator {
     }
 
     private void validatePort(final Properties props, final String prefix) {
-        boolean automatic = protocol == RpcTypeEnum.HTTP || protocol == RpcTypeEnum.WEB_SOCKET;
-        integer(props.getProperty(ShenyuClientConstants.PORT), prefix + ShenyuClientConstants.PORT, automatic ? -1 : 1, MAX_PORT);
+        String property = prefix + ShenyuClientConstants.PORT;
+        String port = props.getProperty(ShenyuClientConstants.PORT);
         if (protocol == RpcTypeEnum.GRPC || protocol == RpcTypeEnum.TARS || protocol == RpcTypeEnum.SOFA) {
-            required(props.getProperty(ShenyuClientConstants.PORT), prefix + ShenyuClientConstants.PORT);
+            required(port, property);
         }
+        // Dubbo delegates absent and sentinel values to its configured protocol port.
+        if (protocol == RpcTypeEnum.DUBBO && (StringUtils.isBlank(port) || "-1".equals(port))) {
+            return;
+        }
+        boolean automatic = protocol == RpcTypeEnum.HTTP || protocol == RpcTypeEnum.WEB_SOCKET;
+        integer(port, property, automatic ? -1 : 1, MAX_PORT);
     }
 
     private void validateRpcSettings(final Properties props, final String prefix) {

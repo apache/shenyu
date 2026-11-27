@@ -51,7 +51,7 @@
     {
       "name": "shenyu.client.http.props.port",
       "type": "java.lang.String",
-      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
     },
     {
       "name": "shenyu.client.http.props.isFull",
@@ -81,7 +81,7 @@
     {
       "name": "shenyu.client.websocket.props.port",
       "type": "java.lang.String",
-      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
     },
     {
       "name": "shenyu.client.websocket.props.isFull",
@@ -106,7 +106,7 @@
     {
       "name": "shenyu.client.grpc.props.port",
       "type": "java.lang.String",
-      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
     },
     {
       "name": "shenyu.client.grpc.props.ipAndPort",
@@ -131,7 +131,7 @@
     {
       "name": "shenyu.client.dubbo.props.port",
       "type": "java.lang.String",
-      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
     },
     {
       "name": "shenyu.client.sofa.props.appName",
@@ -151,7 +151,7 @@
     {
       "name": "shenyu.client.sofa.props.port",
       "type": "java.lang.String",
-      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
     },
     {
       "name": "shenyu.client.tars.props.appName",
@@ -171,7 +171,7 @@
     {
       "name": "shenyu.client.tars.props.port",
       "type": "java.lang.String",
-      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
     },
     {
       "name": "shenyu.client.mcp.props.appName",
@@ -191,7 +191,7 @@
     {
       "name": "shenyu.client.mcp.props.port",
       "type": "java.lang.String",
-      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
     },
     {
       "name": "shenyu.discovery.enable",
@@ -373,7 +373,7 @@
         },
         {
           "value": "port",
-          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
         },
         {
           "value": "isFull",
@@ -411,7 +411,7 @@
         },
         {
           "value": "port",
-          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
         },
         {
           "value": "isFull",
@@ -445,7 +445,7 @@
         },
         {
           "value": "port",
-          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
         },
         {
           "value": "ipAndPort",
@@ -475,7 +475,7 @@
         },
         {
           "value": "port",
-          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
         }
       ],
       "providers": [
@@ -501,7 +501,7 @@
         },
         {
           "value": "port",
-          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
         }
       ],
       "providers": [
@@ -527,7 +527,7 @@
         },
         {
           "value": "port",
-          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
         }
       ],
       "providers": [
@@ -553,7 +553,7 @@
         },
         {
           "value": "port",
-          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery; other explicit ports must be 1..65535. gRPC, SOFA and TARS require a port. This property does not configure server.port."
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
         }
       ],
       "providers": [

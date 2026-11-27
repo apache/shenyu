@@ -28,6 +28,11 @@ Enabled Java client starters MUST validate their bound built-in registration/pro
 - **WHEN** valid existing properties, blank namespaces, supported HTTP/WebSocket automatic advertised-port inputs or server.port=0 are bound
 - **THEN** existing aliases, semicolon namespace/default behavior and protocol fallback order are retained; construction does not resolve a bound server prematurely or invent an advertised address; bound-port discovery remains the responsibility of the existing resolver and sibling #8426
 
+#### Scenario: Legacy Dubbo advertised port fallback
+
+- **WHEN** the enabled Dubbo starter receives an omitted, blank, or literal -1 advertised port
+- **THEN** validation accepts the existing fallback to the Dubbo protocol port. An explicitly configured Dubbo port must otherwise be in 1..65535. A blank required advertised port is reported as missing before resource creation.
+
 #### Scenario: Namespace and enabled discovery validation
 
 - **WHEN** a nonblank namespace list contains an empty or whitespace entry, or an active discovery path lacks required configuration

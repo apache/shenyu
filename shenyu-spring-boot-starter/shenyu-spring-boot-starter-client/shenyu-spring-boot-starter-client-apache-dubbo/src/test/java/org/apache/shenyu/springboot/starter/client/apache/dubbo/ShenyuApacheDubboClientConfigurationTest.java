@@ -21,6 +21,8 @@ import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFact
 import org.apache.shenyu.client.apache.dubbo.ApacheDubboServiceBeanListener;
 import org.apache.shenyu.register.common.utils.RegisterUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -60,18 +62,32 @@ public class ShenyuApacheDubboClientConfigurationTest {
         registerUtilsMockedStatic.close();
     }
 
-    @Test
-    public void testInvalidConfigurationPrecedesRepositoryCreation() {
+    @ParameterizedTest
+    @ValueSource(strings = {"-2", "0", "65536"})
+    public void testInvalidConfigurationPrecedesRepositoryCreation(final String port) {
         try (MockedStatic<ShenyuClientRegisterRepositoryFactory> factory = mockStatic(ShenyuClientRegisterRepositoryFactory.class)) {
             factory.when(() -> ShenyuClientRegisterRepositoryFactory.newInstance(any())).thenThrow(new AssertionError("repository reached before validation"));
             ApplicationContextRunner application = new ApplicationContextRunner()
                     .withConfiguration(AutoConfigurations.of(ShenyuApacheDubboClientConfiguration.class))
                     .withBean(ShenyuApacheDubboClientConfigurationTest.class);
-            application.withPropertyValues("shenyu.client.dubbo.props[port]=65536").run(context -> {
+            application.withPropertyValues("shenyu.client.dubbo.props[port]=" + port).run(context -> {
                 assertThat(context).hasFailed();
                 assertThat(context.getStartupFailure()).hasStackTraceContaining("shenyu.client.dubbo.props.port");
                 factory.verifyNoInteractions();
             });
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"-1", ""})
+    public void testExistingDubboProtocolPortFallbackStillStarts(final String port) {
+        try (MockedStatic<RegisterUtils> login = mockStatic(RegisterUtils.class)) {
+            login.when(() -> RegisterUtils.doLogin(any(), any(), any())).thenReturn(Optional.of("token"));
+            new ApplicationContextRunner()
+                    .withConfiguration(AutoConfigurations.of(ShenyuApacheDubboClientConfiguration.class))
+                    .withBean(ShenyuApacheDubboClientConfigurationTest.class)
+                    .withPropertyValues("shenyu.client.dubbo.props[port]=" + port)
+                    .run(context -> assertThat(context).hasNotFailed().hasSingleBean(ApacheDubboServiceBeanListener.class));
         }
     }
 
