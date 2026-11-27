@@ -26,6 +26,7 @@ import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerSession;
 import org.apache.shenyu.plugin.mcp.server.callback.ShenyuToolCallback;
 import org.apache.shenyu.plugin.mcp.server.definition.ShenyuToolDefinition;
+import org.apache.shenyu.plugin.mcp.server.transport.SseSessionPolicy;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuStreamableHttpServerTransportProvider;
 import org.slf4j.Logger;
@@ -82,6 +83,11 @@ public class ShenyuMcpServerManager {
     private final String corsAllowedHeaders;
 
     /**
+     * Bounded admission policy for SSE sessions created by this manager.
+     */
+    private final SseSessionPolicy sseSessionPolicy;
+
+    /**
      * Map to store normalized path to shared McpAsyncServer mapping.
      * Key: normalized server path, Value: shared McpAsyncServer instance
      */
@@ -110,7 +116,19 @@ public class ShenyuMcpServerManager {
      * @param corsAllowedHeaders CORS allow headers configured by {@code shenyu.cross.allowedHeaders}
      */
     public ShenyuMcpServerManager(final String corsAllowedHeaders) {
+        this(corsAllowedHeaders, SseSessionPolicy.defaults());
+    }
+
+    /**
+     * Instantiates a new manager.
+     *
+     * @param corsAllowedHeaders CORS allow headers configured by {@code shenyu.cross.allowedHeaders}
+     * @param sseSessionPolicy bounded admission policy for SSE sessions; null falls
+     *                         back to the documented defaults
+     */
+    public ShenyuMcpServerManager(final String corsAllowedHeaders, final SseSessionPolicy sseSessionPolicy) {
         this.corsAllowedHeaders = corsAllowedHeaders;
+        this.sseSessionPolicy = Objects.isNull(sseSessionPolicy) ? SseSessionPolicy.defaults() : sseSessionPolicy;
     }
 
     /**
@@ -250,6 +268,7 @@ public class ShenyuMcpServerManager {
                 .objectMapper(objectMapper)
                 .sseEndpoint(normalizedPath)
                 .messageEndpoint(messageEndpoint)
+                .policy(sseSessionPolicy)
                 .build();
 
         // Register routes
