@@ -33,9 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -189,7 +191,13 @@ public class ShenyuNameResolver extends NameResolver implements Consumer<Object>
             if (!Objects.equals(this.savedInstanceList.size(), newInstanceList.size())) {
                 return true;
             }
-            return this.savedInstanceList.stream().anyMatch(instance -> !newInstanceList.contains(instance));
+            // Avoid allocating a set for repeated notifications with equal lists in the same order.
+            if (this.savedInstanceList.equals(newInstanceList)) {
+                return false;
+            }
+            // Membership equivalence with List.contains relies on consistent GrpcUpstream.equals/hashCode.
+            final Set<GrpcUpstream> newInstances = new HashSet<>(newInstanceList);
+            return !newInstances.containsAll(this.savedInstanceList);
         }
     }
 }
