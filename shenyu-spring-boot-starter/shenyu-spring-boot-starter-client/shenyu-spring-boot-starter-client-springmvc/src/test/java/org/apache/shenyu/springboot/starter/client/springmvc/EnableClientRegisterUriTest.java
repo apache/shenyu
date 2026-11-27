@@ -194,9 +194,10 @@ public final class EnableClientRegisterUriTest {
         assertEquals(0, attempts.size());
     }
 
-    @Test
-    public void testMalformedPortDoesNotPublishUri() {
-        assertThrows(RuntimeException.class, () -> startApplication("local", "--shenyu.client.http.props.port=invalid"));
+    @ParameterizedTest
+    @ValueSource(strings = {"invalid", "65536"})
+    public void testInvalidAdvertisedPortFailsStartupWithoutPublishingUri(final String port) {
+        assertThrows(RuntimeException.class, () -> startApplication("local", "--shenyu.client.http.props.port=" + port));
         assertEquals(0, attempts.size());
     }
 

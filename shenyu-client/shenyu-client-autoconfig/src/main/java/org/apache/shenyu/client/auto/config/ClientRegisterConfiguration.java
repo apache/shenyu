@@ -73,14 +73,16 @@ public class ClientRegisterConfiguration {
     /**
      * URI registrar for local instance membership.
      *
-     * @param clientRegisterConfig client registration configuration
+     * @param clientRegisterConfig primary client registration configuration
+     * @param protocolConfigurations available protocol configurations
      * @param processors registration processors
      * @return URI registrar
      */
     @Bean
     @Conditional(LocalDiscoveryCondition.class)
-    public UriApiRegistrarImplImpl uriApiRegistrar(final ClientRegisterConfig clientRegisterConfig, final List<ApiRegisterProcessor> processors) {
-        UriApiRegistrarImplImpl registrar = new UriApiRegistrarImplImpl(clientRegisterConfig);
+    public UriApiRegistrarImplImpl uriApiRegistrar(final ClientRegisterConfig clientRegisterConfig, final List<ClientRegisterConfig> protocolConfigurations,
+                                                   final List<ApiRegisterProcessor> processors) {
+        UriApiRegistrarImplImpl registrar = new UriApiRegistrarImplImpl(clientRegisterConfig, protocolConfigurations);
         processors.forEach(registrar::addApiProcessor);
         return registrar;
     }

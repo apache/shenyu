@@ -21,17 +21,32 @@ Applications using @EnableClientRegister MUST publish local upstream URIs throug
 #### Scenario: Repeated refresh and processor exclusion
 
 - **WHEN** the same APIs are rediscovered, or a URI processor excludes all of a bean's APIs
-- **THEN** rediscovery does not multiply URI work; excluded APIs do not cause a URI registration
+- **THEN** rediscovery does not multiply URI work; excluded APIs do not cause a URI registration. A processor that explicitly enables bean-level registration can still publish the bean's URI even when all API definitions are excluded
 
 #### Scenario: Registry discovery
 
 - **WHEN** the configured discovery mode is not exactly local
 - **THEN** the local URI registrar is absent, while supported metadata is still published
 
-#### Scenario: Unresolved ports and retryable failures
+#### Scenario: Protocol-specific local URI selection
 
-- **WHEN** an HTTP/WebSocket port is temporarily unresolved (0 or -1), a port is malformed or out of range, or one namespace's publication fails
-- **THEN** an unresolved port skips local URI publication for this refresh without failing startup. No malformed or out-of-range port is published. A failed enqueue does not prevent other namespaces from enqueueing and can be retried on rediscovery. Existing HTTP failback retries a failed transport identity. Actual bound-port resolution is tracked in #8426
+- **WHEN** HTTP and WebSocket starter configurations coexist and the API or bean is eligible for local URI registration
+- **THEN** each URI uses the matching RPC type's configuration for its endpoint, scheme and identity. Missing or ambiguous matching configuration fails with a clear diagnostic instead of publishing another protocol's endpoint
+
+#### Scenario: Unresolved and invalid advertised ports
+
+- **WHEN** an HTTP/WebSocket advertised port is temporarily unresolved (0 or -1)
+- **THEN** local URI publication skips this refresh without failing startup and can resume on rediscovery. Actual bound-port resolution is tracked in #8426
+
+#### Scenario: Invalid configured advertised port
+
+- **WHEN** local URI registration is attempted with a malformed or out-of-range advertised port that is not a supported unresolved sentinel
+- **THEN** registration fails for that endpoint before enqueueing its URI. During context refresh, the invalid configuration fails startup with a bounded diagnostic that does not include the supplied value
+
+#### Scenario: Retryable publication failures
+
+- **WHEN** one namespace's URI enqueue fails or the registration transport rejects a published identity
+- **THEN** a failed enqueue does not block other namespaces and can be retried on rediscovery. Existing HTTP failback retries a failed transport identity
 
 #### Scenario: Lifecycle identity
 

@@ -123,6 +123,27 @@ class UriApiRegistrarTest {
     }
 
     @Test
+    void testMalformedPortFailsWithoutPublishingOrEchoingTheValue() {
+        when(config.getPort()).thenThrow(new NumberFormatException("private invalid input"));
+        IllegalArgumentException failure = assertThrows(IllegalArgumentException.class, () -> registrar.register(bean()));
+        assertEquals("Local URI registration requires a port between 1 and 65535", failure.getMessage());
+        verifyNoInteractions(publisher);
+    }
+
+    @Test
+    void testMissingProtocolConfigurationDoesNotPublishPrimaryEndpoint() throws Exception {
+        when(config.getRpcTypeEnum()).thenReturn(RpcTypeEnum.HTTP);
+        UriApiRegistrarImplImpl configuredRegistrar = new UriApiRegistrarImplImpl(config, List.of(config));
+        ReflectionTestUtils.setField(configuredRegistrar, "publisher", publisher);
+        ApiBean websocket = bean();
+        websocket.addProperties("rpcType", RpcTypeEnum.WEB_SOCKET.getName());
+        websocket.setStatus(ApiBean.Status.REGISTRABLE_BEAN);
+        IllegalStateException failure = assertThrows(IllegalStateException.class, () -> configuredRegistrar.register(websocket));
+        assertEquals("Local URI registration requires one client configuration for RPC type websocket", failure.getMessage());
+        verifyNoInteractions(publisher);
+    }
+
+    @Test
     void testPendingPortCanPublishOnRediscovery() throws Exception {
         for (int port : List.of(0, -1)) {
             when(config.getPort()).thenReturn(port);

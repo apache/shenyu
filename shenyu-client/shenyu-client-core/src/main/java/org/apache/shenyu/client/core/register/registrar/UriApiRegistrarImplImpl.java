@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -42,16 +44,31 @@ public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {
 
     private static final int MAX_PORT = 65535;
 
+    private static final String INVALID_PORT = "Local URI registration requires a port between 1 and " + MAX_PORT;
+
     private final ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private final ClientRegisterConfig clientRegisterConfig;
 
+    private final List<ClientRegisterConfig> protocolConfigurations;
+
     private final Set<UriIdentity> publishedIdentities = new HashSet<>();
 
-    private boolean awaitingPort;
+    private final Set<String> awaitingPorts = new HashSet<>();
 
     public UriApiRegistrarImplImpl(final ClientRegisterConfig clientRegisterConfig) {
+        this(clientRegisterConfig, List.of());
+    }
+
+    /**
+     * Construct a registrar with the client configurations wired by the active starters.
+     *
+     * @param clientRegisterConfig the primary configuration, preferred for its own RPC type
+     * @param protocolConfigurations the available protocol configurations
+     */
+    public UriApiRegistrarImplImpl(final ClientRegisterConfig clientRegisterConfig, final List<ClientRegisterConfig> protocolConfigurations) {
         this.clientRegisterConfig = clientRegisterConfig;
+        this.protocolConfigurations = List.copyOf(protocolConfigurations);
     }
 
     @Override
@@ -70,30 +87,58 @@ public class UriApiRegistrarImplImpl extends BaseApiRegistrarImpl {
     }
 
     private synchronized void registerUri(final String rpcType) {
-        int port = clientRegisterConfig.getPort();
+        ClientRegisterConfig configuration = configurationFor(rpcType);
+        int port = advertisedPort(configuration);
         if (isPendingPort(rpcType, port)) {
-            if (!awaitingPort) {
+            if (awaitingPorts.add(rpcType)) {
                 LOG.warn("Skipping local URI registration until the advertised port is available");
-                awaitingPort = true;
             }
             return;
         }
         if (port <= 0 || port > MAX_PORT) {
-            throw new IllegalArgumentException("Local URI registration requires a port between 1 and " + MAX_PORT);
+            throw new IllegalArgumentException(INVALID_PORT);
         }
-        awaitingPort = false;
-        for (String namespaceId : clientRegisterConfig.getNamespace()) {
+        awaitingPorts.remove(rpcType);
+        for (String namespaceId : configuration.getNamespace()) {
             URIRegisterDTO uri = URIRegisterDTO.builder()
                     .namespaceId(namespaceId)
-                    .contextPath(clientRegisterConfig.getContextPath())
-                    .appName(clientRegisterConfig.getAppName())
+                    .contextPath(configuration.getContextPath())
+                    .appName(configuration.getAppName())
                     .eventType(EventType.REGISTER)
-                    .host(clientRegisterConfig.getHost())
+                    .host(configuration.getHost())
                     .port(port)
                     .rpcType(rpcType)
-                    .protocol(clientRegisterConfig.getProtocol())
+                    .protocol(configuration.getProtocol())
                     .build();
             publish(uri);
+        }
+    }
+
+    private ClientRegisterConfig configurationFor(final String rpcType) {
+        if (protocolConfigurations.isEmpty() || matchesProtocol(clientRegisterConfig, rpcType)) {
+            return clientRegisterConfig;
+        }
+        List<ClientRegisterConfig> matching = protocolConfigurations.stream().filter(configuration -> matchesProtocol(configuration, rpcType)).toList();
+        if (matching.size() != 1) {
+            throw new IllegalStateException("Local URI registration requires one client configuration for RPC type " + rpcType);
+        }
+        return matching.get(0);
+    }
+
+    private static boolean matchesProtocol(final ClientRegisterConfig configuration, final String rpcType) {
+        RpcTypeEnum protocol = configuration.getRpcTypeEnum();
+        return Objects.nonNull(protocol) && protocol.getName().equals(rpcType);
+    }
+
+    private static int advertisedPort(final ClientRegisterConfig configuration) {
+        try {
+            Integer port = configuration.getPort();
+            if (Objects.isNull(port)) {
+                throw new IllegalArgumentException(INVALID_PORT);
+            }
+            return port;
+        } catch (NumberFormatException ignored) {
+            throw new IllegalArgumentException(INVALID_PORT);
         }
     }
 
