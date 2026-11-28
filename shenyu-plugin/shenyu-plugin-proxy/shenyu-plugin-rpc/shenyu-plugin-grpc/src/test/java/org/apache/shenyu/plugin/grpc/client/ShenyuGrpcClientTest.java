@@ -25,9 +25,14 @@ import io.grpc.CallOptions;
 import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
+import io.grpc.Server;
+import io.grpc.ServerServiceDefinition;
+import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.ClientResponseObserver;
+import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
@@ -40,9 +45,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
 
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -277,6 +284,48 @@ public final class ShenyuGrpcClientTest {
         final ExecutionException failure = assertThrows(ExecutionException.class, () -> result.get(5, TimeUnit.SECONDS));
         assertEquals("gRPC client is retired", failure.getCause().getMessage());
         assertEquals(List.of(cancellationFailure), List.of(failure.getCause().getSuppressed()));
+    }
+
+    @Test
+    public void testGracefulRetirementDrainsEstablishedUnaryCall() throws Exception {
+        final String serviceName = "test.Retirement";
+        final String methodName = "echo";
+        final DynamicMessage response = JsonMessage.buildJsonMessage("{\"result\":\"drained\"}");
+        final MethodDescriptor<DynamicMessage, DynamicMessage> method = JsonMessage.createJsonMarshallerMethodDescriptor(
+                serviceName, methodName, MethodDescriptor.MethodType.UNARY, JsonMessage.buildJsonMessage(), response);
+        final CompletableFuture<StreamObserver<DynamicMessage>> received = new CompletableFuture<>();
+        final ServerServiceDefinition service = ServerServiceDefinition.builder(method.getServiceName())
+                .addMethod(method, ServerCalls.asyncUnaryCall((request, observer) -> received.complete(observer)))
+                .build();
+        final Server server = NettyServerBuilder.forAddress(new InetSocketAddress("127.0.0.1", 0))
+                .addService(service).build().start();
+        try {
+            final ManagedChannel channel = NettyChannelBuilder.forAddress("127.0.0.1", server.getPort()).usePlaintext().build();
+            try {
+                final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
+                final MetaData metaData = MetaData.builder().serviceName(serviceName).methodName(methodName).build();
+                final CallOptions options = CallOptions.DEFAULT.withDeadlineAfter(20, TimeUnit.SECONDS);
+                final CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, options, null, MethodDescriptor.MethodType.UNARY);
+                final StreamObserver<DynamicMessage> observer = received.get(5, TimeUnit.SECONDS);
+
+                client.close();
+                assertTrue(channel.isShutdown());
+                assertFalse(result.isDone());
+                final ExecutionException failure = assertThrows(ExecutionException.class,
+                        () -> client.call(metaData, CallOptions.DEFAULT, null, MethodDescriptor.MethodType.UNARY).get(5, TimeUnit.SECONDS));
+                assertEquals("gRPC client is retired", failure.getCause().getCause().getMessage());
+
+                observer.onNext(response);
+                observer.onCompleted();
+                assertEquals(List.of(Map.of("result", "drained")), result.get(5, TimeUnit.SECONDS).getResults());
+                assertTrue(channel.awaitTermination(5, TimeUnit.SECONDS));
+            } finally {
+                channel.shutdownNow();
+            }
+        } finally {
+            server.shutdownNow();
+            server.awaitTermination(5, TimeUnit.SECONDS);
+        }
     }
 
     @Test
