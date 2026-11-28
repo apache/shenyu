@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -190,6 +191,22 @@ public final class JsonUtils {
             return MAPPER.readValue(json, valueTypeRef);
         } catch (IOException e) {
             LOG.warn("write to Object error: {}", json, e);
+            return null;
+        }
+    }
+
+    /**
+     * Deserialize JSON using a type that can retain generic arguments.
+     *
+     * @param json the JSON string
+     * @param valueType the target type
+     * @return the decoded value, or null when decoding fails
+     */
+    public static Object jsonToObject(final String json, final Type valueType) {
+        try {
+            return MAPPER.readValue(json, MAPPER.constructType(valueType));
+        } catch (IOException e) {
+            LOG.warn("Failed to decode JSON as {}", valueType.getTypeName(), e);
             return null;
         }
     }

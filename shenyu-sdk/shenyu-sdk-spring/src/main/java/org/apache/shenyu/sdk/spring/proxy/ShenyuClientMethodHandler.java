@@ -33,6 +33,8 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 import java.util.Objects;
 
@@ -89,6 +91,11 @@ public class ShenyuClientMethodHandler {
         }
         if (void.class == returnType || !StringUtils.hasText(shenyuResponse.getBody())) {
             return null;
+        }
+        final Method method = requestTemplate.getMethod();
+        if (Objects.nonNull(method) && method.getReturnType() == returnType
+                && method.getGenericReturnType() instanceof ParameterizedType genericReturnType) {
+            return JsonUtils.jsonToObject(shenyuResponse.getBody(), genericReturnType);
         }
         return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
     }

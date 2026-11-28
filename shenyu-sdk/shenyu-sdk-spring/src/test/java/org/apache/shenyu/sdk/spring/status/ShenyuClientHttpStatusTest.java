@@ -39,6 +39,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -59,6 +61,17 @@ class ShenyuClientHttpStatusTest {
     @EnumSource(Transport.class)
     void decodesUnlistedSuccessfulStatus(final Transport transport) throws Exception {
         withProxy(transport, context -> assertEquals(42, context.getBean(StatusClient.class).readValue()));
+    }
+
+    @ParameterizedTest
+    @EnumSource(Transport.class)
+    void preservesDtoTypesInGenericJsonResponses(final Transport transport) throws Exception {
+        withProxy(transport, context -> {
+            final StatusClient client = context.getBean(StatusClient.class);
+            assertEquals(new Item("sample"), client.readItem());
+            assertEquals(new Item("sample"), client.readItems().get(0));
+            assertEquals(new Item("sample"), client.readItemGroups().get("group").get(0));
+        });
     }
 
     @ParameterizedTest
@@ -95,6 +108,9 @@ class ShenyuClientHttpStatusTest {
         final HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         try (ShenyuSdkClient client = transport.create(); AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             serve(server, "/value", UNLISTED_SUCCESS);
+            serveBody(server, "/item", 200, "application/json", "{\"name\":\"sample\"}");
+            serveBody(server, "/items", 200, "application/json", "[{\"name\":\"sample\"}]");
+            serveBody(server, "/item-groups", 200, "application/json", "{\"group\":[{\"name\":\"sample\"}]}");
             serve(server, "/timeout", ORIGIN_TIMEOUT);
             server.start();
             final String address = "127.0.0.1:" + server.getAddress().getPort();
@@ -116,10 +132,14 @@ class ShenyuClientHttpStatusTest {
     }
 
     private static void serve(final HttpServer server, final String path, final int status) {
-        final byte[] body = "42".getBytes(StandardCharsets.UTF_8);
+        serveBody(server, path, status, "application/json", "42");
+    }
+
+    private static void serveBody(final HttpServer server, final String path, final int status, final String contentType, final String text) {
+        final byte[] body = text.getBytes(StandardCharsets.UTF_8);
         server.createContext(path, exchange -> {
             try {
-                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.getResponseHeaders().set("Content-Type", contentType);
                 exchange.sendResponseHeaders(status, body.length);
                 exchange.getResponseBody().write(body);
             } finally {
@@ -154,11 +174,23 @@ class ShenyuClientHttpStatusTest {
         @GetMapping("/value")
         Integer readValue();
 
+        @GetMapping("/item")
+        Item readItem();
+
+        @GetMapping("/items")
+        List<Item> readItems();
+
+        @GetMapping("/item-groups")
+        Map<String, List<Item>> readItemGroups();
+
         @GetMapping("/timeout")
         Integer readTimeout();
 
         @GetMapping("/timeout")
         ShenyuResponse rawTimeout();
+    }
+
+    public record Item(String name) {
     }
 
     @ShenyuClient(name = "fallback-status-client", url = "${sdk.status.test.url}", fallbackFactory = StatusFallbackFactory.class)
