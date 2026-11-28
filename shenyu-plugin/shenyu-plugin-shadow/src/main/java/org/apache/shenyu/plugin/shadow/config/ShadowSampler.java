@@ -23,10 +23,13 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.Objects;
 
 /**
- * Deterministic per-request sampling.
+ * Request-identifier-based sampling.
  *
- * <p>The same request always reaches the same decision for one rule, so a retry
- * or a repeated inspection cannot accidentally change the sampled population.</p>
+ * <p>The decision is derived from the request identifier and the rule id, so a
+ * given request is always judged the same way within one evaluation and
+ * different requests are sampled independently. It is not stable across a
+ * re-created request: a retry or a new connection carries a new identifier and
+ * may fall on the other side of the sample rate.</p>
  */
 public final class ShadowSampler {
 

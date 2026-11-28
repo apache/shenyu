@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.shadow.dispatch;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -89,7 +90,7 @@ public final class ShadowTaskFactoryTest {
     }
 
     @Test
-    public void testUsesTheRewrittenPathForwardedByThePrimary() {
+    public void testFallsBackToTheRewrittenPathWhenNoPrimaryUriIsResolved() {
         MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
                 .get("http://localhost:9195/original/orders/42").build());
         ShenyuContext context = new ShenyuContext();
@@ -99,5 +100,19 @@ public final class ShadowTaskFactoryTest {
         exchange.getAttributes().put(Constants.REWRITE_URI, "/orders/42");
         ShadowTask task = ShadowTaskFactory.create(exchange, handle(), new byte[0]).orElseThrow();
         assertEquals("http://shadow:8080/base/rewritten/orders/42", task.getUri().toString());
+    }
+
+    @Test
+    public void testUsesThePrimaryUriForARewriteOnlyRule() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("http://localhost:9195/public/orders?a=1").build());
+        ShenyuContext context = new ShenyuContext();
+        context.setRealUrl("/public/orders");
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        exchange.getAttributes().put(Constants.REWRITE_URI, "/internal/orders");
+        exchange.getAttributes().put(Constants.HTTP_URI,
+                RequestUrlUtils.buildRequestUri(exchange, "http://upstream:8080"));
+        ShadowTask task = ShadowTaskFactory.create(exchange, handle(), new byte[0]).orElseThrow();
+        assertEquals("http://shadow:8080/base/internal/orders?a=1", task.getUri().toString());
     }
 }

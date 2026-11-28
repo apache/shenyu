@@ -76,11 +76,17 @@ public final class ShadowDispatcher implements AutoCloseable {
     }
 
     private Mono<Void> mirror(final ShadowTask task) {
-        WebClient.RequestHeadersSpec<?> request = webClient.method(HttpMethod.valueOf(task.getMethod()))
-                .uri(task.getUri())
-                .headers(headers -> headers.addAll(task.getHeaders()))
-                .bodyValue(task.getBody());
-        return request.exchangeToMono(response -> response.releaseBody())
+        // Build the request lazily: a value that cannot be turned into a request
+        // (for example an unsupported method) must fail this attempt only, never
+        // terminate the dispatcher subscription for the whole rule.
+        return Mono.defer(() -> {
+            WebClient.RequestBodySpec spec = webClient.method(HttpMethod.valueOf(task.getMethod()))
+                    .uri(task.getUri())
+                    .headers(headers -> headers.addAll(task.getHeaders()));
+            WebClient.RequestHeadersSpec<?> request = task.getBody().length == 0
+                    ? spec : spec.bodyValue(task.getBody());
+            return request.exchangeToMono(response -> response.releaseBody());
+        })
                 .timeout(Duration.ofMillis(task.getTimeoutMillis()))
                 .doOnError(error -> LOG.warn("shadow attempt to {} failed with {}",
                         redactedTarget(task.getUri()), error.getClass().getSimpleName()))

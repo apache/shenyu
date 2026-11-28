@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.shadow.dispatch;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.springframework.http.HttpHeaders;
@@ -67,22 +68,27 @@ public final class ShadowTaskFactory {
     /**
      * Combine the shadow target with the effective request path and query.
      *
-     * <p>The path is the one the primary request is forwarded to, including any
-     * rewrite or context path applied earlier in the chain, so both calls
-     * address the same resource. The raw components are concatenated and parsed
-     * with {@link URI#create(String)}, which never re-encodes them, so an
-     * already encoded path such as {@code /a%2Fb} is preserved exactly.</p>
+     * <p>The primary URI resolved by the {@code uri} plugin at order 205 wins:
+     * it already prefers {@code REWRITE_URI} and carries the final query, so a
+     * rewrite-only rule mirrors the path the primary actually forwards to. The
+     * rewritten path helper is only a fallback for chains where that plugin did
+     * not resolve a URI. The raw components are concatenated and parsed with
+     * {@link URI#create(String)}, which never re-encodes them, so an already
+     * encoded path such as {@code /a%2Fb} is preserved exactly.</p>
      */
     private static Optional<URI> targetUri(final ServerWebExchange exchange, final String target) {
         try {
             URI base = URI.create(target);
-            ServerHttpRequest request = exchange.getRequest();
-            String query = request.getURI().getRawQuery();
+            URI primary = exchange.getAttribute(Constants.HTTP_URI);
+            String primaryPath = Objects.isNull(primary)
+                    ? RequestUrlUtils.getRewrittenRawPath(exchange) : primary.getRawPath();
+            String primaryQuery = Objects.isNull(primary)
+                    ? exchange.getRequest().getURI().getRawQuery() : primary.getRawQuery();
             StringBuilder composed = new StringBuilder(base.getScheme()).append("://")
                     .append(base.getRawAuthority())
-                    .append(joinPath(base.getRawPath(), RequestUrlUtils.getRewrittenRawPath(exchange)));
-            if (StringUtils.isNotEmpty(query)) {
-                composed.append('?').append(query);
+                    .append(joinPath(base.getRawPath(), primaryPath));
+            if (StringUtils.isNotEmpty(primaryQuery)) {
+                composed.append('?').append(primaryQuery);
             }
             return Optional.of(URI.create(composed.toString()));
         } catch (IllegalArgumentException e) {

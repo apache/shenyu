@@ -69,6 +69,7 @@ public class ShadowHandle {
 
     /**
      * Maximum queued shadow calls for this rule. Overflow drops the sample.
+     * A value of 0 keeps at most one queued call instead of disabling the queue.
      */
     private Integer queueCapacity = DEFAULT_QUEUE_CAPACITY;
 
