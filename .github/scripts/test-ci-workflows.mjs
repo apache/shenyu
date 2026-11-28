@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
@@ -153,6 +153,46 @@ test('E2E protocol shards retain every sync channel and leave other scenarios in
       assert.equal(shard.example_projects, entry.example_projects);
     }
   }
+});
+
+test('integration example selection distinguishes an empty result from resolver failure', t => {
+  const step = workflows.get('integrated-test.yml').jobs.build.steps.find(step => step.id === 'examples');
+  assert.ok(step.shell === undefined || step.shell === 'bash');
+  const shell = step.shell === 'bash' ? ['--noprofile', '--norc', '-eo', 'pipefail'] : ['-e'];
+  const temporary = mkdtempSync(resolve(root, '.github/scripts/.example-selection-test-'));
+  t.after(() => rmSync(temporary, { recursive: true, force: true }));
+
+  const name = 'shenyu-integrated-test-websocket';
+  const fixture = 'shenyu-e2e/shenyu-e2e-case/compose/fixtures/websocket';
+  for (const file of [
+    '.github/scripts/resolve-example-projects.py',
+    `shenyu-integrated-test/${name}/pom.xml`,
+    `shenyu-integrated-test/${name}/docker-compose.yml`,
+    `${fixture}/Dockerfile`,
+  ]) {
+    const target = resolve(temporary, file);
+    mkdirSync(dirname(target), { recursive: true });
+    copyFileSync(resolve(root, file), target);
+  }
+  const output = resolve(temporary, 'output');
+  const run = () => {
+    writeFileSync(output, '');
+    const result = spawnSync('bash', [...shell, '-c', step.run], {
+      cwd: temporary, encoding: 'utf8', env: { ...process.env, INTEGRATION_CASE: name, GITHUB_OUTPUT: output },
+    });
+    assert.ifError(result.error);
+    return result;
+  };
+
+  const success = run();
+  assert.equal(success.status, 0, success.stderr);
+  assert.equal(readFileSync(output, 'utf8'), 'projects=\n');
+
+  renameSync(resolve(temporary, fixture), resolve(temporary, `${fixture}-unavailable`));
+  const failure = run();
+  assert.match(failure.stderr, /Missing Compose fixture build context/);
+  assert.equal(failure.status, 1, failure.stderr);
+  assert.equal(readFileSync(output, 'utf8'), '');
 });
 
 test('manual E2E runs keep all sync channels and invalid selections fail', () => {

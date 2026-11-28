@@ -113,9 +113,12 @@ jobs:
           exec bash .github/scripts/maven-with-retry.sh ./mvnw -B -T 1C clean install -Prelease,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
       - name: Resolve required example projects
         id: examples
+        shell: bash
         env:
           INTEGRATION_CASE: ${{ matrix.case }}
-        run: echo "projects=$(python3 .github/scripts/resolve-example-projects.py "$INTEGRATION_CASE")" >> "$GITHUB_OUTPUT"
+        run: |
+          projects=$(python3 .github/scripts/resolve-example-projects.py "$INTEGRATION_CASE")
+          printf 'projects=%s\n' "$projects" >> "$GITHUB_OUTPUT"
 
       - name: Build examples
         if: steps.examples.outputs.projects != ''
