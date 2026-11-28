@@ -80,11 +80,15 @@ public class ClientRegisterConfigImpl implements ClientRegisterConfig {
     public Integer getPort() {
 
         if (Objects.isNull(port)) {
-            this.port = Optional
+            final Integer configured = Optional
                     .ofNullable(props.getProperty(ShenyuClientConstants.PORT))
                     .map(Integer::parseInt)
-                    .orElseGet(() -> PortUtils
-                            .findPort(applicationContext.getAutowireCapableBeanFactory()));
+                    .orElse(null);
+            //a positive advertised port is authoritative; an absent or non-positive
+            //one resolves the port the owned web server actually bound (issue #8426)
+            this.port = Objects.nonNull(configured) && configured > 0
+                    ? configured
+                    : PortUtils.findPort(applicationContext);
         }
 
         return this.port;
