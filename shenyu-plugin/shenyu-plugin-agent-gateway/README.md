@@ -731,6 +731,217 @@ explicitly implement `fork()`; unsupported chains fail closed for HTTP invocatio
 without changing ordinary traffic. Dynamic Java/JAR loading, OTel, Token accounting,
 field mapping, prompts/resources and model fallback are outside this feature.
 
+### Delegating an identity to a protected HTTP route
+
+A grant for `orders.lookup` lets a caller execute the tool. The orders API owns
+the decision to release each record. In this example it accepts an assertion
+issued by the gateway and checks **both** the authenticated tenant and subject
+against the owner of the requested order. The client supplies only the order ID.
+
+**Set up the two trust stores.** In a fresh local directory, generate an Ed25519
+key and a versioned gateway credential file. The backend receives only
+`orders-public.pem`. Mount `credentials/` read-only for the gateway and restrict
+write access to the operator. Use a protected transport to the backend in a
+deployment. The loopback HTTP example below runs all services on one host.
+
+```sh
+umask 077
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install 'PyJWT[crypto]>=2.10,<3'
+python - <<'PY'
+import base64, json
+from pathlib import Path
+from cryptography.hazmat.primitives import serialization as s
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+key = Ed25519PrivateKey.generate()
+directory = Path("credentials/orders")
+directory.mkdir(parents=True)
+(directory / "v1.json").write_text(json.dumps({
+    "issuer": "shenyu-orders", "credentialRef": "orders", "credentialVersion": "v1",
+    "tool": "orders.lookup", "method": "GET", "path": "/api/orders/lookup",
+    "audience": "orders-api", "allowedScopes": ["orders.read"],
+    "privateKeyPkcs8Base64": base64.b64encode(key.private_bytes(
+        s.Encoding.DER, s.PrivateFormat.PKCS8, s.NoEncryption())).decode("ascii")
+}))
+Path("orders-public.pem").write_bytes(key.public_key().public_bytes(
+    s.Encoding.PEM, s.PublicFormat.SubjectPublicKeyInfo))
+PY
+export ORDERS_CREDENTIALS_DIR="$PWD/credentials"
+```
+
+**Start the protected backend.** Save this as `orders.py` alongside the public
+key and run `python orders.py` in the virtual environment. It pins the algorithm,
+key ID, public key, issuer and audience, checks the signed route, scope and
+validity window, then authorizes the individual record.
+
+```python
+import json
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
+import jwt
+
+public_key = Path("orders-public.pem").read_bytes()
+owners = {"A": ("tenant-a", "alice"), "B": ("tenant-b", "bob")}
+route = "/api/orders/lookup"
+
+class Orders(BaseHTTPRequestHandler):
+    def do_GET(self):
+        url = urlsplit(self.path)
+        if url.path != route:
+            return self.send_error(404)
+        try:
+            headers = self.headers.get_all("Authorization", [])
+            if len(headers) != 1 or not headers[0].startswith("Bearer "):
+                raise ValueError()
+            token = headers[0][7:]
+            if jwt.get_unverified_header(token).get("kid") != "orders:v1":
+                raise ValueError()
+            claims = jwt.decode(token, public_key, algorithms=["EdDSA"],
+                                issuer="shenyu-orders", audience="orders-api",
+                                options={"require": ["iat", "nbf", "exp", "jti", "sub", "tenant",
+                                                     "aud", "iss", "scope", "tool", "route"]})
+            if (claims["route"] != "GET " + route or claims["tool"] != "orders.lookup"
+                    or "orders.read" not in claims["scope"].split()):
+                raise ValueError()
+        except (jwt.PyJWTError, ValueError, AttributeError, TypeError):
+            return self.send_error(401)
+        ids = parse_qs(url.query).get("id", [])
+        if len(ids) != 1 or owners.get(ids[0]) != (claims["tenant"], claims["sub"]):
+            return self.send_error(403)
+        body = json.dumps({"orderId": ids[0]}).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+if __name__ == "__main__":
+    ThreadingHTTPServer(("127.0.0.1", 8181), Orders).serve_forever()
+```
+
+**Configure the gateway.** Install the Agent Gateway, key-auth, Divide, URI,
+HTTP client and response plugins. In Admin, match `/agent` with a key-auth rule
+whose handle uses `keyName: X-Api-Key` and a locally chosen secret `key`. Bind
+that rule's actual namespace, selector and rule IDs in the gateway application.
+Point a Divide selector for `/api/orders/lookup` at the single HTTP upstream
+`127.0.0.1:8181` and enable a matching Divide rule. Keep the full path through
+URI construction. Configure the ordinary route's security plugins as required.
+
+```yaml
+shenyu:
+  plugins:
+    agent:
+      gateway:
+        enabled: true
+        delegation:
+          http:
+            enabled: true
+            credentials-directory: ${ORDERS_CREDENTIALS_DIR}
+        security:
+          key-auth:
+            enabled: true
+            bindings:
+              - namespace-id: ${KEYAUTH_NAMESPACE_ID}
+                selector-id: ${KEYAUTH_SELECTOR_ID}
+                rule-id: ${KEYAUTH_RULE_ID}
+                tenant: tenant-a
+                subject: alice
+                tool-grants: [orders.lookup]
+```
+
+Apply this handle to the Agent Gateway rule for `/agent` and enable
+`continued` on its selector.
+
+```json
+{
+  "trafficType": "mcp",
+  "mcp": {
+    "allowedTools": ["orders.lookup"],
+    "responseMode": "json",
+    "httpTools": {
+      "orders.lookup": {
+        "description": "Look up one order",
+        "inputSchema": {
+          "type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]
+        },
+        "requestConfig": {
+          "requestTemplate": {"method": "GET", "url": "/api/orders/lookup"},
+          "argsPosition": {"id": "query"}
+        },
+        "identityDelegation": {
+          "audience": "orders-api", "scopes": ["orders.read"], "ttlSeconds": 30,
+          "credentialRef": "orders", "credentialVersion": "v1", "requireTenant": true
+        }
+      }
+    }
+  }
+}
+```
+
+Set `ORDERS_API_KEY` to the inbound key configured in Admin and call the tool.
+Order `A` returns `structuredContent.body.orderId`. Changing the argument to
+`B` produces a tool error for the same authenticated caller.
+
+```sh
+curl -sS http://127.0.0.1:9195/agent \
+  -H "X-Api-Key: $ORDERS_API_KEY" -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' -H 'MCP-Protocol-Version: 2026-07-28' \
+  -H 'Mcp-Method: tools/call' -H 'Mcp-Name: orders.lookup' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"orders.lookup",
+    "arguments":{"id":"A"},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28",
+    "io.modelcontextprotocol/clientCapabilities":{}}}}'
+```
+
+**Policy and lifecycle.** Delegation is opt-in per HTTP tool. The built-in
+file signer also requires the deployment flag and an existing credential
+directory. An application can supply its own `AgentHttpIdentityDelegator`.
+A configured tool without a signer fails closed. Regular tools continue to
+receive isolated child requests. Only the child carries the new bearer
+assertion, and downstream route authentication still runs.
+
+| Rule field | Accepted values |
+| --- | --- |
+| `audience` | 1–256 ASCII letters, digits or `._:/-` |
+| `scopes` | 1–16 unique strings of 1–64 ASCII letters, digits or `_.:/-` |
+| `ttlSeconds` | Integer 1–300, default 30 |
+| `credentialRef` / `credentialVersion` | 1–64 ASCII letters, digits, underscores or hyphens. The version also permits dots. |
+| `requireTenant` | Boolean, default true. When false, an identity with no tenant produces an assertion with no tenant claim. |
+
+The signer reads `<credentialRef>/<credentialVersion>.json` for each call.
+The file pins the exact tool, method, route, audience and allowed scopes.
+Additional claims are `jti` (fresh UUID) and `policy_version` (rule ID and
+configuration generation, joined by a colon). Expiry is bounded by the tool
+TTL, remaining call deadline and optional key `expiresAt` (ISO-8601 instant).
+Use an atomic file replacement when rotating or setting `"revoked": true`.
+Removal and revocation stop new issuance. An already delivered bearer remains
+usable until expiry while its public key is trusted. Removing that public key
+from backend trust prevents further acceptance. Install the new public key
+before selecting its credential version in the tool rule.
+
+Divide selects the upstream for the admitted route. The gateway binds that
+selection for the invocation and checks the final request before HTTP dispatch.
+Configure every selectable replica and canary for that route to serve the stated
+audience. The operator owns that route-to-audience mapping. A synced policy
+change or removal before dispatch rejects the pending delegated call.
+An expired acquisition returns HTTP 504 / JSON-RPC `-32025`. Other delegation
+failures return HTTP 424 / JSON-RPC `-32026` with a bounded `error.data.reason`
+such as `TENANT_MISSING`, `KEY_UNAVAILABLE`,
+`REVOKED_OR_EXPIRED` or `TARGET_MISMATCH`. The gateway does not retry the
+delegated business request. Its built-in HTTP transports disable automatic
+redirects and connection retries for the call. A custom transport must enforce
+the same target and single-attempt contract. Cancellation cannot undo work a
+backend has already performed. Default metrics and error diagnostics use bounded categories.
+The separately enabled invocation audit sink follows its existing identity
+retention policy. See [invocation audit](../../docs/agent-invocation-audit.md).
+
+**Remote MCP.** The remote catalog continues to use its configured fixed
+service credentials. Supporting delegated identity there requires an explicit
+binding to the remote MCP server and tool, a compatible credential adapter
+and a verifier at that target.
+
 ## Optional structuredContent field deletion
 
 Configure explicit plans in the matched MCP rule, keyed by complete exposed tool

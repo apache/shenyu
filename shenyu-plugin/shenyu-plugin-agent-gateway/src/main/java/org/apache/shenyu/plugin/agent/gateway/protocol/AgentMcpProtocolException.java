@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.http.HttpStatus;
 
 import java.util.Objects;
 
@@ -29,6 +30,8 @@ import java.util.Objects;
 public final class AgentMcpProtocolException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
+
+    private static final int HTTP_TOOL_DEADLINE = -32025;
 
     private final int httpStatus;
 
@@ -44,6 +47,10 @@ public final class AgentMcpProtocolException extends RuntimeException {
         this.code = code;
         this.id = Objects.isNull(id) ? JsonNodeFactory.instance.nullNode() : id.deepCopy();
         this.data = Objects.isNull(data) ? null : data.deepCopy();
+    }
+
+    static AgentMcpProtocolException httpToolDeadline(final JsonNode id) {
+        return new AgentMcpProtocolException(HttpStatus.GATEWAY_TIMEOUT.value(), HTTP_TOOL_DEADLINE, "HTTP tool deadline exceeded", id, null);
     }
 
     public int getHttpStatus() {

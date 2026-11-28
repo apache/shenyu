@@ -49,6 +49,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.tracing.TraceContextCarrier;
 import org.apache.shenyu.plugin.api.tracing.TraceContextPropagator;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.slf4j.Logger;
@@ -84,6 +85,8 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
      */
     private static final TraceContextPropagator TRACE_CONTEXT_PROPAGATOR = loadTraceContextPropagator();
 
+    private static final long DEFAULT_TIMEOUT_MILLIS = 3000L;
+
     private final long maxInMemorySize;
 
     protected AbstractHttpClientPlugin(final long maxInMemorySize) {
@@ -92,20 +95,27 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
 
     @Override
     public final Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return Mono.deferContextual(context -> {
+            HttpToolDispatchGuard guard = context.getOrDefault(HttpToolDispatchGuard.class, exchange.getAttribute(HttpToolDispatchGuard.ATTRIBUTE));
+            Mono<Void> response = execute(exchange, chain, guard);
+            return Objects.isNull(guard) ? response : response.contextWrite(current -> current.put(HttpToolDispatchGuard.class, guard));
+        });
+    }
+
+    private Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final HttpToolDispatchGuard guard) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         final URI uri = exchange.getAttribute(Constants.HTTP_URI);
+        if (Objects.nonNull(guard)) {
+            guard.verify(exchange, uri);
+        }
         if (Objects.isNull(uri)) {
             Object error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.CANNOT_FIND_URL);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
+        final long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(DEFAULT_TIMEOUT_MILLIS);
         final Duration duration = Duration.ofMillis(timeout);
-        // A probe must describe one attempt against its recovering target.
-        // Retrying it (including failover) could turn that target's failure into
-        // another target's success and incorrectly close the original breaker.
-        final int retryTimes = Boolean.TRUE.equals(exchange.getAttribute(UpstreamCircuitBreaker.HALF_OPEN_PROBE))
-                ? 0 : (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+        final int retryTimes = retryCount(exchange, guard);
         final String retryStrategy = (String) Optional.ofNullable(exchange.getAttribute(Constants.RETRY_STRATEGY)).orElseGet(RetryEnum.CURRENT::getName);
         final String httpMethod = Objects.nonNull(exchange.getRequest().getMethod())
                 ? exchange.getRequest().getMethod().name() : "UNKNOWN";
@@ -115,10 +125,30 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                 ? getCachedRequestBody(exchange)
                 : exchange.getRequest().getBody();
         final Mono<R> response = withAttemptTimeout(exchange, duration, () -> doRequest(exchange, httpMethod, uri, requestBody))
-                .doOnError(e -> LOG.error(e.getMessage(), e));
+                .doOnError(error -> logRequestFailure(guard, error));
         final Mono<R> retriedResponse = retryTimes <= 0
                 ? response
                 : executeWithRetry(response, exchange, duration, retryTimes);
+        Mono<Void> owned = completeResponse(retriedResponse, exchange, chain);
+        return cacheRequestBody ? owned.doFinally(signalType -> disposeCachedRequestBody(exchange)) : owned;
+    }
+
+    private void logRequestFailure(final HttpToolDispatchGuard guard, final Throwable error) {
+        if (Objects.nonNull(guard)) {
+            // A connector exception may embed the outbound Authorization header.
+            LOG.error("Delegated HTTP transport failed");
+        } else {
+            LOG.error(error.getMessage(), error);
+        }
+    }
+
+    private int retryCount(final ServerWebExchange exchange, final HttpToolDispatchGuard guard) {
+        // Both delegated calls and circuit-breaker probes must stay on their one selected attempt.
+        return Objects.nonNull(guard) || Boolean.TRUE.equals(exchange.getAttribute(UpstreamCircuitBreaker.HALF_OPEN_PROBE))
+                ? 0 : (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+    }
+
+    private Mono<Void> completeResponse(final Mono<R> retriedResponse, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final Mono<Void> result = retriedResponse
                 .onErrorMap(ShenyuException.class, th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                         ShenyuResultEnum.CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER.getMsg(), th))
@@ -131,16 +161,12 @@ public abstract class AbstractHttpClientPlugin<R> implements ShenyuPlugin {
                             : attempt.finish(Mono.defer(() -> chain.execute(exchange)))
                                     .onErrorMap(TimeoutException.class, HttpRouteDeadline::gatewayTimeout);
                 });
-        // The aggregation subscription intentionally outlives individual retry attempts: a timed out
-        // attempt must not discard the body that a later retry still needs. It is disposed when the
-        // logical request terminates, which also releases the buffers accumulated so far.
-        Mono<Void> owned = exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST)
+        return exchange.getAttributes().containsKey(HttpRouteDeadline.REQUEST)
                 ? result.doFinally(signal -> {
                     if (exchange.getAttributes().remove(HttpRouteDeadline.ATTEMPT) instanceof HttpRouteDeadline attempt) {
                         attempt.abandon();
                     }
                 }) : result;
-        return cacheRequestBody ? owned.doFinally(signalType -> disposeCachedRequestBody(exchange)) : owned;
     }
 
     static <T> Mono<T> withAttemptTimeout(final ServerWebExchange exchange, final Duration duration, final Supplier<Mono<T>> send) {

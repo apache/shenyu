@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.tool;
 import com.google.gson.JsonObject;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.time.Instant;
 
 /**
@@ -30,6 +31,8 @@ public final class AgentToolInvocation {
     private final String requestId;
 
     private final String subject;
+
+    private final String tenant;
 
     private final JsonObject arguments;
 
@@ -52,6 +55,7 @@ public final class AgentToolInvocation {
 
     public AgentToolInvocation(final String requestId, final String subject, final JsonObject arguments,
                                final String ruleId, final long configurationVersion, final Instant deadline, final JsonObject clientCapabilities) {
+        this.tenant = null;
         this.ruleId = Objects.requireNonNull(ruleId, "ruleId");
         if (ruleId.isBlank() || configurationVersion < 0) {
             throw new IllegalArgumentException("Invalid configuration snapshot");
@@ -65,6 +69,29 @@ public final class AgentToolInvocation {
         }
         this.arguments = Objects.requireNonNull(arguments, "arguments").deepCopy();
         this.clientCapabilities = Objects.requireNonNull(clientCapabilities, "clientCapabilities").deepCopy();
+    }
+
+    /**
+     * Attach the tenant verified for this invocation to its immutable input snapshot.
+     * @param input request-local input
+     * @param tenant verified tenant, or null for an unscoped subject
+     */
+    public AgentToolInvocation(final AgentToolInvocation input, final String tenant) {
+        if (Objects.nonNull(tenant) && tenant.isBlank()) {
+            throw new IllegalArgumentException("tenant must not be blank");
+        }
+        this.tenant = tenant;
+        requestId = input.requestId;
+        subject = input.subject;
+        arguments = input.arguments;
+        clientCapabilities = input.clientCapabilities;
+        ruleId = input.ruleId;
+        configurationVersion = input.configurationVersion;
+        deadline = input.deadline;
+    }
+
+    public Optional<String> getTenant() {
+        return Optional.ofNullable(tenant);
     }
 
     public String getRequestId() {

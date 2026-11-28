@@ -22,6 +22,7 @@ import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -191,6 +192,19 @@ public final class AbstractHttpClientPluginTest {
         StepVerifier.create(plugin.execute(exchange, chain))
                 .verifyComplete();
         assertEquals(2, attempts.get());
+    }
+
+    @Test
+    public void delegatedTransportNeverRetriesAfterLosingReactorContext() {
+        AtomicInteger attempts = new AtomicInteger();
+        TestHttpClientPlugin plugin = new TestHttpClientPlugin(exchange -> {
+            attempts.incrementAndGet();
+            return Mono.error(new IllegalStateException("Bearer private-signed-token"));
+        });
+        ServerWebExchange exchange = createExchange(2, null, null);
+        exchange.getAttributes().put(HttpToolDispatchGuard.ATTRIBUTE, mock(HttpToolDispatchGuard.class));
+        StepVerifier.create(plugin.execute(exchange, chain)).expectError(IllegalStateException.class).verify();
+        assertEquals(1, attempts.get());
     }
 
     private ServerWebExchange createExchange(final int retryTimes, final String retryStrategy, final String retrySpec) {

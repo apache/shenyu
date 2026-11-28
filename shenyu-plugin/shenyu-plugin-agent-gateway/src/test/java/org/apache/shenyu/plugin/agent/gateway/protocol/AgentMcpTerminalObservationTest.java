@@ -29,6 +29,7 @@ import org.apache.shenyu.common.metrics.AgentMcpCallObserver.Outcome;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalEvent;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentIdentityDelegationException;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
@@ -535,6 +536,54 @@ class AgentMcpTerminalObservationTest {
             assertNull(event.getRequestedTool());
             assertNull(event.getProtocolVersion());
         }
+    }
+
+    @Test
+    void delegationRejectionReportsOnlyBoundedRuntimeMetricsAndReason() {
+        AgentRuntimeMetrics metrics = mock(AgentRuntimeMetrics.class);
+        var exchange = exchange("tools/call");
+        exchange.getAttributes().put(AgentRuntimeMetrics.KEY, metrics);
+        var failure = new AgentIdentityDelegationException(AgentIdentityDelegationException.Reason.KEY_UNAVAILABLE);
+        var handler = handler(Mono.error(failure), ignored -> Mono.just(new AgentMcpIdentity("private-tenant", "private-subject", Set.of("read"), Set.of())), null);
+        StepVerifier.create(handler.handle(exchange, config("json", 30000), traffic, 1)).verifyComplete();
+        assertEquals(424, exchange.getResponse().getStatusCode().value());
+        String wire = exchange.getResponse().getBodyAsString().block();
+        assertFalse(wire.contains("private-"));
+        assertTrue(wire.contains("KEY_UNAVAILABLE"));
+        verify(metrics).finished(org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Traffic.MCP),
+                org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Outcome.REJECTED), org.mockito.ArgumentMatchers.eq(AgentRuntimeMetrics.Reason.IDENTITY_DELEGATION),
+                org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void delegationDeadlineUsesTheExistingHttpToolTimeoutEnvelope() {
+        var failure = new AgentIdentityDelegationException(AgentIdentityDelegationException.Reason.DEADLINE_EXCEEDED);
+        var exchange = exchange("tools/call");
+        StepVerifier.create(handler(Mono.error(failure), identity(), null).handle(exchange, config("json", 30000), traffic, 1)).verifyComplete();
+        assertEquals(504, exchange.getResponse().getStatusCode().value());
+        String wire = exchange.getResponse().getBodyAsString().block();
+        assertTrue(wire.contains("-32025"));
+        assertTrue(wire.contains("HTTP tool deadline exceeded"));
+    }
+
+    @Test
+    void handlerDeadlineCancelsPendingDelegationAndRetainsTheRpcEnvelope() {
+        AgentGatewayMcpConfig settings = AgentGatewayMcpConfig.parse(JsonParser.parseString("""
+                {"timeoutMs":100,"allowedTools":["read"],"httpTools":{"read":{"description":"read","inputSchema":{"type":"object","properties":{}},
+                 "identityDelegation":{"credentialRef":"key","credentialVersion":"v1","scopes":["read"],"audience":"orders"},
+                 "requestConfig":{"requestTemplate":{"method":"GET","url":"/orders"},"argsPosition":{}}}}}
+                """), true);
+        var handler = new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "server", "1"), identity());
+        var exchange = exchange("tools/call");
+        AtomicBoolean cancelled = new AtomicBoolean();
+        StepVerifier.withVirtualTime(() -> handler.handle(exchange, settings, traffic, 1,
+                        (tool, invocation) -> Mono.<JsonObject>never().doOnCancel(() -> cancelled.set(true))))
+                .thenAwait(Duration.ofMillis(101)).verifyComplete();
+        assertTrue(cancelled.get());
+        assertEquals(504, exchange.getResponse().getStatusCode().value());
+        var wire = JsonParser.parseString(exchange.getResponse().getBodyAsString().block()).getAsJsonObject();
+        assertEquals("same-id", wire.get("id").getAsString());
+        assertEquals(-32025, wire.getAsJsonObject("error").get("code").getAsInt());
     }
 
     @Test

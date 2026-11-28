@@ -26,15 +26,29 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Immutable, bounded HTTP tool plans sharing the MCP Server requestTemplate and argsPosition vocabulary.
  * Targets are fixed gateway paths, never caller-supplied upstream URLs.
  */
 public final class AgentGatewayHttpToolConfig {
+
+    private static final String DESCRIPTION = "description";
+
+    private static final String INPUT_SCHEMA = "inputSchema";
+
+    private static final String REQUEST_CONFIG = "requestConfig";
+
+    private static final int MAX_DESCRIPTION_LENGTH = 2048;
+
+    private static final String IDENTITY_DELEGATION = "identityDelegation";
 
     private final Map<String, Tool> tools;
 
@@ -102,6 +116,97 @@ public final class AgentGatewayHttpToolConfig {
     }
 
     /**
+     * Deployment key binding and assertion policy for one fixed HTTP tool.
+     */
+    public static final class IdentityDelegation {
+
+        private static final int MAX_SCOPES = 16;
+
+        private static final int DEFAULT_TTL_SECONDS = 30;
+
+        private static final int MAX_TTL_SECONDS = 300;
+
+        private static final Pattern AUDIENCE = Pattern.compile("[A-Za-z0-9._:/-]{1,256}");
+
+        private static final Pattern SCOPE = Pattern.compile("[A-Za-z0-9_.:/-]{1,64}");
+
+        private static final Pattern CREDENTIAL_REF = Pattern.compile("[A-Za-z0-9_-]{1,64}");
+
+        private static final Pattern CREDENTIAL_VERSION = Pattern.compile("[A-Za-z0-9_.-]{1,64}");
+
+        private final String audience;
+
+        private final List<String> scopes;
+
+        private final int ttlSeconds;
+
+        private final String credentialRef;
+
+        private final String credentialVersion;
+
+        private final boolean requireTenant;
+
+        private IdentityDelegation(final JsonObject object) {
+            fields(object, Set.of("audience", "scopes", "ttlSeconds", "credentialRef", "credentialVersion", "requireTenant"));
+            audience = matching(object.get("audience"), AUDIENCE);
+            credentialRef = matching(object.get("credentialRef"), CREDENTIAL_REF);
+            credentialVersion = matching(object.get("credentialVersion"), CREDENTIAL_VERSION);
+            scopes = parseScopes(object.get("scopes"));
+            ttlSeconds = AgentGatewayMcpConfig.integer(object, "ttlSeconds", DEFAULT_TTL_SECONDS, 1, MAX_TTL_SECONDS);
+            JsonElement tenant = object.get("requireTenant");
+            if (Objects.nonNull(tenant) && (!tenant.isJsonPrimitive() || !tenant.getAsJsonPrimitive().isBoolean())) {
+                throw invalid();
+            }
+            requireTenant = Objects.isNull(tenant) || tenant.getAsBoolean();
+        }
+
+        private static String matching(final JsonElement value, final Pattern pattern) {
+            if (Objects.isNull(value) || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()
+                    || !pattern.matcher(value.getAsString()).matches()) {
+                throw invalid();
+            }
+            return value.getAsString();
+        }
+
+        private static List<String> parseScopes(final JsonElement value) {
+            if (Objects.isNull(value) || !value.isJsonArray() || value.getAsJsonArray().isEmpty() || value.getAsJsonArray().size() > MAX_SCOPES) {
+                throw invalid();
+            }
+            Set<String> ordered = new LinkedHashSet<>();
+            for (JsonElement scope : value.getAsJsonArray()) {
+                if (!ordered.add(matching(scope, SCOPE))) {
+                    throw invalid();
+                }
+            }
+            return List.copyOf(ordered);
+        }
+
+        public String getAudience() {
+            return audience;
+        }
+
+        public List<String> getScopes() {
+            return scopes;
+        }
+
+        public int getTtlSeconds() {
+            return ttlSeconds;
+        }
+
+        public String getCredentialRef() {
+            return credentialRef;
+        }
+
+        public String getCredentialVersion() {
+            return credentialVersion;
+        }
+
+        public boolean isRequireTenant() {
+            return requireTenant;
+        }
+    }
+
+    /**
      * One fixed route and flat scalar argument mapping, independent of the caller's mutable JSON.
      */
     public static final class Tool {
@@ -116,15 +221,18 @@ public final class AgentGatewayHttpToolConfig {
 
         private final String path;
 
+        private final IdentityDelegation identityDelegation;
+
         private final Map<String, String> positions;
 
         private final Map<String, String> types;
 
         private Tool(final String name, final JsonObject object) {
-            fields(object, Set.of("description", "inputSchema", "requestConfig"));
+            fields(object, Set.of(DESCRIPTION, INPUT_SCHEMA, REQUEST_CONFIG, IDENTITY_DELEGATION));
+            identityDelegation = object.has(IDENTITY_DELEGATION) ? new IdentityDelegation(object(object.get(IDENTITY_DELEGATION), IDENTITY_DELEGATION)) : null;
             this.name = name;
-            description = text(object, "description", 2048);
-            schema = object(object.get("inputSchema"), "inputSchema").deepCopy();
+            description = text(object, DESCRIPTION, MAX_DESCRIPTION_LENGTH);
+            schema = object(object.get(INPUT_SCHEMA), INPUT_SCHEMA).deepCopy();
             fields(schema, Set.of("type", "properties", "required", "additionalProperties"));
             if (!"object".equals(text(schema, "type", 16))) {
                 throw invalid();
@@ -144,13 +252,13 @@ public final class AgentGatewayHttpToolConfig {
                     throw invalid();
                 }
                 JsonObject property = object(entry.getValue(), "property");
-                fields(property, Set.of("type", "description"));
+                fields(property, Set.of("type", DESCRIPTION));
                 String type = text(property, "type", 16);
                 if (!Set.of("string", "number", "integer", "boolean").contains(type)) {
                     throw invalid();
                 }
-                if (property.has("description")) {
-                    text(property, "description", 2048);
+                if (property.has(DESCRIPTION)) {
+                    text(property, DESCRIPTION, MAX_DESCRIPTION_LENGTH);
                 }
                 parsedTypes.put(entry.getKey(), type);
             });
@@ -167,7 +275,7 @@ public final class AgentGatewayHttpToolConfig {
                     }
                 });
             }
-            JsonObject config = object(object.get("requestConfig"), "requestConfig");
+            JsonObject config = object(object.get(REQUEST_CONFIG), REQUEST_CONFIG);
             fields(config, Set.of("requestTemplate", "argsPosition"));
             JsonObject template = object(config.get("requestTemplate"), "requestTemplate");
             fields(template, Set.of("method", "url"));
@@ -205,6 +313,14 @@ public final class AgentGatewayHttpToolConfig {
 
         public String getMethod() {
             return method;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public Optional<IdentityDelegation> getIdentityDelegation() {
+            return Optional.ofNullable(identityDelegation);
         }
 
         /**

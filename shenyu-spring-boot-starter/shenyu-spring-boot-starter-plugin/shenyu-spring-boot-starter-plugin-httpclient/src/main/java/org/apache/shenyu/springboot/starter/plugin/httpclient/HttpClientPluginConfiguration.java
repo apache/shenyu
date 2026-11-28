@@ -30,7 +30,6 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -134,7 +133,7 @@ public class HttpClientPluginConfiguration {
                     .exchangeStrategies(ExchangeStrategies.builder()
                             .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(maxInMemorySize))
                             .build())
-                    .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
+                    .clientConnector(new ToolAwareClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
                     .build();
             return new WebClientPlugin(webClient, (long) properties.getMaxInMemorySize() * Constants.BYTES_PER_MB, poolGroups);
         }

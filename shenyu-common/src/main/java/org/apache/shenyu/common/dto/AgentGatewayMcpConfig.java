@@ -172,7 +172,7 @@ public final class AgentGatewayMcpConfig {
         return value.getAsString();
     }
 
-    private int integer(final JsonObject object, final String field, final int defaultValue, final int minimum, final int maximum) {
+    static int integer(final JsonObject object, final String field, final int defaultValue, final int minimum, final int maximum) {
         if (!object.has(field)) {
             return defaultValue;
         }
@@ -191,7 +191,7 @@ public final class AgentGatewayMcpConfig {
         }
     }
 
-    private IllegalArgumentException invalid(final String field, final String message) {
+    private static IllegalArgumentException invalid(final String field, final String message) {
         return new IllegalArgumentException("mcp." + field + " " + message);
     }
 }

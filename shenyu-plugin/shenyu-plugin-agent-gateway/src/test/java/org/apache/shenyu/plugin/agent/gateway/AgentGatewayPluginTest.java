@@ -286,6 +286,25 @@ class AgentGatewayPluginTest {
     }
 
     @Test
+    void staleOrRemovedDelegationPolicyCannotBePublishedByAnAdmittedRequest() {
+        var delegatedRule = rule("""
+                {"trafficType":"mcp","mcp":{"allowedTools":["read"],"httpTools":{"read":{"description":"read",
+                 "identityDelegation":{"credentialRef":"key","credentialVersion":"v1","scopes":["read"],"audience":"orders"},
+                 "inputSchema":{"type":"object","properties":{}},"requestConfig":{"requestTemplate":{"method":"GET","url":"/orders"},"argsPosition":{}}}}}}
+                """);
+        var handler = new AgentGatewayPluginDataHandler();
+        var cache = AgentGatewayPluginDataHandler.CACHED_HANDLE.get();
+        ShenyuPluginChain chain = next -> next.getResponse().setComplete();
+        handler.handlerRule(delegatedRule);
+        var published = cache.obtainHandle("selector-1_rule-1");
+        StepVerifier.create(plugin.doExecute(newExchange(), chain, selector(), rule("rule-1"))).verifyComplete();
+        assertEquals(published, cache.obtainHandle("selector-1_rule-1"));
+        handler.removeRule(delegatedRule);
+        StepVerifier.create(plugin.doExecute(newExchange(), chain, selector(), delegatedRule)).verifyComplete();
+        assertTrue(Objects.isNull(cache.obtainHandle("selector-1_rule-1")));
+    }
+
+    @Test
     void shouldRejectInvalidHandleBeforeCallingDownstream() {
         ServerWebExchange exchange = newExchange();
         java.util.List<org.apache.shenyu.common.audit.AgentInvocationAuditEvent> audits = new java.util.concurrent.CopyOnWriteArrayList<>();

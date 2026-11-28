@@ -26,6 +26,7 @@ import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.TraceIdUtils;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
@@ -306,6 +307,8 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
         private int index;
 
         private final List<ShenyuPlugin> plugins;
+
+        private final HttpToolDispatchGuard guard;
     
         /**
          * Instantiates a new Default shenyu plugin chain.
@@ -313,12 +316,22 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
          * @param plugins the plugins
          */
         DefaultShenyuPluginChain(final List<ShenyuPlugin> plugins) {
+            this(plugins, null);
+        }
+
+        DefaultShenyuPluginChain(final List<ShenyuPlugin> plugins, final HttpToolDispatchGuard guard) {
             this.plugins = plugins;
+            this.guard = guard;
         }
 
         @Override
         public ShenyuPluginChain fork() {
-            return new DefaultShenyuPluginChain(plugins);
+            return new DefaultShenyuPluginChain(plugins, guard);
+        }
+
+        @Override
+        public ShenyuPluginChain fork(final HttpToolDispatchGuard toolGuard) {
+            return new DefaultShenyuPluginChain(plugins, toolGuard);
         }
 
         /**
@@ -329,7 +342,10 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
          */
         @Override
         public Mono<Void> execute(final ServerWebExchange exchange) {
-            return Mono.defer(() -> {
+            Mono<Void> next = Mono.defer(() -> {
+                if (Objects.nonNull(guard)) {
+                    guard.checkRoute(exchange);
+                }
                 if (this.index < plugins.size()) {
                     ShenyuPlugin plugin = plugins.get(this.index++);
                     boolean skip = plugin.skip(exchange);
@@ -345,6 +361,7 @@ public final class ShenyuWebHandler implements WebHandler, ApplicationListener<P
                 }
                 return Mono.empty();
             });
+            return Objects.isNull(guard) ? next : next.contextWrite(context -> context.put(HttpToolDispatchGuard.class, guard));
         }
     }
 }

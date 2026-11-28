@@ -27,7 +27,13 @@ import com.google.gson.JsonParser;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentHttpIdentityDelegator;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentIdentityDelegationException;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentIdentityDelegationException.Reason;
+import org.apache.shenyu.plugin.agent.gateway.delegation.DelegationRequest;
+import org.apache.shenyu.plugin.agent.gateway.delegation.DelegatedCredential;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -66,6 +72,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 /**
@@ -73,6 +80,8 @@ import java.util.function.Function;
  * It never opens a caller-selected socket or borrows the original MCP response, attributes or body.
  */
 public final class AgentHttpToolExecutor implements AgentHttpToolInvoker {
+
+    private static final Duration MAX_TIMER_DURATION = Duration.ofNanos(Long.MAX_VALUE);
 
     private final ServerWebExchange origin;
 
@@ -82,8 +91,16 @@ public final class AgentHttpToolExecutor implements AgentHttpToolInvoker {
 
     private final int maxResponseBytes;
 
+    private final AgentHttpIdentityDelegator identityDelegator;
+
     public AgentHttpToolExecutor(final ServerWebExchange origin, final ShenyuPluginChain chain,
                                  final int maxRequestBytes, final int maxResponseBytes) {
+        this(origin, chain, maxRequestBytes, maxResponseBytes, null);
+    }
+
+    public AgentHttpToolExecutor(final ServerWebExchange origin, final ShenyuPluginChain chain, final int maxRequestBytes,
+                                 final int maxResponseBytes, final AgentHttpIdentityDelegator identityDelegator) {
+        this.identityDelegator = identityDelegator;
         this.origin = Objects.requireNonNull(origin, "origin");
         this.chain = Objects.requireNonNull(chain, "chain");
         this.maxRequestBytes = maxRequestBytes;
@@ -92,59 +109,104 @@ public final class AgentHttpToolExecutor implements AgentHttpToolInvoker {
 
     @Override
     public Mono<JsonObject> invoke(final AgentGatewayHttpToolConfig.Tool tool, final AgentToolInvocation invocation) {
+        return invoke(tool, invocation, () -> true);
+    }
+
+    /**
+     * Invoke a tool while its administrative policy snapshot still authorizes delegation.
+     * @param tool approved tool
+     * @param invocation trusted input
+     * @param currentPolicy checks the rule generation after asynchronous work
+     * @return bounded tool result
+     */
+    public Mono<JsonObject> invoke(final AgentGatewayHttpToolConfig.Tool tool, final AgentToolInvocation invocation, final BooleanSupplier currentPolicy) {
         return Mono.defer(() -> {
+            boolean delegated = tool.getIdentityDelegation().isPresent();
+            if (delegated && Objects.isNull(identityDelegator)) {
+                return Mono.error(new AgentIdentityDelegationException(Reason.UNCONFIGURED));
+            }
             Duration remaining = Duration.between(Instant.now(), invocation.getDeadline());
             if (remaining.isNegative() || remaining.isZero()) {
-                return Mono.error(new TimeoutException("HTTP tool deadline expired"));
+                return Mono.error(delegated ? new AgentIdentityDelegationException(Reason.DEADLINE_EXCEEDED) : new TimeoutException("HTTP tool deadline expired"));
             }
             JsonObject arguments = invocation.getArguments();
             byte[] body = "POST".equals(tool.getMethod()) ? tool.requestBody(arguments).toString().getBytes(StandardCharsets.UTF_8) : new byte[0];
-            if (body.length > maxRequestBytes) {
-                return Mono.error(new DataBufferLimitException("HTTP tool request exceeds its configured budget"));
-            }
             String path = tool.requestPath(arguments);
             if (body.length + path.getBytes(StandardCharsets.UTF_8).length > maxRequestBytes) {
                 return Mono.error(new DataBufferLimitException("HTTP tool request exceeds its configured budget"));
             }
-            CapturedResponse response = new CapturedResponse(origin.getResponse().bufferFactory(), maxResponseBytes);
-            // Spring's mutate builder can expose the original writable header map.
-            // Start with private empty headers before invoking it, never clear the MCP request's map.
-            ServerHttpRequest seed = new ServerHttpRequestDecorator(origin.getRequest()) {
-                @Override
-                public HttpHeaders getHeaders() {
-                    return new HttpHeaders();
-                }
-
-                @Override
-                public Flux<DataBuffer> getBody() {
-                    return Flux.empty();
-                }
-            };
-            final URI target = URI.create("http://localhost" + path);
-            ServerHttpRequest base = seed.mutate().uri(target).contextPath("")
-                    .method(HttpMethod.valueOf(tool.getMethod())).headers(headers -> {
-                        headers.clear();
-                        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-                        headers.setContentLength(body.length);
-                        if (body.length > 0) {
-                            headers.setContentType(MediaType.APPLICATION_JSON);
-                        }
-                    }).build();
-            final ChildExchange child = new ChildExchange(origin, new ToolRequest(base, body, response.bufferFactory()), response);
-            ShenyuContext context = new ShenyuContext();
-            context.setRpcType("http");
-            context.setHttpMethod(tool.getMethod());
-            context.setPath(target.getRawPath());
-            // Keep only the route path. RequestUrlUtils appends the request query to realUrl, and the child
-            // request URI already carries the encoded arguments, so a query here would be forwarded twice.
-            context.setRealUrl(target.getRawPath());
-            context.setStartDateTime(LocalDateTime.now());
-            child.getAttributes().put(Constants.CONTEXT, context);
-            child.getAttributes().put(AgentGatewayConstants.HTTP_TOOL_CALL_ATTRIBUTE, true);
-            // The existing MCP Server plugin recognizes this internal-only marker too.
-            child.getAttributes().put("MCP_TOOL_CALL", true);
-            return chain.fork().execute(child).then(Mono.fromCallable(response::result)).timeout(remaining);
+            URI target = URI.create("http://localhost" + path);
+            if (!delegated) {
+                return dispatch(tool, target, body, null).timeout(remaining);
+            }
+            return resolveCredential(tool, invocation, currentPolicy)
+                    .flatMap(credential -> {
+                        DelegatedHttpRoute route = new DelegatedHttpRoute(tool, credential, invocation.getDeadline(), currentPolicy);
+                        route.checkValidity();
+                        return dispatch(tool, target, body, route);
+                    }).timeout(remaining.compareTo(MAX_TIMER_DURATION) > 0 ? MAX_TIMER_DURATION : remaining,
+                            Mono.error(() -> new AgentIdentityDelegationException(Reason.DEADLINE_EXCEEDED)));
         });
+    }
+
+    private Mono<DelegatedCredential> resolveCredential(final AgentGatewayHttpToolConfig.Tool tool, final AgentToolInvocation invocation, final BooleanSupplier currentPolicy) {
+        if (!currentPolicy.getAsBoolean()) {
+            return Mono.error(new AgentIdentityDelegationException(Reason.REVOKED_OR_EXPIRED));
+        }
+        if (tool.getIdentityDelegation().orElseThrow().isRequireTenant() && invocation.getTenant().isEmpty()) {
+            return Mono.error(new AgentIdentityDelegationException(Reason.TENANT_MISSING));
+        }
+        return Mono.defer(() -> identityDelegator.delegate(new DelegationRequest(tool, invocation)))
+                .switchIfEmpty(Mono.error(() -> new AgentIdentityDelegationException(Reason.KEY_UNAVAILABLE)))
+                .onErrorMap(error -> !(error instanceof AgentIdentityDelegationException), error -> new AgentIdentityDelegationException(Reason.KEY_UNAVAILABLE));
+    }
+
+    private Mono<JsonObject> dispatch(final AgentGatewayHttpToolConfig.Tool tool, final URI target, final byte[] body, final DelegatedHttpRoute route) {
+        CapturedResponse response = new CapturedResponse(origin.getResponse().bufferFactory(), maxResponseBytes);
+        ShenyuContext context = new ShenyuContext();
+        context.setRpcType("http");
+        context.setHttpMethod(tool.getMethod());
+        context.setPath(target.getRawPath());
+        // RequestUrlUtils appends the encoded query separately.
+        context.setRealUrl(target.getRawPath());
+        context.setStartDateTime(LocalDateTime.now());
+        ServerHttpRequest base = privateRequest(target, tool.getMethod(), body.length, route);
+        ChildExchange child = new ChildExchange(origin, new ToolRequest(base, body, response.bufferFactory()), response);
+        child.getAttributes().put(Constants.CONTEXT, context);
+        child.getAttributes().put(AgentGatewayConstants.HTTP_TOOL_CALL_ATTRIBUTE, true);
+        child.getAttributes().put("MCP_TOOL_CALL", true);
+        if (Objects.isNull(route)) {
+            return chain.fork().execute(child).then(Mono.fromCallable(response::result));
+        }
+        child.getAttributes().put(HttpToolDispatchGuard.ATTRIBUTE, route);
+        return chain.fork(route).execute(route.protect(child)).then(Mono.fromCallable(response::result))
+                .contextWrite(contextView -> contextView.put(HttpToolDispatchGuard.class, route));
+    }
+
+    private ServerHttpRequest privateRequest(final URI target, final String method, final int length, final DelegatedHttpRoute route) {
+        // Mutate private headers and body only. Earlier Spring builders can reuse the seed's header map.
+        ServerHttpRequest seed = new ServerHttpRequestDecorator(origin.getRequest()) {
+            @Override
+            public HttpHeaders getHeaders() {
+                return new HttpHeaders();
+            }
+
+            @Override
+            public Flux<DataBuffer> getBody() {
+                return Flux.empty();
+            }
+        };
+        return seed.mutate().uri(target).contextPath("").method(HttpMethod.valueOf(method)).headers(headers -> {
+            headers.clear();
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            headers.setContentLength(length);
+            if (length > 0) {
+                headers.setContentType(MediaType.APPLICATION_JSON);
+            }
+            if (Objects.nonNull(route)) {
+                route.authorize(headers);
+            }
+        }).build();
     }
 
     private static final class ToolRequest extends ServerHttpRequestDecorator {

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.common.dto.AgentGatewayHttpToolConfig;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentIdentityDelegationException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolArgumentException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolCapabilityException;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolDefinition;
@@ -34,6 +35,7 @@ import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceRegistry;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolProvider;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolProvider;
+import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -46,6 +48,8 @@ import java.util.function.Supplier;
  * Request-local discover/list/call dispatch, without HTTP or security-source adaptation.
  */
 public final class AgentMcpDispatcher {
+
+    private static final int DELEGATION_FAILURE_CODE = -32026;
 
     private final AgentToolRegistry registry;
 
@@ -121,8 +125,11 @@ public final class AgentMcpDispatcher {
             }
             return route(request, context).contextWrite(reactorContext -> reactorContext.put(AgentMcpExecutionContext.class, context));
         }).onErrorMap(error -> {
+            if (error instanceof AgentIdentityDelegationException delegation) {
+                return delegationFailure(request, delegation);
+            }
             if (error instanceof AgentHttpToolProvider.DeadlineExceededException) {
-                return failure(request, 504, -32025, "HTTP tool deadline exceeded");
+                return AgentMcpProtocolException.httpToolDeadline(request.getId());
             }
             if (error instanceof TimeoutException) {
                 return error;
@@ -264,8 +271,9 @@ public final class AgentMcpDispatcher {
         JsonObject arguments = params.has("arguments") ? JsonParser.parseString(params.get("arguments").toString()).getAsJsonObject() : new JsonObject();
         JsonObject capabilities = request.getClientCapabilities();
         return registry.invoke(name, context.getAllowedTools(),
-                () -> new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
-                        context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities), context::notifyAttempt)
+                () -> new AgentToolInvocation(new AgentToolInvocation(context.getRequestId(), context.getSubject(), arguments,
+                        context.getRuleId(), context.getConfigurationVersion(), context.getDeadline(), capabilities), context.getTenant().orElse(null)),
+                context::notifyAttempt)
                 .map(value -> {
                     // Active field policies must not introduce an opaque metadata channel.
                     ObjectNode result = filter.isActive() ? mapper.createObjectNode().put("resultType", "complete") : complete();
@@ -283,6 +291,17 @@ public final class AgentMcpDispatcher {
                     return new AgentMcpProtocolException(400, -32021, "Missing required client capability", request.getId(), data);
                 })
                 .onErrorMap(SecurityException.class, error -> failure(request, 403, -32602, "Tool is not available"));
+    }
+
+    private AgentMcpProtocolException delegationFailure(final AgentMcpRequest request, final AgentIdentityDelegationException error) {
+        if (error.getReason() == AgentIdentityDelegationException.Reason.DEADLINE_EXCEEDED) {
+            return AgentMcpProtocolException.httpToolDeadline(request.getId());
+        }
+        ObjectNode data = mapper.createObjectNode().put("reason", error.getReason().name());
+        AgentMcpProtocolException failure = new AgentMcpProtocolException(HttpStatus.FAILED_DEPENDENCY.value(), DELEGATION_FAILURE_CODE,
+                "HTTP tool identity delegation failed", request.getId(), data);
+        failure.initCause(error);
+        return failure;
     }
 
     private ObjectNode toolFailure(final AgentMcpRequest request, final String message, final AgentMcpResultFilter filter) {
