@@ -46,6 +46,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -97,19 +98,22 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
+            final boolean hasBodyChanges = hasBodyModifications();
+            final Charset inputCharset = hasBodyChanges ? getResponseCharset() : StandardCharsets.UTF_8;
             modifyResponseHeadersAndStatus();
-            if (!hasBodyModifications()) {
+            if (!hasBodyChanges) {
                 return super.writeWith(body);
             }
+            final Charset outputCharset = getResponseCharset();
             final Mono<DataBuffer> dataBufferMono = DataBufferUtils.join(body);
             return dataBufferMono.flatMap(dataBuffer -> {
                 byte[] bytes = new byte[dataBuffer.readableByteCount()];
                 dataBuffer.read(bytes);
                 DataBufferUtils.release(dataBuffer);
                 if (isJsonResponse()) {
-                    return WebFluxResultUtils.result(this.exchange, modifyBody(bytes));
+                    return WebFluxResultUtils.result(this.exchange, modifyBody(bytes, inputCharset, outputCharset));
                 }
-                byte[] modifiedBody = tryModifyBody(bytes);
+                byte[] modifiedBody = tryModifyBody(bytes, inputCharset, outputCharset);
                 if (Objects.isNull(modifiedBody)) {
                     return super.writeWith(Mono.just(this.getDelegate().bufferFactory().wrap(bytes)));
                 }
@@ -184,11 +188,17 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
                     || contentType.getSubtype().endsWith("+json");
         }
 
-        private byte[] modifyBody(final byte[] responseBody) {
+        private Charset getResponseCharset() {
+            MediaType contentType = this.getHeaders().getContentType();
+            Charset charset = Objects.isNull(contentType) ? null : contentType.getCharset();
+            return Objects.isNull(charset) ? StandardCharsets.UTF_8 : charset;
+        }
+
+        private byte[] modifyBody(final byte[] responseBody, final Charset inputCharset, final Charset outputCharset) {
             try {
-                String bodyStr = modifyBody(new String(responseBody, StandardCharsets.UTF_8));
+                String bodyStr = modifyBody(new String(responseBody, inputCharset));
                 LOG.info("the body string {}", bodyStr);
-                return bodyStr.getBytes(StandardCharsets.UTF_8);
+                return bodyStr.getBytes(outputCharset);
             } catch (Exception e) {
                 LOG.error("modify response error", e);
                 throw new ShenyuException(String.format("response modify failure. %s", e.getLocalizedMessage()));
@@ -209,11 +219,11 @@ public class ModifyResponsePlugin extends AbstractShenyuPlugin {
             return context.jsonString();
         }
 
-        private byte[] tryModifyBody(final byte[] responseBody) {
+        private byte[] tryModifyBody(final byte[] responseBody, final Charset inputCharset, final Charset outputCharset) {
             try {
-                String bodyStr = modifyBody(new String(responseBody, StandardCharsets.UTF_8));
+                String bodyStr = modifyBody(new String(responseBody, inputCharset));
                 LOG.info("the body string {}", bodyStr);
-                return bodyStr.getBytes(StandardCharsets.UTF_8);
+                return bodyStr.getBytes(outputCharset);
             } catch (Exception e) {
                 LOG.debug("skip modify response body because response content type is not json", e);
                 return null;
