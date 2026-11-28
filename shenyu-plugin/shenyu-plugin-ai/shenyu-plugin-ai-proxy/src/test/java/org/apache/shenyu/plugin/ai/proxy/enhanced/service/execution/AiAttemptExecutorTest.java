@@ -106,7 +106,7 @@ class AiAttemptExecutorTest {
 
     private static AiAttemptExecutor executor() {
         return new AiAttemptExecutor(request -> Mono.just(
-                new AiUpstreamResponse(200, Map.of(), Flux.empty())));
+                new AiUpstreamResponse(200, Map.of(), Flux.empty())), null);
     }
 
     private static AiExecutionState.AttemptLifecycle lifecycle(final List<AiAttemptEvent> attempts) {

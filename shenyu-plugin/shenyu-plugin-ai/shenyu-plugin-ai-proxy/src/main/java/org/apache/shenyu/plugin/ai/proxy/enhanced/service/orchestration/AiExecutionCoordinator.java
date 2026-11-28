@@ -24,12 +24,18 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiStructuredOutputPolicy;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission.AdmissionOutcome;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission.AdmissionResult;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission.AdmissionTicket;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.execution.AiExecutionState;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.structured.AiStructuredOutputSession;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 /**
@@ -43,12 +49,16 @@ public final class AiExecutionCoordinator {
 
     private final AiExactResponseCache responseCache;
 
+    private final AiConcurrencyAdmission admission;
+
     public AiExecutionCoordinator(final AiAttemptOrchestrator attemptOrchestrator,
                            final AiProxyRetryProperties retryProperties,
-                           final AiExactResponseCache responseCache) {
+                           final AiExactResponseCache responseCache,
+                           final AiConcurrencyAdmission admission) {
         this.attemptOrchestrator = Objects.requireNonNull(attemptOrchestrator, "attemptOrchestrator must not be null");
         this.retryProperties = Objects.requireNonNull(retryProperties, "retryProperties must not be null");
         this.responseCache = responseCache;
+        this.admission = admission;
     }
 
     public Mono<Void> execute(final AiExecutionRequest request,
@@ -70,6 +80,13 @@ public final class AiExecutionCoordinator {
                 return copy;
             });
 
+            // the logical permit is held across retries, fallbacks and repairs until the
+            // terminal signal; the tenant is the trusted identity, never wire metadata (#8254)
+            final AtomicReference<AdmissionTicket> logicalTicket = new AtomicReference<>();
+            Mono<AdmissionResult> logicalAdmission = Objects.isNull(admission)
+                    ? Mono.just(AdmissionResult.ADMITTED)
+                    : admission.acquireTenant(observation.getContext().getTenant(),
+                            requestDeadline.deadlineNanos());
             Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> upstream = consumer -> {
                 AiExecutionState execution = new AiExecutionState(
                         new AiExecutionState.RequestExecution(
@@ -81,23 +98,44 @@ public final class AiExecutionCoordinator {
                 return attemptOrchestrator.execute(execution, request.primary(), fallback);
             };
 
-            if (Objects.nonNull(responseCache)) {
-                return responseCache.execute(
-                                new AiExactResponseCache.CacheRequest(
-                                        new AiExactResponseCache.CacheKeySource(
-                                                request.payload().body(), request.primary().request()),
-                                        new AiExactResponseCache.CacheIdentity(
-                                                request.primary().providerName(), request.primary().clientProtocol(),
-                                                request.primary().targetProtocol()),
-                                        !request.primary().stream() && fallback.isEmpty()
-                                                && request.primary().cacheCompatible()),
-                                responseConsumer,
-                                upstream)
-                        .timeout(requestDeadline.remainingTimeout(),
-                                Mono.error(requestDeadline.timeoutException()));
-            }
+            Function<Function<AiUpstreamResponse, Mono<Void>>, Mono<Void>> gated = consumer -> {
+                // the logical permit is acquired outside the cache/orchestration split and
+                // released at the terminal signal, after retries, fallbacks, repairs and
+                // cache reads are all done
+                Mono<Void> inner;
+                if (Objects.nonNull(responseCache)) {
+                    inner = responseCache.execute(
+                                    new AiExactResponseCache.CacheRequest(
+                                            new AiExactResponseCache.CacheKeySource(
+                                                    request.payload().body(), request.primary().request()),
+                                            new AiExactResponseCache.CacheIdentity(
+                                                    request.primary().providerName(), request.primary().clientProtocol(),
+                                                    request.primary().targetProtocol()),
+                                            !request.primary().stream() && fallback.isEmpty()
+                                                    && request.primary().cacheCompatible()),
+                                    responseConsumer,
+                                    upstream)
+                            .timeout(requestDeadline.remainingTimeout(),
+                                    Mono.error(requestDeadline.timeoutException()));
+                } else {
+                    inner = upstream.apply(consumer)
+                            .timeout(requestDeadline.remainingTimeout(),
+                                    Mono.error(requestDeadline.timeoutException()));
+                }
+                Mono<Void> gatedChain = Objects.nonNull(admission)
+                        ? inner.doFinally(ignored -> admission.release(logicalTicket.get())) : inner;
+                return logicalAdmission.flatMap(result -> {
+                    if (result.outcome() != AdmissionOutcome.ACQUIRED) {
+                        return Mono.error(new AiProxyException(
+                                AiProxyException.Kind.ADMISSION,
+                                "AI request rejected by concurrency admission: " + result.outcome(), null));
+                    }
+                    logicalTicket.set(result.ticket());
+                    return gatedChain;
+                });
+            };
 
-            return upstream.apply(responseConsumer);
+            return gated.apply(responseConsumer);
         });
     }
 }
