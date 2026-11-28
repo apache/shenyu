@@ -78,7 +78,10 @@ the vendor may already have received earlier chunks. The gateway returns 413
 while it can still set the response status. Redirects are returned to the caller.
 The first upload streams immediately. When status replay is permitted, the gateway
 keeps a bounded copy for retrying a vendor 429. It honors Retry-After and the
-shared request deadline. The final response streams to the client as it arrives.
+shared request deadline. While deciding whether to retry, the gateway keeps up to
+16 KiB of the 429 response. If the retry delay no longer fits, it returns the
+original 429 with its headers and body. Larger 429 responses stream to the
+client as soon as they cross the limit.
 A 5xx, a connection failure or an interrupted SSE stream never triggers a resend.
 Custom transports must implement streaming uploads to serve passthrough selectors.
 Earlier gateway filters still apply. In the default bootstrap, the upload-size

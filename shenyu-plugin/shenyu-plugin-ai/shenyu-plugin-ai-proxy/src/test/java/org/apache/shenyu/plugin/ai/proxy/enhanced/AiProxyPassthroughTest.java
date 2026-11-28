@@ -29,6 +29,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
@@ -50,6 +51,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
+import reactor.test.publisher.TestPublisher;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -79,8 +81,12 @@ class AiProxyPassthroughTest {
     private final SelectorData selector = SelectorData.builder().id("native").handle(HANDLE).build();
 
     private AiProxyPlugin plugin(final AiProxyTransport transport) {
+        return plugin(transport, new AiProxyRetryProperties());
+    }
+
+    private AiProxyPlugin plugin(final AiProxyTransport transport, final AiProxyRetryProperties retry) {
         handler.handlerSelector(selector);
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of()), new AiProxyProviderFactory(List.of()), transport);
+        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of()), new AiProxyProviderFactory(List.of()), transport, retry);
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, events::add);
     }
 
@@ -160,6 +166,59 @@ class AiProxyPassthroughTest {
         } finally {
             vendor.disposeNow();
         }
+    }
+
+    @Test
+    void returnsVendorRateLimitWhenReadingTheBodyConsumesTheRetryWindow() {
+        AiProxyRetryProperties retry = new AiProxyRetryProperties();
+        retry.setRequestDeadline(Duration.ofSeconds(3));
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/native/v1/messages").body("payload"));
+        Flux<byte[]> body = Flux.defer(() -> Flux.just("rate ", "limited").map(value -> value.getBytes(StandardCharsets.UTF_8))
+                .concatWith(Mono.delay(Duration.ofSeconds(2)).then(Mono.empty())));
+        StepVerifier.withVirtualTime(() -> plugin(rateLimited(body), retry).doExecute(exchange, unused -> Mono.empty(), selector, new RuleData()))
+                .thenAwait(Duration.ofSeconds(2)).expectComplete().verify(Duration.ofSeconds(5));
+        assertEquals(1, sent.size());
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, exchange.getResponse().getStatusCode());
+        assertEquals("2", exchange.getResponse().getHeaders().getFirst("Retry-After"));
+        assertEquals(List.of("one", "two"), exchange.getResponse().getHeaders().get("X-Vendor"));
+        assertEquals("rate limited", exchange.getResponse().getBodyAsString().block());
+    }
+
+    @Test
+    void oversizedRateLimitStreamsBufferedPrefixAndRemainingBytesOnce() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/native/v1/messages").body("payload"));
+        String large = "x".repeat(16 * 1024);
+        TestPublisher<byte[]> body = TestPublisher.create();
+        List<String> received = new ArrayList<>();
+        exchange.getResponse().setWriteHandler(buffers -> buffers.doOnNext(buffer -> {
+            received.add(buffer.toString(StandardCharsets.UTF_8));
+            DataBufferUtils.release(buffer);
+        }).then());
+        StepVerifier.create(plugin(rateLimited(body.flux())).doExecute(exchange, unused -> Mono.empty(), selector, new RuleData()))
+                .then(() -> body.next("prefix".getBytes(StandardCharsets.UTF_8), large.getBytes(StandardCharsets.UTF_8)))
+                .then(() -> assertEquals("prefix" + large, String.join("", received)))
+                .then(() -> body.emit("tail".getBytes(StandardCharsets.UTF_8)))
+                .expectComplete().verify(Duration.ofSeconds(5));
+        assertEquals(1, sent.size());
+        assertEquals(1, body.subscribeCount());
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, exchange.getResponse().getStatusCode());
+        assertEquals("prefix" + large + "tail", String.join("", received));
+    }
+
+    private AiProxyTransport rateLimited(final Flux<byte[]> body) {
+        return new AiProxyTransport() {
+            @Override
+            public Mono<AiUpstreamResponse> execute(final AiUpstreamRequest request) {
+                throw new AssertionError("converted transport invoked");
+            }
+
+            @Override
+            public Mono<AiUpstreamResponse> prepareStreaming(final AiUpstreamRequest request, final Flux<DataBuffer> upload) {
+                sent.add(request);
+                return upload.doOnNext(DataBufferUtils::release).then().thenReturn(new AiUpstreamResponse(429,
+                        Map.of("Retry-After", List.of("2"), "X-Vendor", List.of("one", "two")), body));
+            }
+        };
     }
 
     @Test

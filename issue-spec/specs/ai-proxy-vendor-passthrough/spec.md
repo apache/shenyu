@@ -39,7 +39,10 @@ The public Proposal, Design and confirmed SPEC references are pending.
 - Only a vendor HTTP 429 may trigger a same-endpoint retry. Retain a bounded
   byte copy during the first upload. Require its completion, permission under
   the status replay policy, an available streaming retry and time to honor
-  Retry-After within the shared deadline. Forward the final vendor response.
+  Retry-After within the shared deadline. Preserve a retry-eligible 429 until the
+  next attempt starts. If the retry delay no longer fits after reading the body,
+  forward the vendor status, headers and bytes. If the body exceeds 16 KiB,
+  stream the buffered prefix and remaining bytes immediately and skip the retry.
   Transport failures, 5xx, cancellation and downstream writes never trigger replay.
 - Passthrough bypasses model overrides, conversion, fallback,
   structured-output repair and the AI response cache.

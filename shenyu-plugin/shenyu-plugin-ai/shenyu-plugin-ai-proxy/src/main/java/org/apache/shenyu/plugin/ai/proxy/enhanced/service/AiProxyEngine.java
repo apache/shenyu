@@ -56,11 +56,14 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiTransportException;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
+import reactor.core.scheduler.Schedulers;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
@@ -68,6 +71,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -77,6 +81,8 @@ import java.util.function.Function;
  * Coordinates the complete reactive AI exchange and owns retry and fallback policy.
  */
 public final class AiProxyEngine {
+
+    private static final int MAX_RATE_LIMIT_BODY_BYTES = 16 * 1024;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
@@ -253,8 +259,9 @@ public final class AiProxyEngine {
         return Mono.defer(() -> {
             int maxRetries = nativeStatusRetries(protocol);
             AiUploadReplayBuffer copy = new AiUploadReplayBuffer();
-            long deadline = System.nanoTime() + retryProperties.getRequestDeadline().toNanos();
-            return sendNative(request, maxRetries == 0 ? upload : copy.capture(upload), copy, protocol, observation, writer, maxRetries, 0, deadline);
+            long deadline = nativeTimeNanos() + retryProperties.getRequestDeadline().toNanos();
+            NativeCall call = new NativeCall(request, copy, protocol, observation, writer, maxRetries, deadline);
+            return sendNative(call, maxRetries == 0 ? upload : copy.capture(upload), 0, null);
         });
     }
 
@@ -269,38 +276,58 @@ public final class AiProxyEngine {
         return mode == AiProxyRetryProperties.ReplayMode.CONSERVATIVE ? retryProperties.getStreamingMaxRetries() : 0;
     }
 
-    private Mono<Void> sendNative(final AiUpstreamRequest request, final Flux<DataBuffer> upload, final AiUploadReplayBuffer copy,
-                                  final String protocol, final AiRequestObservation observation, final Function<AiUpstreamResponse, Mono<Void>> writer,
-                                  final int maxRetries, final int retries, final long deadline) {
-        long remaining = deadline - System.nanoTime();
+    private static long nativeTimeNanos() {
+        return Schedulers.parallel().now(TimeUnit.NANOSECONDS);
+    }
+
+    private Mono<Void> sendNative(final NativeCall call, final Flux<DataBuffer> upload, final int retries, final AiUpstreamResponse previousResponse) {
+        long remaining = call.deadline() - nativeTimeNanos();
         if (remaining <= 0) {
-            return Mono.error(nativeDeadlineExceeded());
+            return Objects.nonNull(previousResponse) ? call.write(previousResponse) : Mono.error(nativeDeadlineExceeded());
         }
-        Mono<AiUpstreamResponse> prepared = aiProxyTransport.prepareStreaming(request, upload);
+        Mono<AiUpstreamResponse> prepared = aiProxyTransport.prepareStreaming(call.request(), upload);
         AiAttemptEvent.Kind kind = retries == 0 ? AiAttemptEvent.Kind.PRIMARY : AiAttemptEvent.Kind.RETRY;
-        AiRequestObservation.Attempt attempt = observation.startAttempt(observation.getContext(), kind, "passthrough", protocol, false);
+        AiRequestObservation.Attempt attempt = call.observation().startAttempt(call.observation().getContext(), kind, "passthrough", call.protocol(), false);
         return prepared.flatMap(response -> {
-            AiUpstreamResponse observed = observeNative(response, protocol, attempt);
-            if (response.getStatusCode() == 429 && retries < maxRetries && copy.isComplete()) {
+            AiUpstreamResponse observed = observeNative(response, call.protocol(), attempt);
+            if (response.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS.value() && retries < call.maxRetries() && call.uploadCopy().isComplete()) {
                 Duration delay = nativeRetryDelay(response.getHeaders(), retries);
-                if (Objects.nonNull(delay) && delay.toNanos() < deadline - System.nanoTime()) {
-                    return observed.getBody().then(Mono.just(delay));
+                if (Objects.nonNull(delay) && delay.toNanos() < call.deadline() - nativeTimeNanos()) {
+                    return bufferRateLimitResponse(observed, delay, call);
                 }
             }
-            copy.discard();
-            return consumeResponse(observed, writer, new AtomicBoolean()).then(Mono.<Duration>empty());
+            return consumeResponse(observed, call::write, new AtomicBoolean()).then(Mono.<RateLimitRetry>empty());
         }).timeout(Duration.ofNanos(remaining), Mono.error(AiProxyEngine::nativeDeadlineExceeded))
                 .doOnSuccess(ignored -> attempt.finish(SignalType.ON_COMPLETE, null))
                 .doOnError(error -> attempt.finish(SignalType.ON_ERROR, AiObservationSupport.outcome(error)))
                 .doOnCancel(() -> attempt.finish(SignalType.CANCEL, null))
                 .contextWrite(context -> context.put(AiRequestObservation.Attempt.REACTOR_KEY, attempt))
-                .flatMap(delay -> {
-                    if (delay.toNanos() >= deadline - System.nanoTime()) {
-                        return Mono.error(nativeDeadlineExceeded());
+                .flatMap(retry -> {
+                    if (retry.delay().toNanos() >= call.deadline() - nativeTimeNanos()) {
+                        return call.write(retry.response());
                     }
-                    return Mono.delay(delay).then(Mono.defer(() ->
-                            sendNative(request, copy.replay(), copy, protocol, observation, writer, maxRetries, retries + 1, deadline)));
+                    return Mono.delay(retry.delay()).then(Mono.defer(() ->
+                            sendNative(call, call.uploadCopy().replay(), retries + 1, retry.response())));
                 });
+    }
+
+    private Mono<RateLimitRetry> bufferRateLimitResponse(final AiUpstreamResponse response, final Duration delay, final NativeCall call) {
+        ByteArrayOutputStream prefix = new ByteArrayOutputStream();
+        return response.getBody().skipWhile(chunk -> {
+            if (chunk.length > MAX_RATE_LIMIT_BODY_BYTES - prefix.size()) {
+                return false;
+            }
+            prefix.writeBytes(chunk);
+            return true;
+        }).<RateLimitRetry>switchOnFirst((signal, remainder) -> {
+            Flux<byte[]> buffered = prefix.size() == 0 ? Flux.empty() : Flux.just(prefix.toByteArray());
+            if (signal.isOnComplete() && delay.toNanos() < call.deadline() - nativeTimeNanos()) {
+                AiUpstreamResponse saved = new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(), buffered);
+                return Mono.just(new RateLimitRetry(delay, saved));
+            }
+            AiUpstreamResponse streaming = new AiUpstreamResponse(response.getStatusCode(), response.getHeaders(), buffered.concatWith(remainder));
+            return consumeResponse(streaming, call::write, new AtomicBoolean()).then(Mono.empty());
+        }).singleOrEmpty();
     }
 
     private static AiTransportException nativeDeadlineExceeded() {
@@ -985,6 +1012,17 @@ public final class AiProxyEngine {
             AiStructuredOutputPolicy policy,
             AtomicInteger repairsRemaining,
             AtomicReference<AiCommonConfig> activeConfig) {
+    }
+
+    private record NativeCall(AiUpstreamRequest request, AiUploadReplayBuffer uploadCopy, String protocol, AiRequestObservation observation,
+                              Function<AiUpstreamResponse, Mono<Void>> writer, int maxRetries, long deadline) {
+        private Mono<Void> write(final AiUpstreamResponse response) {
+            uploadCopy.discard();
+            return writer.apply(response);
+        }
+    }
+
+    private record RateLimitRetry(Duration delay, AiUpstreamResponse response) {
     }
 
     private record PreparedExchange(
