@@ -19,38 +19,30 @@ package org.apache.shenyu.plugin.cryptor.strategy;
 
 import org.apache.shenyu.spi.Join;
 
-import javax.crypto.Cipher;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
+import java.security.spec.AlgorithmParameterSpec;
 
 /**
- * rsa cryptor.
+ * rsa cryptor (default).
+ *
+ * <p>Uses legacy PKCS#1 v1.5 padding ({@code RSA/ECB/PKCS1Padding}), exactly as previous
+ * releases did, so existing {@code rsa} rules stay wire-compatible across upgrades.
+ *
+ * <p>PKCS#1 v1.5 is not semantically secure and is vulnerable to Bleichenbacher
+ * padding-oracle attacks; new deployments should prefer the {@code rsa-oaep}
+ * strategy ({@link RsaOaepStrategy}).
  */
 @Join
-public class RsaStrategy implements CryptorStrategy {
+public class RsaStrategy extends AbstractRsaStrategy {
 
-    private static final String RSA = "rsa";
+    private static final String TRANSFORMATION = "RSA/ECB/PKCS1Padding";
 
     @Override
-    public String decrypt(final String key, final byte[] encryptData) throws Exception {
-        byte[] decoded = Base64.getDecoder().decode(key);
-        PrivateKey priKey = KeyFactory.getInstance(RSA).generatePrivate(new PKCS8EncodedKeySpec(decoded));
-        Cipher cipher = Cipher.getInstance(RSA);
-        cipher.init(Cipher.DECRYPT_MODE, priKey);
-        return new String(cipher.doFinal(encryptData));
+    protected String transformation() {
+        return TRANSFORMATION;
     }
 
     @Override
-    public String encrypt(final String key, final String data) throws Exception {
-        byte[] decoded = Base64.getDecoder().decode(key);
-        RSAPublicKey pubKey = (RSAPublicKey) KeyFactory.getInstance(RSA).generatePublic(new X509EncodedKeySpec(decoded));
-        Cipher cipher = Cipher.getInstance(RSA);
-        cipher.init(Cipher.ENCRYPT_MODE, pubKey);
-        return Base64.getEncoder().encodeToString(cipher.doFinal(data.getBytes(StandardCharsets.UTF_8)));
+    protected AlgorithmParameterSpec params() {
+        return null;
     }
 }
