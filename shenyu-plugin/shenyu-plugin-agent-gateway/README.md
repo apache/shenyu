@@ -326,9 +326,8 @@ plugin does not expose a universal `/mcp` path. Unmatched or disabled traffic,
 LLM rules and independently routed legacy MCP traffic keep their existing chain.
 An initialization-based client must use a separately configured legacy endpoint
 or an explicit client adapter; this entry does not make SDK 0.17.0 interoperable
-with the newer wire contract. The remote aggregation adapter connects to the
-fixed older outbound contract described below; it does not relax inbound checks
-or provide arbitrary protocol-version negotiation.
+with the newer wire contract. Each remote binding selects its own outbound
+profile as described under [Remote tools aggregation](#remote-tools-aggregation).
 
 The parser accepts one UTF-8 JSON-RPC 2.0 object with a string or integral ID,
 object `params`, and object `_meta`. It requires a string
@@ -533,6 +532,30 @@ Save this secret-free **plugin** configuration in Admin, not a rule handle:
 {"aggregation":{"revision":"orders-v1","servers":[{"name":"orders","endpoint":"https://192.0.2.10:443/mcp","credentialRef":"service/orders","credentialVersion":"v1"}]}}
 ```
 
+Each server accepts an optional string `protocolProfile`. Omitting the field
+selects `legacy-2025-06-18`. To use a stateless upstream, add
+`"protocolProfile":"native-2026-07-28"` beside `credentialVersion`.
+Explicit null, blank, unknown and non-string values are rejected. Both profiles
+use the same endpoint allowlist and mounted credential file format.
+
+| Outbound profile | Catalog refresh | Tool invocation | Remote resources |
+| --- | --- | --- | --- |
+| `legacy-2025-06-18` | `initialize`, `notifications/initialized`, then paginated `tools/list` when advertised | Uses the negotiated session ID when supplied. A session is closed with DELETE. | Available when enabled and advertised |
+| `native-2026-07-28` | `server/discover` must advertise `2026-07-28` in `supportedVersions` and include the tools capability before `tools/list` | Each `tools/call` POST carries the version, empty client capabilities, and mirrored method and tool name. Only `resultType="complete"` is supported. | Skipped, including when legacy targets in the same catalog expose resources |
+
+Native requests can move between gateway instances. Each gateway discovers its
+own directory. Each POST describes the entire protocol request and uses the
+target's fixed service credential. There is no initialization handshake, session
+header, GET recovery stream or DELETE. An unsupported result (including
+`input_required` or a missing discriminator), a protocol error, or a disconnect
+ends the call. ShenYu never replays a dispatched tool call or switches profiles
+on failure. A tool requiring custom `Mcp-Param-*` headers or input schema
+constraints that the catalog cannot represent causes the refresh to fail.
+Optional display metadata can be omitted when mapping a tool definition into
+the catalog. The invocation path retains the upstream's complete raw tool result.
+See the [versioned interoperability evidence](../../docs/issues/8196/interop-evidence.md)
+for the SDK pins, host command and verification status.
+
 Admin validates unknown/duplicate/missing fields, bounds and endpoint syntax
 before saving or importing; the gateway uses the same parser. Existing data-sync
 channels feed an owned, bounded configuration worker. No custom production HTTP
@@ -593,6 +616,11 @@ clears the superseded failure even when the older event exits without publicatio
 An empty failure field does not mean ready: check the current generation too.
 Typed `diagnosticsState()` snapshots are available to Java callers; `diagnostics()`
 retains the secret-free map export for existing management consumers.
+The active generation's `capabilities` list names each server, the gateway entry
+and ingress version, its outbound profile and version, supported methods and
+result types, JSON/SSE response modes, resource support, and translation limits.
+Retired generations keep their clients for admitted calls. The capability list
+describes the generation available to new requests.
 
 Fail-closed scope: while the enabled catalog has no complete current generation,
 every MCP operation using that catalog is refused, including discovery and purely
@@ -600,12 +628,11 @@ local tools. The entry returns HTTP 503 / JSON-RPC `-32023` rather than a generi
 gateway-bug error. There is no implicit last-good-generation or local-only fallback.
 An explicit empty remote configuration can restore a complete local-only view.
 
-Outbound support remains fixed `2025-06-18` initialize/initialized, bounded tools
-pagination/call, opt-in resource pagination/read and JSON or a single final SSE response. It does not add GET stream
-recovery, OAuth, Tasks or nonempty request `_meta` delegation, nor change the inbound
-version. Conservative limits retained from verified experiments: 8 Servers, 4 pages
-per Server, 16 remote tools, 8 KiB request/response, 64 in-flight requests per client,
-5-second directory update and 2-second session DELETE completion. The trusted
+Both outbound profiles accept JSON or a single final SSE response. They bound tool
+pagination and calls and reject delegation of nonempty request `_meta`.
+The limits are 8 servers, 4 pages per server, 16 remote tools, 8 KiB per request
+or response, 64 in-flight requests per client, a 5-second directory update and
+a 2-second legacy session DELETE. The trusted
 request deadline bounds the individual HTTP future; cancellation does not promise
 remote business rollback, termination of arbitrary backend code or stopped billing.
 
@@ -618,8 +645,8 @@ existing allowlisted endpoints, fixed service credentials, request-owned HTTP
 adapter and complete directory generations. They require the additional
 deployment opt-in `shenyu.plugins.agent.gateway.aggregation.resources-enabled=true`.
 Its default is false; existing tools-only deployments do not issue resource
-discovery requests. Only targets advertising resources are queried. A resource-only
-target does not receive `tools/list`.
+discovery requests. Only legacy targets advertising resources are queried.
+A legacy resource-only target does not receive `tools/list`.
 
 An Admin MCP rule can specify:
 

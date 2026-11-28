@@ -20,6 +20,7 @@ package org.apache.shenyu.common.config.contract;
 import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -181,6 +182,14 @@ class ConfigurationContractRegistryTest {
         assertEquals(ConfigurationValidation.Status.INVALID, result.status());
         assertEquals(code, result.violations().get(0).code());
         assertFalse(result.toString().contains("SECRET"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"\"legacy-2025-06-18\",VALID", "\"native-2026-07-28\",VALID", "null,INVALID", "\" \",INVALID", "\"unknown\",INVALID", "1,INVALID"})
+    void validatesUpstreamProfileBeforePersistence(final String profile, final ConfigurationValidation.Status expected) {
+        String source = "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[{\"name\":\"orders\",\"endpoint\":\"http://127.0.0.1:9195/mcp\","
+                + "\"credentialRef\":\"orders\",\"credentialVersion\":\"v1\",\"protocolProfile\":" + profile + "}]}}";
+        assertEquals(expected, ConfigurationContractRegistry.shared().validate("agentGateway", ConfigurationScope.PLUGIN, "1", source).status());
     }
 
     private ConfigurationContractProvider provider(final ConfigurationScope scope) {

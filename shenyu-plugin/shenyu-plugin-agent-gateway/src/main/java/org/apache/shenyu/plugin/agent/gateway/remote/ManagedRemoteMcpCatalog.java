@@ -174,7 +174,7 @@ public final class ManagedRemoteMcpCatalog implements AgentMcpRemoteCatalog, Aut
             List<RemoteCatalogLifecycle.Config> targets = new ArrayList<>();
             for (AgentGatewayAggregationConfig.Server server : config.servers()) {
                 RemoteServerBinding.Config reference = new RemoteServerBinding.Config(server.name(), server.endpoint(), server.credentialRef(), server.credentialVersion());
-                targets.add(RemoteServerBinding.resolve(reference, allowedEndpoints, credentials::resolve).lifecycleConfig());
+                targets.add(RemoteServerBinding.resolve(reference, server.protocolProfile(), allowedEndpoints, credentials::resolve).lifecycleConfig());
             }
             return lifecycle.refresh(targets, List.of(), localNames, stillCurrent);
         });

@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.agent.gateway.remote;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.ProtocolProfile;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog.CatalogUnavailableException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -65,11 +66,40 @@ class RemoteCatalogLifecycleTest {
         var after = manager.diagnosticsState();
         assertEquals(0L, before.currentVersion());
         assertEquals(1L, after.currentVersion());
-        assertEquals(Set.of("closed", "updating", "generations", "clients", "references", "pending", "currentVersion", "cleanupFailures"), after.toMap().keySet());
+        assertEquals(Set.of("closed", "updating", "generations", "clients", "references", "pending", "currentVersion", "cleanupFailures", "capabilities"), after.toMap().keySet());
         assertEquals(0, after.pending());
         assertEquals(after.toMap(), manager.diagnostics());
         assertThrows(UnsupportedOperationException.class, () -> after.toMap().clear());
         manager.closeGracefully().block(WAIT);
+    }
+
+    @Test
+    void publishesOnlyDirectionalCapabilitiesForTheActiveGeneration() {
+        RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3, true);
+        manager.refresh(List.of(new RemoteCatalogLifecycle.Config("orders", "private-version", ProtocolProfile.NATIVE_2026_07_28,
+                () -> new Fake("private-version", ProtocolProfile.NATIVE_2026_07_28)))).block(WAIT);
+        try {
+            var nativeCapability = manager.diagnosticsState().capabilities().get(0);
+            assertEquals("agentGateway.mcp", nativeCapability.entry());
+            assertEquals("2026-07-28", nativeCapability.ingressVersion());
+            assertEquals("native-2026-07-28", nativeCapability.outboundProfile());
+            assertEquals("2026-07-28", nativeCapability.outboundVersion());
+            assertEquals(List.of("server/discover", "tools/list", "tools/call"), nativeCapability.supportedMethods());
+            assertEquals(List.of("complete"), nativeCapability.supportedResultTypes());
+            assertEquals(List.of("json", "sse"), nativeCapability.responseModes());
+            assertFalse(nativeCapability.resourcesSupported());
+            assertFalse(manager.diagnostics().toString().contains("private-version"));
+            assertEquals(List.of(nativeCapability.toMap()), manager.diagnostics().get("capabilities"));
+            manager.refresh(List.of(config(new Fake("legacy")))).block(WAIT);
+            var legacy = manager.diagnosticsState().capabilities().get(0);
+            assertEquals("legacy-2025-06-18", legacy.outboundProfile());
+            assertEquals(List.of("initialize", "notifications/initialized", "tools/list", "tools/call"), legacy.supportedMethods());
+            assertFalse(legacy.resourcesSupported());
+            manager.withdraw();
+            assertTrue(manager.diagnosticsState().capabilities().isEmpty());
+        } finally {
+            manager.closeGracefully().block(WAIT);
+        }
     }
 
     @Test
@@ -206,16 +236,21 @@ class RemoteCatalogLifecycleTest {
     }
 
     @Test
-    void keepsOldInflightVersionUntilItsLastLeaseReleases() {
-        Fake old = new Fake("old");
+    void keepsInflightNativeBindingDuringLegacyRefreshAndNativeRollback() {
+        Fake old = new Fake("old", ProtocolProfile.NATIVE_2026_07_28);
         old.result = Sinks.one();
         Fake next = new Fake("next");
         RemoteCatalogLifecycle manager = new RemoteCatalogLifecycle(3);
-        manager.refresh(List.of(config(old))).block(WAIT);
+        manager.refresh(List.of(new RemoteCatalogLifecycle.Config("orders", "v1", ProtocolProfile.NATIVE_2026_07_28, () -> old))).block(WAIT);
         final var inflight = manager.callRaw("orders.lookup", TOOLS, TOOLS, Map.of()).toFuture();
         manager.refresh(List.of(config(next))).block(WAIT);
         assertEquals(0, old.closes.get());
         assertEquals("next", manager.callRaw("orders.lookup", TOOLS, TOOLS, Map.of()).block(WAIT).path("version").textValue());
+        assertEquals("legacy-2025-06-18", manager.diagnosticsState().capabilities().get(0).outboundProfile());
+        manager.refresh(List.of(new RemoteCatalogLifecycle.Config("orders", "v1", ProtocolProfile.NATIVE_2026_07_28, () -> new Fake("rollback", ProtocolProfile.NATIVE_2026_07_28)))).block(WAIT);
+        assertEquals("native-2026-07-28", manager.diagnosticsState().capabilities().get(0).outboundProfile());
+        assertEquals("rollback", manager.callRaw("orders.lookup", TOOLS, TOOLS, Map.of()).block(WAIT).path("version").textValue());
+        assertEquals(0, old.closes.get());
         old.result.tryEmitValue(new ObjectMapper().createObjectNode().put("version", "old"));
         assertEquals("old", Mono.fromFuture(inflight).block(WAIT).path("version").textValue());
         assertEquals(1, old.closes.get());
@@ -349,6 +384,8 @@ class RemoteCatalogLifecycleTest {
 
         private final String version;
 
+        private final ProtocolProfile profile;
+
         private final AtomicInteger closes = new AtomicInteger();
 
         private Sinks.One<ObjectNode> result;
@@ -362,11 +399,16 @@ class RemoteCatalogLifecycleTest {
         private boolean repeatCursor;
 
         private Fake(final String version) {
+            this(version, ProtocolProfile.LEGACY_2025_06_18);
+        }
+
+        private Fake(final String version, final ProtocolProfile profile) {
             this.version = version;
+            this.profile = profile;
         }
 
         private McpSchema.InitializeResult info() {
-            return json.convertValue(Map.of("protocolVersion", "2025-06-18", "capabilities", Map.of("tools", Map.of()),
+            return json.convertValue(Map.of("protocolVersion", profile.version(), "capabilities", Map.of("tools", Map.of()),
                     "serverInfo", Map.of("name", "unit", "version", "1")), McpSchema.InitializeResult.class);
         }
 
