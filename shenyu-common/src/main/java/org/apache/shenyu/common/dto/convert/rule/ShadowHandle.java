@@ -18,6 +18,7 @@
 package org.apache.shenyu.common.dto.convert.rule;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -83,6 +84,24 @@ public class ShadowHandle {
      * reported as truncated instead of sending a partial request.
      */
     private Integer maxRequestBodyBytes = DEFAULT_MAX_BODY_BYTES;
+
+    /**
+     * Maximum response body bytes copied for comparison. A larger response is
+     * reported as truncated instead of compared partially.
+     */
+    private Integer maxResponseBodyBytes = DEFAULT_MAX_BODY_BYTES;
+
+    /**
+     * Response headers compared between the primary and shadow responses.
+     */
+    private List<String> compareHeaders = Arrays.asList("Content-Type");
+
+    /**
+     * JSON paths ignored during body comparison, for example {@code $.timestamp}.
+     * A difference that disappears after ignoring the paths is reported as
+     * normalized rather than as a mismatch.
+     */
+    private List<String> ignoreJsonPaths = Collections.emptyList();
 
     /**
      * Request headers forwarded from the primary request. Cookies and
@@ -241,6 +260,60 @@ public class ShadowHandle {
     }
 
     /**
+     * Gets max response body bytes.
+     *
+     * @return the maximum response body bytes copied for comparison
+     */
+    public Integer getMaxResponseBodyBytes() {
+        return maxResponseBodyBytes;
+    }
+
+    /**
+     * Sets max response body bytes.
+     *
+     * @param maxResponseBodyBytes the maximum response body bytes copied for comparison
+     */
+    public void setMaxResponseBodyBytes(final Integer maxResponseBodyBytes) {
+        this.maxResponseBodyBytes = maxResponseBodyBytes;
+    }
+
+    /**
+     * Gets compare headers.
+     *
+     * @return the response headers compared between the two responses
+     */
+    public List<String> getCompareHeaders() {
+        return compareHeaders;
+    }
+
+    /**
+     * Sets compare headers.
+     *
+     * @param compareHeaders the response headers compared between the two responses
+     */
+    public void setCompareHeaders(final List<String> compareHeaders) {
+        this.compareHeaders = compareHeaders;
+    }
+
+    /**
+     * Gets ignore json paths.
+     *
+     * @return the JSON paths ignored during body comparison
+     */
+    public List<String> getIgnoreJsonPaths() {
+        return ignoreJsonPaths;
+    }
+
+    /**
+     * Sets ignore json paths.
+     *
+     * @param ignoreJsonPaths the JSON paths ignored during body comparison
+     */
+    public void setIgnoreJsonPaths(final List<String> ignoreJsonPaths) {
+        this.ignoreJsonPaths = ignoreJsonPaths;
+    }
+
+    /**
      * Gets forward headers.
      *
      * @return the request headers forwarded from the primary request
@@ -282,6 +355,8 @@ public class ShadowHandle {
                 + ", methods=" + methods + ", sampleRate=" + sampleRate
                 + ", maxConcurrent=" + maxConcurrent + ", queueCapacity=" + queueCapacity
                 + ", timeoutMillis=" + timeoutMillis + ", maxRequestBodyBytes=" + maxRequestBodyBytes
+                + ", maxResponseBodyBytes=" + maxResponseBodyBytes + ", compareHeaders=" + compareHeaders
+                + ", ignoreJsonPaths=" + ignoreJsonPaths
                 + ", forwardHeaders=" + forwardHeaders + '}';
     }
 }
