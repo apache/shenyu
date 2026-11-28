@@ -19,7 +19,9 @@ package org.apache.shenyu.plugin.logging.elasticsearch.client;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
@@ -45,7 +47,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -124,10 +128,25 @@ public class ElasticSearchLogCollectClient extends AbstractLogConsumeClient<Elas
         });
         // Bulk storage
         try {
-            client.bulk(e -> e.index(actualIndex).operations(bulkOperations));
+            BulkResponse response = client.bulk(e -> e.index(actualIndex).operations(bulkOperations));
+            if (response.errors()) {
+                logBulkFailures(actualIndex, response.items());
+            }
         } catch (Exception e) {
             LogUtils.error(LOG, "elasticsearch store logs error: ", e);
         }
+    }
+
+    private void logBulkFailures(final String actualIndex, final List<BulkResponseItem> items) {
+        Map<String, Integer> failuresByType = new LinkedHashMap<>();
+        int failed = 0;
+        for (BulkResponseItem item : items) {
+            if (Objects.nonNull(item.error())) {
+                failuresByType.merge(item.error().type(), 1, Integer::sum);
+                failed++;
+            }
+        }
+        LogUtils.warn(LOG, "Elasticsearch bulk write to {} failed for {} of {} items: {}", actualIndex, failed, items.size(), failuresByType);
     }
 
     /**
