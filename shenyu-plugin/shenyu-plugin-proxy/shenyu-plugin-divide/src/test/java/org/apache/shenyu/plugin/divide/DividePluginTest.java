@@ -75,9 +75,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -186,6 +188,32 @@ public final class DividePluginTest {
         // hit `Objects.requireNonNull(shenyuContext)`
         exchange.getAttributes().remove(Constants.CONTEXT);
         assertThrows(NullPointerException.class, () -> dividePlugin.doExecute(exchange, chain, selectorData, ruleData).block());
+    }
+
+    @Test
+    public void testStreamIdleTimeoutSnapshotSurvivesRuleUpdateAndRemoval() {
+        DividePluginDataHandler handler = new DividePluginDataHandler();
+        when(ruleData.getHandle()).thenReturn("{\"streamIdleTimeout\":10000}");
+        handler.handlerRule(ruleData);
+        UpstreamCacheManager.getInstance().submit(selectorData.getId(), List.of(Upstream.builder().url("127.0.0.1:18080").healthCheckEnabled(false).build()));
+        Disposable active = dividePlugin.doExecute(exchange, current -> Mono.never(), selectorData, ruleData).subscribe();
+        try {
+            assertFalse(active.isDisposed());
+            assertEquals(10000L, exchange.<Long>getAttribute(Constants.STREAM_IDLE_TIMEOUT));
+            when(ruleData.getHandle()).thenReturn("{\"streamIdleTimeout\":1}");
+            handler.handlerRule(ruleData);
+            dividePlugin.doExecute(postExchange, chain, selectorData, ruleData).block();
+            assertEquals(1L, postExchange.<Long>getAttribute(Constants.STREAM_IDLE_TIMEOUT));
+            when(ruleData.getHandle()).thenReturn("{}");
+            handler.handlerRule(ruleData);
+            dividePlugin.doExecute(postExchange, chain, selectorData, ruleData).block();
+            assertNull(postExchange.getAttribute(Constants.STREAM_IDLE_TIMEOUT));
+            assertEquals(10000L, exchange.<Long>getAttribute(Constants.STREAM_IDLE_TIMEOUT));
+            assertFalse(active.isDisposed());
+        } finally {
+            active.dispose();
+            UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
+        }
     }
 
     /**

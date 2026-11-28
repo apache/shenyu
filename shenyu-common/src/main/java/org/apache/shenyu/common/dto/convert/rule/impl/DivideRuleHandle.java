@@ -17,6 +17,11 @@
 
 package org.apache.shenyu.common.dto.convert.rule.impl;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.canary.CanaryConfig;
@@ -25,12 +30,17 @@ import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.enums.RetryEnum;
 
+import java.lang.reflect.Type;
 import java.util.Objects;
 
 /**
  * The type Divide rule handle.
  */
 public class DivideRuleHandle implements RuleHandle {
+
+    private static final long MAX_STREAM_IDLE_TIMEOUT = 300_000L;
+
+    private static final String INVALID_STREAM_IDLE_TIMEOUT = "streamIdleTimeout must be an integer between 1 and " + MAX_STREAM_IDLE_TIMEOUT + " milliseconds";
 
     /**
      * loadBalance.
@@ -58,6 +68,10 @@ public class DivideRuleHandle implements RuleHandle {
 
     /** Overall HTTPRoute timeout in milliseconds; null selects legacy timeout handling. */
     private Long requestTimeout;
+
+    /** Maximum inactivity after final response headers, in milliseconds. */
+    @JsonAdapter(StreamIdleTimeoutDeserializer.class)
+    private Long streamIdleTimeout;
 
     /**
      * headerMaxSize.
@@ -101,6 +115,31 @@ public class DivideRuleHandle implements RuleHandle {
      */
     public void setRequestTimeout(final Long requestTimeout) {
         this.requestTimeout = requestTimeout;
+    }
+
+    /**
+     * Get the allowed gap between response body reads.
+     *
+     * @return milliseconds, or null to retain the transport timeouts
+     */
+    public Long getStreamIdleTimeout() {
+        return streamIdleTimeout;
+    }
+
+    /**
+     * Set the allowed gap between response body reads.
+     *
+     * @param streamIdleTimeout milliseconds, or null to retain the transport timeouts
+     */
+    public void setStreamIdleTimeout(final Long streamIdleTimeout) {
+        this.streamIdleTimeout = checkedStreamIdleTimeout(streamIdleTimeout);
+    }
+
+    private static Long checkedStreamIdleTimeout(final Long value) {
+        if (Objects.nonNull(value) && (value < 1 || value > MAX_STREAM_IDLE_TIMEOUT)) {
+            throw new IllegalArgumentException(INVALID_STREAM_IDLE_TIMEOUT);
+        }
+        return value;
     }
 
     /**
@@ -294,14 +333,14 @@ public class DivideRuleHandle implements RuleHandle {
         DivideRuleHandle that = (DivideRuleHandle) o;
         return retry == that.retry && timeout == that.timeout && headerMaxSize == that.headerMaxSize
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
-                && Objects.equals(requestTimeout, that.requestTimeout) && Objects.equals(retryStrategy, that.retryStrategy)
+                && Objects.equals(requestTimeout, that.requestTimeout) && Objects.equals(streamIdleTimeout, that.streamIdleTimeout) && Objects.equals(retryStrategy, that.retryStrategy)
                 && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary)
                 && Objects.equals(sticky, that.sticky) && Objects.equals(poolGroup, that.poolGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, requestTimeout, headerMaxSize, requestMaxSize, canary, sticky, poolGroup);
+        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, requestTimeout, streamIdleTimeout, headerMaxSize, requestMaxSize, canary, sticky, poolGroup);
     }
 
     @Override
@@ -322,6 +361,8 @@ public class DivideRuleHandle implements RuleHandle {
                 + timeout
                 + ", requestTimeout="
                 + requestTimeout
+                + ", streamIdleTimeout="
+                + streamIdleTimeout
                 + ", headerMaxSize="
                 + headerMaxSize
                 + ", requestMaxSize="
@@ -334,5 +375,24 @@ public class DivideRuleHandle implements RuleHandle {
                 + poolGroup
                 + '\''
                 + '}';
+    }
+
+    private static final class StreamIdleTimeoutDeserializer implements JsonDeserializer<Long> {
+
+        @Override
+        public Long deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+            try {
+                if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isNumber()) {
+                    return checkedStreamIdleTimeout(json.getAsBigDecimal().longValueExact());
+                }
+                // The dashboard's numeric rule-form input submits decimal digits as a JSON string.
+                if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString() && StringUtils.containsOnly(json.getAsString(), "0123456789")) {
+                    return checkedStreamIdleTimeout(Long.valueOf(json.getAsString()));
+                }
+            } catch (ArithmeticException | NumberFormatException ex) {
+                throw new IllegalArgumentException(INVALID_STREAM_IDLE_TIMEOUT, ex);
+            }
+            throw new IllegalArgumentException(INVALID_STREAM_IDLE_TIMEOUT);
+        }
     }
 }

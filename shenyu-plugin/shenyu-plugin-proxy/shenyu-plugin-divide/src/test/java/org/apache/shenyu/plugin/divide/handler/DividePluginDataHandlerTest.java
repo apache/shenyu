@@ -150,6 +150,24 @@ public final class DividePluginDataHandlerTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = {"0", "300001", "10.5", "18446744073709551617", "\"invalid\"", "true", "[]", "{}"})
+    public void testInvalidStreamIdleTimeoutRetainsLastValidRule(final String value) {
+        RuleData rule = new RuleData();
+        rule.setId("idle-rule");
+        rule.setSelectorId("idle-selector");
+        rule.setHandle("{\"streamIdleTimeout\":10000}");
+        dividePluginDataHandler.handlerRule(rule);
+        try {
+            rule.setHandle("{\"streamIdleTimeout\":" + value + "}");
+            assertThrows(IllegalArgumentException.class, () -> dividePluginDataHandler.handlerRule(rule));
+            DivideRuleHandle cached = DividePluginDataHandler.CACHED_HANDLE.get().obtainHandle(CacheKeyUtils.INST.getKey(rule));
+            assertEquals(10000L, cached.getStreamIdleTimeout());
+        } finally {
+            dividePluginDataHandler.removeRule(rule);
+        }
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = {"\"percentage\":101", "\"percentage\":20.5", "\"enabled\":true,\"percentage\":20",
         "\"fallbackPolicy\":\"TYPO\"", "\"stickyKey\":{\"paramType\":\"missing-extension\"}"})
     public void testInvalidConfigurationDoesNotReplaceCachedRule(final String fields) {

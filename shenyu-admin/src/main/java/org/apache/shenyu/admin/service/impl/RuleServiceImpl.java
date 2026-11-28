@@ -176,7 +176,6 @@ public class RuleServiceImpl implements RuleService {
             return "";
         }
         validateRuleHandle(ruleDTO);
-        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleMapper.insertSelective(ruleDO);
@@ -203,7 +202,6 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public int create(final RuleDTO ruleDTO) {
         validateRuleHandle(ruleDTO);
-        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.insertSelective(ruleDO);
         addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -219,7 +217,6 @@ public class RuleServiceImpl implements RuleService {
         final RuleDO before = ruleMapper.selectById(ruleDTO.getId());
         Assert.notNull(before, "the updated rule is not found");
         validateRulePluginUnchanged(before, ruleDTO.getSelectorId());
-        validateCanaryAndStickyConfig(ruleDTO.getSelectorId(), ruleDTO.getHandle());
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         final int ruleCount = ruleMapper.updateSelective(ruleDO);
         if (ruleCount <= 0) {
@@ -261,7 +258,7 @@ public class RuleServiceImpl implements RuleService {
         return ruleCount;
     }
 
-    private void validateCanaryAndStickyConfig(final String selectorId, final String handle) {
+    private void validateImportedDivideRule(final String selectorId, final String handle) {
         if (StringUtils.isBlank(handle)) {
             return;
         }
@@ -271,6 +268,13 @@ public class RuleServiceImpl implements RuleService {
         }
         PluginDO plugin = pluginMapper.selectById(selector.getPluginId());
         if (Objects.isNull(plugin) || !PluginEnum.DIVIDE.getName().equals(plugin.getName())) {
+            return;
+        }
+        validateDivideRuleHandle(handle);
+    }
+
+    private void validateDivideRuleHandle(final String handle) {
+        if (StringUtils.isBlank(handle)) {
             return;
         }
         try {
@@ -393,7 +397,7 @@ public class RuleServiceImpl implements RuleService {
             return ConfigImportResult.success();
         }
 
-        ruleList.forEach(rule -> validateCanaryAndStickyConfig(rule.getSelectorId(), rule.getHandle()));
+        ruleList.forEach(rule -> validateImportedDivideRule(rule.getSelectorId(), rule.getHandle()));
         Map<String, List<RuleDO>> selectorRuleMap = ruleMapper
                 .selectAll()
                 .stream()
@@ -416,7 +420,7 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
-            validateRuleHandle(ruleDTO);
+            validateOtherPluginHandle(findRulePlugin(selectorId), ruleDTO.getHandle());
             RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
             final int ruleCount = ruleMapper.insertSelective(ruleDO);
             addCondition(ruleDO, ruleDTO.getRuleConditions());
@@ -440,7 +444,7 @@ public class RuleServiceImpl implements RuleService {
         }
         Map<String, String> selectorIdMapping = context.getSelectorIdMapping();
         ruleList.stream().filter(rule -> selectorIdMapping.containsKey(rule.getSelectorId()))
-                .forEach(rule -> validateCanaryAndStickyConfig(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
+                .forEach(rule -> validateImportedDivideRule(selectorIdMapping.get(rule.getSelectorId()), rule.getHandle()));
         Map<String, Set<String>> selectorRuleMap = ruleMapper
                 .selectAllByNamespaceId(namespace)
                 .stream()
@@ -468,7 +472,7 @@ public class RuleServiceImpl implements RuleService {
                         .append(",");
                 continue;
             }
-            validateRuleHandle(newSelectorId, ruleDTO.getHandle());
+            validateOtherPluginHandle(findRulePlugin(newSelectorId), ruleDTO.getHandle());
             ruleDTO.setNamespaceId(namespace);
             ruleDTO.setSelectorId(newSelectorId);
             String ruleId = UUIDUtils.getInstance().generateShortUuid();
@@ -495,10 +499,15 @@ public class RuleServiceImpl implements RuleService {
     }
 
     private void validateRuleHandle(final RuleDTO ruleDTO) {
-        validateRuleHandle(ruleDTO.getSelectorId(), ruleDTO.getHandle());
+        final PluginDO plugin = findRulePlugin(ruleDTO.getSelectorId());
+        if (PluginEnum.DIVIDE.getName().equals(plugin.getName())) {
+            validateDivideRuleHandle(ruleDTO.getHandle());
+        } else {
+            validateOtherPluginHandle(plugin, ruleDTO.getHandle());
+        }
     }
 
-    private void validateRuleHandle(final String selectorId, final String handle) {
+    private PluginDO findRulePlugin(final String selectorId) {
         final SelectorDO selector = selectorMapper.selectById(selectorId);
         if (Objects.isNull(selector)) {
             throw new ShenyuAdminException("rule selector is not found");
@@ -507,6 +516,10 @@ public class RuleServiceImpl implements RuleService {
         if (Objects.isNull(plugin)) {
             throw new ShenyuAdminException("rule plugin is not found");
         }
+        return plugin;
+    }
+
+    private void validateOtherPluginHandle(final PluginDO plugin, final String handle) {
         if (PluginEnum.AGENT_GATEWAY.getName().equals(plugin.getName())) {
             AgentGatewayRuleHandleValidator.validate(handle);
         } else if (PluginEnum.REWRITE.getName().equals(plugin.getName())) {

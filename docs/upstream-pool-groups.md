@@ -101,6 +101,41 @@ inside that provider, not cluster-wide quotas and not a request rate limiter.
 With HTTP/2, one connection multiplexes concurrent streams, so the isolation is
 connection/acquisition capacity rather than one connection per RPC.
 
+## Per-rule response-body idle timeout
+
+Set `streamIdleTimeout` in the Divide rule form or handle JSON to bound how long
+the gateway waits for the next upstream body data. For example, this rule allows
+a pause of up to ten seconds on the shared pool:
+
+```json
+{
+  "timeout": 3000,
+  "streamIdleTimeout": 10000
+}
+```
+
+Use an integer from 1 to 300000 milliseconds. The Admin form also accepts
+decimal digits entered as text. To restore the client timeouts, remove the
+field in the handle JSON or set it to `null`. An empty string is invalid. The built-in Netty and WebClient strategies apply
+the interval on both the shared pool and named pools. A custom transport needs
+the same lifecycle hooks as the starter's HTTP client factory.
+
+The interval starts at the final upstream response headers and restarts on
+each nonempty chunk read by the transport, for any content type. If downstream
+backpressure pauses reads, that pause also counts toward the interval. It replaces the client's
+`readTimeout` and `responseTimeout` during receipt of that body. The header
+wait retains both global limits. A rule update takes effect on the next request.
+
+With `requestTimeout` omitted, the rule's `timeout` bounds the wait for headers.
+With `requestTimeout` present, a positive `timeout` bounds the backend attempt
+through upstream body receipt. A positive `requestTimeout` bounds the whole
+exchange across retries. Zero disables the overall deadline. Whichever active
+limit expires first wins.
+
+Body idle expiry before the gateway commits the response returns HTTP 504.
+After commitment the gateway terminates the stream and logs the timeout.
+Body idle expiry never replays the request.
+
 ## Metrics
 
 Set `metrics: true` on a group to publish its Reactor Netty provider meters:
