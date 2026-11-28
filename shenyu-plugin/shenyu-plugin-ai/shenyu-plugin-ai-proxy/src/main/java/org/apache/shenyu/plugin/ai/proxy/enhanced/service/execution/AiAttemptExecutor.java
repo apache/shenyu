@@ -66,7 +66,11 @@ public final class AiAttemptExecutor {
             // completion — and backoff between attempts holds none (#8254)
             Mono<AdmissionResult> targetAdmission = Objects.isNull(admission)
                     ? Mono.just(AdmissionResult.ADMITTED)
-                    : admission.acquireTarget(prepared.selectedModel(), lifecycle.requestDeadline().deadlineNanos());
+                    // the pool key is the authorized (configured) model, never the client
+                    // body's model string: a caller must not rotate keys or occupy pool
+                    // slots with arbitrary endpoint strings (#8254 review)
+                    : admission.acquireTarget(prepared.authorizedModel(),
+                            lifecycle.requestDeadline().deadlineNanos());
             return targetAdmission.flatMap(result -> {
                 if (result.outcome() != AdmissionOutcome.ACQUIRED) {
                     return Mono.error(new AiProxyException(AiProxyException.Kind.ADMISSION,

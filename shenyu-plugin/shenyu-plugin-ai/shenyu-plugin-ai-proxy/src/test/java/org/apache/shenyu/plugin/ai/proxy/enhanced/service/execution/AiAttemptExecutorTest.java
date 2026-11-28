@@ -131,6 +131,6 @@ class AiAttemptExecutorTest {
         request.setBody("{\"model\":\"test-model\"}".getBytes(StandardCharsets.UTF_8));
         return new AiPreparedExchange(request, AiResponseAdapter.identity(), AiProtocolResponseInspector.identity(),
                 "openai-chat", "openai-chat", false, true, ShenyuAiRequest.Operation.CHAT_COMPLETION,
-                true, "openai", "test-model", false);
+                true, "openai", "test-model", false, "test-model");
     }
 }

@@ -50,5 +50,6 @@ public record AiPreparedExchange(
         boolean providerDeclaredReplaySafe,
         String providerName,
         String selectedModel,
-        boolean cacheCompatible) {
+        boolean cacheCompatible,
+        String authorizedModel) {
 }

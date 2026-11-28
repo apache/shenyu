@@ -197,7 +197,8 @@ public final class AiExchangePlanner {
                     providerDeclaredReplaySafe, provider.name(), selectedModel(preparedRequest.request()),
                     clientProtocol.isExactResponseCacheCompatible()
                             && targetProtocol.isExactResponseCacheCompatible()
-                            && provider.isExactResponseCacheCompatible(route.targetProtocol()));
+                            && provider.isExactResponseCacheCompatible(route.targetProtocol()),
+                    config.getModel());
         } catch (IllegalArgumentException error) {
             throw new AiProxyException(AiProxyException.Kind.PROVIDER, "Invalid AI provider configuration", error);
         }
