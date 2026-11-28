@@ -424,7 +424,7 @@ jobs:
           - name: sync
             modules: shenyu-admin-listener,shenyu-sync-data-center
           - name: plugin-base
-            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-mock
+            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-mock,shenyu-plugin/shenyu-plugin-shadow
           - name: plugin-logging
             modules: shenyu-plugin/shenyu-plugin-logging
           - name: plugin-proxy
@@ -488,7 +488,7 @@ jobs:
           - name: sync
             modules: shenyu-admin-listener,shenyu-sync-data-center
           - name: plugin-base
-            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-mock
+            modules: shenyu-plugin/shenyu-plugin-api,shenyu-plugin/shenyu-plugin-wasm-api,shenyu-plugin/shenyu-plugin-base,shenyu-plugin/shenyu-plugin-wasm-base,shenyu-plugin/shenyu-plugin-httpclient,shenyu-plugin/shenyu-plugin-rewrite,shenyu-plugin/shenyu-plugin-waf,shenyu-plugin/shenyu-plugin-global,shenyu-plugin/shenyu-plugin-context-path,shenyu-plugin/shenyu-plugin-redirect,shenyu-plugin/shenyu-plugin-modify-response,shenyu-plugin/shenyu-plugin-request,shenyu-plugin/shenyu-plugin-response,shenyu-plugin/shenyu-plugin-param-mapping,shenyu-plugin/shenyu-plugin-uri,shenyu-plugin/shenyu-plugin-metrics,shenyu-plugin/shenyu-plugin-tracing,shenyu-plugin/shenyu-plugin-cache,shenyu-plugin/shenyu-plugin-mock,shenyu-plugin/shenyu-plugin-shadow
           - name: plugin-logging
             modules: shenyu-plugin/shenyu-plugin-logging
           - name: plugin-proxy

@@ -42,6 +42,7 @@
         <module>shenyu-plugin-response</module>
         <module>shenyu-plugin-param-mapping</module>
         <module>shenyu-plugin-uri</module>
+        <module>shenyu-plugin-shadow</module>
         <module>shenyu-plugin-metrics</module>
         <module>shenyu-plugin-tracing</module>
         <module>shenyu-plugin-cache</module>
