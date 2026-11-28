@@ -37,8 +37,10 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.junit.jupiter.api.AfterEach;
@@ -78,6 +80,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -196,6 +199,22 @@ public final class DividePluginTest {
         when(chain.execute(postExchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(postExchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    void forwardsAndRecordsAnUpstreamFailureWithTheConfiguredBreaker() {
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.create(1, UpstreamCircuitBreaker.DEFAULT_HALF_OPEN_WAIT_MILLIS);
+        DividePlugin configured = new DividePlugin(new DefaultCanaryDecisionService(), breaker);
+        Upstream upstream = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selectorData.getId()).get(0);
+        IllegalStateException failure = new IllegalStateException("upstream failed");
+        when(chain.execute(exchange)).thenAnswer(invocation -> {
+            assertSame(breaker, exchange.getAttribute(UpstreamCircuitBreaker.ATTRIBUTE));
+            return Mono.error(failure);
+        });
+
+        StepVerifier.create(configured.doExecute(exchange, chain, selectorData, ruleData)).expectErrorMatches(error -> error == failure).verify();
+
+        assertTrue(breaker.isBlocking(UpstreamCircuitBreaker.buildKey(selectorData.getId(), upstream)));
     }
 
 

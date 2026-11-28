@@ -162,7 +162,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
     }
 
     private List<Upstream> retryCandidates(final ServerWebExchange exchange, final String selectorId,
-                                           final Set<URI> exclude) {
+                                           final Set<URI> exclude, final UpstreamCircuitBreaker circuitBreaker) {
         // Refresh health/topology without losing the request's resolved label partition.
         final UpstreamRoutingContext routing = exchange.getAttribute(UpstreamRoutingContext.ATTRIBUTE);
         final List<Upstream> availableUpstreamList = Objects.isNull(routing)
@@ -181,8 +181,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
             return true;
         })
                 //skip upstreams that are still blocked by the built-in circuit breaker
-                .filter(data -> UpstreamCircuitBreaker.getInstance()
-                        .isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
+                .filter(data -> circuitBreaker.isRequestAllowed(UpstreamCircuitBreaker.buildKey(selectorId, data)))
                 .collect(Collectors.toList());
     }
 
@@ -198,7 +197,9 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
         }
         final String selectorId = exchange.getAttribute(Constants.DIVIDE_SELECTOR_ID);
         final String loadBalance = exchange.getAttribute(Constants.LOAD_BALANCE);
-        final List<Upstream> upstreamList = retryCandidates(exchange, selectorId, exclude);
+        final UpstreamCircuitBreaker circuitBreaker = exchange.getAttributeOrDefault(
+                UpstreamCircuitBreaker.ATTRIBUTE, UpstreamCircuitBreaker.getInstance());
+        final List<Upstream> upstreamList = retryCandidates(exchange, selectorId, exclude, circuitBreaker);
         if (upstreamList.isEmpty()) {
             // no need to retry anymore
             return Mono.error(new ShenyuException("CANNOT_FIND_HEALTHY_UPSTREAM_URL_AFTER_FAILOVER"));
@@ -247,7 +248,7 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                 // no Divide attempt owner (non-Divide caller): keep the previous accounting
                 retryResponse = retryResponse.doFinally(signal -> upstream.getInflight().decrementAndGet());
             }
-            return UpstreamCircuitBreaker.recordOutcome(retryResponse, breakerKey);
+            return circuitBreaker.trackOutcome(retryResponse, breakerKey);
         } catch (RuntimeException ex) {
             if (ownerPresent) {
                 owner.release(upstream);

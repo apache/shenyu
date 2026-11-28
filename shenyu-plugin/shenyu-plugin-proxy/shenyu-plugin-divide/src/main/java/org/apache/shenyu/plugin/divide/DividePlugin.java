@@ -100,12 +100,25 @@ public class DividePlugin extends AbstractShenyuPlugin {
 
     private final DeterministicKeyExtractor deterministicKeyExtractor = new DeterministicKeyExtractor();
 
+    private final UpstreamCircuitBreaker circuitBreaker;
+
     public DividePlugin() {
         this(new DefaultCanaryDecisionService());
     }
 
     public DividePlugin(final CanaryDecisionService canaryDecisionService) {
+        this(canaryDecisionService, UpstreamCircuitBreaker.getInstance());
+    }
+
+    /**
+     * Create the Divide plugin with its gateway-scoped upstream circuit breaker.
+     *
+     * @param canaryDecisionService request partition decision service
+     * @param circuitBreaker the gateway's breaker
+     */
+    public DividePlugin(final CanaryDecisionService canaryDecisionService, final UpstreamCircuitBreaker circuitBreaker) {
         this.canaryDecisionService = Objects.requireNonNull(canaryDecisionService);
+        this.circuitBreaker = Objects.requireNonNull(circuitBreaker);
     }
 
     @Override
@@ -177,7 +190,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         String requested = effectiveExchange.getRequest().getHeaders().getFirst(Constants.SPECIFY_DOMAIN);
-        final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList, requested);
+        final CircuitBreakerCandidates candidates = CircuitBreakerCandidates.filter(selector.getId(), upstreamList, requested, circuitBreaker);
         final List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
         if (CollectionUtils.isEmpty(breakeredUpstreamList)) {
             if (canaryRouting) {
@@ -217,6 +230,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private Mono<Void> forwardSelected(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
                                         final RuleData rule, final DivideRuleHandle ruleHandle, final CircuitBreakerCandidates candidates) {
         List<Upstream> breakeredUpstreamList = candidates.getUpstreams();
+        exchange.getAttributes().put(UpstreamCircuitBreaker.ATTRIBUTE, circuitBreaker);
         exchange.getAttributes().put(UpstreamCircuitBreaker.HALF_OPEN_PROBE, candidates.isProbe());
         List<String> specifyDomains = exchange.getRequest().getHeaders().get(Constants.SPECIFY_DOMAIN);
         Upstream upstream;
@@ -421,7 +435,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
             // release runs when the response body is done, errors or is cancelled (#8158)
             response = response.doFinally(signalType -> attemptOwner.releaseCurrent());
         }
-        return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
+        return probe ? response : circuitBreaker.trackOutcome(response, breakerKey);
     }
 
     /**

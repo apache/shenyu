@@ -42,6 +42,11 @@ import java.util.concurrent.ConcurrentMap;
 public final class UpstreamCircuitBreaker {
 
     /**
+     * Exchange attribute carrying the Divide breaker's instance into HTTP failover.
+     */
+    public static final String ATTRIBUTE = "shenyu.upstreamCircuitBreaker";
+
+    /**
      * Exchange attribute marking an exclusive, single-attempt recovery probe.
      */
     public static final String HALF_OPEN_PROBE = "shenyu.upstreamCircuitBreaker.halfOpenProbe";
@@ -72,7 +77,7 @@ public final class UpstreamCircuitBreaker {
     }
 
     /**
-     * Get the singleton instance used by the gateway plugins.
+     * Get the default breaker used when no gateway-scoped instance is supplied.
      *
      * @return the shared {@link UpstreamCircuitBreaker} instance
      */
@@ -81,7 +86,7 @@ public final class UpstreamCircuitBreaker {
     }
 
     /**
-     * Create a standalone breaker with custom thresholds, mainly for testing.
+     * Create a breaker with custom thresholds.
      *
      * @param failureThreshold consecutive failures required to open the breaker
      * @param halfOpenWaitMillis wait time in milliseconds before a half-open probe is allowed
@@ -209,27 +214,26 @@ public final class UpstreamCircuitBreaker {
     }
 
     /**
-     * Wrap a forwarded {@link Mono} so that its terminal signal is recorded as
-     * a success or a failure of the upstream identified by the given key.
+     * Record the ordinary request outcome against this breaker's state.
      *
-     * @param <T> the element type of the source mono
-     * @param source the mono executing the upstream call
+     * @param <T> source element type
+     * @param source the upstream call
      * @param key the breaker key
-     * @return the wrapped mono with outcome recording attached
+     * @return the wrapped call
      */
-    public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key) {
+    public <T> Mono<T> trackOutcome(final Mono<T> source, final String key) {
         return Mono.defer(() -> {
-            CircuitBreakerState initial = INSTANCE.breakers.get(key);
+            CircuitBreakerState initial = breakers.get(key);
             long generation = Objects.isNull(initial) ? 0 : initial.getGeneration();
             return source.doFinally(signal -> {
                 if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
                     return;
                 }
-                CircuitBreakerState current = INSTANCE.breakers.get(key);
+                CircuitBreakerState current = breakers.get(key);
                 if (Objects.isNull(initial)) {
                     if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
-                        current = INSTANCE.breakers.computeIfAbsent(key,
-                                ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
+                        current = breakers.computeIfAbsent(key,
+                                ignored -> new CircuitBreakerState(failureThreshold, halfOpenWaitMillis));
                     }
                 } else if (current != initial) {
                     return;
@@ -239,6 +243,19 @@ public final class UpstreamCircuitBreaker {
                 }
             });
         });
+    }
+
+    /**
+     * Wrap a forwarded {@link Mono} so that its terminal signal is recorded as
+     * a success or a failure of the upstream identified by the given key.
+     *
+     * @param <T> the element type of the source mono
+     * @param source the mono executing the upstream call
+     * @param key the breaker key
+     * @return the wrapped mono with outcome recording attached
+     */
+    public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key) {
+        return INSTANCE.trackOutcome(source, key);
     }
 
     /**

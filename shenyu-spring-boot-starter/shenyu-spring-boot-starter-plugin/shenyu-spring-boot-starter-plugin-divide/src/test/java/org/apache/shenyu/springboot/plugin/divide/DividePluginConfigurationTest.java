@@ -19,6 +19,7 @@ package org.apache.shenyu.springboot.plugin.divide;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.handler.MetaDataHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
@@ -26,11 +27,16 @@ import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
 import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,8 +64,52 @@ public class DividePluginConfigurationTest {
         applicationContextRunner.run(context -> {
                 ShenyuPlugin plugin = context.getBean("dividePlugin", ShenyuPlugin.class);
                 assertNotNull(plugin);
+                DivideCircuitBreakerProperties properties = context.getBean(DivideCircuitBreakerProperties.class);
+                assertThat(properties.getFailureThreshold()).isEqualTo(3);
+                assertThat(properties.getHalfOpenWait()).isEqualTo(Duration.ofSeconds(10));
             }
         );
+    }
+
+    @Test
+    void testConfigureFailureThresholdIndependently() {
+        applicationContextRunner.withPropertyValues("shenyu.upstream-circuit-breaker.failure-threshold=5").run(context -> {
+            UpstreamCircuitBreaker breaker = context.getBean(UpstreamCircuitBreaker.class);
+            assertThat(context.getBean(DivideCircuitBreakerProperties.class).getHalfOpenWait()).isEqualTo(Duration.ofSeconds(10));
+            for (int attempt = 0; attempt < 4; attempt++) {
+                breaker.recordFailure("upstream");
+                assertThat(breaker.isRequestAllowed("upstream")).isTrue();
+            }
+            breaker.recordFailure("upstream");
+            assertThat(breaker.isRequestAllowed("upstream")).isFalse();
+            assertThat(breaker.tryAcquireHalfOpenProbe("upstream")).isFalse();
+        });
+    }
+
+    @Test
+    void testConfigureHalfOpenWaitIndependently() {
+        applicationContextRunner.withPropertyValues("shenyu.upstream-circuit-breaker.half-open-wait=1ms").run(context -> {
+            UpstreamCircuitBreaker breaker = context.getBean(UpstreamCircuitBreaker.class);
+            breaker.recordFailure("upstream");
+            breaker.recordFailure("upstream");
+            assertThat(breaker.isRequestAllowed("upstream")).isTrue();
+            breaker.recordFailure("upstream");
+            long deadline = System.nanoTime() + Duration.ofSeconds(1).toNanos();
+            boolean acquired = breaker.tryAcquireHalfOpenProbe("upstream");
+            while (!acquired && System.nanoTime() < deadline) {
+                acquired = breaker.tryAcquireHalfOpenProbe("upstream");
+            }
+            assertThat(acquired).isTrue();
+            assertThat(breaker.tryAcquireHalfOpenProbe("upstream")).isFalse();
+        });
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"failure-threshold=", "failure-threshold=0", "failure-threshold=2147483648",
+            "half-open-wait=", "half-open-wait=999us", "half-open-wait=invalid", "half-open-wait=PT9223372036854776S"})
+    void testRejectInvalidBreakerProperties(final String property) {
+        applicationContextRunner.withPropertyValues("shenyu.upstream-circuit-breaker." + property).run(context ->
+                assertThat(context.getStartupFailure()).hasStackTraceContaining("shenyu.upstream-circuit-breaker." + property.split("=")[0]));
     }
 
     @Test
