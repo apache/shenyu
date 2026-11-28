@@ -290,10 +290,13 @@
            api.date_created,
            api.date_updated
     from api
-    <if test="tagId != null and tagId != ''">
-        inner join tag_relation on api.id = tag_relation.api_id and tag_relation.tag_id = #{tagId,jdbcType=VARCHAR}
-    </if>
     <where>
+      <if test="tagId != null and tagId != ''">
+        exists (
+          select 1 from tag_relation
+          where tag_relation.api_id = api.id and tag_relation.tag_id = #{tagId,jdbcType=VARCHAR}
+        )
+      </if>
       <if test="apiPath != null and apiPath != ''">
         <bind name="nameLike" value="('%' + apiPath + '%')"/>
         and api_path LIKE #{nameLike, jdbcType=VARCHAR}
