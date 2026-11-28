@@ -25,7 +25,9 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -80,7 +82,20 @@ public final class ShadowDispatcher implements AutoCloseable {
                 .bodyValue(task.getBody());
         return request.exchangeToMono(response -> response.releaseBody())
                 .timeout(Duration.ofMillis(task.getTimeoutMillis()))
-                .doOnError(error -> LOG.warn("shadow attempt to {} failed: {}", task.getUri(), error.toString()))
+                .doOnError(error -> LOG.warn("shadow attempt to {} failed with {}",
+                        redactedTarget(task.getUri()), error.getClass().getSimpleName()))
                 .onErrorResume(error -> Mono.empty());
+    }
+
+    /**
+     * Describe a shadow target without its query string.
+     *
+     * <p>Queries can carry request tokens, and the failure path must not copy
+     * them into the gateway log.</p>
+     */
+    private static String redactedTarget(final URI uri) {
+        String authority = Objects.isNull(uri.getRawAuthority()) ? "" : uri.getRawAuthority();
+        String path = Objects.isNull(uri.getRawPath()) ? "" : uri.getRawPath();
+        return uri.getScheme() + "://" + authority + path;
     }
 }

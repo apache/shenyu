@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -142,5 +143,14 @@ public final class ShadowConfigValidatorTest {
         handle.setEnabled(true);
         handle.setTarget("http://shadow:8080");
         return handle;
+    }
+
+    @Test
+    public void testMessagesDoNotEchoTheConfiguredTarget() {
+        ShadowHandle handle = validHandle();
+        handle.setTarget("http://user:secret@shadow:8080");
+        String problem = ShadowConfigValidator.validate(handle).orElseThrow(AssertionError::new);
+        assertFalse(problem.contains("secret"));
+        assertFalse(problem.contains("shadow:8080"));
     }
 }

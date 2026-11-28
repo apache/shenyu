@@ -17,7 +17,9 @@
 
 package org.apache.shenyu.plugin.shadow.dispatch;
 
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -84,5 +86,18 @@ public final class ShadowTaskFactoryTest {
         handle.setEnabled(true);
         handle.setTarget("http://shadow:8080/base");
         return handle;
+    }
+
+    @Test
+    public void testUsesTheRewrittenPathForwardedByThePrimary() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest
+                .get("http://localhost:9195/original/orders/42").build());
+        ShenyuContext context = new ShenyuContext();
+        context.setRealUrl("/original/orders/42");
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        exchange.getAttributes().put(Constants.REWRITE_CONTEXT_PATH, "/rewritten");
+        exchange.getAttributes().put(Constants.REWRITE_URI, "/orders/42");
+        ShadowTask task = ShadowTaskFactory.create(exchange, handle(), new byte[0]).orElseThrow();
+        assertEquals("http://shadow:8080/base/rewritten/orders/42", task.getUri().toString());
     }
 }

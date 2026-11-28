@@ -78,22 +78,22 @@ public final class ShadowConfigValidator {
         try {
             uri = new URI(target);
         } catch (URISyntaxException e) {
-            return Optional.of("shadow target is not a valid URI: " + target);
+            return Optional.of("shadow target is not a valid URI");
         }
         if (!uri.isAbsolute() || Objects.isNull(uri.getHost())) {
-            return Optional.of("shadow target must be an absolute URI with a host: " + target);
+            return Optional.of("shadow target must be an absolute URI with a host");
         }
         if (!HTTP_SCHEME.equalsIgnoreCase(uri.getScheme()) && !HTTPS_SCHEME.equalsIgnoreCase(uri.getScheme())) {
-            return Optional.of("shadow target must use http or https: " + target);
+            return Optional.of("shadow target must use http or https");
         }
         if (Objects.nonNull(uri.getUserInfo())) {
-            return Optional.of("shadow target must not carry user info: " + target);
+            return Optional.of("shadow target must not carry user info");
         }
         if (Objects.nonNull(uri.getFragment())) {
-            return Optional.of("shadow target must not carry a fragment: " + target);
+            return Optional.of("shadow target must not carry a fragment");
         }
         if (Objects.nonNull(uri.getRawQuery())) {
-            return Optional.of("shadow target must not carry a query: " + target);
+            return Optional.of("shadow target must not carry a query");
         }
         return Optional.empty();
     }

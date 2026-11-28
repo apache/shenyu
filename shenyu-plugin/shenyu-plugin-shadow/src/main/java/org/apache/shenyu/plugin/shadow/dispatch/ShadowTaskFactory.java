@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.shadow.dispatch;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
+import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -58,25 +59,28 @@ public final class ShadowTaskFactory {
     public static Optional<ShadowTask> create(final ServerWebExchange exchange, final ShadowHandle handle,
                                               final byte[] body) {
         ServerHttpRequest request = exchange.getRequest();
-        return targetUri(request, handle.getTarget())
+        return targetUri(exchange, handle.getTarget())
                 .map(uri -> new ShadowTask(request.getMethod().name(), uri,
                         headers(request.getHeaders(), handle), body, handle.getTimeoutMillis()));
     }
 
     /**
-     * Combine the shadow target with the raw request path and query.
+     * Combine the shadow target with the effective request path and query.
      *
-     * <p>The raw components are concatenated and parsed with
-     * {@link URI#create(String)}, which never re-encodes them, so an already
-     * encoded path such as {@code /a%2Fb} is preserved exactly.</p>
+     * <p>The path is the one the primary request is forwarded to, including any
+     * rewrite or context path applied earlier in the chain, so both calls
+     * address the same resource. The raw components are concatenated and parsed
+     * with {@link URI#create(String)}, which never re-encodes them, so an
+     * already encoded path such as {@code /a%2Fb} is preserved exactly.</p>
      */
-    private static Optional<URI> targetUri(final ServerHttpRequest request, final String target) {
+    private static Optional<URI> targetUri(final ServerWebExchange exchange, final String target) {
         try {
             URI base = URI.create(target);
+            ServerHttpRequest request = exchange.getRequest();
             String query = request.getURI().getRawQuery();
             StringBuilder composed = new StringBuilder(base.getScheme()).append("://")
                     .append(base.getRawAuthority())
-                    .append(joinPath(base.getRawPath(), request.getURI().getRawPath()));
+                    .append(joinPath(base.getRawPath(), RequestUrlUtils.getRewrittenRawPath(exchange)));
             if (StringUtils.isNotEmpty(query)) {
                 composed.append('?').append(query);
             }
