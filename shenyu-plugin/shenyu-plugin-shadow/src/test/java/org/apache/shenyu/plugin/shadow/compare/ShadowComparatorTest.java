@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -119,6 +120,16 @@ public final class ShadowComparatorTest {
                 observation(200, "application/json", "{"), observation(200, "application/json", "{}"));
         assertEquals(ShadowOutcome.MISMATCH, comparison.getOutcome());
         assertTrue(comparison.getDetail().contains("not valid JSON"));
+    }
+
+    @Test
+    public void testDetailNeverCarriesValues() {
+        ShadowComparison comparison = ShadowComparator.compare(handle(),
+                observation(200, "application/json", "{\"token\":\"primary-secret\"}"),
+                observation(200, "application/json", "{\"token\":\"shadow-secret\"}"));
+        assertEquals(ShadowOutcome.MISMATCH, comparison.getOutcome());
+        assertFalse(comparison.getDetail().contains("secret"));
+        assertTrue(comparison.getDetail().contains("$.token"));
     }
 
     private ShadowHandle handle() {

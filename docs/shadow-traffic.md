@@ -131,3 +131,23 @@ Admin API until then.
 - Mirroring streaming responses, WebSocket sessions or non-HTTP protocols.
 - Replacing the primary response with the shadow response.
 - Promising identical responses from inherently nondeterministic services.
+
+## Verification
+
+The module tests cover:
+
+- configuration validation: target form, bounds and header injection;
+- sampling determinism and the rate boundaries;
+- eligibility: non-HTTP requests, the method allowlist, WebSocket upgrades and SSE;
+- bounded request capture without moving the primary read position, and truncation;
+- bounded response capture without replacing the primary body;
+- comparison outcomes: match, status mismatch, header mismatch, JSON path and array
+  length mismatches, normalization, truncation, non-JSON bytes, invalid JSON, and a
+  detail that never carries response values;
+- a real shadow target (WireMock): mirroring with the shadow marker header,
+  `MATCH`/`MISMATCH` reporting, a timeout reported as `SHADOW_FAILED`, non-blocking
+  dispatch, queue overflow and rejection after close.
+
+Not covered here: live-cluster measurement of the primary path (#7650), response
+decompression limits (the platform HTTP client applies its own bounds) and an
+official integration/e2e suite run. Those remain follow-ups.
