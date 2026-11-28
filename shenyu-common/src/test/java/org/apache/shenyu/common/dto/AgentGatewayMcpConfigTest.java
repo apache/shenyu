@@ -35,6 +35,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class AgentGatewayMcpConfigTest {
 
     @Test
+    void shouldFreezeIndependentPromptPermissionsAndRejectMalformedNames() {
+        JsonObject source = JsonParser.parseString("{\"allowedPrompts\":[\"first.summary\"]}").getAsJsonObject();
+        AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(source, true);
+        source.getAsJsonArray("allowedPrompts").add("other");
+        assertEquals(Set.of("first.summary"), config.getAllowedPrompts());
+        assertEquals(Set.of(), config.getAllowedTools());
+        assertEquals(Set.of(), parse("{}").getAllowedPrompts());
+        assertThrows(UnsupportedOperationException.class, () -> config.getAllowedPrompts().clear());
+        for (String value : new String[] {"null", "\"summary\"", "[null]", "[\"*\"]", "[\"bad/name\"]", "[\"same\",\"same\"]"}) {
+            assertThrows(IllegalArgumentException.class, () -> parse("{\"allowedPrompts\":" + value + "}"));
+        }
+        String names = java.util.stream.IntStream.range(0, 33).mapToObj(index -> "\"p" + index + "\"").collect(java.util.stream.Collectors.joining(","));
+        assertThrows(IllegalArgumentException.class, () -> parse("{\"allowedPrompts\":[" + names + "]}"));
+    }
+
+    @Test
     void shouldDefaultToNoToolsAndBoundedJson() {
         AgentGatewayMcpConfig config = parse("{}");
         assertEquals(Set.of(), config.getAllowedTools());

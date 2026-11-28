@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,10 +32,54 @@ import java.util.Objects;
 import java.util.Set;
 
 /** Strict, secret-free configuration shared by Admin and gateway. */
-public record AgentGatewayAggregationConfig(String revision, List<Server> servers) {
+public record AgentGatewayAggregationConfig(String revision,
+                                            List<Server> servers,
+                                            int refreshConcurrency,
+                                            AgentGatewayRefreshPolicy refreshPolicy,
+                                            AgentGatewayAdmissionConfig admission) {
+
+    /** Default to serial remote catalog discovery. */
+    public static final int DEFAULT_REFRESH_CONCURRENCY = 1;
+
+    /** Minimum supported number of concurrent refresh targets. */
+    public static final int MIN_REFRESH_CONCURRENCY = 1;
+
+    /** Hard upper bound on concurrent refresh targets. */
+    public static final int MAX_REFRESH_CONCURRENCY = 8;
 
     private static final ObjectMapper JSON = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+
+    private static final AgentGatewayAdmissionConfig DEFAULT_ADMISSION = AgentGatewayAdmissionConfig.parse(null);
+
+    /**
+     * Retain serial refresh for existing callers.
+     * @param revision trusted configuration revision
+     * @param servers remote server references
+     */
+    public AgentGatewayAggregationConfig(final String revision,
+                                         final List<Server> servers) {
+        this(revision, servers, DEFAULT_REFRESH_CONCURRENCY);
+    }
+
+    /**
+     * Retain default timing for callers configuring only concurrency.
+     * @param revision trusted configuration revision
+     * @param servers remote server references
+     * @param refreshConcurrency bounded concurrent discovery targets
+     */
+    public AgentGatewayAggregationConfig(final String revision, final List<Server> servers, final int refreshConcurrency) {
+        this(revision, servers, refreshConcurrency, AgentGatewayRefreshPolicy.defaults());
+    }
+
+    public AgentGatewayAggregationConfig(final String revision, final List<Server> servers,
+                                         final int refreshConcurrency, final AgentGatewayRefreshPolicy refreshPolicy) {
+        this(revision, servers, refreshConcurrency, refreshPolicy, DEFAULT_ADMISSION);
+    }
+
+    public AgentGatewayAggregationConfig(final String revision, final List<Server> servers, final AgentGatewayAdmissionConfig admission) {
+        this(revision, servers, DEFAULT_REFRESH_CONCURRENCY, AgentGatewayRefreshPolicy.defaults(), admission);
+    }
 
     public AgentGatewayAggregationConfig {
         if (Objects.isNull(revision) || !revision.matches("[A-Za-z0-9_-]{1,48}")) {
@@ -43,6 +88,12 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
         servers = List.copyOf(servers);
         if (servers.size() > 8 || servers.stream().map(Server::name).distinct().count() != servers.size()) {
             throw new IllegalArgumentException("Too many or duplicate MCP Servers");
+        }
+        if (refreshConcurrency < MIN_REFRESH_CONCURRENCY || refreshConcurrency > MAX_REFRESH_CONCURRENCY) {
+            throw new IllegalArgumentException("Invalid refresh concurrency");
+        }
+        if (Objects.isNull(refreshPolicy)) {
+            throw new IllegalArgumentException("Missing refresh policy");
         }
     }
 
@@ -53,7 +104,7 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
      */
     public static AgentGatewayAggregationConfig parsePluginConfig(final String source) {
         if (Objects.isNull(source) || source.isBlank()) {
-            return new AgentGatewayAggregationConfig("empty", List.of());
+            return new AgentGatewayAggregationConfig("empty", List.of(), DEFAULT_ADMISSION);
         }
         if (source.getBytes(StandardCharsets.UTF_8).length > 16384) {
             throw new IllegalArgumentException("Aggregation configuration byte limit");
@@ -64,11 +115,20 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                 throw new IllegalArgumentException("Expected plugin configuration object");
             }
             if (root.isEmpty()) {
-                return new AgentGatewayAggregationConfig("empty", List.of());
+                return new AgentGatewayAggregationConfig("empty", List.of(), DEFAULT_ADMISSION);
             }
-            fields(root, Set.of("aggregation"));
+            boolean hasAggregation = root.has("aggregation");
+            Set<String> pluginFields = new HashSet<>(hasAggregation ? Set.of("aggregation") : Set.of());
+            if (root.has("admission")) {
+                pluginFields.add("admission");
+            }
+            fields(root, pluginFields);
+            if (!hasAggregation) {
+                return new AgentGatewayAggregationConfig("empty", List.of(),
+                        AgentGatewayAdmissionConfig.parse(root.get("admission")));
+            }
             JsonNode aggregation = root.get("aggregation");
-            fields(aggregation, Set.of("revision", "servers"));
+            fields(aggregation, Set.of("revision", "servers"), Set.of("revision", "servers", "refreshConcurrency", "refreshPolicy"));
             if (!aggregation.path("servers").isArray()) {
                 throw new IllegalArgumentException("Expected MCP Server array");
             }
@@ -78,20 +138,50 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
                 servers.add(new Server(text(server, "name"), URI.create(text(server, "endpoint")),
                         text(server, "credentialRef"), text(server, "credentialVersion")));
             }
-            return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers);
+            int concurrency = DEFAULT_REFRESH_CONCURRENCY;
+            if (aggregation.has("refreshConcurrency")) {
+                concurrency = integer(aggregation, "refreshConcurrency");
+            }
+            return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers, concurrency, parseRefreshPolicy(aggregation),
+                    AgentGatewayAdmissionConfig.parse(root.get("admission")));
         } catch (Exception error) {
             // Do not include raw config or a parse exception which could contain a supplied secret.
             throw new IllegalArgumentException("Invalid Agent Gateway aggregation configuration");
         }
     }
 
+    private static AgentGatewayRefreshPolicy parseRefreshPolicy(final JsonNode aggregation) {
+        if (!aggregation.has("refreshPolicy")) {
+            return AgentGatewayRefreshPolicy.defaults();
+        }
+        JsonNode policy = aggregation.get("refreshPolicy");
+        fields(policy, Set.of("refreshIntervalMs", "initialBackoffMs", "maxBackoffMs", "maxRetries"));
+        return new AgentGatewayRefreshPolicy(
+                Duration.ofMillis(integer(policy, "refreshIntervalMs")),
+                Duration.ofMillis(integer(policy, "initialBackoffMs")),
+                Duration.ofMillis(integer(policy, "maxBackoffMs")),
+                integer(policy, "maxRetries"));
+    }
+
+    private static int integer(final JsonNode node, final String field) {
+        JsonNode value = node.get(field);
+        if (Objects.isNull(value) || !value.isIntegralNumber() || !value.canConvertToInt()) {
+            throw new IllegalArgumentException("Expected configuration integer");
+        }
+        return value.intValue();
+    }
+
     private static void fields(final JsonNode node, final Set<String> expected) {
+        fields(node, expected, expected);
+    }
+
+    private static void fields(final JsonNode node, final Set<String> required, final Set<String> allowed) {
         if (Objects.isNull(node) || !node.isObject()) {
             throw new IllegalArgumentException("Expected configuration object");
         }
         Set<String> fields = new HashSet<>();
         node.fieldNames().forEachRemaining(fields::add);
-        if (!fields.equals(expected)) {
+        if (!fields.containsAll(required) || !allowed.containsAll(fields)) {
             throw new IllegalArgumentException("Unknown or missing configuration field");
         }
     }

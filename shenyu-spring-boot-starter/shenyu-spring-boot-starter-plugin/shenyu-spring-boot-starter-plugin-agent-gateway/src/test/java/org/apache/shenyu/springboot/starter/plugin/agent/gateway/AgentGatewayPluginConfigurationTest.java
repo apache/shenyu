@@ -18,10 +18,15 @@
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptDefinition;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptProvider;
+import org.apache.shenyu.plugin.agent.gateway.prompt.AgentPromptRegistry;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import io.opentelemetry.api.OpenTelemetry;
+import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
+import org.apache.shenyu.common.audit.AgentInvocationAuditObserver;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpIdentity;
@@ -32,34 +37,95 @@ import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceDefinition;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceInvocation;
 import org.apache.shenyu.plugin.agent.gateway.resource.AgentResourceContent;
 import org.apache.shenyu.common.dto.AgentGatewayMcpConfig;
+import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
+import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpResourceAdmission;
+import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 
 import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.ArgumentMatchers.any;
 
 class AgentGatewayPluginConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(AgentGatewayPluginConfiguration.class);
+
+    @Test
+    void promptPermissionsCoexistWithTheUnifiedAuditSink() {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        AgentPromptProvider provider = mock(AgentPromptProvider.class);
+        when(provider.definition()).thenReturn(new AgentPromptDefinition(mapper.createObjectNode().put("name", "summary")));
+        var result = mapper.createObjectNode();
+        result.putArray("messages").addObject().put("role", "user").putObject("content").put("type", "text").put("text", "fixture");
+        when(provider.get(any())).thenReturn(Mono.just(result));
+        List<AgentInvocationAuditEvent> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean(AgentPromptProvider.class, () -> provider)
+                .withBean(AgentInvocationAuditObserver.class, () -> events::add)
+                .withBean(AgentMcpSecurityResolver.class, () -> ignored -> Mono.just(
+                        new AgentMcpIdentity("tenant", "owner", Set.of(), Set.of()).withPromptPermissions(Set.of("summary"), Set.of())))
+                .run(context -> {
+                    assertNull(context.getStartupFailure());
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    String body = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"prompts/get\",\"params\":{\"name\":\"summary\",\"_meta\":{"
+                            + "\"io.modelcontextprotocol/protocolVersion\":\"2026-07-28\",\"io.modelcontextprotocol/clientCapabilities\":{}}}}";
+                    MockServerWebExchange request = MockServerWebExchange.from(MockServerHttpRequest.post("/agent")
+                            .header("Content-Type", "application/json").header("Accept", "application/json, text/event-stream")
+                            .header("MCP-Protocol-Version", "2026-07-28").header("Mcp-Method", "prompts/get").header("Mcp-Name", "summary").body(body));
+                    AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedPrompts\":[\"summary\"]}"), true);
+                    StepVerifier.create(handler.handle(request, config, new AgentTrafficContext("prompt-audit", "mcp", "selector", "rule"), 1)).verifyComplete();
+                    assertEquals(200, request.getResponse().getStatusCode().value());
+                    assertEquals(1, events.size());
+                    assertEquals(AgentInvocationAuditEvent.RecordType.LOGICAL, events.get(0).getRecordType());
+                    assertEquals("owner", events.get(0).getSubject().orElseThrow());
+                    assertEquals("SUCCESS", events.get(0).getOutcome());
+                });
+    }
+
+    @Test
+    void shouldAssembleExplicitPromptsWithoutInferringToolPermission() {
+        AgentPromptProvider provider = mock(AgentPromptProvider.class);
+        when(provider.definition()).thenReturn(new AgentPromptDefinition(new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode().put("name", "summary")));
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true").withBean(AgentPromptProvider.class, () -> provider)
+                .run(context -> {
+                    assertNull(context.getStartupFailure());
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    AgentMcpDispatcher dispatcher = (AgentMcpDispatcher) ReflectionTestUtils.getField(handler, "dispatcher");
+                    AgentPromptRegistry prompts = (AgentPromptRegistry) ReflectionTestUtils.getField(dispatcher, "promptRegistry");
+                    assertEquals(Set.of("summary"), prompts.definitions().keySet());
+                });
+    }
 
     @Test
     void llmIdentityIsOptInAndRequiresOneAuthority() {
@@ -240,6 +306,138 @@ class AgentGatewayPluginConfigurationTest {
                     assertEquals(200, exchange.getResponse().getStatusCode().value());
                     assertTrue(exchange.getResponse().getBodyAsString().block().contains("\"isError\":false"));
                 });
+    }
+
+    @Test
+    void localOnlyGatewayUsesAndReloadsIndependentAdmission() throws Exception {
+        Sinks.Empty<Void> activeTool = Sinks.empty();
+        AtomicInteger calls = new AtomicInteger();
+        final AgentToolProvider tool = new AgentToolProvider() {
+            @Override
+            public String getName() {
+                return "read";
+            }
+
+            @Override
+            public String getDescription() {
+                return "Read a resource";
+            }
+
+            @Override
+            public JsonObject getInputSchema() {
+                return JsonParser.parseString("{\"type\":\"object\"}").getAsJsonObject();
+            }
+
+            @Override
+            public void validate(final JsonObject arguments) {
+            }
+
+            @Override
+            public Mono<JsonObject> invoke(final org.apache.shenyu.plugin.agent.gateway.tool.AgentToolInvocation invocation) {
+                return Mono.defer(() -> {
+                    calls.incrementAndGet();
+                    return activeTool.asMono().map(ignored -> new JsonObject());
+                });
+            }
+        };
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
+                .withBean(AgentToolProvider.class, () -> tool)
+                .withBean(AgentMcpSecurityResolver.class, () -> exchange -> Mono.just(new AgentMcpIdentity("tenant", Set.of("read"))))
+                .run(context -> {
+                    final AgentMcpResourceAdmission.ResourceAdmissionController admission =
+                            context.getBean(AgentMcpResourceAdmission.ResourceAdmissionController.class);
+                    assertEquals(32, admission.snapshot().stream()
+                            .filter(snapshot -> snapshot.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.LOCAL)
+                            .findFirst().orElseThrow().inFlightLimit());
+                    context.getBean(PluginDataHandler.class).handlerPlugin(pluginData("{\"admission\":{"
+                            + "\"globalInFlight\":8,\"globalQueued\":4,\"localInFlight\":1,\"localQueued\":0,"
+                            + "\"remoteInFlight\":2,\"remoteQueued\":2}}"));
+                    assertEquals(1, admission.snapshot().stream()
+                            .filter(snapshot -> snapshot.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.LOCAL)
+                            .findFirst().orElseThrow().inFlightLimit());
+                    AgentMcpHttpHandler handler = (AgentMcpHttpHandler) ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "mcpHandler");
+                    AgentMcpDispatcher dispatcher = (AgentMcpDispatcher) ReflectionTestUtils.getField(handler, "dispatcher");
+                    assertEquals(admission, ReflectionTestUtils.getField(dispatcher, "admission"));
+                    AgentGatewayMcpConfig config = AgentGatewayMcpConfig.parse(JsonParser.parseString("{\"allowedTools\":[\"read\"]}"), true);
+                    ExecutorService executor = Executors.newFixedThreadPool(2);
+                    try {
+                        MockServerWebExchange firstExchange = exchange();
+                        final Future<?> first = executor.submit(() -> StepVerifier.create(handler.handle(firstExchange, config,
+                                new AgentTrafficContext("first", "mcp", "selector", "rule"), 1)).verifyComplete());
+                        awaitLocalInFlight(admission, 1);
+                        context.getBean(PluginDataHandler.class).handlerPlugin(pluginData("{\"admission\":{"
+                                + "\"globalInFlight\":8,\"globalQueued\":4,\"localInFlight\":1,\"localQueued\":0,"
+                                + "\"remoteInFlight\":2,\"remoteQueued\":2}}"));
+                        MockServerWebExchange rejectedExchange = exchange();
+                        StepVerifier.create(handler.handle(rejectedExchange, config,
+                                        new AgentTrafficContext("second", "mcp", "selector", "rule"), 1))
+                                .verifyComplete();
+                        assertEquals(429, rejectedExchange.getResponse().getStatusCode().value());
+                        assertTrue(rejectedExchange.getResponse().getBodyAsString().block().contains("-32026"));
+                        assertEquals(1, calls.get());
+                        activeTool.tryEmitEmpty();
+                        first.get(5, TimeUnit.SECONDS);
+                    } finally {
+                        executor.shutdownNow();
+                    }
+                });
+    }
+
+    private static void awaitLocalInFlight(final AgentMcpResourceAdmission.ResourceAdmissionController admission, final int expected)
+            throws InterruptedException {
+        for (int i = 0; i < 200; i++) {
+            if (admission.snapshot().stream()
+                    .anyMatch(snapshot -> snapshot.scope() == org.apache.shenyu.common.metrics.AgentAdmissionMetrics.Scope.LOCAL
+                            && snapshot.inFlight() == expected)) {
+                return;
+            }
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+        throw new AssertionError("local admission execution was not acquired");
+    }
+
+    private PluginData pluginData(final String config) {
+        PluginData plugin = new PluginData();
+        plugin.setEnabled(true);
+        plugin.setConfig(config);
+        return plugin;
+    }
+
+    @Test
+    void catalogOwnsAdmissionUpdatesWhileHandlerStillValidatesEvents() {
+        ManagedRemoteMcpCatalog catalog = mock(ManagedRemoteMcpCatalog.class);
+        List<PluginData> events = new ArrayList<>();
+        doAnswer(invocation -> events.add(invocation.getArgument(0, PluginData.class)))
+                .when(catalog).accept(any(PluginData.class));
+        try (AgentMcpResourceAdmission.ResourceAdmissionController controller =
+                     AgentMcpResourceAdmission.create(new org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig(
+                             8, 4, 4, 2, 2, 2))) {
+            AgentGatewayAdmissionControllerService admission = new AgentGatewayAdmissionControllerService(controller);
+            PluginDataHandler handler = new AgentGatewayPluginConfiguration()
+                    .agentGatewayPluginDataHandler(provider(catalog), provider(admission));
+
+            handler.removePlugin(new PluginData());
+            handler.handlerPlugin(pluginData(" "));
+
+            assertEquals(2, events.size());
+            assertEquals(Boolean.FALSE, events.get(0).getEnabled());
+            assertNull(events.get(0).getConfig());
+            assertEquals(8, controller.config().globalInFlight());
+            assertEquals(4, controller.config().localInFlight());
+
+            PluginData invalid = pluginData("{\"admission\":{\"globalInFlight\":999,\"globalQueued\":4,"
+                    + "\"localInFlight\":4,\"localQueued\":2,\"remoteInFlight\":2,\"remoteQueued\":2}}");
+            assertThrows(IllegalArgumentException.class, () -> handler.handlerPlugin(invalid));
+            assertEquals(3, events.size());
+            assertSame(invalid, events.get(2));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> ObjectProvider<T> provider(final T value) {
+        ObjectProvider<T> provider = mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(value);
+        return provider;
     }
 
     @Test
