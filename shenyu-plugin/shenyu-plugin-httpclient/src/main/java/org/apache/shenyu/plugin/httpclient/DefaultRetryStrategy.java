@@ -48,6 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -73,8 +74,20 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
 
     private final AbstractHttpClientPlugin<R> httpClientPlugin;
 
+    /**
+     * The sink receiving the breaker key of whichever attempt wins the response headers,
+     * so the body-terminal recording in {@link AbstractHttpClientPlugin} credits the right
+     * upstream (#8156). May be null when the caller records nothing.
+     */
+    private final AtomicReference<String> servingBreakerKey;
+
     public DefaultRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin) {
+        this(httpClientPlugin, null);
+    }
+
+    public DefaultRetryStrategy(final AbstractHttpClientPlugin<R> httpClientPlugin, final AtomicReference<String> servingBreakerKey) {
         this.httpClientPlugin = httpClientPlugin;
+        this.servingBreakerKey = servingBreakerKey;
     }
 
     @Override
@@ -247,7 +260,11 @@ public class DefaultRetryStrategy<R> implements RetryStrategy<R> {
                 // no Divide attempt owner (non-Divide caller): keep the previous accounting
                 retryResponse = retryResponse.doFinally(signal -> upstream.getInflight().decrementAndGet());
             }
-            return UpstreamCircuitBreaker.recordOutcome(retryResponse, breakerKey);
+            // the failover attempt's success is deferred to the body phase as well: publish
+            // this attempt's key through the serving sink so the body-terminal recording in
+            // AbstractHttpClientPlugin credits the right upstream (#8156)
+            return UpstreamCircuitBreaker.recordOutcome(retryResponse, breakerKey,
+                    Objects.nonNull(servingBreakerKey) ? servingBreakerKey::set : null);
         } catch (RuntimeException ex) {
             if (ownerPresent) {
                 owner.release(upstream);
