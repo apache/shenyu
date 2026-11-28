@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.common.metrics;
 
+import org.apache.shenyu.common.governance.AgentGovernanceDecision;
+
 /**
  * Optional request-scoped metrics port. Only closed enums cross this boundary;
  * identities, tool names, payloads and credentials are never metric labels.
@@ -61,6 +63,13 @@ public interface AgentRuntimeMetrics {
      * @param reason credential rejection or invalid server configuration
      */
     default void authenticationRejected(final AuthenticationSource source, final AuthenticationReason reason) {
+    }
+
+    /** Count one governance decision with bounded closed labels.
+     *
+     * @param decision closed shadow/enforce decision
+     */
+    default void governanceDecision(final AgentGovernanceDecision decision) {
     }
 
     /** Isolate metrics failures from forwarding, including cancellation cleanup.

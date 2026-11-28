@@ -21,6 +21,7 @@ import io.prometheus.client.CollectorRegistry;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.governance.AgentGovernanceDecision;
 import org.apache.shenyu.common.metrics.AgentMcpCallObserver;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiAttemptEvent;
@@ -196,6 +197,13 @@ public class MetricsPluginTest {
                     new String[]{"state"}, new String[]{"unavailable"}));
             Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_CATALOG_OBSERVATIONS_TOTAL,
                     new String[]{"state"}, new String[]{"available"}));
+            metrics.governanceDecision(AgentGovernanceDecision.builder(
+                            AgentGovernanceDecision.Consumer.MCP_QUOTA, AgentGovernanceDecision.Mode.SHADOW)
+                    .correlationId("request-private").result(AgentGovernanceDecision.Result.WOULD_DENY)
+                    .reason(AgentGovernanceDecision.Reason.MCP_INVOCATION_LIMIT).build());
+            Assertions.assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_GOVERNANCE_DECISIONS_TOTAL,
+                    new String[]{"consumer", "mode", "result", "reason"},
+                    new String[]{"mcp_quota", "shadow", "would_deny", "mcp_invocation_limit"}));
         } finally {
             MetricsReporter.clean();
             CollectorRegistry.defaultRegistry.clear();

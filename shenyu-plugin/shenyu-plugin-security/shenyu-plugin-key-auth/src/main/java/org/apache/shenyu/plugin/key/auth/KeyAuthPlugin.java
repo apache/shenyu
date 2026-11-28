@@ -36,8 +36,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class KeyAuthPlugin extends AbstractShenyuPlugin {
 
@@ -80,7 +83,7 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
                                 final RuleData rule, final String reason) {
         return Mono.defer(() -> {
             long started = System.nanoTime();
-            String requestId = java.util.UUID.randomUUID().toString();
+            String requestId = UUID.randomUUID().toString();
             return WebFluxResultUtils.result(exchange, error).doFinally(signal -> {
                 Object sink = exchange.getAttribute(AgentInvocationAuditObserver.EXCHANGE_ATTRIBUTE);
                 if (sink instanceof AgentInvocationAuditObserver audit) {
@@ -88,9 +91,9 @@ public class KeyAuthPlugin extends AbstractShenyuPlugin {
                         audit.record(AgentInvocationAuditEvent.logical().requestId(requestId).selectorId(selector.getId()).ruleId(rule.getId())
                                 .configurationVersion("unknown").policyVersion("key-auth-admission-v1")
                                 .decision(AgentInvocationAuditEvent.Decision.REJECTED)
-                                .outcome(signal == reactor.core.publisher.SignalType.CANCEL ? "CANCELLED" : "REJECTED").reason(reason)
+                                .outcome(signal == SignalType.CANCEL ? "CANCELLED" : "REJECTED").reason(reason)
                                 .httpStatus(Objects.isNull(exchange.getResponse().getStatusCode()) ? null : exchange.getResponse().getStatusCode().value())
-                                .elapsedMillis(java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(Math.max(0, System.nanoTime() - started))).build());
+                                .elapsedMillis(TimeUnit.NANOSECONDS.toMillis(Math.max(0, System.nanoTime() - started))).build());
                     } catch (RuntimeException ignored) {
                         // Rejection and its response must not depend on diagnostic delivery.
                     }
