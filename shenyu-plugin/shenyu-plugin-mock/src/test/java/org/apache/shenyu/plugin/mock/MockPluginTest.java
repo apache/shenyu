@@ -32,20 +32,28 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.publisher.Mono;
+import reactor.netty.DisposableServer;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -102,21 +110,61 @@ public final class MockPluginTest {
         verify(chain, never()).execute(any());
     }
 
-    @Test
-    public void testDoExecuteWithSpecifiedHttpStatusCode() {
+    @ParameterizedTest
+    @EnumSource(value = HttpStatus.class, names = {"PROCESSING", "NOT_FOUND"})
+    public void testDoExecuteWithRecognizedHttpStatusCode(final HttpStatus status) {
         RuleData ruleData = buildRuleData();
         MockHandle mockHandle = new MockHandle();
-        mockHandle.setHttpStatusCode(HttpStatus.NOT_FOUND.value());
-        mockHandle.setResponseContent("not found");
+        mockHandle.setHttpStatusCode(status.value());
+        mockHandle.setResponseContent("{\"status\":\"mocked\"}");
         MockPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
 
         StepVerifier.create(mockPlugin.doExecute(exchange, chain, mock(SelectorData.class), ruleData))
                 .expectSubscription()
                 .verifyComplete();
 
-        assertThat(exchange.getResponse().getStatusCode(), is(HttpStatus.NOT_FOUND));
-        assertThat(exchange.getResponse().getBodyAsString().block(), is("not found"));
+        assertThat(exchange.getResponse().getStatusCode(), is(status));
+        assertThat(exchange.getResponse().getBodyAsString().block(), is("{\"status\":\"mocked\"}"));
         verify(chain, never()).execute(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {404, 599})
+    public void testWritesConfiguredHttpStatusOverHttp(final int configuredStatus) {
+        RuleData ruleData = buildRuleData();
+        MockHandle mockHandle = new MockHandle();
+        mockHandle.setHttpStatusCode(configuredStatus);
+        String content = "{\"status\":\"mocked\"}";
+        mockHandle.setResponseContent(content);
+        MockPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
+
+        SelectorData selector = mock(SelectorData.class);
+        ReactorHttpHandlerAdapter handler = new ReactorHttpHandlerAdapter(WebHttpHandlerBuilder
+                .webHandler(current -> mockPlugin.doExecute(current, chain, selector, ruleData)).build());
+        DisposableServer server = HttpServer.create().host("127.0.0.1").port(0).handle(handler).bindNow();
+        try {
+            StepVerifier.create(HttpClient.create().get().uri("http://127.0.0.1:" + server.port() + "/mock")
+                    .responseSingle((response, bytes) -> {
+                        assertEquals(configuredStatus, response.status().code());
+                        return bytes.asString();
+                    })).expectNext(content).expectComplete().verify(Duration.ofSeconds(5));
+            verify(chain, never()).execute(any());
+        } finally {
+            server.disposeNow();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {99, 199, 600, 999})
+    public void testRejectsUnknownInformationalAndOutOfRangeHttpStatusCodes(final int configuredStatus) {
+        RuleData ruleData = buildRuleData();
+        MockHandle mockHandle = new MockHandle();
+        mockHandle.setHttpStatusCode(configuredStatus);
+        mockHandle.setResponseContent("{\"status\":\"mocked\"}");
+        MockPluginHandler.CACHED_HANDLE.get().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), mockHandle);
+        SelectorData selector = mock(SelectorData.class);
+
+        assertThrows(IllegalArgumentException.class, () -> mockPlugin.doExecute(exchange, chain, selector, ruleData));
     }
 
     @ParameterizedTest
