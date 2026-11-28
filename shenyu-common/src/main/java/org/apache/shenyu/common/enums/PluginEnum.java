@@ -232,7 +232,12 @@ public enum PluginEnum {
      * Uri plugin enum.
      */
     URI(205, 0, "uri"),
-    
+
+    /**
+     * Shadow traffic plugin enum.
+     */
+    SHADOW(207, 0, "shadow"),
+
     /**
      * Web client plugin enum.
      */
