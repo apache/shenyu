@@ -55,6 +55,11 @@ mybatis:
   type-handlers-package: org.apache.shenyu.admin.mybatis.handler
 
 shenyu:
+  matching-condition:
+    # Report-only by default. Enable to reject structurally invalid selector/rule conditions at
+    # create/update. Unknown or custom identifiers, declared-but-unregistered sources and existing
+    # stored values are never rejected; imports and client registration are unaffected.
+    strict-validation: false
   register:
     registerType: http
     serverLists:

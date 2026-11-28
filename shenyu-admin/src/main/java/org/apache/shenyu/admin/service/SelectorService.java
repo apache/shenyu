@@ -27,6 +27,7 @@ import org.apache.shenyu.admin.model.result.ConfigImportResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.admin.service.configs.ConfigsImportContext;
 import org.apache.shenyu.admin.utils.Assert;
+import org.apache.shenyu.admin.validation.MatchingConditionEnforcement;
 import org.apache.shenyu.admin.validation.validator.UriConditionValidator;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
@@ -67,6 +68,7 @@ public interface SelectorService extends PageService<SelectorQueryCondition, Sel
      */
     default int createOrUpdate(SelectorDTO selectorDTO) {
         if (Objects.equals(SelectorTypeEnum.CUSTOM_FLOW.getCode(), selectorDTO.getType())) {
+            MatchingConditionEnforcement.checkSelectorConditions(selectorDTO.getSelectorConditions());
             Assert.notNull(selectorDTO.getMatchMode(), "if type is custom, matchMode is not null");
             Assert.notEmpty(selectorDTO.getSelectorConditions(), "if type is custom, selectorConditions is not empty");
             selectorDTO.getSelectorConditions().forEach(selectorConditionDTO -> {
