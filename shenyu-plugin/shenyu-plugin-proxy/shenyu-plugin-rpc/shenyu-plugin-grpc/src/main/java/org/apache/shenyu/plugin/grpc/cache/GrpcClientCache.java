@@ -50,7 +50,7 @@ public final class GrpcClientCache {
      * @param selectorId selectorId
      */
     public static void initGrpcClient(final String selectorId) {
-        CLIENT_CACHE.putIfAbsent(selectorId, GrpcClientBuilder.buildClient(selectorId));
+        CLIENT_CACHE.computeIfAbsent(selectorId, GrpcClientBuilder::buildClient);
     }
     
     /**

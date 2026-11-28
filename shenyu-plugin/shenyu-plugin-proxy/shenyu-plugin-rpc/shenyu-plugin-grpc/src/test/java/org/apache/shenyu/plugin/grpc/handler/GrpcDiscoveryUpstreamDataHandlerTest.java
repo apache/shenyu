@@ -23,16 +23,23 @@ import org.apache.shenyu.common.dto.convert.selector.GrpcUpstream;
 import org.apache.shenyu.sync.data.api.DiscoveryUpstreamKey;
 import org.apache.shenyu.plugin.grpc.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.grpc.cache.GrpcClientCache;
+import org.apache.shenyu.plugin.grpc.client.GrpcClientBuilder;
+import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 public final class GrpcDiscoveryUpstreamDataHandlerTest {
 
@@ -63,6 +70,38 @@ public final class GrpcDiscoveryUpstreamDataHandlerTest {
         assertEquals("grpc://", upstreamList.get(0).getProtocol());
         assertFalse(upstreamList.get(0).isHealthCheckEnabled());
         assertNotNull(GrpcClientCache.getGrpcClient(SELECTOR_ID));
+    }
+
+    @Test
+    public void testCachedClientReceivesAddedUpstreamAfterRefresh() {
+        ApplicationConfigCache cache = ApplicationConfigCache.getInstance();
+        ShenyuGrpcClient client = mock(ShenyuGrpcClient.class);
+        ShenyuGrpcClient duplicate = mock(ShenyuGrpcClient.class);
+        AtomicReference<List<String>> received = new AtomicReference<>();
+        try (MockedStatic<GrpcClientBuilder> builder = mockStatic(GrpcClientBuilder.class)) {
+            builder.when(() -> GrpcClientBuilder.buildClient(SELECTOR_ID)).thenAnswer(invocation -> {
+                cache.watch(SELECTOR_ID, ignored -> received.set(cache.getGrpcUpstreamListCache(SELECTOR_ID)
+                        .stream().map(GrpcUpstream::getUpstreamUrl).toList()));
+                return client;
+            }).thenAnswer(invocation -> {
+                cache.watch(SELECTOR_ID, ignored -> { });
+                return duplicate;
+            });
+
+            DiscoveryUpstreamData first = DiscoveryUpstreamData.builder().url("127.0.0.1:50051").build();
+            DiscoverySyncData update = new DiscoverySyncData();
+            update.setSelectorId(SELECTOR_ID);
+            update.setUpstreamDataList(List.of(first));
+            GrpcDiscoveryUpstreamDataHandler handler = new GrpcDiscoveryUpstreamDataHandler();
+            handler.handlerDiscoveryUpstreamData(update);
+            handler.handlerDiscoveryUpstreamData(update);
+            DiscoveryUpstreamData second = DiscoveryUpstreamData.builder().url("127.0.0.1:50052").build();
+            update.setUpstreamDataList(List.of(first, second));
+            handler.handlerDiscoveryUpstreamData(update);
+
+            assertSame(client, GrpcClientCache.getGrpcClient(SELECTOR_ID));
+            assertEquals(List.of("127.0.0.1:50051", "127.0.0.1:50052"), received.get());
+        }
     }
 
     @Test
