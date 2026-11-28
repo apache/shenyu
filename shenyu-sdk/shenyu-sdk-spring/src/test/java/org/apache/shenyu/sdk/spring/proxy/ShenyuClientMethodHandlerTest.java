@@ -81,6 +81,30 @@ public class ShenyuClientMethodHandlerTest extends AbstractProxyTest {
         assertSame(response, ReflectionTestUtils.invokeMethod(handler, "handlerResponse", response, ShenyuResponse.class));
     }
 
+    @Test
+    public void invokesTypedMethodForUnlistedSuccessfulStatus() throws IOException {
+        assertEquals(42, invokeWithStatus(299, Integer.class));
+    }
+
+    @Test
+    public void preservesUnlistedFailureStatusForTypedAndVoidMethods() {
+        for (Class<?> returnType : Arrays.asList(Integer.class, void.class)) {
+            final HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> invokeWithStatus(524, returnType));
+            assertEquals(524, exception.getStatusCode().value());
+        }
+    }
+
+    private Object invokeWithStatus(final int status, final Class<?> returnType) throws IOException {
+        final RequestTemplate template = new RequestTemplate();
+        template.setHttpMethod(ShenyuRequest.HttpMethod.GET);
+        template.setUrl("http://localhost/test");
+        template.setParamMetadataList(Collections.emptyList());
+        template.setReturnType(returnType);
+        final ShenyuClientMethodHandler handler = new ShenyuClientMethodHandler(null, template,
+                request -> new ShenyuResponse(status, "", Collections.emptyMap(), "42", request), Collections.emptyMap());
+        return handler.invoke(new Object[0]);
+    }
+
     private Object handlerResponse(final int status, final String body, final Class<?> returnType) {
         return ReflectionTestUtils.invokeMethod(newHandler(), "handlerResponse", response(status, body), returnType);
     }
