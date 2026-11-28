@@ -86,6 +86,7 @@ public final class PluginEnumTest {
             "loggingElasticSearch, 190",
             "loggingClickHouse, 195",
             "divide, 200",
+            "shadow, 207",
             "websocket, 200",
             "modifyResponse, 220",
             "dubbo, 310",
