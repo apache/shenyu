@@ -87,7 +87,7 @@ public final class MockRequest {
      */
     public Object getJson() {
         if (Objects.isNull(json)) {
-            json = JsonUtils.jsonToMap(new String(body));
+            json = JsonUtils.jsonToMap(new String(body, StandardCharsets.UTF_8));
         }
         return json;
     }
