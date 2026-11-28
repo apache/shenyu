@@ -27,6 +27,7 @@ import org.apache.shenyu.plugin.shadow.report.ShadowReporter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.http.HttpHeaders;
 
 import java.net.URI;
@@ -55,6 +56,8 @@ public final class ShadowDispatcherTest {
     private static final String PATH = "/api/orders";
 
     private static final String JSON_BODY = "{\"a\":1}";
+
+    private static final int SLOW_DELAY_MILLIS = 30_000;
 
     private WireMockServer server;
 
@@ -116,13 +119,15 @@ public final class ShadowDispatcherTest {
     }
 
     @Test
+    @Timeout(10)
     public void testDispatchDoesNotWaitForSlowShadow() {
-        server.stubFor(get(urlEqualTo(PATH)).willReturn(jsonResponse(200, JSON_BODY).withFixedDelay(2000)));
+        // The shadow target answers far later than this test may take. Completing
+        // at all proves the caller never waits for the shadow response.
+        server.stubFor(get(urlEqualTo(PATH)).willReturn(jsonResponse(200, JSON_BODY)
+                .withFixedDelay(SLOW_DELAY_MILLIS)));
         ShadowDispatcher dispatcher = dispatcher(handle(), new RecordingReporter());
         try {
-            long start = System.nanoTime();
             assertTrue(dispatcher.dispatch(task(), primary(200, JSON_BODY)));
-            assertTrue(System.nanoTime() - start < Duration.ofMillis(500).toNanos());
         } finally {
             dispatcher.close();
         }
