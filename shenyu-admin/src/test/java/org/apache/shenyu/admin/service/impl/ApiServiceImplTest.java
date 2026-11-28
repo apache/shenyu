@@ -25,6 +25,8 @@ import org.apache.shenyu.admin.mapper.TagMapper;
 import org.apache.shenyu.admin.mapper.TagRelationMapper;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
+import org.apache.shenyu.admin.model.entity.RuleDO;
+import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.model.query.RuleQueryCondition;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.admin.service.MetaDataService;
@@ -33,9 +35,11 @@ import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.register.ShenyuClientRegisterService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.enums.ApiHttpMethodEnum;
 import org.apache.shenyu.common.enums.ApiSourceEnum;
 import org.apache.shenyu.common.enums.ApiStateEnum;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,10 +61,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -129,11 +134,12 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void deleteRemovesOnlyTheRuleRegisteredForTheExactApiPath() {
+    public void deleteRemovesOnlyTheExactRuleInTheRegisteredSelector() {
         final ApiDO apiDO = ApiDO.builder()
                 .id("api-1")
                 .apiPath("/order/get")
                 .contextPath("/order")
+                .rpcType(RpcTypeEnum.HTTP.getName())
                 .build();
         when(apiMapper.selectByIds(anyList())).thenReturn(Collections.singletonList(apiDO));
         when(apiMapper.deleteByIds(anyList())).thenReturn(1);
@@ -147,18 +153,54 @@ public class ApiServiceImplTest {
         final RuleVO longerRule = new RuleVO();
         longerRule.setId("rule-longer");
         longerRule.setName("/order/get/detail");
-        when(ruleService.searchByCondition(any(RuleQueryCondition.class)))
-                .thenReturn(Arrays.asList(exactRule, longerRule));
-
-        when(selectorService.findByNameAndPluginNamesAndNamespaceId(eq("/order"), anyList(), anyString()))
-                .thenReturn(Collections.emptyList());
-        when(metaDataService.findByPathAndNamespaceId(anyString(), anyString())).thenReturn(null);
+        final RuleVO sameNameInOtherSelector = new RuleVO();
+        sameNameInOtherSelector.setId("rule-other-selector");
+        sameNameInOtherSelector.setName("/order/get");
+        sameNameInOtherSelector.setSelectorId("other-selector");
+        when(ruleService.searchByCondition(any(RuleQueryCondition.class))).thenReturn(Arrays.asList(exactRule, longerRule, sameNameInOtherSelector));
+        when(selectorService.findByNameAndPluginNameAndNamespaceId("/order", PluginEnum.DIVIDE.getName(), Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(SelectorDO.builder().id("registered-selector").build());
+        when(ruleService.findBySelectorIdAndName("registered-selector", "/order/get"))
+                .thenReturn(RuleDO.builder().id("rule-exact").ruleName("/order/get").build());
+        when(ruleService.findBySelectorId("registered-selector")).thenReturn(List.of(RuleData.builder().id("rule-longer").build()));
 
         apiServiceImpl.delete(Collections.singletonList("api-1"));
 
         final ArgumentCaptor<List<String>> ruleIdsCaptor = ArgumentCaptor.forClass(List.class);
         verify(ruleService).deleteByIdsAndNamespaceId(ruleIdsCaptor.capture(), anyString());
         assertEquals(Collections.singletonList("rule-exact"), ruleIdsCaptor.getValue(),
-                "deleting one API must not delete rules registered for longer paths that merely contain it");
+                "deleting one API must not delete longer paths or rules in another selector");
+        verify(selectorService, never()).deleteByNamespaceId(anyList(), anyString());
+    }
+
+    @Test
+    public void deleteDoesNotSearchOtherSelectorsWhenRegistrationSelectorIsMissing() {
+        final ApiDO apiDO = ApiDO.builder().id("api-1").apiPath("/order/get").contextPath("/order")
+                .rpcType(RpcTypeEnum.GRPC.getName()).build();
+        when(apiMapper.selectByIds(List.of("api-1"))).thenReturn(List.of(apiDO));
+        when(apiMapper.deleteByIds(List.of("api-1"))).thenReturn(1);
+
+        apiServiceImpl.delete(List.of("api-1"));
+
+        verify(selectorService).findByNameAndPluginNameAndNamespaceId("/order", PluginEnum.GRPC.getName(), Constants.SYS_DEFAULT_NAMESPACE_ID);
+        verifyNoInteractions(ruleService);
+        verify(selectorService, never()).deleteByNamespaceId(anyList(), anyString());
+    }
+
+    @Test
+    public void deleteKeepsDifferentlyCasedRuleReturnedByTheDatabase() {
+        final ApiDO apiDO = ApiDO.builder().id("api-1").apiPath("/order/get").contextPath("/order")
+                .rpcType(RpcTypeEnum.HTTP.getName()).build();
+        when(apiMapper.selectByIds(List.of("api-1"))).thenReturn(List.of(apiDO));
+        when(apiMapper.deleteByIds(List.of("api-1"))).thenReturn(1);
+        when(selectorService.findByNameAndPluginNameAndNamespaceId("/order", PluginEnum.DIVIDE.getName(), Constants.SYS_DEFAULT_NAMESPACE_ID))
+                .thenReturn(SelectorDO.builder().id("registered-selector").build());
+        when(ruleService.findBySelectorIdAndName("registered-selector", "/order/get"))
+                .thenReturn(RuleDO.builder().id("rule-uppercase").ruleName("/order/GET").build());
+
+        apiServiceImpl.delete(List.of("api-1"));
+
+        verify(ruleService, never()).deleteByIdsAndNamespaceId(anyList(), anyString());
+        verify(selectorService, never()).deleteByNamespaceId(anyList(), anyString());
     }
 }
