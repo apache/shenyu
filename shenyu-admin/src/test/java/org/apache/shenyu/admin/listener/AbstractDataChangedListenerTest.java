@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.AppAuthService;
@@ -49,6 +50,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,6 +65,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
@@ -335,6 +343,101 @@ public final class AbstractDataChangedListenerTest {
         listener.updateCache(ConfigGroupEnum.META_DATA, metaDatas, SYS_DEFAULT_NAMESPACE_ID);
         ConfigData<?> result5 = listener.fetchConfig(ConfigGroupEnum.META_DATA, SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(result5);
+    }
+
+    @Test
+    public void testFetchConfigLoadsMissingGroupsForNewlyCreatedNamespaceAndPropagatesLaterEdit() {
+        listener.afterPropertiesSet();
+
+        String newNamespace = "ns-created-after-startup";
+        SelectorData divideSelector = SelectorData.builder()
+                .id("divide-selector-1")
+                .namespaceId(newNamespace)
+                .build();
+        when(namespacePluginService.listAll(newNamespace)).thenReturn(Collections.emptyList());
+        when(appAuthService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(ruleService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(selectorService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.singletonList(divideSelector));
+        when(metaDataService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(proxySelectorService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(aiProxyApiKeyService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+
+        // Simulate a route created in the new namespace while APP_AUTH and other groups were never written.
+        listener.onSelectorChanged(Collections.singletonList(divideSelector), DataEventTypeEnum.CREATE);
+        assertFalse(listener.getCache().containsKey(
+                HttpLongPollingDataChangedListener.buildCacheKey(newNamespace, ConfigGroupEnum.APP_AUTH.name())));
+
+        String emptyJsonMd5 = DigestUtils.md5Hex("[]");
+        for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+            ConfigData<?> fetched = listener.fetchConfig(group, newNamespace);
+            assertNotNull(fetched);
+            assertNotNull(fetched.getMd5());
+            assertTrue(fetched.getLastModifyTime() > 0);
+            assertNotNull(fetched.getData());
+            if (group == ConfigGroupEnum.SELECTOR) {
+                assertEquals(1, fetched.getData().size());
+                assertEquals("divide-selector-1", ((SelectorData) fetched.getData().get(0)).getId());
+            } else {
+                assertTrue(fetched.getData().isEmpty());
+                assertEquals(emptyJsonMd5, fetched.getMd5());
+            }
+        }
+        verify(appAuthService, times(1)).listAllByNamespaceId(newNamespace);
+        verify(selectorService, times(1)).listAllByNamespaceId(newNamespace);
+
+        // Subsequent APP_AUTH edit in the new namespace must update the cached snapshot and propagate.
+        AppAuthData newAuth = AppAuthData.builder()
+                .appKey("app-key-1")
+                .namespaceId(newNamespace)
+                .build();
+        when(appAuthService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.singletonList(newAuth));
+        listener.onAppAuthChanged(Collections.singletonList(newAuth), DataEventTypeEnum.CREATE);
+
+        ConfigData<?> updatedAuth = listener.fetchConfig(ConfigGroupEnum.APP_AUTH, newNamespace);
+        assertEquals(1, updatedAuth.getData().size());
+        assertEquals("app-key-1", ((AppAuthData) updatedAuth.getData().get(0)).getAppKey());
+        assertFalse(emptyJsonMd5.equals(updatedAuth.getMd5()));
+        assertCallbackBatch(ConfigGroupEnum.APP_AUTH, newNamespace, newAuth);
+    }
+
+    @Test
+    public void testColdFetchDoesNotOverwriteConcurrentSameGroupPublication() throws Exception {
+        String newNamespace = "ns-concurrent-same-group";
+        AppAuthData committedAuth = AppAuthData.builder()
+                .appKey("concurrent-key")
+                .namespaceId(newNamespace)
+                .build();
+        CountDownLatch coldReadEntered = new CountDownLatch(1);
+        CountDownLatch releaseColdRead = new CountDownLatch(1);
+        AtomicInteger callIndex = new AtomicInteger();
+        when(appAuthService.listAllByNamespaceId(newNamespace)).thenAnswer(invocation -> {
+            if (callIndex.getAndIncrement() == 0) {
+                coldReadEntered.countDown();
+                assertTrue(releaseColdRead.await(5, TimeUnit.SECONDS));
+                return Collections.emptyList();
+            }
+            return Collections.singletonList(committedAuth);
+        });
+
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try {
+            final Future<ConfigData<?>> coldFetch = pool.submit(() -> listener.fetchConfig(ConfigGroupEnum.APP_AUTH, newNamespace));
+            assertTrue(coldReadEntered.await(5, TimeUnit.SECONDS));
+
+            // Publish a newer committed APP_AUTH snapshot while the cold fetch still holds the stale empty read.
+            listener.onAppAuthChanged(Collections.singletonList(committedAuth), DataEventTypeEnum.CREATE);
+            releaseColdRead.countDown();
+
+            ConfigData<?> fetchedDuringRace = coldFetch.get(5, TimeUnit.SECONDS);
+            ConfigData<?> finalFetched = listener.fetchConfig(ConfigGroupEnum.APP_AUTH, newNamespace);
+            assertEquals(1, fetchedDuringRace.getData().size());
+            assertEquals("concurrent-key", ((AppAuthData) fetchedDuringRace.getData().get(0)).getAppKey());
+            assertEquals(1, finalFetched.getData().size());
+            assertEquals("concurrent-key", ((AppAuthData) finalFetched.getData().get(0)).getAppKey());
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test

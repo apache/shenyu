@@ -29,6 +29,17 @@ class HttpbinHandler(BaseHTTPRequestHandler):
         status = 200
         if path.path == "/status/200":
             body = b""
+        elif self.command == "GET" and path.path == "/http/order/findById":
+            order_id = parse_qs(path.query).get("id", [])
+            status = 200 if len(order_id) == 1 else 400
+            body = json.dumps({"id": order_id[0]} if status == 200 else {"error": "one order id is required"}).encode("utf-8")
+        elif self.command == "POST" and path.path == "/http/order/save":
+            try:
+                order = json.loads(data)
+                body = json.dumps({"id": order["id"], "name": "hello world save order"}).encode("utf-8")
+            except (KeyError, TypeError, ValueError):
+                status = 400
+                body = b'{"error":"an order id is required"}'
         elif path.path == "/anything" or path.path.startswith("/anything/"):
             body = json.dumps({
                 "method": self.command,

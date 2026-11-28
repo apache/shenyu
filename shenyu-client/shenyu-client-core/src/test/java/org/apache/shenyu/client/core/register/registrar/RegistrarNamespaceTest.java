@@ -62,7 +62,7 @@ class RegistrarNamespaceTest {
             registrar.doRegisterBean(bean);
             registrar.doRegisterApi(bean.getApiDefinitions().get(0));
             ArgumentCaptor<DataTypeParent> captor = ArgumentCaptor.forClass(DataTypeParent.class);
-            verify(publisher, times(4)).publishEvent(captor.capture());
+            verify(publisher, times(registrar instanceof UriApiRegistrarImplImpl ? 2 : 4)).publishEvent(captor.capture());
             List<DataTypeParent> events = captor.getAllValues();
             for (int index = 0; index < events.size(); index += 2) {
                 assertNotSame(events.get(index), events.get(index + 1));

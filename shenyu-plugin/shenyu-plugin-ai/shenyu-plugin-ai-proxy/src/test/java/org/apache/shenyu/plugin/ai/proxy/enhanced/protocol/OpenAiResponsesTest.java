@@ -41,6 +41,11 @@ class OpenAiResponsesTest {
     private final OpenAiResponses protocol = new OpenAiResponses();
 
     @Test
+    void doesNotSupportExactResponseCachingByDefault() {
+        assertFalse(protocol.isExactResponseCacheCompatible());
+    }
+
+    @Test
     void detectsResponsesWithoutAmbiguousChatRequests() throws Exception {
         assertEquals(OpenAiResponses.NAME, protocol.name());
         assertFalse(protocol.matches(null));

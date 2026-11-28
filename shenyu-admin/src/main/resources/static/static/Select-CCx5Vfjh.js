@@ -1,0 +1,1 @@
+import{j as o}from"./index-DL4z5Mky.js";import{S as l}from"./difference-CuB6DvVT.js";function i({mode:t,allowClear:p,showSearch:e,style:r,...s}){return o.jsx(l,{...s,style:{width:"100%",...r},multiple:t==="multiple"||t==="tags",allowCreate:t==="tags",showClear:p,filter:e===void 0?t==="multiple"||t==="tags":e,motion:!1})}i.Option=l.Option;i.OptGroup=l.OptGroup;export{i as S};

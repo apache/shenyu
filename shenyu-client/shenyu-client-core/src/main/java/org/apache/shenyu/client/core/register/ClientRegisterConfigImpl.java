@@ -91,6 +91,15 @@ public class ClientRegisterConfigImpl implements ClientRegisterConfig {
     }
 
     @Override
+    public String getProtocol() {
+        return switch (rpcTypeEnum) {
+            case HTTP -> props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.HTTP);
+            case WEB_SOCKET -> props.getProperty(ShenyuClientConstants.PROTOCOL, ShenyuClientConstants.WS);
+            default -> null;
+        };
+    }
+
+    @Override
     public String getHost() {
 
         if (Objects.isNull(this.host)) {

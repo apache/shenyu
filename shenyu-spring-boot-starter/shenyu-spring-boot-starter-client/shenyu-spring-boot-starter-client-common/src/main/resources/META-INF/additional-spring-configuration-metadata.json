@@ -1,0 +1,566 @@
+{
+  "properties": [
+    {
+      "name": "shenyu.register.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "Enable business-client registration. False skips all client registration validation and resources."
+    },
+    {
+      "name": "shenyu.register.register-type",
+      "type": "java.lang.String",
+      "description": "Client registration repository SPI name. Built-in business-client transport is http; custom SPI formats remain extension-owned."
+    },
+    {
+      "name": "shenyu.register.server-lists",
+      "type": "java.lang.String",
+      "description": "For HTTP, nonempty comma-separated absolute HTTP/HTTPS Admin URLs. No built-in default."
+    },
+    {
+      "name": "shenyu.namespace",
+      "type": "java.lang.String",
+      "description": "Semicolon-separated namespace IDs. Missing or wholly blank uses existing default 649330b6-c2d7-4edc-be8e-8a54df9eb385; nonblank lists require nonblank entries."
+    },
+    {
+      "name": "shenyu.register.props.shutdownWaitTime",
+      "type": "java.lang.String",
+      "defaultValue": "3000",
+      "description": "Existing shutdown-hook delay in milliseconds, integer 0..2147483647. Preserve this case-sensitive Properties key."
+    },
+    {
+      "name": "shenyu.register.props.delayOtherHooksExecTime",
+      "type": "java.lang.String",
+      "defaultValue": "2000",
+      "description": "Existing shutdown-hook takeover window in milliseconds, integer 0..2147483647. Preserve this case-sensitive Properties key."
+    },
+    {
+      "name": "shenyu.client.http.props.appName",
+      "type": "java.lang.String",
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
+    },
+    {
+      "name": "shenyu.client.http.props.contextPath",
+      "type": "java.lang.String",
+      "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+    },
+    {
+      "name": "shenyu.client.http.props.host",
+      "type": "java.lang.String",
+      "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+    },
+    {
+      "name": "shenyu.client.http.props.port",
+      "type": "java.lang.String",
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+    },
+    {
+      "name": "shenyu.client.http.props.isFull",
+      "type": "java.lang.String",
+      "description": "Existing HTTP/WebSocket full-context registration option. Defaults to false."
+    },
+    {
+      "name": "shenyu.client.http.props.addPrefixed",
+      "type": "java.lang.String",
+      "description": "Existing addPrefixed flag; retain the exact camel-case Properties key. Defaults to false."
+    },
+    {
+      "name": "shenyu.client.websocket.props.appName",
+      "type": "java.lang.String",
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
+    },
+    {
+      "name": "shenyu.client.websocket.props.contextPath",
+      "type": "java.lang.String",
+      "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+    },
+    {
+      "name": "shenyu.client.websocket.props.host",
+      "type": "java.lang.String",
+      "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+    },
+    {
+      "name": "shenyu.client.websocket.props.port",
+      "type": "java.lang.String",
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+    },
+    {
+      "name": "shenyu.client.websocket.props.isFull",
+      "type": "java.lang.String",
+      "description": "Existing HTTP/WebSocket full-context registration option. Defaults to false."
+    },
+    {
+      "name": "shenyu.client.grpc.props.appName",
+      "type": "java.lang.String",
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
+    },
+    {
+      "name": "shenyu.client.grpc.props.contextPath",
+      "type": "java.lang.String",
+      "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+    },
+    {
+      "name": "shenyu.client.grpc.props.host",
+      "type": "java.lang.String",
+      "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+    },
+    {
+      "name": "shenyu.client.grpc.props.port",
+      "type": "java.lang.String",
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+    },
+    {
+      "name": "shenyu.client.grpc.props.ipAndPort",
+      "type": "java.lang.String",
+      "description": "Existing protocol-specific endpoint/application identity; required by the legacy gRPC listener."
+    },
+    {
+      "name": "shenyu.client.dubbo.props.appName",
+      "type": "java.lang.String",
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
+    },
+    {
+      "name": "shenyu.client.dubbo.props.contextPath",
+      "type": "java.lang.String",
+      "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+    },
+    {
+      "name": "shenyu.client.dubbo.props.host",
+      "type": "java.lang.String",
+      "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+    },
+    {
+      "name": "shenyu.client.dubbo.props.port",
+      "type": "java.lang.String",
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+    },
+    {
+      "name": "shenyu.client.sofa.props.appName",
+      "type": "java.lang.String",
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
+    },
+    {
+      "name": "shenyu.client.sofa.props.contextPath",
+      "type": "java.lang.String",
+      "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+    },
+    {
+      "name": "shenyu.client.sofa.props.host",
+      "type": "java.lang.String",
+      "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+    },
+    {
+      "name": "shenyu.client.sofa.props.port",
+      "type": "java.lang.String",
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+    },
+    {
+      "name": "shenyu.client.tars.props.appName",
+      "type": "java.lang.String",
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
+    },
+    {
+      "name": "shenyu.client.tars.props.contextPath",
+      "type": "java.lang.String",
+      "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+    },
+    {
+      "name": "shenyu.client.tars.props.host",
+      "type": "java.lang.String",
+      "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+    },
+    {
+      "name": "shenyu.client.tars.props.port",
+      "type": "java.lang.String",
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+    },
+    {
+      "name": "shenyu.client.mcp.props.appName",
+      "type": "java.lang.String",
+      "description": "HTTP legacy MVC requires appName or spring.application.name even with an explicit contextPath. Opt-in accepts appName or contextPath and falls back to spring.application.name only when appName is absent."
+    },
+    {
+      "name": "shenyu.client.mcp.props.contextPath",
+      "type": "java.lang.String",
+      "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+    },
+    {
+      "name": "shenyu.client.mcp.props.host",
+      "type": "java.lang.String",
+      "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+    },
+    {
+      "name": "shenyu.client.mcp.props.port",
+      "type": "java.lang.String",
+      "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+    },
+    {
+      "name": "shenyu.discovery.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enable binding of client discovery configuration. Defaults to false."
+    },
+    {
+      "name": "shenyu.discovery.register",
+      "type": "java.lang.Boolean",
+      "description": "Enable the supported client-side instance registration path. Defaults to false."
+    },
+    {
+      "name": "shenyu.discovery.type",
+      "type": "java.lang.String",
+      "description": "Existing discovery SPI type. Local publication uses local by default; active discovery paths require an explicit type."
+    },
+    {
+      "name": "shenyu.discovery.server-list",
+      "type": "java.lang.String",
+      "description": "Discovery provider address list. Active remote instance providers require their server address; custom formats remain provider-owned."
+    },
+    {
+      "name": "shenyu.discovery.props.sessionTimeout",
+      "type": "java.lang.String",
+      "defaultValue": "3000",
+      "description": "ZooKeeper session timeout in milliseconds. Validated only for the active matching client-side discovery provider; retain exact Properties key casing."
+    },
+    {
+      "name": "shenyu.discovery.props.connectionTimeout",
+      "type": "java.lang.String",
+      "defaultValue": "3000",
+      "description": "ZooKeeper connection timeout in milliseconds. Validated only for the active matching client-side discovery provider; retain exact Properties key casing."
+    },
+    {
+      "name": "shenyu.discovery.props.baseSleepTime",
+      "type": "java.lang.String",
+      "defaultValue": "1000",
+      "description": "ZooKeeper retry base sleep in milliseconds. Validated only for the active matching client-side discovery provider; retain exact Properties key casing."
+    },
+    {
+      "name": "shenyu.discovery.props.maxRetries",
+      "type": "java.lang.String",
+      "defaultValue": "3",
+      "description": "ZooKeeper instance registration retry count, not HTTP failback retries. Validated only for the active matching client-side discovery provider; retain exact Properties key casing."
+    },
+    {
+      "name": "shenyu.discovery.props.maxSleepTime",
+      "type": "java.lang.String",
+      "defaultValue": "2147483647",
+      "description": "ZooKeeper retry maximum sleep in milliseconds. Validated only for the active matching client-side discovery provider; retain exact Properties key casing."
+    },
+    {
+      "name": "shenyu.discovery.props.etcdTimeout",
+      "type": "java.lang.String",
+      "defaultValue": "3000",
+      "description": "Etcd timeout in milliseconds; nonnegative Java long. Validated only for the active matching client-side discovery provider; retain exact Properties key casing."
+    },
+    {
+      "name": "shenyu.discovery.props.etcdTTL",
+      "type": "java.lang.String",
+      "defaultValue": "5",
+      "description": "Etcd lease TTL in seconds; positive Java long. Validated only for the active matching client-side discovery provider; retain exact Properties key casing."
+    },
+    {
+      "name": "shenyu.client.http.props.protocol",
+      "type": "java.lang.String",
+      "defaultValue": "http://",
+      "description": "Existing advertised protocol prefix. Its consumer retains protocol semantics; this startup gate does not introduce a closed extension scheme allowlist."
+    },
+    {
+      "name": "shenyu.client.websocket.props.protocol",
+      "type": "java.lang.String",
+      "defaultValue": "ws://",
+      "description": "Existing advertised protocol prefix. Its consumer retains protocol semantics; this startup gate does not introduce a closed extension scheme allowlist."
+    },
+    {
+      "name": "shenyu.register.props.username",
+      "type": "java.lang.String",
+      "description": "Existing HTTP Admin login user."
+    },
+    {
+      "name": "shenyu.register.props.password",
+      "type": "java.lang.String",
+      "description": "Existing HTTP Admin login secret. Never put real credentials in examples or diagnostic output."
+    },
+    {
+      "name": "shenyu.register.props.aes-secret-key",
+      "type": "java.lang.String",
+      "description": "Existing optional HTTP password-encryption key; preserve this hyphenated Properties key. Crypto validation remains transport-owned."
+    },
+    {
+      "name": "shenyu.register.props.aes-secret-iv",
+      "type": "java.lang.String",
+      "description": "Existing optional HTTP password-encryption IV; used with aes-secret-key. Crypto validation remains transport-owned."
+    },
+    {
+      "name": "shenyu.register.props.applicationShutdownHooksClassName",
+      "type": "java.lang.String",
+      "description": "Existing optional JVM-hook override. Reflection availability is runtime/JDK-specific.",
+      "defaultValue": "java.lang.ApplicationShutdownHooks"
+    },
+    {
+      "name": "shenyu.register.props.applicationShutdownHooksFieldName",
+      "type": "java.lang.String",
+      "description": "Existing optional JVM-hook field override.",
+      "defaultValue": "hooks"
+    },
+    {
+      "name": "shenyu.register.props.registrationFencingDomains",
+      "type": "java.lang.String",
+      "description": "Existing opt-in fencing domain configuration; see shenyu-register-center/REGISTRATION_FENCING.md. Its capability/ownership validator remains transport-owned."
+    },
+    {
+      "name": "shenyu.register.props.registrationFencingStartupId",
+      "type": "java.lang.String",
+      "description": "Existing fencing startup UUID override; omitted generates a random startup UUID."
+    },
+    {
+      "name": "shenyu.register.props.registrationFencingExpectedGeneration",
+      "type": "java.lang.String",
+      "description": "Existing fencing expected generation; canonical nonnegative long. Validated by the existing fencing implementation.",
+      "defaultValue": "0"
+    }
+  ],
+  "hints": [
+    {
+      "name": "shenyu.client.keys",
+      "values": [
+        {
+          "value": "http"
+        },
+        {
+          "value": "websocket"
+        },
+        {
+          "value": "grpc"
+        },
+        {
+          "value": "dubbo"
+        },
+        {
+          "value": "sofa"
+        },
+        {
+          "value": "tars"
+        },
+        {
+          "value": "mcp"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.register.register-type",
+      "values": [
+        {
+          "value": "http"
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.client.http.props.keys",
+      "values": [
+        {
+          "value": "appName",
+          "description": "Application identity. Preserve this exact Properties key; fallback depends on the documented legacy/opt-in path."
+        },
+        {
+          "value": "contextPath",
+          "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+        },
+        {
+          "value": "host",
+          "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+        },
+        {
+          "value": "port",
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+        },
+        {
+          "value": "isFull",
+          "description": "Existing HTTP/WebSocket full-context registration option. Defaults to false."
+        },
+        {
+          "value": "addPrefixed",
+          "description": "Existing addPrefixed flag; retain the exact camel-case Properties key. Defaults to false."
+        },
+        {
+          "value": "protocol",
+          "description": "Existing advertised protocol prefix; default http://"
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.client.websocket.props.keys",
+      "values": [
+        {
+          "value": "appName",
+          "description": "Application identity. Preserve this exact Properties key; fallback depends on the documented legacy/opt-in path."
+        },
+        {
+          "value": "contextPath",
+          "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+        },
+        {
+          "value": "host",
+          "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+        },
+        {
+          "value": "port",
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+        },
+        {
+          "value": "isFull",
+          "description": "Existing HTTP/WebSocket full-context registration option. Defaults to false."
+        },
+        {
+          "value": "protocol",
+          "description": "Existing advertised protocol prefix; default ws://"
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.client.grpc.props.keys",
+      "values": [
+        {
+          "value": "appName",
+          "description": "Application identity. Preserve this exact Properties key; fallback depends on the documented legacy/opt-in path."
+        },
+        {
+          "value": "contextPath",
+          "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+        },
+        {
+          "value": "host",
+          "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+        },
+        {
+          "value": "port",
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+        },
+        {
+          "value": "ipAndPort",
+          "description": "Existing protocol-specific endpoint/application identity; required by the legacy gRPC listener."
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.client.dubbo.props.keys",
+      "values": [
+        {
+          "value": "appName",
+          "description": "Application identity. Preserve this exact Properties key; fallback depends on the documented legacy/opt-in path."
+        },
+        {
+          "value": "contextPath",
+          "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+        },
+        {
+          "value": "host",
+          "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+        },
+        {
+          "value": "port",
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.client.sofa.props.keys",
+      "values": [
+        {
+          "value": "appName",
+          "description": "Application identity. Preserve this exact Properties key; fallback depends on the documented legacy/opt-in path."
+        },
+        {
+          "value": "contextPath",
+          "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+        },
+        {
+          "value": "host",
+          "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+        },
+        {
+          "value": "port",
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.client.tars.props.keys",
+      "values": [
+        {
+          "value": "appName",
+          "description": "Application identity. Preserve this exact Properties key; fallback depends on the documented legacy/opt-in path."
+        },
+        {
+          "value": "contextPath",
+          "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+        },
+        {
+          "value": "host",
+          "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+        },
+        {
+          "value": "port",
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    },
+    {
+      "name": "shenyu.client.mcp.props.keys",
+      "values": [
+        {
+          "value": "appName",
+          "description": "Application identity. Preserve this exact Properties key; fallback depends on the documented legacy/opt-in path."
+        },
+        {
+          "value": "contextPath",
+          "description": "Gateway registration prefix; it need not be the backend servlet context path. HTTP legacy defaults to /<spring.application.name>; opt-in defaults to empty."
+        },
+        {
+          "value": "host",
+          "description": "Advertised host or existing interface selection input; omission retains host discovery. TARS requires a host."
+        },
+        {
+          "value": "port",
+          "description": "Advertised port. HTTP/WebSocket allow omission, -1 or 0 for deferred automatic discovery. Dubbo uses its protocol port when omitted, blank or -1. Other explicit ports must be 1..65535; gRPC, SOFA and TARS require a port. This property does not configure server.port."
+        }
+      ],
+      "providers": [
+        {
+          "name": "any"
+        }
+      ]
+    }
+  ]
+}

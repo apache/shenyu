@@ -27,7 +27,11 @@ import org.apache.shenyu.admin.listener.ConfigDataCache;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
+import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.NamespaceService;
+import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
@@ -35,6 +39,7 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -44,6 +49,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.InstanceStatusEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,8 +78,13 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -395,6 +406,146 @@ public final class HttpLongPollingDataChangedListenerTest {
         } finally {
             clearAllGroupsInCache(namespaceId);
             clearAllGroupsInCache(otherNamespaceId);
+        }
+    }
+
+    @Test
+    public void testFetchConfigMissingGroupLoadsOnceUnderConcurrency() throws Exception {
+        String namespaceId = "ns-concurrent-miss";
+        AtomicInteger loadCount = new AtomicInteger();
+        HttpLongPollingDataChangedListener concurrentListener = new HttpLongPollingDataChangedListener(httpSyncProperties) {
+            @Override
+            protected ConfigDataCache loadMissingGroupCache(final ConfigGroupEnum groupKey, final String ns) {
+                loadCount.incrementAndGet();
+                return putCacheIfAbsent(groupKey, List.of(), ns);
+            }
+        };
+        ExecutorService pool = Executors.newFixedThreadPool(4);
+        CountDownLatch startGate = new CountDownLatch(1);
+        try {
+            List<Future<ConfigData<?>>> futures = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                futures.add(pool.submit(() -> {
+                    startGate.await(5, TimeUnit.SECONDS);
+                    return concurrentListener.fetchConfig(ConfigGroupEnum.APP_AUTH, namespaceId);
+                }));
+            }
+            startGate.countDown();
+            for (Future<ConfigData<?>> future : futures) {
+                ConfigData<?> data = future.get(5, TimeUnit.SECONDS);
+                assertNotNull(data);
+                assertTrue(data.getData().isEmpty());
+            }
+            assertEquals(1, loadCount.get());
+        } finally {
+            pool.shutdownNow();
+            clearAllGroupsInCache(namespaceId);
+        }
+    }
+
+    @Test
+    public void testColdFetchRaceWithConcurrentSelectorUpdatePreservesNewerSnapshot() throws Exception {
+        String namespaceId = "ns-cold-fetch-selector-race";
+        HttpSyncProperties syncProperties = new HttpSyncProperties();
+        HttpLongPollingDataChangedListener target = new HttpLongPollingDataChangedListener(syncProperties);
+        AppAuthService appAuthService = Mockito.mock(AppAuthService.class);
+        SelectorService selectorService = Mockito.mock(SelectorService.class);
+        injectListenerField(target, "appAuthService", appAuthService);
+        injectListenerField(target, "selectorService", selectorService);
+
+        SelectorData oldSelector = SelectorData.builder().id("old-selector").namespaceId(namespaceId).build();
+        final SelectorData newSelector = SelectorData.builder().id("new-selector").namespaceId(namespaceId).build();
+        Mockito.when(selectorService.listAllByNamespaceId(namespaceId)).thenReturn(List.of(oldSelector));
+        target.onSelectorChanged(List.of(oldSelector), DataEventTypeEnum.CREATE);
+
+        CountDownLatch coldFetchEntered = new CountDownLatch(1);
+        CountDownLatch releaseColdFetch = new CountDownLatch(1);
+        Mockito.when(appAuthService.listAllByNamespaceId(namespaceId)).thenAnswer(invocation -> {
+            coldFetchEntered.countDown();
+            assertTrue(releaseColdFetch.await(5, TimeUnit.SECONDS));
+            return List.of();
+        });
+        Mockito.when(selectorService.listAllByNamespaceId(namespaceId)).thenReturn(List.of(newSelector));
+
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            Future<ConfigData<?>> coldFetchFuture = pool.submit(() -> target.fetchConfig(ConfigGroupEnum.APP_AUTH, namespaceId));
+            assertTrue(coldFetchEntered.await(5, TimeUnit.SECONDS));
+
+            Future<?> selectorUpdateFuture = pool.submit(() ->
+                    target.onSelectorChanged(List.of(newSelector), DataEventTypeEnum.UPDATE));
+            releaseColdFetch.countDown();
+
+            ConfigData<?> authConfig = coldFetchFuture.get(5, TimeUnit.SECONDS);
+            selectorUpdateFuture.get(5, TimeUnit.SECONDS);
+
+            ConfigData<?> finalSelector = target.fetchConfig(ConfigGroupEnum.SELECTOR, namespaceId);
+            assertNotNull(authConfig);
+            assertTrue(authConfig.getData().isEmpty());
+            assertEquals(1, finalSelector.getData().size());
+            assertEquals("new-selector", ((SelectorData) finalSelector.getData().get(0)).getId());
+            Mockito.verify(selectorService, Mockito.times(2)).listAllByNamespaceId(namespaceId);
+        } finally {
+            pool.shutdownNow();
+            target.destroy();
+            clearAllGroupsInCache(namespaceId);
+        }
+    }
+
+    @Test
+    public void testCompareChangedGroupLoadsMissingCacheForExistingNamespace() throws Exception {
+        String namespaceId = "ns-longpoll-miss";
+        NamespaceService namespaceService = Mockito.mock(NamespaceService.class);
+        Mockito.when(namespaceService.findByNamespaceId(namespaceId)).thenReturn(new NamespaceVO());
+        AtomicInteger loadCount = new AtomicInteger();
+        HttpLongPollingDataChangedListener target = new HttpLongPollingDataChangedListener(httpSyncProperties) {
+            @Override
+            protected ConfigDataCache loadMissingGroupCache(final ConfigGroupEnum groupKey, final String ns) {
+                loadCount.incrementAndGet();
+                return putCacheIfAbsent(groupKey, List.of(), ns);
+            }
+        };
+        injectListenerField(target, "namespaceService", namespaceService);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("namespaceId", namespaceId);
+        setAllGroupParamsForNamespace(request, namespaceId);
+        try {
+            List<ConfigGroupEnum> changed = invokeCompareChangedGroup(target, request);
+            assertEquals(ConfigGroupEnum.values().length, changed.size());
+            assertEquals(ConfigGroupEnum.values().length, loadCount.get());
+            invokeCompareChangedGroup(target, request);
+            assertEquals(ConfigGroupEnum.values().length, loadCount.get());
+        } finally {
+            clearAllGroupsInCache(namespaceId);
+        }
+    }
+
+    @Test
+    public void testCompareChangedGroupRejectsUnknownNamespaceWithoutPollutingCache() throws Exception {
+        String unknownNamespace = "ns-does-not-exist";
+        NamespaceService namespaceService = Mockito.mock(NamespaceService.class);
+        Mockito.when(namespaceService.findByNamespaceId(unknownNamespace)).thenReturn(null);
+        AtomicInteger loadCount = new AtomicInteger();
+        HttpLongPollingDataChangedListener target = new HttpLongPollingDataChangedListener(httpSyncProperties) {
+            @Override
+            protected ConfigDataCache loadMissingGroupCache(final ConfigGroupEnum groupKey, final String ns) {
+                loadCount.incrementAndGet();
+                return putCacheIfAbsent(groupKey, List.of(), ns);
+            }
+        };
+        injectListenerField(target, "namespaceService", namespaceService);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("namespaceId", unknownNamespace);
+        setAllGroupParamsForNamespace(request, unknownNamespace);
+        try {
+            InvocationTargetException ex = assertThrows(InvocationTargetException.class,
+                    () -> invokeCompareChangedGroup(target, request));
+            assertTrue(ex.getTargetException() instanceof ShenyuException);
+            assertEquals("namespace is not exist", ex.getTargetException().getMessage());
+            assertEquals(0, loadCount.get());
+            assertNull(getCache().get(HttpLongPollingDataChangedListener.buildCacheKey(unknownNamespace, ConfigGroupEnum.APP_AUTH.name())));
+        } finally {
+            clearAllGroupsInCache(unknownNamespace);
         }
     }
 
@@ -1079,10 +1230,24 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     @SuppressWarnings("unchecked")
     private List<ConfigGroupEnum> invokeCompareChangedGroup(final HttpServletRequest request) throws Exception {
+        return invokeCompareChangedGroup(listener, request);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<ConfigGroupEnum> invokeCompareChangedGroup(final HttpLongPollingDataChangedListener target,
+                                                            final HttpServletRequest request) throws Exception {
         Method method = HttpLongPollingDataChangedListener.class.getDeclaredMethod(
                 "compareChangedGroup", HttpServletRequest.class);
         method.setAccessible(true);
-        return (List<ConfigGroupEnum>) method.invoke(listener, request);
+        return (List<ConfigGroupEnum>) method.invoke(target, request);
+    }
+
+    private void injectListenerField(final HttpLongPollingDataChangedListener target,
+                                     final String fieldName,
+                                     final Object value) throws Exception {
+        Field field = AbstractDataChangedListener.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 
     private void invokeGenerateResponse(final jakarta.servlet.http.HttpServletResponse response,

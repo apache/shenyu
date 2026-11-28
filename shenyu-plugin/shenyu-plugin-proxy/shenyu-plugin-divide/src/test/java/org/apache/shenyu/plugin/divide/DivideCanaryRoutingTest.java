@@ -36,6 +36,7 @@ import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecision;
 import org.apache.shenyu.plugin.divide.canary.CanaryDecisionService;
 import org.apache.shenyu.plugin.divide.canary.DefaultCanaryDecisionService;
@@ -63,9 +64,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -116,6 +120,57 @@ class DivideCanaryRoutingTest {
     void tearDown() {
         new DividePluginDataHandler().removeRule(rule);
         UpstreamCacheManager.getInstance().removeByKey(selector.getId());
+    }
+
+    @Test
+    void testRegisteredPoolRefreshesAfterLabelOnlyDiscoveryUpdate() {
+        config.setPercentage(100);
+        config.setFallbackPolicy("STABLE");
+        rule.setHandle(GsonUtils.getGson().toJson(handle));
+        new DividePluginDataHandler().handlerRule(rule);
+        Upstream canary = upstream("moving:8080", Map.of("release", "canary", "region", "east"));
+        Upstream stable = upstream("stable:8080", Map.of("release", "stable"));
+        canary.setHealthCheckEnabled(false);
+        stable.setHealthCheckEnabled(false);
+        UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        manager.submit(selector.getId(), List.of(canary, stable));
+        assertDomain(exchange(null), "http://moving:8080");
+        Upstream moved = upstream("moving:8080", Map.of("release", "canary", "region", "west"));
+        moved.setHealthCheckEnabled(false);
+        manager.submit(selector.getId(), List.of(moved, stable));
+        assertDomain(exchange(null), "http://stable:8080");
+        manager.submit(selector.getId(), List.of());
+        ServerWebExchange empty = exchange(null);
+        StepVerifier.create(plugin.doExecute(empty, current -> Mono.empty(), selector, rule)).verifyComplete();
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, empty.getResponse().getStatusCode());
+    }
+
+    @Test
+    void testBreakerFilteringPreservesRealCachedSubset() {
+        config.setPercentage(100);
+        rule.setHandle(GsonUtils.getGson().toJson(handle));
+        new DividePluginDataHandler().handlerRule(rule);
+        Upstream blocked = upstream("cached-blocked:8080", config.getCanaryLabels());
+        Upstream available = upstream("cached-available:8080", config.getCanaryLabels());
+        blocked.setHealthCheckEnabled(false);
+        available.setHealthCheckEnabled(false);
+        UpstreamCacheManager manager = UpstreamCacheManager.getInstance();
+        manager.submit(selector.getId(), List.of(blocked, available));
+        List<Upstream> snapshot = manager.findUpstreamListByLabels(selector.getId(), config.getCanaryLabels());
+        assertThrows(UnsupportedOperationException.class, snapshot::clear);
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        String key = UpstreamCircuitBreaker.buildKey(selector.getId(), blocked);
+        try {
+            for (int i = 0; i < UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD; i++) {
+                breaker.recordFailure(key);
+            }
+            assertDomain(exchange(null), "http://cached-available:8080");
+            assertDomain(exchange(null), "http://cached-available:8080");
+            assertSame(snapshot, manager.findUpstreamListByLabels(selector.getId(), config.getCanaryLabels()));
+            assertEquals(List.of(blocked, available), snapshot);
+        } finally {
+            breaker.reset(key);
+        }
     }
 
     @Test
@@ -338,7 +393,8 @@ class DivideCanaryRoutingTest {
 
     private MockedStatic<UpstreamCacheManager> cache(final List<Upstream> upstreams) {
         UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
-        when(manager.findAllUpstreamListBySelectorId(selector.getId())).thenReturn(upstreams);
+        when(manager.findUpstreamListByLabels(eq(selector.getId()), any()))
+                .thenAnswer(invocation -> List.copyOf(UpstreamLabelUtils.filter(upstreams, invocation.getArgument(1))));
         List<Upstream> gray = upstreams.stream().filter(Upstream::isGray).toList();
         when(manager.findUpstreamListBySelectorId(selector.getId())).thenReturn(gray.isEmpty() ? upstreams : gray);
         MockedStatic<UpstreamCacheManager> cache = mockStatic(UpstreamCacheManager.class);

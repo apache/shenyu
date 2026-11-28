@@ -27,7 +27,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.protocol.AiProxyProtocolFactory;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactory;
-import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
@@ -62,6 +62,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.apache.shenyu.plugin.ai.proxy.enhanced.AiProxyTestUtils.protocolRouteResolver;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -86,7 +87,8 @@ class AiProxyPassthroughTest {
 
     private AiProxyPlugin plugin(final AiProxyTransport transport, final AiProxyRetryProperties retry) {
         handler.handlerSelector(selector);
-        AiProxyEngine engine = new AiProxyEngine(new AiProxyProtocolFactory(List.of()), new AiProxyProviderFactory(List.of()), transport, retry);
+        AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of()), new AiProxyProviderFactory(List.of()), protocolRouteResolver(), transport)
+                .retryProperties(retry).build();
         return new AiProxyPlugin(new AiProxyConfigService(handler), engine, handler, events::add);
     }
 

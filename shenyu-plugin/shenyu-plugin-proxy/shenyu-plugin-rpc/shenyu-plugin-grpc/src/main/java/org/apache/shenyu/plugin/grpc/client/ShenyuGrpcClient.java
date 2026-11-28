@@ -26,6 +26,7 @@ import io.grpc.CallOptions;
 import io.grpc.ClientCall;
 import io.grpc.ForwardingClientCall;
 import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.collections4.CollectionUtils;
@@ -66,6 +67,10 @@ public class ShenyuGrpcClient implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ShenyuGrpcClient.class);
     
     private final ManagedChannel channel;
+
+    private final Object admissionLock = new Object();
+
+    private volatile boolean retired;
     
     public ShenyuGrpcClient(final ManagedChannel channel) {
         this.channel = channel;
@@ -153,6 +158,15 @@ public class ShenyuGrpcClient implements Closeable {
      * @return ListenableFuture future
      */
     public ListenableFuture<Void> invoke(final ShenyuGrpcCallRequest callParams) {
+        try {
+            ensureActive();
+            return startInvocation(callParams);
+        } catch (RetiredClientException ex) {
+            return Futures.immediateFailedFuture(ex);
+        }
+    }
+
+    private ListenableFuture<Void> startInvocation(final ShenyuGrpcCallRequest callParams) {
         MethodDescriptor.MethodType methodType = callParams.getMethodDescriptor().getType();
         List<DynamicMessage> requestList = callParams.getRequests();
         
@@ -160,16 +174,7 @@ public class ShenyuGrpcClient implements Closeable {
         CompleteObserver<DynamicMessage> doneObserver = new CompleteObserver<>();
         StreamObserver<DynamicMessage> compositeObserver = CompositeStreamObserver.of(responseObserver, doneObserver);
 
-        AtomicBoolean cancelled = new AtomicBoolean();
-        ClientCall<DynamicMessage, DynamicMessage> call = new ForwardingClientCall.SimpleForwardingClientCall<>(createCall(callParams)) {
-            @Override
-            public void cancel(final String message, final Throwable cause) {
-                // Downstream cancellation and aggregate overflow share one transport cleanup.
-                if (cancelled.compareAndSet(false, true)) {
-                    super.cancel(message, cause);
-                }
-            }
-        };
+        ClientCall<DynamicMessage, DynamicMessage> call = createGuardedCall(callParams);
         ListenableFuture<Void> completion = doneObserver.getCompletionFuture();
         completion.addListener(() -> {
             if (completion.isCancelled()) {
@@ -237,11 +242,59 @@ public class ShenyuGrpcClient implements Closeable {
     
     @Override
     public void close() {
-        this.channel.shutdown();
+        synchronized (admissionLock) {
+            if (retired) {
+                return;
+            }
+            retired = true;
+        }
+        // ManagedChannel drains calls already started before retirement.
+        channel.shutdown();
     }
     
-    private ClientCall<DynamicMessage, DynamicMessage> createCall(final ShenyuGrpcCallRequest callParams) {
-        return callParams.getChannel().newCall(callParams.getMethodDescriptor(),
-                callParams.getCallOptions());
+    private ClientCall<DynamicMessage, DynamicMessage> createGuardedCall(final ShenyuGrpcCallRequest callParams) {
+        ClientCall<DynamicMessage, DynamicMessage> transport = callParams.getChannel().newCall(
+                callParams.getMethodDescriptor(), callParams.getCallOptions());
+        AtomicBoolean cancelled = new AtomicBoolean();
+        return new ForwardingClientCall.SimpleForwardingClientCall<>(transport) {
+            @Override
+            public void start(final Listener<DynamicMessage> responseListener, final Metadata headers) {
+                synchronized (admissionLock) {
+                    if (!retired) {
+                        super.start(responseListener, headers);
+                        return;
+                    }
+                }
+                // A prepared call can keep the channel from shutting down while name resolution is pending.
+                RetiredClientException retirement = new RetiredClientException();
+                try {
+                    cancel(retirement.getMessage(), retirement);
+                } catch (RuntimeException cancellationFailure) {
+                    retirement.addSuppressed(cancellationFailure);
+                }
+                throw retirement;
+            }
+
+            @Override
+            public void cancel(final String message, final Throwable cause) {
+                // Downstream cancellation and aggregate overflow share one transport cleanup.
+                if (cancelled.compareAndSet(false, true)) {
+                    super.cancel(message, cause);
+                }
+            }
+        };
+    }
+
+    private void ensureActive() {
+        if (retired) {
+            throw new RetiredClientException();
+        }
+    }
+
+    private static final class RetiredClientException extends ShenyuGrpcException {
+
+        private RetiredClientException() {
+            super("gRPC client is retired");
+        }
     }
 }

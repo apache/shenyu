@@ -119,6 +119,14 @@ Additional contract rules:
 
 Admin-to-gateway sync is owned entirely by main and follows registration acceptance/persistence. A client registration protocol change must not require the application to import gateway `PluginData`, `SelectorData`, or other runtime cache models.
 
+For opt-in local URI registration, use the client configuration matching the
+registered RPC type. HTTP and WebSocket URIs can use different advertised
+schemes, ports, and endpoint identities in the same application. A temporarily
+unresolved HTTP or WebSocket port (`0` or `-1`) skips publication for this
+refresh. Malformed or out-of-range ports fail startup when registration runs
+during context refresh. A processor can explicitly enable bean-level URI
+publication even if it excludes every API definition.
+
 ## Remaining coupling and migration actions
 
 The following dependencies are intentionally main-owned. #7605 already removed Admin's business-client production/test dependencies and the beat modules' business-client dependencies; these retained foundations must not be mistaken for unfinished reverse-dependency removal.
