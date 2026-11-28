@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.web.loader;
 
+import org.apache.shenyu.common.config.PluginArchiveLimits;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,12 +25,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,6 +67,42 @@ class ShenyuExtPathPluginJarLoaderTest {
             assertEquals(1, ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).getPluginJars().size());
         } finally {
             holder.removePluginClassLoader(jarKey);
+        }
+    }
+
+    @Test
+    void shouldReconcileValidAndRemovedJarsWhenAnotherJarExceedsBudget() throws IOException {
+        Path rejected = directory.resolve("rejected.jar");
+        Path updated = directory.resolve("updated.jar");
+        Path removed = directory.resolve("removed.jar");
+        List<Path> paths = List.of(rejected, updated, removed);
+        for (Path path : paths) {
+            writePluginJar(path, "1.0.0");
+        }
+        ShenyuPluginClassLoaderHolder holder = ShenyuPluginClassLoaderHolder.getSingleton();
+        try {
+            for (PluginJarParser.PluginJar jar : ShenyuExtPathPluginJarLoader.loadExtendPlugins(directory.toString()).getPluginJars()) {
+                holder.replacePluginClassLoader(jar, classLoader -> { });
+            }
+            PluginArchiveLimits limits = new PluginArchiveLimits();
+            limits.setMaxArchiveBytes(4096);
+            writePluginJar(rejected, "2.0.0");
+            Files.write(rejected, new byte[limits.getMaxArchiveBytes()], StandardOpenOption.APPEND);
+            writePluginJar(updated, "2.0.0");
+            Files.delete(removed);
+
+            List<PluginJarParser.PluginJar> candidates = ShenyuExtPathPluginJarLoader
+                    .loadExtendPlugins(directory.toString(), ignored -> { }, limits).getPluginJars();
+
+            assertEquals(1, candidates.size());
+            assertEquals(updated.toString(), candidates.get(0).getAbsolutePath());
+            assertEquals("2.0.0", candidates.get(0).getVersion());
+            holder.replacePluginClassLoader(candidates.get(0), classLoader -> { });
+            assertTrue(holder.hasPluginClassLoader(rejected.toString(), "1.0.0"));
+            assertTrue(holder.hasPluginClassLoader(updated.toString(), "2.0.0"));
+            assertFalse(holder.hasPluginClassLoader(removed.toString(), "1.0.0"));
+        } finally {
+            paths.forEach(path -> holder.removePluginClassLoader(path.toString()));
         }
     }
 

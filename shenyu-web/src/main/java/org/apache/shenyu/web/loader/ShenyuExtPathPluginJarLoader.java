@@ -19,6 +19,9 @@ package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Sets;
 import org.apache.shenyu.common.config.PluginArchiveLimits;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +35,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class ShenyuExtPathPluginJarLoader {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuExtPathPluginJarLoader.class);
 
     private static volatile Set<String> pluginJarName = new HashSet<>();
 
@@ -77,7 +82,13 @@ public class ShenyuExtPathPluginJarLoader {
         for (File file : jarFiles) {
             String absolutePath = file.getAbsolutePath();
             currentPaths.add(absolutePath);
-            PluginJarParser.PluginJar uploadPluginJar = PluginJarParser.parseFile(Paths.get(absolutePath), limits);
+            PluginJarParser.PluginJar uploadPluginJar;
+            try {
+                uploadPluginJar = PluginJarParser.parseFile(Paths.get(absolutePath), limits);
+            } catch (ShenyuException e) {
+                LOG.warn("Skipping rejected extension archive {}: {}", absolutePath, e.getMessage());
+                continue;
+            }
             uploadPluginJar.setAbsolutePath(absolutePath);
             if (pluginJarName.contains(absolutePath)) {
                 ShenyuPluginClassLoaderHolder holder = ShenyuPluginClassLoaderHolder.getSingleton();
