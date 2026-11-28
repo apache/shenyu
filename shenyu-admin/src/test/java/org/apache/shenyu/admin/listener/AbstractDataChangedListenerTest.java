@@ -338,6 +338,20 @@ public final class AbstractDataChangedListenerTest {
     }
 
     @Test
+    public void testFetchConfigInitializesMissingNamespaceSnapshot() {
+        String namespaceId = "namespace-created-after-startup";
+        assertFalse(listener.getCache().containsKey(HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, ConfigGroupEnum.APP_AUTH.name())));
+
+        ConfigData<?> result = listener.fetchConfig(ConfigGroupEnum.APP_AUTH, namespaceId);
+
+        assertNotNull(result);
+        assertNotNull(result.getMd5());
+        assertTrue(result.getLastModifyTime() > 0L);
+        assertTrue(result.getData().isEmpty());
+        assertTrue(listener.getCache().containsKey(HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, ConfigGroupEnum.APP_AUTH.name())));
+    }
+
+    @Test
     public void testOnAppAuthChanged() {
         List<AppAuthData> empty = Lists.newArrayList();
         DataEventTypeEnum eventType = mock(DataEventTypeEnum.class);

@@ -124,7 +124,14 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @return the configuration data
      */
     public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey, final String namespaceId) {
-        ConfigDataCache config = CACHE.get(HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, groupKey.name()));
+        String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, groupKey.name());
+        ConfigDataCache config = CACHE.get(cacheKey);
+        if (Objects.isNull(config)) {
+            // A namespace created after startup has no snapshot until its first change event.
+            // Publish every group from the committed data instead of failing the first fetch.
+            this.refreshLocalCache(namespaceId);
+            config = CACHE.get(cacheKey);
+        }
         switch (groupKey) {
             case APP_AUTH:
                 return buildConfigData(config, AppAuthData.class);
