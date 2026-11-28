@@ -18,6 +18,7 @@
 package org.apache.shenyu.sync.data.http.refresh;
 
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
@@ -53,9 +54,31 @@ public final class DataRefreshFactory {
                               final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
                               final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers
                               ) {
+        this(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers, proxySelectorDataSubscribers,
+                discoveryUpstreamDataSubscribers, aiProxyApiKeyDataSubscribers, Constants.SYS_DEFAULT_NAMESPACE_ID);
+    }
+
+    /**
+     * Create refreshers for the namespace requested by this gateway.
+     *
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param metaDataSubscribers the metadata subscribers
+     * @param authDataSubscribers the authorization subscribers
+     * @param proxySelectorDataSubscribers the proxy selector subscribers
+     * @param discoveryUpstreamDataSubscribers the discovery upstream subscribers
+     * @param aiProxyApiKeyDataSubscribers the AI Proxy API key subscribers
+     * @param namespaceId the gateway namespace
+     */
+    public DataRefreshFactory(final PluginDataSubscriber pluginDataSubscriber,
+                              final List<MetaDataSubscriber> metaDataSubscribers,
+                              final List<AuthDataSubscriber> authDataSubscribers,
+                              final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers,
+                              final List<DiscoveryUpstreamDataSubscriber> discoveryUpstreamDataSubscribers,
+                              final List<AiProxyApiKeyDataSubscriber> aiProxyApiKeyDataSubscribers,
+                              final String namespaceId) {
         ENUM_MAP.put(ConfigGroupEnum.PLUGIN, new PluginDataRefresh(pluginDataSubscriber));
         ENUM_MAP.put(ConfigGroupEnum.SELECTOR, new SelectorDataRefresh(pluginDataSubscriber));
-        ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataRefresh(pluginDataSubscriber));
+        ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataRefresh(pluginDataSubscriber, namespaceId));
         ENUM_MAP.put(ConfigGroupEnum.APP_AUTH, new AppAuthDataRefresh(authDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataRefresh(metaDataSubscribers));
         ENUM_MAP.put(ConfigGroupEnum.PROXY_SELECTOR, new ProxySelectorRefresh(proxySelectorDataSubscribers));
