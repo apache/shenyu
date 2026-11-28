@@ -26,7 +26,10 @@ import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -87,10 +90,36 @@ public class ShenyuClientMethodHandler {
             log.warn("handlerResponse http status warn shenyuResponse {}", JsonUtils.toJson(shenyuResponse));
             throw new HttpClientErrorException(status);
         }
+        if (String.class == returnType && StringUtils.hasLength(shenyuResponse.getBody()) && hasPlainTextContentType(shenyuResponse)) {
+            return shenyuResponse.getBody();
+        }
         if (void.class == returnType || !StringUtils.hasText(shenyuResponse.getBody())) {
             return null;
         }
         return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
+    }
+
+    private boolean hasPlainTextContentType(final ShenyuResponse response) {
+        if (Objects.isNull(response.getHeaders())) {
+            return false;
+        }
+        return response.getHeaders().entrySet().stream()
+                .filter(entry -> HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .filter(Objects::nonNull)
+                .flatMap(values -> values.stream())
+                .filter(StringUtils::hasText)
+                .findFirst()
+                .map(this::isPlainText)
+                .orElse(false);
+    }
+
+    private boolean isPlainText(final String contentType) {
+        try {
+            return MediaType.TEXT_PLAIN.equalsTypeAndSubtype(MediaType.parseMediaType(contentType));
+        } catch (InvalidMediaTypeException ignored) {
+            return false;
+        }
     }
 
     private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {

@@ -49,6 +49,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ShenyuClientHttpStatusTest {
 
+    private static final String PLAIN_TEXT = "text/plain; charset=UTF-8";
+
+    private static final String TEXT = "hello world";
+
     private static final int UNLISTED_SUCCESS = 299;
 
     private static final int ORIGIN_TIMEOUT = 524;
@@ -86,6 +90,18 @@ class ShenyuClientHttpStatusTest {
         withProxy(transport, context -> assertEquals(ORIGIN_TIMEOUT, context.getBean(StatusClient.class).rawTimeout().getStatus()));
     }
 
+    @ParameterizedTest
+    @EnumSource(Transport.class)
+    void preservesPlainTextWithoutChangingJsonDecoding(final Transport transport) throws Exception {
+        withProxy(transport, context -> {
+            final StatusClient client = context.getBean(StatusClient.class);
+            assertEquals(TEXT, client.rawText().getBody());
+            assertEquals(TEXT, client.readJsonString());
+            assertEquals(TEXT, client.readText());
+            assertEquals(" \t", client.readWhitespace());
+        });
+    }
+
     private static void assertOriginTimeout(final Throwable cause) {
         final HttpClientErrorException failure = assertInstanceOf(HttpClientErrorException.class, cause);
         assertEquals(ORIGIN_TIMEOUT, failure.getStatusCode().value());
@@ -96,6 +112,9 @@ class ShenyuClientHttpStatusTest {
         try (ShenyuSdkClient client = transport.create(); AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             serve(server, "/value", UNLISTED_SUCCESS);
             serve(server, "/timeout", ORIGIN_TIMEOUT);
+            serveBody(server, "/text", 200, PLAIN_TEXT, TEXT);
+            serveBody(server, "/whitespace", 200, PLAIN_TEXT, " \t");
+            serveBody(server, "/json-string", 200, "application/json", "\"hello world\"");
             server.start();
             final String address = "127.0.0.1:" + server.getAddress().getPort();
 
@@ -116,10 +135,14 @@ class ShenyuClientHttpStatusTest {
     }
 
     private static void serve(final HttpServer server, final String path, final int status) {
-        final byte[] body = "42".getBytes(StandardCharsets.UTF_8);
+        serveBody(server, path, status, "application/json", "42");
+    }
+
+    private static void serveBody(final HttpServer server, final String path, final int status, final String contentType, final String text) {
+        final byte[] body = text.getBytes(StandardCharsets.UTF_8);
         server.createContext(path, exchange -> {
             try {
-                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.getResponseHeaders().set("Content-Type", contentType);
                 exchange.sendResponseHeaders(status, body.length);
                 exchange.getResponseBody().write(body);
             } finally {
@@ -159,6 +182,18 @@ class ShenyuClientHttpStatusTest {
 
         @GetMapping("/timeout")
         ShenyuResponse rawTimeout();
+
+        @GetMapping(value = "/text", produces = "text/plain")
+        String readText();
+
+        @GetMapping("/text")
+        ShenyuResponse rawText();
+
+        @GetMapping("/whitespace")
+        String readWhitespace();
+
+        @GetMapping("/json-string")
+        String readJsonString();
     }
 
     @ShenyuClient(name = "fallback-status-client", url = "${sdk.status.test.url}", fallbackFactory = StatusFallbackFactory.class)
