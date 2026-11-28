@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.mapper;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
 import org.apache.shenyu.admin.model.dto.ApiDTO;
 import org.apache.shenyu.admin.model.entity.ApiDO;
@@ -84,6 +85,25 @@ public final class ApiMapperTest extends AbstractSpringIntegrationTest {
         assertEquals("edited historical API", stored.getApiDesc());
         assertEquals("new owner", stored.getApiOwner());
         assertEquals(1, stored.getState());
+    }
+
+    @Test
+    public void testOmittedDocumentIsPreservedButExplicitEmptyDocumentClearsStoredValue() {
+        ApiDTO update = new ApiDTO();
+        update.setId(apiDO.getId());
+        update.setApiDesc("Description only");
+        apiService.createOrUpdate(update);
+
+        ApiDO kept = apiMapper.selectByPrimaryKey(apiDO.getId());
+        assertEquals(apiDO.getDocument(), kept.getDocument());
+        assertEquals(apiDO.getDocumentMd5(), kept.getDocumentMd5());
+
+        update.setDocument("");
+        apiService.createOrUpdate(update);
+
+        ApiDO cleared = apiMapper.selectByPrimaryKey(apiDO.getId());
+        assertEquals("", cleared.getDocument());
+        assertEquals(DigestUtils.md5Hex(""), cleared.getDocumentMd5());
     }
 
     @Test

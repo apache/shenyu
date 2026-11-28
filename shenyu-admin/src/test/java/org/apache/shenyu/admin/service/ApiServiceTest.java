@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.ApiMapper;
 import org.apache.shenyu.admin.mapper.TagMapper;
@@ -39,6 +40,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,6 +57,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -127,6 +130,38 @@ public final class ApiServiceTest {
         assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
         verify(tagRelationMapper, never()).deleteByApiId("123");
         verify(tagRelationMapper, never()).batchInsert(anyList());
+    }
+
+    @Test
+    public void testUpdateWithoutDocumentKeepsDocumentAndDigest() {
+        ApiDTO apiDTO = buildApiDTO("123");
+        apiDTO.setApiDesc("Updated description");
+        apiDTO.setDocument(null);
+        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
+
+        ArgumentCaptor<ApiDO> captor = ArgumentCaptor.forClass(ApiDO.class);
+        verify(apiMapper).updateByPrimaryKeySelective(captor.capture());
+        ApiDO update = captor.getValue();
+        assertEquals("Updated description", update.getApiDesc());
+        assertNull(update.getDocument());
+        assertNull(update.getDocumentMd5());
+    }
+
+    @Test
+    public void testUpdateWithDocumentUpdatesItsDigest() {
+        ApiDTO apiDTO = buildApiDTO("123");
+        String document = "{\"summary\":\"Replacement\"}";
+        apiDTO.setDocument(document);
+        when(apiMapper.updateByPrimaryKeySelective(any(ApiDO.class))).thenReturn(1);
+
+        assertEquals(ShenyuResultMessage.UPDATE_SUCCESS, apiService.createOrUpdate(apiDTO));
+
+        ArgumentCaptor<ApiDO> captor = ArgumentCaptor.forClass(ApiDO.class);
+        verify(apiMapper).updateByPrimaryKeySelective(captor.capture());
+        assertEquals(document, captor.getValue().getDocument());
+        assertEquals(DigestUtils.md5Hex(document), captor.getValue().getDocumentMd5());
     }
 
     @Test

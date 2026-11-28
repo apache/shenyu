@@ -404,6 +404,7 @@ public class ApiDO {
 
         return Optional.ofNullable(apiDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            String document = item.getDocument();
             ApiDO apiDO = ApiDO.builder()
                     .contextPath(item.getContextPath())
                     .apiPath(item.getApiPath())
@@ -417,8 +418,8 @@ public class ApiDO {
                     .apiOwner(item.getApiOwner())
                     .apiDesc(item.getApiDesc())
                     .apiSource(item.getApiSource())
-                    .document(item.getDocument())
-                    .documentMd5(DigestUtils.md5Hex(item.getDocument()))
+                    .document(document)
+                    .documentMd5(Optional.ofNullable(document).map(DigestUtils::md5Hex).orElse(null))
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 apiDO.setId(UUIDUtils.getInstance().generateShortUuid());
