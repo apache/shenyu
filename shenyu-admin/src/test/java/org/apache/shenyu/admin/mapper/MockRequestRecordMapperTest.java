@@ -24,6 +24,7 @@ import org.apache.shenyu.admin.model.entity.MockRequestRecordDO;
 import org.apache.shenyu.admin.model.query.MockRequestRecordQuery;
 import org.apache.shenyu.admin.model.vo.MockRequestRecordVO;
 import org.apache.shenyu.admin.service.MockRequestRecordService;
+import org.apache.shenyu.admin.service.impl.MockRequestRecordServiceImpl;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test cases for ShenyuDictMapper.
@@ -238,6 +242,18 @@ public class MockRequestRecordMapperTest extends AbstractSpringIntegrationTest {
 
         MockRequestRecordVO selectedRecord = mockRequestRecordService.queryByApiId("mock-order-api");
         assertEquals("mock-order-z", selectedRecord.getId());
+
+        MockRequestRecordMapper observedMapper = mock(MockRequestRecordMapper.class);
+        when(observedMapper.selectByQuery(any(MockRequestRecordQuery.class))).thenAnswer(invocation -> {
+            MockRequestRecordQuery lookup = invocation.getArgument(0);
+            List<MockRequestRecordDO> fetched = mockRequestRecordMapper.selectByQuery(lookup);
+            assertEquals("mock-order-api".equals(lookup.getApiId()) ? 1 : 0, fetched.size());
+            return fetched;
+        });
+        MockRequestRecordService service = new MockRequestRecordServiceImpl(observedMapper);
+        assertEquals("mock-order-z", service.queryByApiId("mock-order-api").getId());
+        assertNull(service.queryByApiId("mock-order-missing").getId());
+        assertEquals(3, mockRequestRecordMapper.selectByQuery(query).size());
     }
 
     @Test
