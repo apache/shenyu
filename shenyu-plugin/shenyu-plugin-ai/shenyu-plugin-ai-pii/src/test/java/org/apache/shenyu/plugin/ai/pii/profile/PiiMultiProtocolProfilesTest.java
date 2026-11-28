@@ -41,9 +41,35 @@ public final class PiiMultiProtocolProfilesTest {
                 PiiProtocolProfiles.select(parse("{\"system\":\"s\",\"messages\":[]}")).id());
         assertEquals(OpenAiChatProfile.ID,
                 PiiProtocolProfiles.select(parse("{\"messages\":[]}")).id());
+        // system is optional: Anthropic-only block types identify the shape (#8458 review)
+        assertEquals(AnthropicMessagesProfile.ID,
+                PiiProtocolProfiles.select(parse("{\"messages\":[{\"role\":\"assistant\",\"content\":["
+                        + "{\"type\":\"tool_use\",\"id\":\"t1\",\"name\":\"lookup\","
+                        + "\"input\":{\"email\":\"alice@example.com\"}}]}]}")).id());
+        // plain text-only messages without a system member stay on the chat shape
+        assertEquals(OpenAiChatProfile.ID,
+                PiiProtocolProfiles.select(parse("{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}")).id());
         // anthropic response: no choices, block content at the root
         assertEquals(AnthropicMessagesProfile.ID,
                 PiiProtocolProfiles.selectResponse(parse("{\"content\":[{\"type\":\"text\",\"text\":\"hi\"}],\"stop_reason\":\"end_turn\"}")).id());
+    }
+
+    @Test
+    public void testSystemlessAnthropicToolUseInputIsRedactedNotForwarded() {
+        // the review's exact failure: no top-level system, a tool_use block with an email —
+        // the old selector misread it as openai-chat and forwarded the address unmasked
+        JsonObject root = parse("{\"messages\":[{\"role\":\"assistant\",\"content\":["
+                + "{\"type\":\"tool_use\",\"id\":\"t1\",\"name\":\"lookup\","
+                + "\"input\":{\"contact\":{\"email\":\"alice@example.com\"},\"count\":3}}]}]}");
+        assertEquals(AnthropicMessagesProfile.ID, PiiProtocolProfiles.select(root).id());
+        List<PiiTextSlot> slots = new AnthropicMessagesProfile().requestSlots(root);
+        assertEquals(1, slots.size());
+        assertEquals("alice@example.com", slots.get(0).text());
+        slots.get(0).replace("<EMAIL>");
+        JsonObject input = root.get("messages").getAsJsonArray().get(0).getAsJsonObject()
+                .get("content").getAsJsonArray().get(0).getAsJsonObject().get("input").getAsJsonObject();
+        assertEquals("<EMAIL>", input.get("contact").getAsJsonObject().get("email").getAsString());
+        assertEquals(3, input.get("count").getAsInt());
     }
 
     @Test

@@ -39,6 +39,9 @@ public final class PiiProtocolProfiles {
 
     private static final PiiProtocolProfile GEMINI = new GeminiGenerateContentProfile();
 
+    private static final java.util.List<String> ANTHROPIC_ONLY_BLOCKS = java.util.List.of(
+            "tool_use", "tool_result", "thinking", "redacted_thinking");
+
     private PiiProtocolProfiles() {
     }
 
@@ -57,6 +60,13 @@ public final class PiiProtocolProfiles {
         if (root.has("messages")) {
             if (root.has("system")) {
                 return validMessages(root.get("messages")) && validSystem(root.get("system")) ? ANTHROPIC : null;
+            }
+            // system is optional in the Anthropic Messages API: a messages array carrying
+            // Anthropic-only block types identifies the shape without a top-level system
+            // member — keying on system alone misreads tool_use inputs as plain chat text
+            // and forwards them unmasked (#8458 review)
+            if (containsAnthropicBlocks(root.get("messages"))) {
+                return validMessages(root.get("messages")) ? ANTHROPIC : null;
             }
             return validMessages(root.get("messages")) ? CHAT : null;
         }
@@ -88,6 +98,33 @@ public final class PiiProtocolProfiles {
             return validBlocks(content.getAsJsonArray()) ? ANTHROPIC : null;
         }
         return validItems(root.get("output")) ? RESPONSES : null;
+    }
+
+    /**
+     * Whether any message content array carries a block type the OpenAI chat shape
+     * does not define — the discriminating signal for the Anthropic shape when the
+     * optional top-level {@code system} member is absent.
+     */
+    private static boolean containsAnthropicBlocks(final JsonElement messages) {
+        if (Objects.isNull(messages) || !messages.isJsonArray()) {
+            return false;
+        }
+        for (JsonElement message : messages.getAsJsonArray()) {
+            if (!message.isJsonObject()) {
+                continue;
+            }
+            JsonElement content = message.getAsJsonObject().get("content");
+            if (Objects.isNull(content) || !content.isJsonArray()) {
+                continue;
+            }
+            for (JsonElement part : content.getAsJsonArray()) {
+                if (part.isJsonObject() && isString(part.getAsJsonObject().get("type"))
+                        && ANTHROPIC_ONLY_BLOCKS.contains(part.getAsJsonObject().get("type").getAsString())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean validSystem(final JsonElement system) {
