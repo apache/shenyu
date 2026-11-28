@@ -16,16 +16,19 @@
 # limitations under the License.
 #
 
-docker save shenyu-example-spring-native-websocket:latest | sudo k3s ctr images import -
+set -eo pipefail
+
+PRGDIR=$(cd "$(dirname "$0")/.." && pwd)
+SHENYU_TESTCASE_DIR=$(cd "${PRGDIR}/../.." && pwd)
+FIXTURE_IMAGE=shenyu-websocket-test-fixture:local
+
+docker build -t "$FIXTURE_IMAGE" "${SHENYU_TESTCASE_DIR}/compose/fixtures/websocket"
+docker save "$FIXTURE_IMAGE" | sudo k3s ctr images import -
 
 # init kubernetes for mysql
-SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 
 # init register center
-CUR_PATH=$(readlink -f "$(dirname "$0")")
-PRGDIR=$(dirname "$CUR_PATH")
-echo "$PRGDIR"
 kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-cm.yml
 
 # init shenyu sync
@@ -36,7 +39,7 @@ for sync in ${SYNC_ARRAY[@]}; do
   echo -e "------------------\n"
   kubectl apply -f "$SHENYU_TESTCASE_DIR"/k8s/shenyu-mysql.yml
   sleep 30s
-  echo "[Start ${sync} synchronous] create shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-websocket.yml"
+  echo "[Start ${sync} synchronous] deploy Admin, Bootstrap and websocket-fixture"
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
@@ -47,17 +50,14 @@ for sync in ${SYNC_ARRAY[@]}; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health
   kubectl apply -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health
-  kubectl apply -f "${PRGDIR}"/shenyu-examples-websocket.yml
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31191/actuator/health
-  sleep 10s
+  kubectl apply -f "${PRGDIR}"/websocket-fixture.yml
+  kubectl rollout status deployment/websocket-fixture --timeout=120s
   kubectl get pod -o wide
 
   ## run e2e-test
-  ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-websocket -am test
-  # shellcheck disable=SC2181
-  if (($?)); then
+  if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-websocket -am test; then
     echo "${sync}-sync-e2e-test failed"
-    kubectl logs "$(kubectl get pod -o wide | grep shenyu-examples-websocket | awk '{print $1}')"
+    kubectl logs deployment/websocket-fixture || true
     echo "shenyu-admin log:"
     echo "------------------"
     kubectl logs "$(kubectl get pod -o wide | grep shenyu-admin | awk '{print $1}')"
@@ -69,11 +69,11 @@ for sync in ${SYNC_ARRAY[@]}; do
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-mysql.yml
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-admin-"${sync}".yml
   kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/sync/shenyu-bootstrap-"${sync}".yml
-  kubectl delete -f "${PRGDIR}"/shenyu-examples-websocket.yml
+  kubectl delete -f "${PRGDIR}"/websocket-fixture.yml
   # shellcheck disable=SC2199
   # shellcheck disable=SC2076
   if [[ "${MIDDLEWARE_SYNC_ARRAY[@]}" =~ "${sync}" ]]; then
     kubectl delete -f "${SHENYU_TESTCASE_DIR}"/k8s/shenyu-"${sync}".yml
   fi
-  echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml shenyu-examples-websocket.yml"
+  echo "[Remove ${sync} synchronous] deleted Admin, Bootstrap and websocket-fixture"
 done

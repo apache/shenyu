@@ -14,7 +14,7 @@
 // limitations under the License.
 
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
@@ -155,6 +155,46 @@ test('E2E protocol shards retain every sync channel and leave other scenarios in
   }
 });
 
+test('integration example selection distinguishes an empty result from resolver failure', t => {
+  const step = workflows.get('integrated-test.yml').jobs.build.steps.find(step => step.id === 'examples');
+  assert.ok(step.shell === undefined || step.shell === 'bash');
+  const shell = step.shell === 'bash' ? ['--noprofile', '--norc', '-eo', 'pipefail'] : ['-e'];
+  const temporary = mkdtempSync(resolve(root, '.github/scripts/.example-selection-test-'));
+  t.after(() => rmSync(temporary, { recursive: true, force: true }));
+
+  const name = 'shenyu-integrated-test-websocket';
+  const fixture = 'shenyu-e2e/shenyu-e2e-case/compose/fixtures/websocket';
+  for (const file of [
+    '.github/scripts/resolve-example-projects.py',
+    `shenyu-integrated-test/${name}/pom.xml`,
+    `shenyu-integrated-test/${name}/docker-compose.yml`,
+    `${fixture}/Dockerfile`,
+  ]) {
+    const target = resolve(temporary, file);
+    mkdirSync(dirname(target), { recursive: true });
+    copyFileSync(resolve(root, file), target);
+  }
+  const output = resolve(temporary, 'output');
+  const run = () => {
+    writeFileSync(output, '');
+    const result = spawnSync('bash', [...shell, '-c', step.run], {
+      cwd: temporary, encoding: 'utf8', env: { ...process.env, INTEGRATION_CASE: name, GITHUB_OUTPUT: output },
+    });
+    assert.ifError(result.error);
+    return result;
+  };
+
+  const success = run();
+  assert.equal(success.status, 0, success.stderr);
+  assert.equal(readFileSync(output, 'utf8'), 'projects=\n');
+
+  renameSync(resolve(temporary, fixture), resolve(temporary, `${fixture}-unavailable`));
+  const failure = run();
+  assert.match(failure.stderr, /Missing Compose fixture build context/);
+  assert.equal(failure.status, 1, failure.stderr);
+  assert.equal(readFileSync(output, 'utf8'), '');
+});
+
 test('manual E2E runs keep all sync channels and invalid selections fail', () => {
   const command = 'source .github/scripts/select-e2e-sync.sh; printf "%s\\n" "${SYNC_ARRAY[@]}"';
   for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
@@ -182,8 +222,20 @@ record() {
 docker() {
   if [[ "$1" == network ]]; then record network; return; fi
   if [[ "$1" == ps ]]; then record ps; return; fi
-  local stage=sync
-  if [[ "$3" == *shenyu-examples-websocket-compose.yml ]]; then stage=example; fi
+  local stage
+  case "$3" in
+    */compose/sync/shenyu-sync-*.yml) stage=sync ;;
+    */websocket-fixture-compose.yml)
+      stage=fixture
+      case "$4" in
+        up) [[ "$*" == *" --build "* && "$*" == *" --wait "* ]] || return 99 ;;
+        logs) [[ "$5" == websocket-fixture ]] || return 99 ;;
+        down) ;;
+        *) return 99 ;;
+      esac
+      ;;
+    *) return 99 ;;
+  esac
   record "$stage:$4"
   if [[ "$4" == logs && "$FAIL_LOGS" == true ]]; then return 24; fi
 }
@@ -198,7 +250,6 @@ sh() {
   case "$2" in
     http://localhost:31095/actuator/health) record admin-health ;;
     http://localhost:31195/actuator/health) record gateway-health ;;
-    http://localhost:31191/actuator/health) record example-health ;;
     *) return 99 ;;
   esac
 }
@@ -216,7 +267,7 @@ sleep() { :; }
   }
 }
 
-const webSocketStartup = ['storage', 'network', 'sync:up', 'admin-health', 'gateway-health', 'example:up', 'example-health'];
+const webSocketStartup = ['storage', 'network', 'sync:up', 'admin-health', 'gateway-health', 'fixture:up'];
 for (const [index, stage] of webSocketStartup.entries()) {
   test(`WebSocket Compose stops before Maven when ${stage} fails`, () => {
     const result = runWebSocketCompose(stage);
@@ -229,7 +280,7 @@ for (const channel of ['', 'websocket', 'http', 'zookeeper']) {
   test(`WebSocket Compose retains successful setup, tests and cleanup for ${channel || 'all channels'}`, () => {
     const result = runWebSocketCompose('', channel);
     assert.equal(result.status, 0, result.stderr);
-    const iteration = [...webSocketStartup.slice(2), 'ps', 'maven', 'sync:down', 'example:down'];
+    const iteration = [...webSocketStartup.slice(2), 'ps', 'maven', 'sync:down', 'fixture:down'];
     const iterations = channel ? iteration : [iteration, iteration, iteration].flat();
     assert.deepEqual(result.calls, [...webSocketStartup.slice(0, 2), ...iterations]);
   });
@@ -239,7 +290,7 @@ for (const failLogs of [false, true]) {
   test(`WebSocket Compose retains Maven failure and all diagnostics when logs ${failLogs ? 'fail' : 'succeed'}`, () => {
     const result = runWebSocketCompose('maven', '', failLogs);
     assert.equal(result.status, 1, result.stderr);
-    assert.deepEqual(result.calls, [...webSocketStartup, 'ps', 'maven', 'sync:logs', 'sync:logs', 'example:logs']);
+    assert.deepEqual(result.calls, [...webSocketStartup, 'ps', 'maven', 'sync:logs', 'sync:logs', 'fixture:logs']);
     assert.ok(result.stdout.includes('websocket-sync-e2e-test failed'));
   });
 }

@@ -20,39 +20,34 @@ package org.apache.shenyu.integrated.test.websocket;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.integratedtest.common.AbstractPluginDataInit;
 import org.apache.shenyu.integratedtest.common.helper.HttpHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class UploadControllerTest extends AbstractPluginDataInit {
 
     private static final String FILE_PATH = "1.bin";
 
+    @TempDir
+    private Path directory;
+
     @BeforeAll
     public static void setup() throws IOException {
-        Path pathOne = Paths.get(FILE_PATH);
-        if (!Files.exists(pathOne)) {
-            Files.createFile(pathOne);
-        }
-        BufferedWriter bufferedWriterOne = Files.newBufferedWriter(pathOne);
-        bufferedWriterOne.write("111");
-        bufferedWriterOne.flush();
-        bufferedWriterOne.close();
+        WebsocketFixtureRoute.install(PluginEnum.DIVIDE, "/ws-native/ws/upload", 8870, "http://");
     }
 
     @Test
     public void testWebsocketUpLoad() throws IOException {
-        File fileOne = new File(FILE_PATH);
-        RequestBody fileBodyOne = RequestBody.create(MediaType.parse("multipart/form-data"), fileOne);
+        Path fileOne = Files.writeString(directory.resolve(FILE_PATH), "111");
+        RequestBody fileBodyOne = RequestBody.create(MediaType.parse("multipart/form-data"), fileOne.toFile());
         MultipartBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("file", FILE_PATH, fileBodyOne)

@@ -23,14 +23,25 @@ import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.constant.Constants;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.function.ConfigSyncHelper;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
+import org.apache.shenyu.e2e.model.Plugin;
+import org.apache.shenyu.e2e.model.data.BindingData;
+import org.apache.shenyu.e2e.model.data.Condition;
+import org.apache.shenyu.e2e.model.handle.RuleHandle;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newBindingData;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 
 @ShenYuTest(environments = {
         @ShenYuTest.Environment(
@@ -62,10 +73,6 @@ public class WebSocketPluginTest {
     @BeforeAll
     static void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
         LOG.info("start websocket plugin");
         Map<String, String> reqBody = new HashMap<>();
         reqBody.put("pluginId", "26");
@@ -76,10 +83,27 @@ public class WebSocketPluginTest {
         reqBody.put("namespaceId", Constants.SYS_DEFAULT_NAMESPACE_NAMESPACE_ID);
         adminClient.changePluginStatus("1801816010882822163", reqBody);
         WaitDataSync.waitGatewayPluginUse(gatewayClient, "org.apache.shenyu.plugin.websocket.WebSocketPlugin");
+        final String name = "websocket-fixture";
+        final var route = newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/ws-native/myWebSocket");
+        final var selector = adminClient.create(newSelectorBuilder(name, Plugin.WEBSOCKET).conditionList(route).build());
+        final BindingData binding = newBindingData(name, Plugin.WEBSOCKET.getAlias(), "websocket-fixture:8868");
+        binding.setSelectorId(selector.getId());
+        binding.setType("websocket");
+        binding.getDiscoveryUpstreams().get(0).setProtocol("ws://");
+        adminClient.bindingData(binding);
+        final var rule = newRuleBuilder(name)
+                .conditionList(route)
+                .handle(new FixtureRuleHandle("random"))
+                .build();
+        rule.setSelectorId(selector.getId());
+        ConfigSyncHelper.awaitCreated(gatewayClient, List.of(selector.getId()), List.of(adminClient.create(rule).getId()));
     }
 
     @ShenYuScenario(provider = WebSocketPluginCases.class)
     void testWebSocket(final GatewayClient gateway, final CaseSpec spec) {
         spec.getWebSocketVerifiers().forEach(webSocketVerifier -> webSocketVerifier.verify(gateway.getWebSocketClientSupplier().get(), gateway));
+    }
+
+    private record FixtureRuleHandle(String loadBalance) implements RuleHandle {
     }
 }

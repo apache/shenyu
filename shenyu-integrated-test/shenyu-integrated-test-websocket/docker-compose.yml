@@ -35,29 +35,18 @@ services:
       retries: 30
       start_period: 5s
 
-  shenyu-example-spring-native-websocket:
-    deploy:
-      resources:
-        limits:
-          memory: 2048M
-    container_name: shenyu-example-spring-native-websocket
-    image: shenyu-example-spring-native-websocket:latest
-    restart: always
-    environment:
-      - shenyu.register.serverLists=http://shenyu-admin:9095
+  websocket-fixture:
+    image: shenyu-websocket-test-fixture:local
+    build:
+      context: ../../shenyu-e2e/shenyu-e2e-case/compose/fixtures/websocket
     healthcheck:
-      test: [ "CMD-SHELL", "curl --no-buffer  -H 'Connection: keep-alive, Upgrade' -H 'Upgrade: websocket' -v -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: websocket' http://shenyu-example-spring-native-websocket:8848/myWebSocket?token=Jack || exit 1" ]
-      timeout: 2s
-      retries: 3
-      start_period: 5s
-    ports:
-      - "28011:28011"
-      - "8888:8888"
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8868/actuator/health', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
     networks:
       - shenyu
-    depends_on:
-      shenyu-integrated-test-websocket:
-        condition: service_healthy
+
 
   shenyu-integrated-test-websocket:
     container_name: shenyu-integrated-test-websocket

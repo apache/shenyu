@@ -548,6 +548,8 @@ data:
 
   application-bootstrap-sync-zookeeper.yml: |
     shenyu:
+      heartbeat:
+        enabled: false
       sync:
         zookeeper:
           url: shenyu-zookeeper:2181
