@@ -212,24 +212,25 @@ public class InstanceCheckService {
             return true;
         }
         String instanceKey = getInstanceKey(instanceBeatInfoDTO);
-        long currentTime = clock.millis();
-        if (instanceHealthBeatInfo.containsKey(instanceKey)) {
-            InstanceInfoVO instanceInfoVO = instanceHealthBeatInfo.get(instanceKey);
-            instanceInfoVO.setLastHeartBeatTime(currentTime);
-            if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
-                instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
+        instanceHealthBeatInfo.compute(instanceKey, (key, existing) -> {
+            long heartbeatTime = clock.millis();
+            if (Objects.nonNull(existing)) {
+                existing.setLastHeartBeatTime(heartbeatTime);
+                if (StringUtils.isNotBlank(instanceBeatInfoDTO.getInstanceInfo())) {
+                    existing.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
+                }
+                return existing;
             }
-        } else {
-            InstanceInfoVO instanceInfoVO = new InstanceInfoVO();
-            instanceInfoVO.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
-            instanceInfoVO.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
-            instanceInfoVO.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
-            instanceInfoVO.setInstanceType(instanceBeatInfoDTO.getInstanceType());
-            instanceInfoVO.setLastHeartBeatTime(currentTime);
-            instanceInfoVO.setInstancePort(instanceBeatInfoDTO.getInstancePort());
-            instanceInfoVO.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
-            instanceHealthBeatInfo.put(instanceKey, instanceInfoVO);
-        }
+            InstanceInfoVO instance = new InstanceInfoVO();
+            instance.setInstanceIp(instanceBeatInfoDTO.getInstanceIp());
+            instance.setInstanceState(InstanceStatusEnum.ONLINE.getCode());
+            instance.setInstanceInfo(InstanceInfoUtils.normalize(instanceBeatInfoDTO.getInstanceInfo()));
+            instance.setInstanceType(instanceBeatInfoDTO.getInstanceType());
+            instance.setLastHeartBeatTime(heartbeatTime);
+            instance.setInstancePort(instanceBeatInfoDTO.getInstancePort());
+            instance.setNamespaceId(instanceBeatInfoDTO.getNamespaceId());
+            return instance;
+        });
         return true;
     }
 
