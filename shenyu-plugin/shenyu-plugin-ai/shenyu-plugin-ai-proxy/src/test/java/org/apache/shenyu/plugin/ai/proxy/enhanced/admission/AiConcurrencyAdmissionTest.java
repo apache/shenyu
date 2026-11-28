@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -235,19 +237,74 @@ class AiConcurrencyAdmissionTest {
 
     @Test
     void theFastPathNeverBargesAheadOfAQueuedWaiter() {
+        // a fresh arrival while a waiter is queued must not win the released permit:
+        // it waits behind the waiter even though a permit would be free after the hand-over
         AiConcurrencyAdmission admission = new AiConcurrencyAdmission(properties(1, 4));
         final AdmissionResult holder = admission.acquireTenant("t1", FAR_DEADLINE).block();
         AtomicReference<AdmissionResult> waiter = new AtomicReference<>();
         admission.acquireTenant("t1", FAR_DEADLINE).subscribe(waiter::set);
         await().atMost(2, TimeUnit.SECONDS).until(() -> admission.waitingOf("tenant:t1") == 1);
-        // a fresh arrival while a waiter is queued must not win the released permit;
-        // the release hands it to the queue head
-        java.util.concurrent.atomic.AtomicInteger fastPathWins = new java.util.concurrent.atomic.AtomicInteger();
         admission.release(holder.ticket());
         await().atMost(2, TimeUnit.SECONDS).until(() ->
                 Objects.nonNull(waiter.get()) && waiter.get().outcome() == AdmissionOutcome.ACQUIRED);
-        assertEquals(0, fastPathWins.get());
+        // now the fresh arrival subscribes (after the hand-over): it must queue, not barge
+        AtomicReference<AdmissionResult> lateArrival = new AtomicReference<>();
+        admission.acquireTenant("t1", FAR_DEADLINE).subscribe(lateArrival::set);
+        await().atMost(2, TimeUnit.SECONDS).until(() -> admission.waitingOf("tenant:t1") == 1);
+        assertNull(lateArrival.get(), "a fresh arrival must wait behind the queue instead of barging");
         admission.release(waiter.get().ticket());
+        await().atMost(2, TimeUnit.SECONDS).until(() ->
+                Objects.nonNull(lateArrival.get()) && lateArrival.get().outcome() == AdmissionOutcome.ACQUIRED);
+        admission.release(lateArrival.get().ticket());
+        assertEquals(0, admission.inflightOf("tenant:t1"));
+    }
+
+    @Test
+    void concurrentDispatchersNeverDropOrDoubleCountAWaiter() throws Exception {
+        // the re-review race: two dispatchers (two concurrent releases) both peek the
+        // same stale head — identity removal must settle every queued waiter exactly
+        // once, never dropping the second one into a false timeout (issue #8254)
+        final int rounds = 300;
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(4);
+        try {
+            for (int round = 0; round < rounds; round++) {
+                AiConcurrencyAdmissionProperties roundProperties = properties(2, 4);
+                roundProperties.setMaxWaitMillis(5000L);
+                AiConcurrencyAdmission admission = new AiConcurrencyAdmission(roundProperties);
+                final AdmissionResult holder1 = admission.acquireTenant("t1", FAR_DEADLINE).block();
+                final AdmissionResult holder2 = admission.acquireTenant("t1", FAR_DEADLINE).block();
+                assertNotNull(holder1.ticket());
+                assertNotNull(holder2.ticket());
+                java.util.concurrent.atomic.AtomicInteger granted = new java.util.concurrent.atomic.AtomicInteger();
+                Runnable enqueue = () -> admission.acquireTenant("t1", FAR_DEADLINE).subscribe(result -> {
+                    if (result.outcome() == AdmissionOutcome.ACQUIRED) {
+                        granted.incrementAndGet();
+                    }
+                });
+                pool.submit(enqueue);
+                pool.submit(enqueue);
+                // two concurrent releases: two dispatchers race over the same queue head;
+                // the releases may land before or after the waiters are queued — both orders
+                // must end with both waiters granted
+                java.util.concurrent.CountDownLatch released = new java.util.concurrent.CountDownLatch(2);
+                pool.submit(() -> {
+                    admission.release(holder1.ticket());
+                    released.countDown();
+                });
+                pool.submit(() -> {
+                    admission.release(holder2.ticket());
+                    released.countDown();
+                });
+                assertTrue(released.await(2, TimeUnit.SECONDS));
+                await().atMost(5, TimeUnit.SECONDS).until(() -> granted.get() == 2);
+                assertEquals(2, admission.inflightOf("tenant:t1"), "round " + round);
+                assertEquals(0, admission.waitingOf("tenant:t1"), "round " + round);
+                admission.release(new AdmissionTicket("tenant:t1"));
+                admission.release(new AdmissionTicket("tenant:t1"));
+            }
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test

@@ -184,8 +184,9 @@ public final class AiConcurrencyAdmission {
                             pool.waiting.decrementAndGet();
                         }
                     } else if (waiter.isGranted()) {
+                        // dispatch already decremented waiting when it dequeued; the hand
+                        // back returns only the permit, never the counter again (#8254 re-review)
                         pool.permits.release();
-                        pool.waiting.decrementAndGet();
                         dispatch(pool, poolKey);
                     }
                 });
@@ -212,15 +213,22 @@ public final class AiConcurrencyAdmission {
                 return;
             }
             if (waiter.expired() && waiter.markExpired()) {
-                pool.queue.pollFirst();
-                pool.waiting.decrementAndGet();
+                if (pool.queue.remove(waiter)) {
+                    pool.waiting.decrementAndGet();
+                }
                 waiter.settleExpired();
                 continue;
             }
             if (!pool.permits.tryAcquire()) {
                 return;
             }
-            pool.queue.pollFirst();
+            // dispatch runs concurrently (release, fast-path hand-back, enqueue): another
+            // caller may have taken this head. Removing by identity instead of pollFirst
+            // never drops a different waiter whose turn has not come (#8254 re-review)
+            if (!pool.queue.remove(waiter)) {
+                pool.permits.release();
+                continue;
+            }
             pool.waiting.decrementAndGet();
             if (!waiter.grantAndSettle(new AdmissionTicket(poolKey))) {
                 // the subscriber cancelled while the hand-over was in flight: return
