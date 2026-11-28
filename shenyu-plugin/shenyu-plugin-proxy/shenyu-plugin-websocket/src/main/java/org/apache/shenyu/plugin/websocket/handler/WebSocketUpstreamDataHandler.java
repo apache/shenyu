@@ -70,7 +70,7 @@ public class WebSocketUpstreamDataHandler extends AbstractDiscoveryUpstreamDataH
 
     @Override
     protected void submitUpstreamData(final String selectorId, final List<Upstream> upstreamList) {
-        UpstreamCacheManager.getInstance().submit(selectorId, upstreamList);
+        UpstreamCacheManager.getInstance().submitDiscovery(selectorId, upstreamList);
     }
 
     @Override
