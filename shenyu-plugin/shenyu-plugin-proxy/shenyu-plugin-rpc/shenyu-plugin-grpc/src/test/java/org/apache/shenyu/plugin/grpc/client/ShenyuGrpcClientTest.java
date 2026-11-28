@@ -300,7 +300,9 @@ public final class ShenyuGrpcClientTest {
         final Server server = NettyServerBuilder.forAddress(new InetSocketAddress("127.0.0.1", 0))
                 .addService(service).build().start();
         try {
-            final ManagedChannel channel = NettyChannelBuilder.forAddress("127.0.0.1", server.getPort()).usePlaintext().build();
+            // Other tests may have registered ShenYu's resolver as the default.
+            final ManagedChannel channel = NettyChannelBuilder.forAddress(new InetSocketAddress("127.0.0.1", server.getPort()))
+                    .usePlaintext().build();
             try {
                 final ShenyuGrpcClient client = new ShenyuGrpcClient(channel);
                 final MetaData metaData = MetaData.builder().serviceName(serviceName).methodName(methodName).build();
