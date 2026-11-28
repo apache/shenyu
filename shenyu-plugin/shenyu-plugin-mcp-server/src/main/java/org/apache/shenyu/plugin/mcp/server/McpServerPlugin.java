@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.mcp.server.handler.McpServerPluginDataHandler;
-import org.apache.shenyu.plugin.mcp.server.holder.ShenyuMcpExchangeHolder;
 import org.apache.shenyu.plugin.mcp.server.manager.ShenyuMcpServerManager;
 import org.apache.shenyu.plugin.mcp.server.model.ShenyuMcpServer;
 import org.apache.shenyu.plugin.mcp.server.transport.ShenyuSseServerTransportProvider;
@@ -344,6 +343,10 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                 shenyuMcpServerManager.getOrCreateStreamableHttpTransport(uri);
 
         setupSessionContext(exchange, chain);
+        final String sessionId = extractSessionId(exchange);
+        if (Objects.nonNull(sessionId)) {
+            transportProvider.bindExchange(sessionId, exchange);
+        }
 
         return processStreamableHttpEndpoint(exchange, transportProvider, request);
     }
@@ -400,7 +403,6 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
         if (Objects.nonNull(sessionId)) {
             exchange.getAttributes().put(MCP_SESSION_ID_ATTR, sessionId);
             exchange.getAttributes().put(Constants.CHAIN, chain);
-            ShenyuMcpExchangeHolder.put(sessionId, exchange);
             LOG.debug("Set up session context for sessionId: {}", sessionId);
         }
     }
@@ -409,7 +411,7 @@ public class McpServerPlugin extends AbstractShenyuPlugin {
                                         final ShenyuPluginChain chain,
                                         final ShenyuSseServerTransportProvider transportProvider) {
         final String sessionId = extractSessionId(exchange);
-        if (Objects.nonNull(sessionId) && transportProvider.hasSession(sessionId)) {
+        if (Objects.nonNull(sessionId) && transportProvider.bindExchange(sessionId, exchange)) {
             setupSessionContext(exchange, chain);
         }
     }
