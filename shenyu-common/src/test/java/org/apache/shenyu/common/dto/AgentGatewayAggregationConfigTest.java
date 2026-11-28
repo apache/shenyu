@@ -19,6 +19,7 @@ package org.apache.shenyu.common.dto;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,6 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AgentGatewayAggregationConfigTest {
+
+    private static final String SERVER_FIELDS = "\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\","
+            + "\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"";
 
     @ParameterizedTest
     @ValueSource(strings = {"", "{}", "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[]}}"})
@@ -47,11 +51,28 @@ class AgentGatewayAggregationConfigTest {
 
     @Test
     void freezesServerReferencesAndAcceptsHttpsSyntax() {
-        String server = "{\"name\":\"orders\",\"endpoint\":\"https://192.0.2.10:443/mcp\",\"credentialRef\":\"service/orders\",\"credentialVersion\":\"v1\"}";
+        String server = "{" + SERVER_FIELDS + "}";
         AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(wrap(server));
-        assertEquals("orders", config.servers().get(0).name());
+        AgentGatewayAggregationConfig.Server parsed = config.servers().get(0);
+        assertEquals("orders", parsed.name());
+        assertEquals(AgentGatewayAggregationConfig.ProtocolProfile.LEGACY_2025_06_18, parsed.protocolProfile());
+        assertEquals(parsed, new AgentGatewayAggregationConfig.Server(parsed.name(), parsed.endpoint(), parsed.credentialRef(), parsed.credentialVersion()));
         assertThrows(UnsupportedOperationException.class, () -> config.servers().clear());
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server + "," + server)));
+    }
+
+    @ParameterizedTest
+    @EnumSource(AgentGatewayAggregationConfig.ProtocolProfile.class)
+    void acceptsExplicitProfile(final AgentGatewayAggregationConfig.ProtocolProfile profile) {
+        String source = wrap("{" + SERVER_FIELDS + ",\"protocolProfile\":\"" + profile.id() + "\"}");
+        assertEquals(profile, AgentGatewayAggregationConfig.parsePluginConfig(source).servers().get(0).protocolProfile());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "\"\"", "\" \"", "\"unknown\"", "\" native-2026-07-28\"", "42", "{}", "[]", "false"})
+    void rejectsInvalidExplicitProfile(final String value) {
+        String source = wrap("{" + SERVER_FIELDS + ",\"protocolProfile\":" + value + "}");
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(source));
     }
 
     @ParameterizedTest

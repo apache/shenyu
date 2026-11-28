@@ -1,0 +1,118 @@
+{
+  "_license": [
+    "Licensed to the Apache Software Foundation (ASF) under one or more",
+    "contributor license agreements.  See the NOTICE file distributed with",
+    "this work for additional information regarding copyright ownership.",
+    "The ASF licenses this file to You under the Apache License, Version 2.0",
+    "(the \"License\"); you may not use this file except in compliance with",
+    "the License.  You may obtain a copy of the License at",
+    "",
+    "    http://www.apache.org/licenses/LICENSE-2.0",
+    "",
+    "Unless required by applicable law or agreed to in writing, software",
+    "distributed under the License is distributed on an \"AS IS\" BASIS,",
+    "WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.",
+    "See the License for the specific language governing permissions and",
+    "limitations under the License."
+  ],
+  "schemaVersion": 1,
+  "issue": 8196,
+  "preparedOn": "2026-11-28",
+  "verifiedOn": "2026-11-28T13:31:00.338Z",
+  "entry": "agentGateway.mcp",
+  "ingressVersion": "2026-07-28",
+  "status": "passed",
+  "shenyuRevision": "7c08840ff862d746ef1189b07af629283112e3d4",
+  "sdk": {
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/server": "2.4.0",
+    "@modelcontextprotocol/core": "2.4.0",
+    "sourceRevision": "951fe5603a7ec0b2dcb6a0b95d92cd86f93ad9e5"
+  },
+  "specificationRevision": "5f5440bb26a62e2cf3440b92da5a667efa03b267",
+  "lockfileSha256": "728c051291d7561d5edb297e53003a467c03f581e9b307a64d5e6d0dd9b9ae53",
+  "node": "v26.8.2",
+  "npm": "11.19.1",
+  "sdkRun": {
+    "testClass": "org.apache.shenyu.plugin.agent.gateway.remote.McpSdkInteropTest",
+    "gatewayInstances": 2,
+    "independentClient": "raw tools/list over SSE",
+    "contentTypes": {
+      "json": "application/json",
+      "sse": "text/event-stream"
+    },
+    "upstreamMethods": {
+      "json": [
+        "server/discover",
+        "tools/list",
+        "server/discover",
+        "tools/list",
+        "tools/call",
+        "tools/call"
+      ],
+      "sse": [
+        "server/discover",
+        "tools/list",
+        "server/discover",
+        "tools/list",
+        "tools/call"
+      ],
+      "legacy": [
+        "initialize",
+        "notifications/initialized",
+        "tools/list",
+        "initialize",
+        "notifications/initialized",
+        "tools/list",
+        "tools/call",
+        "DELETE",
+        "DELETE"
+      ]
+    },
+    "sideEffects": {
+      "json": 2,
+      "sse": 1,
+      "legacy": 1
+    }
+  },
+  "profiles": [
+    {
+      "outboundProfile": "native-2026-07-28",
+      "upstream": "official TypeScript SDK 2.4.0",
+      "testedModes": [
+        "json",
+        "sse"
+      ],
+      "legacyLifecycleTrafficObserved": false
+    },
+    {
+      "outboundProfile": "legacy-2025-06-18",
+      "upstream": "sessionful loopback fixture",
+      "testedModes": [
+        "json"
+      ],
+      "legacyLifecycleTrafficObserved": true
+    }
+  ],
+  "historical7424": {
+    "source": "https://github.com/apache/shenyu/pull/7424",
+    "head": "7c94ab887",
+    "conformanceRevision": "7169291ec",
+    "requirements": "2026-07-28",
+    "json": {
+      "success": 109,
+      "failure": 63,
+      "warning": 4,
+      "skipped": 7,
+      "informational": 1
+    },
+    "sse": {
+      "success": 110,
+      "failure": 63,
+      "warning": 4,
+      "skipped": 7
+    },
+    "scope": "Historical ingress conformance results; preserved alongside #8196 upstream profile evidence."
+  },
+  "lockSeed": "https://github.com/modelcontextprotocol/servers/blob/b502fd9fc711de7285977396db3b8a732d1c9f64/package-lock.json"
+}

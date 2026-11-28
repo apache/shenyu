@@ -17,42 +17,23 @@
 
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.apache.shenyu.common.tracing.AgentTraceContext;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.SignalType;
-import reactor.core.publisher.Sinks;
 
-import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.ByteBuffer;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Flow;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
+
+import static org.apache.shenyu.plugin.agent.gateway.remote.RemoteMcpHttpSupport.JSON;
 
 /**
  * Bounded, fixed 2025-06-18 request/one-final-response adapter.
@@ -63,15 +44,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private static final String VERSION = "2025-06-18";
 
-    private static final ObjectMapper JSON = new ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION).enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
-
-    private static final int LIMIT = 8192;
-
-    private static final int MAX_REQUEST_BYTES = 8192;
-
-    private static final int MAX_IN_FLIGHT = 64;
-
-    private final HttpClient http;
+    private final RemoteMcpHttpSupport http;
 
     private final URI endpoint;
 
@@ -85,15 +58,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
 
     private final AtomicLong sequence = new AtomicLong();
 
-    private final AtomicInteger active = new AtomicInteger();
-
-    private final Set<CompletableFuture<?>> inFlight = ConcurrentHashMap.newKeySet();
-
     private volatile String session;
 
     private volatile boolean initialized;
-
-    private volatile boolean closed;
 
     private final Mono<McpSchema.InitializeResult> initialization;
     // Client shutdown is owned/cached; repeat subscribers see the same cleanup failure, not false success.
@@ -110,12 +77,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     RequestScopedMcpClient(final RemoteServerBinding binding, final java.util.function.Consumer<Map<String, Object>> observer, final javax.net.ssl.SSLContext testContext) {
-        HttpClient.Builder builder = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).proxy(RemoteTransportPolicy.directOnly())
-                .followRedirects(HttpClient.Redirect.NEVER).connectTimeout(Duration.ofSeconds(2));
-        if (Objects.nonNull(testContext)) {
-            builder.sslContext(testContext);
-        }
-        http = builder.build();
+        http = new RemoteMcpHttpSupport(RemoteMcpHttpSupport.newHttpClient(testContext));
         this.endpoint = binding.config().endpoint();
         this.name = binding.config().name();
         this.authorization = binding.authorization();
@@ -191,12 +153,12 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     private Mono<Void> ready() {
-        return Mono.defer(() -> initialized && !closed ? Mono.empty() : Mono.error(new IllegalStateException("Client not ready")));
+        return Mono.defer(() -> initialized && !http.isClosed() ? Mono.empty() : Mono.error(new IllegalStateException("Client not ready")));
     }
 
     private Mono<ObjectNode> request(final String method, final Object params, final boolean notification) {
         return Mono.deferContextual(context -> {
-            if (closed) {
+            if (http.isClosed()) {
                 return Mono.error(new IllegalStateException("Client closed"));
             }
             String id = prefix + "-" + sequence.incrementAndGet();
@@ -206,22 +168,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             }
             message.set("params", JSON.valueToTree(params));
             McpTransportContext transportContext = context.getOrDefault(McpTransportContext.KEY, McpTransportContext.EMPTY);
-            Instant deadline = transportContext.get("deadline") instanceof Instant value ? value : Instant.now().plusSeconds(4);
-            Duration budget = Duration.between(Instant.now(), deadline);
-            if (budget.isNegative() || budget.isZero()) {
-                return Mono.error(new TimeoutException("Deadline expired before upstream side effect"));
-            }
-            byte[] requestBytes = message.toString().getBytes(StandardCharsets.UTF_8);
-            if (requestBytes.length > MAX_REQUEST_BYTES) {
-                return Mono.error(new IllegalArgumentException("Request byte limit"));
-            }
             HttpRequest.Builder builder = HttpRequest.newBuilder(endpoint)
-                .timeout(budget)
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json, text/event-stream")
-                .header("Authorization", authorization)
-                .header("MCP-Protocol-Version", VERSION)
-                .POST(HttpRequest.BodyPublishers.ofByteArray(requestBytes));
+                    .header("Authorization", authorization)
+                    .header("MCP-Protocol-Version", VERSION);
             if (Objects.nonNull(session) && !"initialize".equals(method)) {
                 builder.header("MCP-Session-Id", session);
             }
@@ -229,31 +178,8 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             if ("tools/call".equals(method)) {
                 AgentTraceContext.headers(transportContext.get(AgentTraceContext.HEADERS_KEY)).forEach(builder::setHeader);
             }
-            HttpRequest outbound = builder.build();
-            if (active.incrementAndGet() > MAX_IN_FLIGHT) {
-                active.decrementAndGet();
-                return Mono.error(new IllegalStateException("Client concurrency limit"));
-            }
-            var owned = new AtomicReference<CompletableFuture<HttpResponse<byte[]>>>();
-            return Mono.defer(() -> {
-                CompletableFuture<HttpResponse<byte[]>> future = http.sendAsync(outbound, ignored -> new BoundedBody(LIMIT));
-                owned.set(future);
-                inFlight.add(future);
-                if (closed) {
-                    future.cancel(true);
-                }
-                return requestSignal(future);
-            })
-                .timeout(budget)
-                .map(response -> decodeResponse(response, method, id, notification))
-                .doFinally(ignored -> {
-                    CompletableFuture<?> future = owned.get();
-                    if (Objects.nonNull(future)) {
-                        future.cancel(true);
-                        inFlight.remove(future);
-                    }
-                    active.decrementAndGet();
-                });
+            return http.post(builder, message, transportContext, HttpRequest.BodyPublishers::ofByteArray)
+                    .map(response -> decodeResponse(response, method, id, notification));
         });
     }
 
@@ -273,7 +199,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             return JSON.createObjectNode();
         }
         String contentType = response.headers().firstValue("Content-Type").orElse("").split(";")[0].trim();
-        ObjectNode envelope = decode(response.body(), contentType);
+        ObjectNode envelope = RemoteMcpHttpSupport.decodeEnvelope(response.body(), contentType, false);
         if (!"2.0".equals(envelope.path("jsonrpc").asText()) || !id.equals(envelope.path("id").asText())) {
             throw new IllegalArgumentException("Mismatched protocol response id");
         }
@@ -286,57 +212,9 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
         return ((ObjectNode) envelope.get("result")).deepCopy();
     }
 
-    private static ObjectNode decode(final byte[] bytes, final String contentType) {
-        try {
-            String text = StandardCharsets.UTF_8.newDecoder()
-                .onMalformedInput(CodingErrorAction.REPORT)
-                .onUnmappableCharacter(CodingErrorAction.REPORT)
-                .decode(ByteBuffer.wrap(bytes))
-                .toString();
-            if ("text/event-stream".equals(contentType)) {
-                String[] blocks = text.replace("\r\n", "\n").split("\n\n");
-                String data = null;
-                for (String block : blocks) {
-                    StringBuilder candidate = new StringBuilder();
-                    for (String line : block.split("\n")) {
-                        if (line.startsWith("data:")) {
-                            String value = line.substring(5);
-                            if (value.startsWith(" ")) {
-                                value = value.substring(1);
-                            }
-                            if (candidate.length() > 0) {
-                                candidate.append('\n');
-                            }
-                            candidate.append(value);
-                        }
-                    }
-                    if (candidate.length() > 0) {
-                        if (Objects.nonNull(data)) {
-                            throw new IllegalArgumentException("Only one final response supported");
-                        }
-                        data = candidate.toString();
-                    }
-                }
-                if (Objects.isNull(data)) {
-                    throw new IllegalArgumentException("Missing final SSE response");
-                }
-                text = data;
-            } else if (!"application/json".equals(contentType)) {
-                throw new IllegalArgumentException("Unsupported upstream content type");
-            }
-            JsonNode result = JSON.readTree(text);
-            if (!result.isObject()) {
-                throw new IllegalArgumentException("Invalid envelope");
-            }
-            return (ObjectNode) result;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid upstream response");
-        }
-    }
-
     @Override
     public int pending() {
-        return active.get();
+        return http.pending();
     }
 
     @Override
@@ -345,11 +223,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     private Mono<Void> terminate() {
-        closed = true;
-        // Whole-client close is shutdown only, never the individual request cancellation path.
-        for (CompletableFuture<?> future : inFlight) {
-            future.cancel(true);
-        }
+        http.closeRequests();
         if (Objects.isNull(session)) {
             return Mono.empty();
         }
@@ -361,11 +235,7 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
             .DELETE()
             // Bound completion of the body as well as connection/response headers. Owned future is cancelled on timeout.
             .build();
-        return Mono.defer(() -> {
-            var future = http.sendAsync(request, HttpResponse.BodyHandlers.discarding());
-            return requestSignal(future).doFinally(ignored -> future.cancel(true));
-        })
-            .timeout(Duration.ofSeconds(2))
+        return http.discard(request)
             .flatMap(response ->
                 response.statusCode() >= 200 && response.statusCode() < 300
                     ? Mono.<Void>empty()
@@ -374,75 +244,6 @@ public final class RequestScopedMcpClient implements RemoteMcpEndpoint {
     }
 
     static <T> Mono<T> requestSignal(final CompletableFuture<T> request) {
-        Sinks.One<T> signal = Sinks.one();
-        request.whenComplete((response, error) -> {
-            Throwable failure = error;
-            while (failure instanceof CompletionException && Objects.nonNull(failure.getCause())) {
-                failure = failure.getCause();
-            }
-            if (Objects.nonNull(failure)) {
-                // Retain active errors, but a detached request has no subscriber to receive late failures.
-                signal.tryEmitError(failure);
-            } else {
-                signal.tryEmitValue(response);
-            }
-        });
-        return signal.asMono().doFinally(type -> {
-            if (type == SignalType.CANCEL) {
-                request.cancel(true);
-            }
-        });
-    }
-
-    private static final class BoundedBody implements HttpResponse.BodySubscriber<byte[]> {
-
-        private final int limit;
-
-        private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-
-        private final CompletableFuture<byte[]> result = new CompletableFuture<>();
-
-        private Flow.Subscription subscription;
-
-        private BoundedBody(final int limit) {
-            this.limit = limit;
-        }
-
-        @Override
-        public CompletionStage<byte[]> getBody() {
-            return result;
-        }
-
-        @Override
-        public void onSubscribe(final Flow.Subscription value) {
-            subscription = value;
-            value.request(1);
-        }
-
-        @Override
-        public void onNext(final List<ByteBuffer> parts) {
-            long incoming = parts.stream().mapToLong(ByteBuffer::remaining).sum();
-            if (incoming > limit - bytes.size()) {
-                subscription.cancel();
-                result.completeExceptionally(new IllegalArgumentException("Response byte limit"));
-                return;
-            }
-            for (ByteBuffer part : parts) {
-                byte[] chunk = new byte[part.remaining()];
-                part.get(chunk);
-                bytes.writeBytes(chunk);
-            }
-            subscription.request(1);
-        }
-
-        @Override
-        public void onError(final Throwable error) {
-            result.completeExceptionally(error);
-        }
-
-        @Override
-        public void onComplete() {
-            result.complete(bytes.toByteArray());
-        }
+        return RemoteMcpHttpSupport.requestSignal(request);
     }
 }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.ProtocolProfile;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpRemoteCatalog.CatalogUnavailableException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -231,17 +232,24 @@ public final class RemoteCatalogLifecycle {
                         .initialize()
                         .switchIfEmpty(Mono.error(new IllegalStateException("Empty handshake")))
                         .map(handshake -> {
-                            RemoteResourceDirectory.Target resources = resourcesEnabled && Objects.nonNull(handshake.capabilities().resources())
+                            boolean toolsSupported = Objects.nonNull(handshake.capabilities().tools());
+                            boolean resourcesSupported = resourcesEnabled && Objects.nonNull(handshake.capabilities().resources());
+                            RemoteProtocolCapability capability = RemoteProtocolCapability.forProfile(config.name(), config.protocolProfile(), toolsSupported, resourcesSupported);
+                            RemoteResourceDirectory.Target resources = capability.resourcesSupported()
                                     ? new RemoteResourceDirectory.Target(config.name(), client::listResources, client::listResourceTemplates, client::readResource) : null;
-                            Function<String, Mono<McpSchema.ListToolsResult>> tools = Objects.nonNull(handshake.capabilities().tools())
+                            Function<String, Mono<McpSchema.ListToolsResult>> tools = toolsSupported
                                     ? client::listTools : ignored -> Mono.just(new McpSchema.ListToolsResult(List.of(), null));
-                            return new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources);
+                            return new DiscoveredTarget(new RemoteToolDirectory.Target(config.name(), tools, client::callTool, client::callRaw, resources), capability);
                         });
                 }),
                 refreshConcurrency
             )
             .collectList()
-            .flatMap(targets -> targets.isEmpty() ? Mono.just(RemoteToolDirectory.empty()) : RemoteToolDirectory.discover(targets, 4, 16, refreshConcurrency));
+            .flatMap(discovered -> {
+                candidate.capabilities = discovered.stream().map(DiscoveredTarget::capability).toList();
+                return discovered.isEmpty() ? Mono.just(RemoteToolDirectory.empty())
+                        : RemoteToolDirectory.discover(discovered.stream().map(DiscoveredTarget::target).toList(), 4, 16, refreshConcurrency);
+            });
     }
 
     private Mono<Void> finishUpdate(final Generation candidate) {
@@ -417,7 +425,7 @@ public final class RemoteCatalogLifecycle {
             return new Diagnostics(closed, Objects.nonNull(updatingGeneration), generations.size(), owners.size(),
                     generations.stream().mapToInt(g -> g.references).sum(),
                     generations.stream().flatMap(g -> g.clients.stream()).mapToInt(RemoteMcpEndpoint::pending).sum(),
-                    Objects.isNull(current) ? 0L : current.version, cleanupFailures);
+                    Objects.isNull(current) ? 0L : current.version, cleanupFailures, Objects.isNull(current) ? List.of() : current.capabilities);
         }
     }
 
@@ -486,9 +494,16 @@ public final class RemoteCatalogLifecycle {
 
     /** Immutable lifecycle diagnostics; map export is retained for existing management consumers. */
     public record Diagnostics(boolean closed, boolean updating, int generations, int clients, int references, int pending,
-                              long currentVersion, List<String> cleanupFailures) {
+                              long currentVersion, List<String> cleanupFailures, List<RemoteProtocolCapability> capabilities) {
+
+        public Diagnostics(final boolean closed, final boolean updating, final int generations, final int clients, final int references,
+                           final int pending, final long currentVersion, final List<String> cleanupFailures) {
+            this(closed, updating, generations, clients, references, pending, currentVersion, cleanupFailures, List.of());
+        }
+
         public Diagnostics {
             cleanupFailures = List.copyOf(cleanupFailures);
+            capabilities = List.copyOf(capabilities);
         }
 
         /**
@@ -497,17 +512,24 @@ public final class RemoteCatalogLifecycle {
          */
         public Map<String, Object> toMap() {
             return Map.of("closed", closed, "updating", updating, "generations", generations, "clients", clients,
-                    "references", references, "pending", pending, "currentVersion", currentVersion, "cleanupFailures", cleanupFailures);
+                    "references", references, "pending", pending, "currentVersion", currentVersion, "cleanupFailures", cleanupFailures,
+                    "capabilities", capabilities.stream().map(RemoteProtocolCapability::toMap).toList());
         }
     }
 
-    public record Config(String name, String credentialVersion, Supplier<RemoteMcpEndpoint> create) {
+    public record Config(String name, String credentialVersion, ProtocolProfile protocolProfile, Supplier<RemoteMcpEndpoint> create) {
+
+        public Config(final String name, final String credentialVersion, final Supplier<RemoteMcpEndpoint> create) {
+            this(name, credentialVersion, ProtocolProfile.LEGACY_2025_06_18, create);
+        }
+
         public Config {
             if (
                 Objects.isNull(name)
                     || !name.matches("[A-Za-z0-9_-]{1,48}")
                     || Objects.isNull(credentialVersion)
                     || credentialVersion.isBlank()
+                    || Objects.isNull(protocolProfile)
                     || Objects.isNull(create)
             ) {
                 throw new IllegalArgumentException("Invalid controlled target configuration");
@@ -515,11 +537,16 @@ public final class RemoteCatalogLifecycle {
         }
     }
 
+    private record DiscoveredTarget(RemoteToolDirectory.Target target, RemoteProtocolCapability capability) {
+    }
+
     private static final class Generation {
 
         private final long version;
 
         private final List<RemoteMcpEndpoint> clients = new ArrayList<>();
+
+        private List<RemoteProtocolCapability> capabilities = List.of();
 
         private RemoteToolDirectory directory;
 

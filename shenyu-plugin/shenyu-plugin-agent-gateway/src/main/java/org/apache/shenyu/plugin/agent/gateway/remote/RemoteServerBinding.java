@@ -17,12 +17,15 @@
 
 package org.apache.shenyu.plugin.agent.gateway.remote;
 
+import org.apache.shenyu.common.dto.AgentGatewayAggregationConfig.ProtocolProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /** Immutable target and independently resolved credential binding. */
@@ -32,10 +35,13 @@ public final class RemoteServerBinding {
 
     private final Config config;
 
+    private final ProtocolProfile protocolProfile;
+
     private final String authorization;
 
-    private RemoteServerBinding(final Config config, final Credential credential) {
+    private RemoteServerBinding(final Config config, final ProtocolProfile protocolProfile, final Credential credential) {
         this.config = config;
+        this.protocolProfile = protocolProfile;
         authorization = credential.authorization;
     }
 
@@ -47,7 +53,20 @@ public final class RemoteServerBinding {
      * @return operation result
      */
     public static RemoteServerBinding resolve(final Config config, final Set<URI> allowedEndpoints, final Function<Config, Credential> localResolver) {
-        if (Objects.isNull(config) || Objects.isNull(allowedEndpoints) || Objects.isNull(localResolver)) {
+        return resolve(config, ProtocolProfile.LEGACY_2025_06_18, allowedEndpoints, localResolver);
+    }
+
+    /**
+     * Resolve a fixed credential independently of the configured wire protocol.
+     * @param config target and credential identity
+     * @param profile selected outbound protocol
+     * @param allowedEndpoints trusted endpoint allowlist
+     * @param localResolver deployment-owned credential resolver
+     * @return immutable binding
+     */
+    public static RemoteServerBinding resolve(final Config config, final ProtocolProfile profile, final Set<URI> allowedEndpoints,
+                                              final Function<Config, Credential> localResolver) {
+        if (Objects.isNull(config) || Objects.isNull(profile) || Objects.isNull(allowedEndpoints) || Objects.isNull(localResolver)) {
             throw new IllegalArgumentException("Missing controlled target configuration");
         }
         // Exact configured URI, including path/port. Never resolve an Agent-provided URL.
@@ -64,7 +83,7 @@ public final class RemoteServerBinding {
         if (Objects.isNull(credential) || !config.equals(credential.target)) {
             throw new SecurityException("Missing or mismatched service credential binding");
         }
-        return new RemoteServerBinding(config, credential);
+        return new RemoteServerBinding(config, profile, credential);
     }
 
     /**
@@ -75,6 +94,14 @@ public final class RemoteServerBinding {
         return config;
     }
 
+    /**
+     * Return this binding's configured outbound protocol.
+     * @return protocol profile
+     */
+    public ProtocolProfile protocolProfile() {
+        return protocolProfile;
+    }
+
     String authorization() {
         return authorization;
     }
@@ -83,13 +110,17 @@ public final class RemoteServerBinding {
      * new Client.
      * @return operation result
      */
-    public RequestScopedMcpClient newClient() {
-        return new RequestScopedMcpClient(this, event -> {
+    public RemoteMcpEndpoint newClient() {
+        Consumer<Map<String, Object>> observer = event -> {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Remote MCP response server={} method={} id={} status={} bytes={}",
                         event.get("server"), event.get("method"), event.get("id"), event.get("status"), event.get("bytes"));
             }
-        });
+        };
+        return switch (protocolProfile) {
+            case LEGACY_2025_06_18 -> new RequestScopedMcpClient(this, observer);
+            case NATIVE_2026_07_28 -> new StatelessMcpClient(this, observer);
+        };
     }
 
     /**
@@ -97,12 +128,12 @@ public final class RemoteServerBinding {
      * @return operation result
      */
     public RemoteCatalogLifecycle.Config lifecycleConfig() {
-        return new RemoteCatalogLifecycle.Config(config.name(), config.credentialVersion(), this::newClient);
+        return new RemoteCatalogLifecycle.Config(config.name(), config.credentialVersion(), protocolProfile, this::newClient);
     }
 
     @Override
     public String toString() {
-        return "RemoteServerBinding[" + config.name() + ", " + config.credentialVersion() + ", credential=REDACTED]";
+        return "RemoteServerBinding[" + config.name() + ", " + config.credentialVersion() + ", " + protocolProfile.id() + ", credential=REDACTED]";
     }
 
     public record Config(String name, URI endpoint, String credentialRef, String credentialVersion) {

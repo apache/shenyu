@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -66,17 +65,19 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
             if (root.isEmpty()) {
                 return new AgentGatewayAggregationConfig("empty", List.of());
             }
-            fields(root, Set.of("aggregation"));
+            allowFields(root, Set.of("aggregation"));
             JsonNode aggregation = root.get("aggregation");
-            fields(aggregation, Set.of("revision", "servers"));
+            allowFields(aggregation, Set.of("revision", "servers"));
             if (!aggregation.path("servers").isArray()) {
                 throw new IllegalArgumentException("Expected MCP Server array");
             }
             List<Server> servers = new ArrayList<>();
             for (JsonNode server : aggregation.get("servers")) {
-                fields(server, Set.of("name", "endpoint", "credentialRef", "credentialVersion"));
+                allowFields(server, Set.of("name", "endpoint", "credentialRef", "credentialVersion", "protocolProfile"));
+                ProtocolProfile profile = server.has("protocolProfile")
+                        ? ProtocolProfile.parse(text(server, "protocolProfile")) : ProtocolProfile.LEGACY_2025_06_18;
                 servers.add(new Server(text(server, "name"), URI.create(text(server, "endpoint")),
-                        text(server, "credentialRef"), text(server, "credentialVersion")));
+                        text(server, "credentialRef"), text(server, "credentialVersion"), profile));
             }
             return new AgentGatewayAggregationConfig(text(aggregation, "revision"), servers);
         } catch (Exception error) {
@@ -85,15 +86,15 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
         }
     }
 
-    private static void fields(final JsonNode node, final Set<String> expected) {
+    private static void allowFields(final JsonNode node, final Set<String> allowed) {
         if (Objects.isNull(node) || !node.isObject()) {
             throw new IllegalArgumentException("Expected configuration object");
         }
-        Set<String> fields = new HashSet<>();
-        node.fieldNames().forEachRemaining(fields::add);
-        if (!fields.equals(expected)) {
-            throw new IllegalArgumentException("Unknown or missing configuration field");
-        }
+        node.fieldNames().forEachRemaining(field -> {
+            if (!allowed.contains(field)) {
+                throw new IllegalArgumentException("Unknown configuration field");
+            }
+        });
     }
 
     /**
@@ -136,10 +137,59 @@ public record AgentGatewayAggregationConfig(String revision, List<Server> server
         return node.get(field).textValue();
     }
 
+    /** Outbound wire contract selected by the operator for one MCP server. */
+    public enum ProtocolProfile {
+        LEGACY_2025_06_18("legacy-2025-06-18", "2025-06-18"),
+        NATIVE_2026_07_28("native-2026-07-28", "2026-07-28");
+
+        private final String id;
+
+        private final String version;
+
+        ProtocolProfile(final String id, final String version) {
+            this.id = id;
+            this.version = version;
+        }
+
+        /**
+         * Get the plugin configuration identifier.
+         * @return exact profile identifier
+         */
+        public String id() {
+            return id;
+        }
+
+        /**
+         * Get the upstream wire protocol version.
+         * @return MCP protocol version
+         */
+        public String version() {
+            return version;
+        }
+
+        /**
+         * Parse an explicitly configured profile.
+         * @param value exact configuration identifier
+         * @return selected profile
+         */
+        public static ProtocolProfile parse(final String value) {
+            for (ProtocolProfile profile : values()) {
+                if (profile.id.equals(value)) {
+                    return profile;
+                }
+            }
+            throw new IllegalArgumentException("Unknown MCP protocol profile");
+        }
+    }
+
     /** A remote target reference, containing no bearer token. */
-    public record Server(String name, URI endpoint, String credentialRef, String credentialVersion) {
+    public record Server(String name, URI endpoint, String credentialRef, String credentialVersion, ProtocolProfile protocolProfile) {
+        public Server(final String name, final URI endpoint, final String credentialRef, final String credentialVersion) {
+            this(name, endpoint, credentialRef, credentialVersion, ProtocolProfile.LEGACY_2025_06_18);
+        }
+
         public Server {
-            if (Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
+            if (Objects.isNull(protocolProfile) || Objects.isNull(name) || !name.matches("[A-Za-z0-9_-]{1,48}")) {
                 throw new IllegalArgumentException("Invalid MCP Server target");
             }
             validateEndpoint(endpoint);
