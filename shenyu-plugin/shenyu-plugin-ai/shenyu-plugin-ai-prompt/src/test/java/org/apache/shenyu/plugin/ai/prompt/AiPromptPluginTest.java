@@ -24,6 +24,7 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.Singleton;
 import org.apache.shenyu.plugin.ai.prompt.handler.AiPromptPluginDataHandler;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 class AiPromptPluginTest {
@@ -85,8 +87,11 @@ class AiPromptPluginTest {
         List<HttpMessageReader<?>> readers = ServerCodecConfigurer.create().getReaders();
         AiPromptPlugin requestPlugin = new AiPromptPlugin(readers);
         List<Object> results = new ArrayList<>();
-        ShenyuPluginChain chain = exchange -> ServerRequest.create(exchange, readers).bodyToMono(String.class)
-                .doOnNext(body -> results.add(GsonUtils.getInstance().convertToMap(body).get("messages"))).then();
+        ShenyuPluginChain chain = exchange -> {
+            assertTrue(AiPassthroughPolicy.isIncompatible(exchange));
+            return ServerRequest.create(exchange, readers).bodyToMono(String.class)
+                    .doOnNext(body -> results.add(GsonUtils.getInstance().convertToMap(body).get("messages"))).then();
+        };
         try {
             Singleton.INST.single(AiPromptConfig.class, baseConfig);
             handler.handlerRule(ruleA);

@@ -291,7 +291,11 @@ public class AiProxyPluginConfiguration {
                         new ReactorClientHttpConnector(resources.getHttpClient()))
                 .build();
 
-        return new WebClientAiProxyTransport(webClient, properties);
+        WebClient streamingClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(resources.getHttpClient()
+                        .disableRetry(true).followRedirect(false).compress(false)))
+                .build();
+        return new WebClientAiProxyTransport(webClient, properties, streamingClient);
     }
 
     /**

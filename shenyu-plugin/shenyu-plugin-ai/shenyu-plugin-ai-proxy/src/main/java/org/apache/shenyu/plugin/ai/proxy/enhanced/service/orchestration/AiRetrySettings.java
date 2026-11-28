@@ -96,9 +96,9 @@ public final class AiRetrySettings {
         }
     }
 
-    AiProxyRetryProperties.ReplayMode replayMode(final ShenyuAiRequest.Operation operation,
-                                                  final boolean executionAmbiguous,
-                                                  final boolean transportFailure) {
+    public AiProxyRetryProperties.ReplayMode replayMode(final ShenyuAiRequest.Operation operation,
+                                                         final boolean executionAmbiguous,
+                                                         final boolean transportFailure) {
         AiProxyRetryProperties.ReplayProperties replay = properties.getReplay();
         Map<String, AiProxyRetryProperties.ReplayMode> operations = replay.getOperations();
         AiProxyRetryProperties.ReplayMode configured = operations.get(operation.name());

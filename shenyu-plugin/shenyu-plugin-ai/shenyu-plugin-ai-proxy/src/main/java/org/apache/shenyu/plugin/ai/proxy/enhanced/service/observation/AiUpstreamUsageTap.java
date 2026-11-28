@@ -52,6 +52,8 @@ public final class AiUpstreamUsageTap {
 
     private final boolean inspectCompletion;
 
+    private final boolean responses;
+
     private final ByteArrayOutputStream line = new ByteArrayOutputStream();
 
     private final StringBuilder event = new StringBuilder();
@@ -66,9 +68,14 @@ public final class AiUpstreamUsageTap {
         this(observation, headers, stream, true);
     }
 
-    public AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers,
-                              final boolean stream, final boolean nativeChat) {
+    public AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream, final boolean nativeChat) {
+        this(observation, headers, stream, nativeChat, false);
+    }
+
+    public AiUpstreamUsageTap(final AiRequestObservation.Attempt observation, final Map<String, List<String>> headers, final boolean stream,
+                       final boolean nativeChat, final boolean responses) {
         this.observation = observation;
+        this.responses = responses;
         String contentType = header(headers, "Content-Type").toLowerCase(Locale.ROOT).split(";", 2)[0].trim();
         streaming = contentType.isEmpty() ? stream : "text/event-stream".equals(contentType);
         inspectCompletion = nativeChat && streaming;
@@ -194,7 +201,7 @@ public final class AiUpstreamUsageTap {
                 }
             }
         }
-        JsonNode usage = root.get("usage");
+        JsonNode usage = responses && streaming ? root.path("response").get("usage") : root.get("usage");
         if (Objects.isNull(usage) || usage.isNull()) {
             return;
         }
@@ -202,10 +209,12 @@ public final class AiUpstreamUsageTap {
             observation.usage(new AiUsage(null, null, null, AiUsage.Status.INVALID));
             return;
         }
-        Long prompt = count(usage.get("prompt_tokens"));
-        Long completion = count(usage.get("completion_tokens"));
+        JsonNode input = usage.get(responses ? "input_tokens" : "prompt_tokens");
+        JsonNode output = usage.get(responses ? "output_tokens" : "completion_tokens");
+        Long prompt = count(input);
+        Long completion = count(output);
         Long total = count(usage.get("total_tokens"));
-        AiUsage.Status quality = invalid(usage.get("prompt_tokens")) || invalid(usage.get("completion_tokens")) || invalid(usage.get("total_tokens"))
+        AiUsage.Status quality = invalid(input) || invalid(output) || invalid(usage.get("total_tokens"))
                 ? AiUsage.Status.INVALID : Objects.isNull(prompt) && Objects.isNull(completion) && Objects.isNull(total) ? AiUsage.Status.UNKNOWN : AiUsage.Status.REPORTED;
         // Replace the snapshot, never sum cumulative SSE counters or fill fields from an older event.
         observation.usage(quality == AiUsage.Status.INVALID ? new AiUsage(null, null, null, quality) : new AiUsage(prompt, completion, total, quality));

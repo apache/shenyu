@@ -40,7 +40,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiObservat
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -53,11 +53,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Terminal AI proxy gateway boundary backed exclusively by AiProxyEngine.
@@ -67,9 +64,6 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
     private static final Logger LOG = LoggerFactory.getLogger(AiProxyPlugin.class);
 
     private static final int MAX_REQUEST_BODY_SIZE_BYTES = 5 * 1024 * 1024;
-
-    private static final Set<String> HOP_HEADERS = Set.of("connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
-            "te", "trailer", "transfer-encoding", "upgrade");
 
     private static final AiProxyFailureMapper FAILURE_MAPPER = new AiProxyFailureMapper();
 
@@ -134,8 +128,16 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private Mono<Void> executeRequest(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule, final AiRequestObservation observation) {
         return Mono.defer(() -> {
-            AiProxyHandle handle = aiProxyPluginHandler.getSelectorCachedHandle()
-                    .obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+            final AiProxyHandle handle;
+            try {
+                handle = aiProxyPluginHandler.resolveSelectorHandle(selector);
+            } catch (IllegalArgumentException invalidConfig) {
+                exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+                return exchange.getResponse().setComplete();
+            }
+            if (Objects.nonNull(handle) && handle.isPassthrough()) {
+                return forwardNative(exchange, handle, observation);
+            }
             final String realApiKey;
             if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
                 String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
@@ -179,6 +181,16 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
         });
     }
 
+    private Mono<Void> forwardNative(final ServerWebExchange exchange, final AiProxyHandle handle, final AiRequestObservation observation) {
+        if (AiPassthroughPolicy.isIncompatible(exchange)) {
+            exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            return exchange.getResponse().setComplete();
+        }
+        AiPassthroughRequest request = AiPassthroughRequest.from(exchange.getRequest(), handle);
+        return aiProxyEngine.forwardNative(request.upstream(), exchange.getRequest().getBody(), request.protocol(), observation,
+                upstream -> writeResponse(exchange.getResponse(), upstream, observation));
+    }
+
     private Mono<Optional<AiResponseCacheScope>> cacheScope(final ServerWebExchange exchange, final SelectorData selector, final RuleData rule) {
         if (Objects.isNull(cacheScopeResolver) || !org.springframework.http.HttpMethod.POST.equals(exchange.getRequest().getMethod())
                 || !exchange.getRequest().getCookies().isEmpty()
@@ -194,21 +206,7 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
 
     private Mono<Void> writeResponse(final ServerHttpResponse response, final AiUpstreamResponse upstream, final AiRequestObservation observation) {
         response.setStatusCode(HttpStatusCode.valueOf(upstream.getStatusCode()));
-        Set<String> excluded = new HashSet<>(HOP_HEADERS);
-        upstream.getHeaders().forEach((name, values) -> {
-            if ("connection".equalsIgnoreCase(name)) {
-                values.forEach(value -> {
-                    for (String token : value.split(",")) {
-                        excluded.add(token.trim().toLowerCase(Locale.ROOT));
-                    }
-                });
-            }
-        });
-        upstream.getHeaders().forEach((name, values) -> {
-            if (!excluded.contains(name.toLowerCase(Locale.ROOT))) {
-                response.getHeaders().put(name, values);
-            }
-        });
+        AiPassthroughRequest.copyEndToEndHeaders(upstream.getHeaders(), response.getHeaders());
         Flux<DataBuffer> body = upstream.getBody().map(bytes -> response.bufferFactory().wrap(bytes))
                 .doOnDiscard(DataBuffer.class, DataBufferUtils::release)
                 .doOnCancel(observation::downstreamDisconnected);

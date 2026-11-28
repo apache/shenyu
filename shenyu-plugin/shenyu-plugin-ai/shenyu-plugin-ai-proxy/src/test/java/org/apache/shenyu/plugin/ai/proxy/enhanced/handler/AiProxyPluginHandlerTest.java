@@ -58,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -105,6 +106,43 @@ class AiProxyPluginHandlerTest {
         assertEquals("https://api.openai.com", cached.getBaseUrl());
         assertEquals("sk-test", cached.getApiKey());
         assertEquals("gpt-4", cached.getModel());
+    }
+
+    @Test
+    void testSelectorResolutionUsesTheMatchedUpdate() {
+        SelectorData matched = new SelectorData();
+        matched.setId("native-selector");
+        matched.setHandle("{\"mode\":\"passthrough\",\"baseUrl\":\"https://vendor.example\",\"stripPrefix\":\"/vendor\"}");
+        handler.handlerSelector(matched);
+
+        SelectorData updated = new SelectorData();
+        updated.setId(matched.getId());
+        updated.setHandle("{\"mode\":\"converted\"}");
+        handler.handlerSelector(updated);
+
+        AiProxyHandle original = handler.resolveSelectorHandle(matched);
+        assertTrue(original.isPassthrough());
+        assertEquals("https://vendor.example", original.getBaseUrl());
+        assertEquals("/vendor", original.getStripPrefix());
+        assertFalse(handler.resolveSelectorHandle(updated).isPassthrough());
+        updated.setHandle(null);
+        assertNull(handler.resolveSelectorHandle(updated));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"mode\":\"passthru\"}", "{\"mode\":\"passthrough\"}", "[]", "broken"})
+    void testInvalidSelectorUpdateCannotReuseAnEarlierHandle(final String invalid) {
+        SelectorData selector = new SelectorData();
+        selector.setId("invalid-update");
+        selector.setHandle("{\"provider\":\"open_ai\"}");
+        handler.handlerSelector(selector);
+
+        selector.setHandle(invalid);
+        assertThrows(IllegalArgumentException.class, () -> handler.resolveSelectorHandle(selector));
+        handler.handlerSelector(selector);
+        String key = CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE);
+        assertNull(handler.getSelectorCachedHandle().obtainHandle(key));
+        assertThrows(IllegalArgumentException.class, () -> handler.resolveSelectorHandle(selector));
     }
 
     @Test

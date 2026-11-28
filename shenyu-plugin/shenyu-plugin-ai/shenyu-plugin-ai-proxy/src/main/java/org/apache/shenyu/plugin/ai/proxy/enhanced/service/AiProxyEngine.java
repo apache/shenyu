@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 
 import org.apache.shenyu.common.metrics.AiCallObserver;
+import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
@@ -40,6 +41,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiStatus
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.planning.AiExchangePlanner;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.planning.AiPreparedExchange;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
+import org.springframework.core.io.buffer.DataBuffer;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -67,11 +70,14 @@ public final class AiProxyEngine {
 
     private final AiCallObservationScope observationScope;
 
+    private final AiPassthroughExecutor passthroughExecutor;
+
     private AiProxyEngine(final Builder builder) {
         this.exchangePlanner = new AiExchangePlanner(
                 builder.protocols, builder.providers, builder.routeResolver);
         AiAttemptExecutor attemptExecutor = new AiAttemptExecutor(builder.transport);
         AiRetrySettings retrySettings = new AiRetrySettings(builder.retryProperties);
+        this.passthroughExecutor = new AiPassthroughExecutor(builder.transport, builder.retryProperties, retrySettings);
         AiAttemptEventEmitter eventEmitter = new AiAttemptEventEmitter(builder.attemptListener);
         AiStatusFailureClassifier statusFailureClassifier = new AiStatusFailureClassifier(
                 builder.retryProperties.getCredentialFailureFallback(), builder.protocols);
@@ -96,6 +102,20 @@ public final class AiProxyEngine {
     public static Builder builder(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
                                   final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport) {
         return new Builder(protocols, providers, routeResolver, transport);
+    }
+
+    /**
+     * Stream a native upload, retry eligible rate limits, and own the final downstream write.
+     * @param request trusted destination and end-to-end client headers
+     * @param upload original inbound body
+     * @param protocol client protocol identified without consuming the upload
+     * @param observation logical invocation
+     * @param writer downstream response consumer
+     * @return completion of the exchange
+     */
+    public Mono<Void> forwardNative(final AiUpstreamRequest request, final Flux<DataBuffer> upload, final String protocol,
+                                    final AiRequestObservation observation, final Function<AiUpstreamResponse, Mono<Void>> writer) {
+        return passthroughExecutor.forwardNative(request, upload, protocol, observation, writer);
     }
 
     /**

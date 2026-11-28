@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.common.utils.UriUtils;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 
 import java.net.URI;
@@ -62,20 +63,6 @@ public final class AiProxyConfigValidator {
      * @throws IllegalArgumentException with a fixed, input-free reason if the endpoint is invalid
      */
     public static URI parseBaseUrl(final String baseUrl) {
-        if (StringUtils.isBlank(baseUrl)) {
-            throw new IllegalArgumentException("baseUrl.invalidEndpoint");
-        }
-        final URI uri;
-        try {
-            uri = URI.create(baseUrl);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("baseUrl.invalidSyntax");
-        }
-        if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
-                || Objects.isNull(uri.getHost()) || Objects.nonNull(uri.getRawUserInfo())
-                || Objects.nonNull(uri.getRawQuery()) || Objects.nonNull(uri.getRawFragment()) || uri.getPort() == 0 || uri.getPort() > 65535) {
-            throw new IllegalArgumentException("baseUrl.invalidEndpoint");
-        }
-        return uri;
+        return UriUtils.parseHttpEndpoint(baseUrl);
     }
 }

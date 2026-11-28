@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import io.opentelemetry.api.trace.SpanKind;
 import org.apache.shenyu.common.audit.AgentInvocationAuditBridge;
 import org.apache.shenyu.common.audit.AgentInvocationAuditEvent;
@@ -39,6 +40,7 @@ import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiTerminalEvent;
 import org.apache.shenyu.common.metrics.AiUsage;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.metrics.reporter.MetricsReporter;
 import org.apache.shenyu.plugin.metrics.prometheus.PrometheusMetricsRegister;
 import org.apache.shenyu.plugin.metrics.constant.LabelNames;
@@ -61,6 +63,7 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.routing.AiProtocolRouteResolve
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.ai.token.limiter.AiTokenLimiterPlugin;
 import org.apache.shenyu.plugin.ai.token.limiter.handler.AiTokenLimiterPluginHandler;
@@ -79,10 +82,12 @@ import org.apache.shenyu.web.loader.ShenyuLoaderService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentMatchers;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -96,17 +101,18 @@ import reactor.netty.resources.LoopResources;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -147,6 +153,14 @@ class AgentGovernanceHttpTest {
                     && audit.getSubject().orElseThrow().equals("service") && audit.getOutcome().equals("SUCCESS")));
             assertEquals(1, fixture.upstreamCalls.get());
             assertEquals(1, fixture.bodySubscriptions.get());
+            assertEquals(List.of(Map.of("role", "user", "content", "private"), Map.of("role", "system", "content", "governed")),
+                    GsonUtils.getInstance().convertToMap(fixture.upstreamBody.get()).get("messages"));
+            HttpHeaders headers = fixture.upstreamHeaders.get();
+            assertNull(headers.get("baggage"));
+            assertNull(headers.get("X-Tenant-Id"));
+            assertNull(headers.get("X-Subject"));
+            assertNull(headers.get("X-Api-Key"));
+            assertEquals("Bearer upstream-service-key", headers.get("Authorization"));
             AiTerminalEvent event = fixture.terminals.element();
             assertEquals(AiCallOutcome.SUCCESS, event.outcome());
             assertEquals("tenant", event.context().getTenant());
@@ -165,7 +179,7 @@ class AgentGovernanceHttpTest {
             assertEquals(SpanKind.SERVER, span.getKind());
             assertEquals("12345678901234567890123456789012", span.getTraceId());
             assertEquals("1234567890123456", span.getParentSpanId());
-            assertEquals("00-" + span.getTraceId() + "-" + span.getSpanId() + "-01", fixture.outboundParent.get());
+            assertEquals("00-" + span.getTraceId() + "-" + span.getSpanId() + "-01", headers.get("traceparent"));
             await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(0.0, CollectorRegistry.defaultRegistry.getSampleValue(
                     LabelNames.AGENT_REQUESTS_INFLIGHT, new String[]{"traffic"}, new String[]{"llm"})));
             assertEquals(1.0, CollectorRegistry.defaultRegistry.getSampleValue(LabelNames.AGENT_REQUESTS_TOTAL,
@@ -198,6 +212,34 @@ class AgentGovernanceHttpTest {
         }
     }
 
+    @Test
+    void matchedAppendRuleStopsANativeRequestBeforeTheVendor() {
+        try (Fixture fixture = new Fixture(false, false)) {
+            fixture.useNativeSelector();
+            fixture.request().expectStatus().isEqualTo(503).expectBody().isEmpty();
+            assertEquals(0, fixture.upstreamCalls.get());
+            assertTrue(fixture.attempts.isEmpty());
+        }
+    }
+
+    @Test
+    void nativeRequestIsChargedOnceAndAnExhaustedBudgetStopsTheNextUpload() {
+        try (Fixture fixture = new Fixture(false, false)) {
+            fixture.useNativeSelector();
+            BaseDataCache.getInstance().removePluginDataByPluginName("aiPrompt");
+            fixture.usedTokens.set(98);
+            String path = "/v1/chat/completions";
+            fixture.request("fixture-key", path).expectStatus().isOk().expectBody(String.class).isEqualTo(fixture.response);
+            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertEquals(100L, fixture.usedTokens.get()));
+            assertEquals(fixture.requestBody(), fixture.upstreamBody.get());
+            assertEquals("fixture-key", fixture.upstreamHeaders.get().get("X-Api-Key"));
+            fixture.request("fixture-key", path).expectStatus().isEqualTo(429).expectBody().consumeWith(ignored -> { });
+            assertEquals(List.of(2L), List.copyOf(fixture.charges));
+            assertEquals(1, fixture.upstreamCalls.get());
+            assertEquals(1, fixture.bodySubscriptions.get());
+        }
+    }
+
     private static final class Fixture implements AutoCloseable {
 
         private final LoopResources loops = LoopResources.create("governance-http", 2, true);
@@ -214,7 +256,13 @@ class AgentGovernanceHttpTest {
 
         private final AtomicReference<AgentRequestContext> limiterContext = new AtomicReference<>();
 
-        private final AtomicReference<String> outboundParent = new AtomicReference<>();
+        private final AtomicReference<HttpHeaders> upstreamHeaders = new AtomicReference<>();
+
+        private final AtomicReference<String> upstreamBody = new AtomicReference<>();
+
+        private final AtomicLong usedTokens = new AtomicLong();
+
+        private final ConcurrentLinkedQueue<Long> charges = new ConcurrentLinkedQueue<>();
 
         private final InMemorySpanExporter exporter = InMemorySpanExporter.create();
 
@@ -243,17 +291,13 @@ class AgentGovernanceHttpTest {
         @SuppressWarnings("unchecked")
         private Fixture(final boolean stream, final boolean deny) {
             this.stream = stream;
+            usedTokens.set(deny ? 100 : 0);
             String json = "{\"choices\":[],\"usage\":{\"prompt_tokens\":3,\"completion_tokens\":2,\"total_tokens\":5}}";
             response = stream ? "data: " + json + "\n\ndata: [DONE]\n\n" : json;
             upstream = HttpServer.create().host("127.0.0.1").port(0).runOn(loops).handle((request, result) -> {
                 upstreamCalls.incrementAndGet();
-                outboundParent.set(request.requestHeaders().get("traceparent"));
-                assertNull(request.requestHeaders().get("baggage"));
-                assertNull(request.requestHeaders().get("X-Tenant-Id"));
-                assertNull(request.requestHeaders().get("X-Subject"));
-                assertNull(request.requestHeaders().get("X-Api-Key"));
-                assertEquals("Bearer upstream-service-key", request.requestHeaders().get("Authorization"));
-                return request.receive().then(result.header("Content-Type", stream ? "text/event-stream" : "application/json")
+                upstreamHeaders.set(request.requestHeaders().copy());
+                return request.receive().aggregate().asString().doOnNext(upstreamBody::set).then(result.header("Content-Type", stream ? "text/event-stream" : "application/json")
                         .sendString(Flux.just(response.substring(0, 29), response.substring(29))).then());
             }).bindNow(Duration.ofSeconds(20));
             ShenyuConfig config = new ShenyuConfig();
@@ -293,7 +337,7 @@ class AgentGovernanceHttpTest {
                     AgentInvocationAuditBridge.ai(observer, audits::add));
             agentHandler.handlerRule(register(agent, "{\"trafficType\":\"LLM\"}"));
             AiPromptPlugin prompt = new AiPromptPlugin(ServerCodecConfigurer.create().getReaders());
-            RuleData promptRule = register(prompt, "{\"prepend\":\"governed\",\"preRole\":\"system\"}");
+            RuleData promptRule = register(prompt, "{\"append\":\"governed\",\"postRole\":\"system\"}");
             promptHandler.handlerRule(promptRule);
             AiTokenLimiterPlugin limiter = new AiTokenLimiterPlugin();
             new AiTokenLimiterPluginHandler().handlerRule(register(limiter, "{\"aiTokenLimitType\":\"uri\",\"keyName\":\"unused\",\"tokenLimit\":100,\"timeWindowSeconds\":60}"));
@@ -302,15 +346,22 @@ class AgentGovernanceHttpTest {
             when(redis.opsForValue()).thenReturn(values);
             when(values.get(anyString())).thenReturn(Mono.deferContextual(context -> {
                 limiterContext.set(context.get(AgentRequestContext.REACTOR_KEY));
-                return Mono.just(deny ? "100" : "0");
+                return Mono.just(Long.toString(usedTokens.get()));
             }));
-            when(values.setIfAbsent(anyString(), anyString(), any(Duration.class))).thenReturn(Mono.just(true));
-            when(values.increment(anyString(), anyLong())).thenReturn(Mono.just(2L));
+            when(redis.execute(ArgumentMatchers.<RedisScript<Long>>any(), anyList(), anyList())).thenAnswer(invocation -> {
+                List<String> arguments = invocation.getArgument(2);
+                long tokens = Long.parseLong(arguments.get(0));
+                return Flux.defer(() -> {
+                    charges.add(tokens);
+                    return Flux.just(usedTokens.addAndGet(tokens));
+                });
+            });
             AiTokenLimiterPluginHandler.REDIS_CACHED_HANDLE.get().cachedHandle(limiter.named(), redis);
+            WebClient webClient = WebClient.builder().build();
             AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                             new AiProxyProviderFactory(List.of(new OpenAi())),
                             new AiProtocolRouteResolver(new AiProtocolConverterFactory(List.of())),
-                            new WebClientAiProxyTransport(WebClient.builder().build()))
+                            new WebClientAiProxyTransport(webClient, new AiProxyTransportProperties(), webClient))
                     .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
                     .build();
             AiProxyPlugin proxy = new AiProxyPlugin(new AiProxyConfigService(proxyHandler), engine, proxyHandler);
@@ -360,15 +411,30 @@ class AgentGovernanceHttpTest {
             return rule;
         }
 
+        private void useNativeSelector() {
+            SelectorData selector = BaseDataCache.getInstance().obtainSelectorData("aiProxy").get(0);
+            selector.setHandle("{\"mode\":\"passthrough\",\"baseUrl\":\"http://127.0.0.1:" + upstream.port() + "\"}");
+            BaseDataCache.getInstance().cacheSelectData(selector);
+            proxyHandler.handlerSelector(selector);
+        }
+
         private WebTestClient.ResponseSpec request() {
             return request("fixture-key");
         }
 
         private WebTestClient.ResponseSpec request(final String key) {
+            return request(key, "/chat");
+        }
+
+        private WebTestClient.ResponseSpec request(final String key, final String path) {
             return WebTestClient.bindToServer().baseUrl("http://127.0.0.1:" + gateway.port()).responseTimeout(Duration.ofSeconds(20)).build()
-                    .post().uri("/chat").header("X-Api-Key", key).header("X-Tenant-Id", "forged").header("X-Subject", "forged")
+                    .post().uri(path).header("X-Api-Key", key).header("X-Tenant-Id", "forged").header("X-Subject", "forged")
                     .header("traceparent", "00-12345678901234567890123456789012-1234567890123456-01").header("baggage", "private=never-forward")
-                    .header("Content-Type", "application/json").bodyValue("{\"messages\":[{\"role\":\"user\",\"content\":\"private\"}],\"stream\":" + stream + "}").exchange();
+                    .header("Content-Type", "application/json").bodyValue(requestBody()).exchange();
+        }
+
+        private String requestBody() {
+            return "{ \"messages\" : [{\"role\":\"user\",\"content\":\"private\"}], \"stream\" : " + stream + " }\n";
         }
 
         @Override

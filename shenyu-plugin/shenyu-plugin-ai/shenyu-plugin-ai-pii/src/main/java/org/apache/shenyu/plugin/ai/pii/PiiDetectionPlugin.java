@@ -35,6 +35,7 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.exception.ResponsiveException;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.apache.shenyu.plugin.base.utils.ServerWebExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,6 +114,7 @@ public class PiiDetectionPlugin extends AbstractShenyuPlugin {
             }
             return chain.execute(exchange);
         }
+        AiPassthroughPolicy.markIncompatible(exchange);
         ServerWebExchange mutated = exchange;
         if (piiRule.scansResponse()) {
             mutated = exchange.mutate()

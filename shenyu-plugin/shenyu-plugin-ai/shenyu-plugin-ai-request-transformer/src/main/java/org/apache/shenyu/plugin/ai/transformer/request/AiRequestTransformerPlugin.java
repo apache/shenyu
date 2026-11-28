@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.ai.transformer.request.template.AiRequestTransfo
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.ResponseUtils;
 import org.slf4j.Logger;
@@ -148,6 +149,7 @@ public class AiRequestTransformerPlugin extends AbstractShenyuPlugin {
             return chain.execute(exchange);
         }
 
+        AiPassthroughPolicy.markIncompatible(exchange);
         ChatClient finalClient = client;
         AiRequestTransformerConfig finalConfig = aiRequestTransformerConfig;
         // The inbound body is subscribed once. Its bytes are then replayed through a decorator, so

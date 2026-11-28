@@ -173,7 +173,70 @@ conversion and explicitly selected provider dialects. ShenYu remains the
 reactive gateway, not an agent runtime. This integration supports OpenAI Chat
 Completions and OpenAI Responses clients. The built-in OpenAI provider uses the
 native `/v1/responses` endpoint; Chat-only providers use protocol conversion.
-It does not add native Claude or Gemini upstream transports.
+Selectors can also forward vendor-native HTTP requests using the caller's credentials.
+
+## Vendor-native passthrough
+
+Set the following handle on an AI Proxy selector and configure a matching rule.
+
+```json
+{
+  "mode": "passthrough",
+  "baseUrl": "https://vendor.example/api",
+  "stripPrefix": "/claude"
+}
+```
+
+A client can send `POST /claude/v1/messages?beta=true` with its own `x-api-key`
+and `anthropic-version`. The vendor receives `POST /api/v1/messages?beta=true`
+with those headers and the original body bytes. The selector supplies the scheme,
+host and port. A missing `mode` or explicit `converted` selects the existing
+conversion path. Upgrade all gateway nodes before enabling passthrough. Disable
+passthrough selectors before downgrading.
+
+The optional prefix consists of literal, unreserved path segments such as
+`/team/claude`. Omit it to keep the entire path. An exact match maps to the
+base directory with a trailing slash. A prefix matches once at a segment
+boundary. A mismatch returns 400. The raw query preserves ordering, repeated
+keys, empty values and credentials. The built-in transport forwards end-to-end
+headers including `Authorization` and `x-goog-api-key`. It removes connection
+headers and derives `Host` from the vendor URL. The same forwarding rules apply to
+`traceparent`, `tracestate` and `baggage`.
+
+| Feature | Passthrough | Converted |
+| --- | --- | --- |
+| Credentials and path | Caller headers, query and native endpoint | Configured credentials, optional proxy-key mapping and provider bindings |
+| Request and response bodies | Stream bytes, including vendor HTTP errors, redirects and SSE | Apply the selected protocol and provider transformations |
+| Prompt, request/response transformers, PII and sensitive-word policies | Admin rejects potentially overlapping enabled selectors. A gateway that receives overlapping updates rejects a matched conflicting request before sending it upstream. | Configured policies apply |
+| Retries | Same endpoint after a vendor 429 and a complete upload, under the streaming retry budget and status replay policy | Existing status and transport retry policies |
+| Model overrides, provider fallback, structured-output repair, response caching | Disabled | Available under their existing configuration |
+| Usage observation | Bounded inspection of JSON and SSE from the native Chat Completions and Responses paths. Other paths, including Anthropic Messages and Gemini, report unsupported usage. | Existing provider and protocol support |
+| Token limiting | Existing admission and output-token accounting for formats the limiter understands, including Chat and Responses | Existing limiter behavior |
+
+Keep policies that change message content on separate routes. Appending a prompt
+message changes the JSON received by the vendor. Admin checks enabled selector
+scopes in the same namespace, including selectors with no enabled rule yet.
+Admin compares consecutive fixed URI segments from the start of each path,
+recognizing ASCII letters, digits, underscores and hyphens.
+For example, `/claude/a/**` and `/claude/b/**` can coexist, while
+`/claude/**` and `/claude/b/**` can match the same request. More complex
+conditions, or an enabled path-rewrite selector, can prevent that check from
+establishing separation. The error identifies both selectors.
+
+The built-in transport limits uploads to 5 MiB or the configured positive
+`maxRequestBytes`, whichever is smaller. If a chunked upload crosses the limit,
+the vendor may already have received earlier chunks. The gateway returns 413
+while it can still set the response status. Redirects are returned to the caller.
+The first upload streams immediately. When status replay is permitted, the gateway
+keeps a bounded copy for retrying a vendor 429. It honors Retry-After and the
+shared request deadline. While deciding whether to retry, the gateway keeps up to
+16 KiB of the 429 response. If the retry delay no longer fits, it returns the
+original 429 with its headers and body. Larger 429 responses stream to the
+client as soon as they cross the limit.
+A 5xx, a connection failure or an interrupted SSE stream never triggers a resend.
+Custom transports must implement streaming uploads to serve passthrough selectors.
+Earlier gateway filters still apply. In the default bootstrap, the upload-size
+filter reads multipart form bodies before plugin execution.
 
 ## Responsibility boundary
 
@@ -482,7 +545,8 @@ configure pools/timeouts, write client responses, or implement retry/fallback po
 - Usage conversion is not billing. Provider charges and gateway quotas must not
   be inferred from synthetic or missing usage values.
 
-No database/configuration migration is required. Existing Chat routes need no
+Existing conversion routes require no selector-data migration. Fresh-install and
+upgrade SQL provide the two optional passthrough form fields. Existing Chat routes need no
 change except for OpenAI token-field normalization described above. Responses routes
 opt in through the selector handle; DeepSeek routes should review the capability and
 dialect validation. Roll back by reverting the

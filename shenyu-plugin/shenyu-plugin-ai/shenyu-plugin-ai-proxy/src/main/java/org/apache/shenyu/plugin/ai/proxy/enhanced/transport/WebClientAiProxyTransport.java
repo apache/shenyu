@@ -20,8 +20,10 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.transport;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.timeout.ReadTimeoutException;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyBodies;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +38,7 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
@@ -54,6 +57,8 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
             "io.opentelemetry.api.trace.Span", WebClientAiProxyTransport.class.getClassLoader());
 
     private final WebClient webClient;
+
+    private final WebClient streamingClient;
 
     private final Duration responseHeaderTimeout;
 
@@ -81,11 +86,19 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
      * @param properties transport properties
      */
     public WebClientAiProxyTransport(final WebClient webClient, final AiProxyTransportProperties properties) {
-        this.webClient = Objects.requireNonNull(webClient, "webClient must not be null").mutate().defaultHeaders(headers -> {
-            headers.remove("traceparent");
-            headers.remove("tracestate");
-            headers.remove("baggage");
-        }).build();
+        this(webClient, properties, null);
+    }
+
+    /**
+     * Configure a transport with a client suitable for caller-provided credentials and one-shot bodies.
+     *
+     * @param webClient buffered-request client
+     * @param properties transport budgets
+     * @param streamingClient dedicated client configuration with redirects, automatic retries and decompression disabled
+     */
+    public WebClientAiProxyTransport(final WebClient webClient, final AiProxyTransportProperties properties, final WebClient streamingClient) {
+        this.webClient = withoutDefaultTrace(Objects.requireNonNull(webClient, "webClient must not be null"));
+        this.streamingClient = Objects.isNull(streamingClient) ? null : withoutDefaultTrace(streamingClient);
         Objects.requireNonNull(properties, "properties must not be null");
         this.responseHeaderTimeout = AiProxyTransportProperties.requirePositive(
                 properties.getResponseHeaderTimeout(), "responseHeaderTimeout");
@@ -101,32 +114,63 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
 
     @Override
     public Mono<AiUpstreamResponse> execute(final AiUpstreamRequest request) {
-        return Mono.deferContextual(context -> exchange(request, OTEL_AVAILABLE ? AiOutboundTraceContext.headers(context) : Map.of()));
+        return Mono.deferContextual(context -> {
+            if (exceedsMaxRequestBytes(request)) {
+                return Mono.error(requestTooLarge());
+            }
+            final Map<String, String> trace = OTEL_AVAILABLE ? AiOutboundTraceContext.headers(context) : Map.of();
+            final WebClient.RequestBodySpec spec = prepare(webClient, request).headers(headers -> {
+                headers.remove("traceparent");
+                headers.remove("tracestate");
+                headers.remove("baggage");
+                trace.forEach(headers::set);
+            });
+            return exchange(Objects.nonNull(request.getBody()) && request.getBody().length > 0 ? spec.bodyValue(request.getBody()) : spec)
+                    .onErrorMap(error -> !(error instanceof AiTransportException),
+                            error -> toTransportException("AI upstream exchange failed", error, false));
+        });
     }
 
-    private Mono<AiUpstreamResponse> exchange(final AiUpstreamRequest request, final Map<String, String> trace) {
-        if (exceedsMaxRequestBytes(request)) {
-            return Mono.error(new AiTransportException(
-                    AiTransportException.Kind.REQUEST_TOO_LARGE,
-                    "AI upstream request exceeded maximum size",
-                    null));
+    @Override
+    public Mono<AiUpstreamResponse> prepareStreaming(final AiUpstreamRequest request, final Flux<DataBuffer> body) {
+        if (Objects.isNull(streamingClient)) {
+            return AiProxyTransport.super.prepareStreaming(request, body);
         }
-        final WebClient.RequestBodySpec bodySpec = webClient
-                .method(HttpMethod.valueOf(request.getMethod()))
-                .uri(request.getUri())
-                .headers(headers -> {
-                    request.getHeaders().forEach(headers::put);
-                    // Never forward configured or client-carried stale telemetry.
-                    headers.remove("traceparent");
-                    headers.remove("tracestate");
-                    headers.remove("baggage");
-                    trace.forEach(headers::set);
-                });
-        WebClient.RequestHeadersSpec<?> headersSpec = bodySpec;
-        if (Objects.nonNull(request.getBody()) && request.getBody().length > 0) {
-            headersSpec = bodySpec.bodyValue(request.getBody());
+        final long limit = maxRequestBytes > 0 ? Math.min(AiProxyBodies.MAX_BODY_BYTES, maxRequestBytes) : AiProxyBodies.MAX_BODY_BYTES;
+        final HttpHeaders headers = new HttpHeaders();
+        request.getHeaders().forEach(headers::put);
+        final long length = uploadLength(headers);
+        if (length > limit) {
+            throw requestTooLarge();
         }
+        final AtomicBoolean sent = new AtomicBoolean();
+        return Mono.defer(() -> {
+            if (!sent.compareAndSet(false, true)) {
+                return Mono.error(new IllegalStateException("AI passthrough requests cannot be replayed"));
+            }
+            final Flux<byte[]> upload = uploadChunks(body, limit, length);
+            final WebClient.RequestBodySpec spec = prepare(streamingClient, request);
+            return exchange(spec.body((output, ignored) -> output.writeAndFlushWith(upload.map(bytes ->
+                    Mono.fromSupplier(() -> output.bufferFactory().wrap(bytes)).doOnDiscard(DataBuffer.class, DataBufferUtils::release)))))
+                    .onErrorMap(error -> !(error instanceof AiTransportException) && !(error instanceof AiProxyException), this::uploadFailure);
+        });
+    }
 
+    private static WebClient withoutDefaultTrace(final WebClient client) {
+        return client.mutate().defaultHeaders(headers -> {
+            headers.remove("traceparent");
+            headers.remove("tracestate");
+            headers.remove("baggage");
+        }).build();
+    }
+
+    private WebClient.RequestBodySpec prepare(final WebClient client, final AiUpstreamRequest request) {
+        return client.method(HttpMethod.valueOf(request.getMethod()))
+                .uri(request.getUri())
+                .headers(headers -> request.getHeaders().forEach(headers::put));
+    }
+
+    private Mono<AiUpstreamResponse> exchange(final WebClient.RequestHeadersSpec<?> headersSpec) {
         return headersSpec
                 .retrieve()
                 .onRawStatus(status -> status >= 400, response -> Mono.empty())
@@ -165,9 +209,68 @@ public final class WebClientAiProxyTransport implements AiProxyTransport {
                             entity.getStatusCode().value(),
                             entity.getHeaders(),
                             enforceMaxResponseBytes(bytes)));
-                })
-                .onErrorMap(error -> !(error instanceof AiTransportException),
-                        error -> toTransportException("AI upstream exchange failed", error, false));
+                });
+    }
+
+    private Throwable uploadFailure(final Throwable failure) {
+        for (Throwable cause = failure.getCause(); Objects.nonNull(cause) && cause != cause.getCause(); cause = cause.getCause()) {
+            if (cause instanceof AiTransportException || cause instanceof AiProxyException) {
+                return cause;
+            }
+        }
+        return toTransportException("AI upstream exchange failed", failure, false);
+    }
+
+    private Flux<byte[]> uploadChunks(final Flux<DataBuffer> body, final long limit, final long length) {
+        final AtomicBoolean subscribed = new AtomicBoolean();
+        final AtomicLong received = new AtomicLong();
+        return Flux.defer(() -> {
+            if (!subscribed.compareAndSet(false, true)) {
+                return Flux.error(new IllegalStateException("AI passthrough uploads cannot be replayed"));
+            }
+            return body.map(buffer -> {
+                try {
+                    final int size = buffer.readableByteCount();
+                    if (size > limit - received.get()) {
+                        throw requestTooLarge();
+                    }
+                    final long total = received.addAndGet(size);
+                    if (length >= 0 && total > length) {
+                        throw invalidUploadLength();
+                    }
+                    final byte[] bytes = new byte[size];
+                    buffer.read(bytes);
+                    return bytes;
+                } finally {
+                    DataBufferUtils.release(buffer);
+                }
+            }).doOnDiscard(DataBuffer.class, DataBufferUtils::release)
+                    .concatWith(Mono.defer(() -> length >= 0 && received.get() != length ? Mono.error(invalidUploadLength()) : Mono.empty()));
+        });
+    }
+
+    private static long uploadLength(final HttpHeaders headers) {
+        final List<String> values = headers.get(HttpHeaders.CONTENT_LENGTH);
+        if (Objects.isNull(values)) {
+            return -1L;
+        }
+        if (values.size() != 1 || values.get(0).isEmpty() || !values.get(0).chars().allMatch(character -> character >= '0' && character <= '9')) {
+            throw invalidUploadLength();
+        }
+        try {
+            return Long.parseLong(values.get(0));
+        } catch (NumberFormatException ignored) {
+            // A valid decimal beyond the range of long exceeds the upload budget.
+            return Long.MAX_VALUE;
+        }
+    }
+
+    private static AiProxyException invalidUploadLength() {
+        return new AiProxyException(AiProxyException.Kind.REQUEST, "Invalid Content-Length for AI passthrough upload", null);
+    }
+
+    private static AiTransportException requestTooLarge() {
+        return new AiTransportException(AiTransportException.Kind.REQUEST_TOO_LARGE, "AI upstream request exceeded maximum size", null);
     }
 
     private <T> Mono<T> timeoutFailure(final AiTransportException.Kind kind, final String message) {

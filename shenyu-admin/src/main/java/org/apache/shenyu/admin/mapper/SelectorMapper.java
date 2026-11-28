@@ -102,6 +102,15 @@ public interface SelectorMapper extends ExistProvider {
     List<SelectorDO> findByPluginIdsAndNamespaceId(@Param("list") List<String> pluginIds, String namespaceId);
 
     /**
+     * Read the current selectors while validating related AI policy changes.
+     *
+     * @param pluginIds plugin ids
+     * @param namespaceId namespace
+     * @return locked selectors
+     */
+    List<SelectorDO> findByPluginIdsAndNamespaceIdForUpdate(@Param("list") List<String> pluginIds, @Param("namespaceId") String namespaceId);
+
+    /**
      * Find list by plugin id.
      *
      * @param pluginIds   the plugin ids

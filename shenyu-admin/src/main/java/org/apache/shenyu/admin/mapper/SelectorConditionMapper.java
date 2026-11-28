@@ -55,6 +55,14 @@ public interface SelectorConditionMapper {
     List<SelectorConditionDO> selectBySelectorIds(@Param("selectorIds") Set<String> selectorIds);
 
     /**
+     * Read current selector conditions during AI selector validation.
+     *
+     * @param selectorIds selector ids
+     * @return locked conditions
+     */
+    List<SelectorConditionDO> selectBySelectorIdsForUpdate(@Param("selectorIds") List<String> selectorIds);
+
+    /**
      * insert selector condition.
      *
      * @param selectorConditionDO {@linkplain SelectorConditionDO}

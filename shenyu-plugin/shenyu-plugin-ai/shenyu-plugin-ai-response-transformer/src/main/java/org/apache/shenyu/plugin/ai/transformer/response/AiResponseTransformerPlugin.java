@@ -34,6 +34,7 @@ import org.apache.shenyu.plugin.ai.transformer.response.template.AiResponseTrans
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.AiPassthroughPolicy;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,6 +134,7 @@ public class AiResponseTransformerPlugin extends AbstractShenyuPlugin {
         String clientKey = Objects.isNull(aiResponseTransformerHandle) ? "default" : rule.getId();
         ChatClient finalClient = ChatClientCache.getInstance().getOrCreate(clientKey, effectiveConfig,
                 () -> aiModelFactoryRegistry.getFactory(AiModelProviderEnum.getByName(provider)).createAiModel(effectiveConfig));
+        AiPassthroughPolicy.markIncompatible(exchange);
         CachedRequestBodyDecorator requestBodySnapshot = new CachedRequestBodyDecorator(exchange.getRequest());
         AiResponseTransformerTemplate aiResponseTransformerTemplate =
                 new AiResponseTransformerTemplate(aiResponseTransformerConfig.getContent(), exchange.getRequest(), requestBodySnapshot);

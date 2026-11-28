@@ -107,6 +107,19 @@ CREATE INDEX idx_fencing_domain_session ON registration_fencing_target (domain_i
 ALTER TABLE dashboard_user ADD token_version NUMBER(10) DEFAULT 0 NOT NULL;
 COMMENT ON COLUMN dashboard_user.token_version IS 'token version used to revoke issued JWTs';
 
+-- Add AI Proxy selector fields for vendor-native requests.
+INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj)
+VALUES ('1898454000000000001', '50', 'mode', 'mode', 2, 1, 16, '{"required":"0","defaultValue":"converted","placeholder":"converted / passthrough","rule":""}');
+INSERT INTO plugin_handle (id, plugin_id, field, label, data_type, type, sort, ext_obj)
+VALUES ('1898454000000000002', '50', 'stripPrefix', 'stripPrefix', 2, 1, 17, '{"required":"0","placeholder":"/claude","rule":""}');
+-- Only relax each shipped selector field if it still has its original metadata.
+UPDATE plugin_handle SET ext_obj = REPLACE(ext_obj, '"required":"1"', '"required":"0"')
+WHERE plugin_id = '50' AND type = 1 AND (
+  (id = '1722804548510507041' AND field = 'provider'
+    AND DBMS_LOB.COMPARE(ext_obj, TO_CLOB('{"required":"1","defaultValue":"OpenAI","placeholder":"provider","rule":""}')) = 0)
+  OR ((id, field) IN (('1722804548510507043', 'model'), ('1722804548510507044', 'apiKey'))
+    AND DBMS_LOB.COMPARE(ext_obj, TO_CLOB('{"required":"1","rule":""}')) = 0));
+
 -- Add the opt-in rate limiter backend-failure policy selector.
 INSERT INTO plugin_handle (ID, PLUGIN_ID, FIELD, LABEL, DATA_TYPE, TYPE, SORT, EXT_OBJ)
 VALUES ('1890000000000000001', '4', 'backendFailurePolicy', 'backendFailurePolicy', 3, 2, 5, '{"required":"0","defaultValue":"ALLOW","rule":""}');

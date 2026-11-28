@@ -135,6 +135,20 @@ class AiProxyPluginTest {
         assertEquals("Hello", forwarded.get("messages").get(0).get("content").asText());
     }
 
+    @Test
+    void nativeClientCredentialsDoNotEnablePassthroughOnAnExistingSelector() {
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/vendor/v1/messages?key=client-query-key")
+                .header("Authorization", "Bearer client-key").header("x-api-key", "client-header-key").body(REQUEST_BODY));
+        StepVerifier.create(execute(plugin(request -> Mono.just(response(200, "{}"))))).verifyComplete();
+
+        assertEquals(HttpStatus.OK, exchange.getResponse().getStatusCode());
+        assertEquals(1, requests.size());
+        AiUpstreamRequest upstream = requests.get(0);
+        assertEquals("https://main.example/v1/chat/completions", upstream.getUri().toString());
+        assertEquals(List.of("Bearer primary-key"), upstream.getHeaders().get("Authorization"));
+        assertFalse(upstream.getHeaders().keySet().stream().anyMatch(Constants.X_API_KEY::equalsIgnoreCase));
+    }
+
     @ParameterizedTest
     @ValueSource(ints = {400, 401, 429, 500, 503})
     void forwardsUpstreamErrorsAndHeaders(final int status) {

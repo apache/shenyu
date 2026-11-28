@@ -172,10 +172,31 @@ public class AiProxyPluginHandler implements PluginDataHandler {
                     .removeHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE));
             return;
         }
-        AiProxyHandle aiProxyHandle = GsonUtils.getInstance().fromJson(selectorData.getHandle(), AiProxyHandle.class);
-        aiProxyHandle.normalize();
-        selectorCachedHandle
-                .cachedHandle(CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE), aiProxyHandle);
+        String key = CacheKeyUtils.INST.getKey(selectorData.getId(), Constants.DEFAULT_RULE);
+        try {
+            selectorCachedHandle.cachedHandle(key, AiProxyHandle.fromSelectorHandle(selectorData.getHandle()).normalize());
+        } catch (IllegalArgumentException e) {
+            selectorCachedHandle.removeHandle(key);
+            LOG.warn("AI proxy selector configuration rejected: selectorId={}", selectorData.getId());
+        }
+    }
+
+    /**
+     * Resolve against the exact handle selected for this request even during a sync update.
+     *
+     * @param selector matched selector
+     * @return validated handle, or null for an empty selector
+     */
+    public AiProxyHandle resolveSelectorHandle(final SelectorData selector) {
+        String source = selector.getHandle();
+        AiProxyHandle cached = selectorCachedHandle.obtainHandle(CacheKeyUtils.INST.getKey(selector.getId(), Constants.DEFAULT_RULE));
+        if (Objects.nonNull(cached) && cached.matchesSelectorHandle(source)) {
+            if (Objects.isNull(source)) {
+                cached.validateMode();
+            }
+            return cached;
+        }
+        return StringUtils.isEmpty(source) ? null : AiProxyHandle.fromSelectorHandle(source).normalize();
     }
 
     @Override

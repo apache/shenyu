@@ -17,8 +17,11 @@
 
 package org.apache.shenyu.plugin.ai.proxy.enhanced.transport;
 
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
+import org.springframework.core.io.buffer.DataBuffer;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -33,4 +36,18 @@ public interface AiProxyTransport {
      * @return upstream response
      */
     Mono<AiUpstreamResponse> execute(AiUpstreamRequest request);
+
+    /**
+     * Prepare a one-shot upload. Validate local prerequisites before returning a cold publisher
+     * that starts the upstream attempt on subscription.
+     *
+     * @param request destination, method and end-to-end headers
+     * @param body original upload
+     * @return a single-use publisher of the upstream response
+     * @throws AiProxyException when streaming uploads are unsupported or request metadata is invalid
+     * @throws AiTransportException when the declared size exceeds the upload budget
+     */
+    default Mono<AiUpstreamResponse> prepareStreaming(final AiUpstreamRequest request, final Flux<DataBuffer> body) {
+        throw new AiProxyException(AiProxyException.Kind.PROVIDER, "AI transport does not support passthrough uploads", null);
+    }
 }

@@ -1171,6 +1171,11 @@ INSERT INTO `plugin_handle` VALUES ('1899802529972371604', '50', 'fallbackApiKey
 INSERT INTO `plugin_handle` VALUES ('1899802529972371605', '50', 'fallbackModel', 'fallbackModel', 2, 1, 12, '{\"required\":\"0\",\"placeholder\":\"gpt-4.1\",\"rule\":\"\"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO `plugin_handle` VALUES ('1899802529972371606', '50', 'fallbackTemperature', 'fallbackTemperature', 1, 1, 13, '{\"required\":\"0\"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO `plugin_handle` VALUES ('1899802529972371607', '50', 'fallbackMaxTokens', 'fallbackMaxTokens', 1, 1, 14, '{\"required\":\"0\"}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
+-- Add AI Proxy selector fields for vendor-native requests.
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
+VALUES ('1898454000000000001', '50', 'mode', 'mode', 2, 1, 16, '{"required":"0","defaultValue":"converted","placeholder":"converted / passthrough","rule":""}');
+INSERT INTO `plugin_handle` (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`)
+VALUES ('1898454000000000002', '50', 'stripPrefix', 'stripPrefix', 2, 1, 17, '{"required":"0","placeholder":"/claude","rule":""}');
 
 INSERT INTO plugin_handle VALUES ('1722804548510507140', '52', 'prepend', 'prepend', 2, 3, 1, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');
 INSERT INTO plugin_handle VALUES ('1722804548510507141', '52', 'preRole', 'preRole', 3, 3, 2, '{"required":"0","rule":""}', '2024-01-02 17:20:50.233', '2024-01-02 17:20:50.233');

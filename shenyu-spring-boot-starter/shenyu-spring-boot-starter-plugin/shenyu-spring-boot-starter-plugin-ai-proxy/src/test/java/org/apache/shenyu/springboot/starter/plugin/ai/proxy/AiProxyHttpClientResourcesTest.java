@@ -35,12 +35,18 @@ import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.transport.ProxyProvider;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPOutputStream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,6 +55,38 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AiProxyHttpClientResourcesTest {
+
+    @Test
+    void passthroughReturnsRedirectAndEncodedBodyUnchanged() throws IOException {
+        final ByteArrayOutputStream encoded = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzip = new GZIPOutputStream(encoded)) {
+            gzip.write("redirect".getBytes(StandardCharsets.UTF_8));
+        }
+        final byte[] bytes = encoded.toByteArray();
+        final AtomicInteger attempts = new AtomicInteger();
+        final DisposableServer server = HttpServer.create().host("127.0.0.1").port(0)
+                .handle((request, response) -> {
+                    attempts.incrementAndGet();
+                    return response.status(307)
+                            .header(HttpHeaders.LOCATION, "/redirected")
+                            .header(HttpHeaders.CONTENT_ENCODING, "gzip")
+                            .sendByteArray(Mono.just(bytes));
+                }).bindNow();
+        final AiProxyTransportProperties properties = new AiProxyTransportProperties();
+        final AiProxyHttpClientResources resources = new AiProxyHttpClientResources(properties);
+        try {
+            final AiUpstreamResponse response = new AiProxyPluginConfiguration().aiProxyTransport(resources, properties)
+                    .prepareStreaming(request(server), Flux.empty()).block(Duration.ofSeconds(5));
+            assertEquals(307, response.getStatusCode());
+            assertEquals(List.of("gzip"), response.getHeaders().get(HttpHeaders.CONTENT_ENCODING));
+            final ByteArrayOutputStream received = response.getBody().collect(ByteArrayOutputStream::new, ByteArrayOutputStream::writeBytes).block(Duration.ofSeconds(5));
+            assertArrayEquals(bytes, received.toByteArray());
+            assertEquals(1, attempts.get());
+        } finally {
+            resources.close();
+            server.disposeNow();
+        }
+    }
 
     @Test
     void appliesConnectResponseHeaderProxyAndTlsSettings() {

@@ -34,18 +34,22 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransportProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.WebClientAiProxyTransport;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.server.reactive.ReactorHttpHandlerAdapter;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.netty.DisposableServer;
+import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.server.HttpServer;
 
 import java.io.IOException;
@@ -102,6 +106,61 @@ class AiProxyDownstreamDisconnectHttpTest {
         try (Probe probe = new Probe(Flux.just(FIRST_CHUNK).concatWith(Flux.never()))) {
             probe.disconnectAfterFirstChunk();
             assertInterrupted(probe);
+        }
+    }
+
+    @Test
+    void nativeDisconnectCancelsThePendingUpstream() {
+        try (Probe probe = new Probe(Flux.never(), new AiProxyTransportProperties())) {
+            probe.disconnectBeforeFirstChunk();
+            assertSingleObservation(probe);
+            assertEquals(AiCallOutcome.CANCELLED, probe.terminal().outcome());
+            assertTrue(probe.awaitUpstreamCancelled(), "the original pending vendor call must be cancelled");
+            assertTrue(Probe.await(probe.vendorConnectionClosed), "the gateway must release its original vendor connection");
+            assertEquals(1, probe.upstreamCalls());
+        }
+    }
+
+    @Test
+    void nativeDisconnectCancelsTheOpenResponseBody() {
+        try (Probe probe = new Probe(Flux.just(FIRST_CHUNK).concatWith(Flux.never()), new AiProxyTransportProperties())) {
+            probe.disconnectAfterFirstChunk();
+            assertInterrupted(probe);
+            assertTrue(Probe.await(probe.vendorConnectionClosed), "the gateway must release its original vendor connection");
+        }
+    }
+
+    @Test
+    void nativeClientReceivesFirstEventBeforeVendorDisconnectsWithoutReplay() {
+        Sinks.Empty<Void> disconnect = Sinks.empty();
+        Flux<String> stream = Flux.just(FIRST_CHUNK).concatWith(disconnect.asMono().then(Mono.error(new IOException("vendor disconnected"))));
+        try (Probe probe = new Probe(stream, new AiProxyTransportProperties())) {
+            StringBuilder received = new StringBuilder();
+            probe.incoming().doOnNext(buffer -> {
+                try {
+                    received.append(buffer.toString(StandardCharsets.UTF_8));
+                    if (received.length() >= FIRST_CHUNK.length()) {
+                        disconnect.tryEmitEmpty();
+                    }
+                } finally {
+                    DataBufferUtils.release(buffer);
+                }
+            }).onErrorResume(ignored -> Flux.empty()).then().block(TIMEOUT);
+            probe.awaitTerminal();
+            assertEquals(FIRST_CHUNK, received.toString());
+            assertEquals(1, probe.upstreamCalls());
+            assertEquals(1, probe.terminal().attemptCount());
+        }
+    }
+
+    @Test
+    void nativeUploadOverflowReturnsPayloadTooLargeToDownstream() {
+        final AiProxyTransportProperties properties = new AiProxyTransportProperties();
+        properties.setMaxRequestBytes(3);
+        try (Probe probe = new Probe(Flux.never(), properties)) {
+            assertEquals(413, probe.statusForChunkedUpload());
+            probe.awaitTerminal();
+            assertEquals(1, probe.terminal().attemptCount(), "a streaming overflow stops an attempt already in progress");
         }
     }
 
@@ -202,6 +261,8 @@ class AiProxyDownstreamDisconnectHttpTest {
 
         private final String selectorId;
 
+        private final String path;
+
         private final DisposableServer upstream;
 
         private final DisposableServer gateway;
@@ -218,19 +279,27 @@ class AiProxyDownstreamDisconnectHttpTest {
 
         private final CountDownLatch upstreamCancelled = new CountDownLatch(1);
 
+        private final CountDownLatch vendorConnectionClosed = new CountDownLatch(1);
+
         private final CountDownLatch terminalRecorded = new CountDownLatch(1);
 
         private volatile Disposable client;
 
         Probe(final Flux<String> upstreamBody) {
+            this(upstreamBody, null);
+        }
+
+        Probe(final Flux<String> upstreamBody, final AiProxyTransportProperties nativeProperties) {
             this.selectorId = "downstream-disconnect-" + SEQUENCE.incrementAndGet();
+            this.path = Objects.isNull(nativeProperties) ? "/chat" : "/v1/chat/completions";
             this.upstream = HttpServer.create().host("127.0.0.1").port(0)
                     .handle((request, response) -> {
                         upstreamCalls.incrementAndGet();
-                        return response.header("Content-Type", "text/event-stream")
+                        final Mono<Void> write = response.header("Content-Type", "text/event-stream")
                                 .sendString(upstreamBody
                                         .doOnSubscribe(ignored -> upstreamStarted.countDown())
-                                        .doOnCancel(upstreamCancelled::countDown));
+                                        .doOnCancel(upstreamCancelled::countDown)).then();
+                        return Objects.isNull(nativeProperties) ? write : Mono.when(request.receive().then(), write);
                     })
                     .bindNow();
             final AiCallObserver observer = new AiCallObserver() {
@@ -257,11 +326,19 @@ class AiProxyDownstreamDisconnectHttpTest {
             handle.setApiKey("fixture-key");
             handle.setStream(true);
             handle.setModel("fixture-model");
+            WebClientAiProxyTransport transport = new WebClientAiProxyTransport(WebClient.builder().build());
+            if (Objects.nonNull(nativeProperties)) {
+                handle.setMode("passthrough");
+                final HttpClient client = HttpClient.create().disableRetry(true).followRedirect(false).compress(false)
+                        .doOnRequest((request, connection) -> connection.channel().closeFuture().addListener(ignored -> vendorConnectionClosed.countDown()));
+                final WebClient streaming = WebClient.builder().clientConnector(new ReactorClientHttpConnector(client)).build();
+                transport = new WebClientAiProxyTransport(WebClient.builder().build(), nativeProperties, streaming);
+            }
             AiProxyPluginHandler handler = new AiProxyPluginHandler();
             handler.getSelectorCachedHandle().cachedHandle(CacheKeyUtils.INST.getKey(selectorId, Constants.DEFAULT_RULE), handle);
             AiProxyEngine engine = AiProxyEngine.builder(new AiProxyProtocolFactory(List.of(new OpenAiChat())),
                     new AiProxyProviderFactory(List.of(new OpenAi())), protocolRouteResolver(),
-                    new WebClientAiProxyTransport(WebClient.builder().build()))
+                    transport)
                     .retryProperties(new AiProxyRetryProperties(3, 1, Duration.ZERO))
                     .observer(observer)
                     .build();
@@ -319,10 +396,16 @@ class AiProxyDownstreamDisconnectHttpTest {
         }
 
         private Flux<DataBuffer> incoming() {
-            return WebClient.create().post().uri("http://127.0.0.1:" + gateway.port() + "/chat")
+            return WebClient.create().post().uri("http://127.0.0.1:" + gateway.port() + path)
                     .header("Content-Type", "application/json")
                     .bodyValue(REQUEST_BODY)
                     .retrieve().bodyToFlux(DataBuffer.class);
+        }
+
+        int statusForChunkedUpload() {
+            return WebClient.create().post().uri("http://127.0.0.1:" + gateway.port() + path)
+                    .body(Flux.just("ab", "cd"), String.class)
+                    .exchangeToMono(response -> Mono.just(response.statusCode().value())).block(TIMEOUT);
         }
 
         void awaitTerminal() {

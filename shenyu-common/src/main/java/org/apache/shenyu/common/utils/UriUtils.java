@@ -29,6 +29,33 @@ public class UriUtils {
 
     private static final String PRE_FIX = "/";
 
+    private static final int MAX_PORT = 65535;
+
+    /**
+     * Parse an HTTP(S) upstream base URL without user info, a query or a fragment.
+     *
+     * @param baseUrl configured base URL
+     * @return parsed endpoint, preserving the raw path
+     * @throws IllegalArgumentException with an input-free reason when the URL is invalid
+     */
+    public static URI parseHttpEndpoint(final String baseUrl) {
+        if (StringUtils.isBlank(baseUrl)) {
+            throw new IllegalArgumentException("baseUrl.invalidEndpoint");
+        }
+        final URI uri;
+        try {
+            uri = URI.create(baseUrl);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("baseUrl.invalidSyntax");
+        }
+        if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
+                || Objects.isNull(uri.getHost()) || Objects.nonNull(uri.getRawUserInfo())
+                || Objects.nonNull(uri.getRawQuery()) || Objects.nonNull(uri.getRawFragment()) || uri.getPort() == 0 || uri.getPort() > MAX_PORT) {
+            throw new IllegalArgumentException("baseUrl.invalidEndpoint");
+        }
+        return uri;
+    }
+
     /**
      * create URI {@link URI}.
      *
