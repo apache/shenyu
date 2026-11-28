@@ -4,9 +4,10 @@ The `shadow` plugin mirrors a bounded, sampled copy of selected HTTP requests to
 an independent shadow destination and compares the outcomes, while the primary
 response remains authoritative.
 
-The first delivery mirrors requests only. Response comparison and difference
-reporting are staged follow-ups; this document describes the contract that is
-implemented today and the bounds it enforces.
+The plugin mirrors requests and compares the shadow response with the primary
+one. It runs in two stages: the first delivery added configuration, request
+mirroring and bounded dispatch; response capture, comparison and reporting are
+included now. Performance acceptance under #7650 remains a follow-up.
 
 ## Position in the chain
 
@@ -30,6 +31,9 @@ when a `shadow` selector and rule match it. The rule handle carries every bound:
 | `queueCapacity` | `64` | Queued shadow calls before a sample is dropped |
 | `timeoutMillis` | `1000` | Budget for one shadow attempt |
 | `maxRequestBodyBytes` | `65536` | Request body bytes copied for the shadow call. A larger body is skipped, never truncated and sent |
+| `maxResponseBodyBytes` | `65536` | Response body bytes copied on either side for comparison. A larger body is reported as truncated |
+| `compareHeaders` | `Content-Type` | Response headers compared between the two responses |
+| `ignoreJsonPaths` | none | JSON paths ignored during body comparison, for example `$.timestamp` |
 | `forwardHeaders` | `Accept, Content-Type` | Request headers forwarded to the shadow target |
 | `extraHeaders` | none | Static headers added to every shadow call, for example shadow-only credentials. Values are never logged |
 
@@ -45,6 +49,9 @@ Example rule handle:
   "queueCapacity": 64,
   "timeoutMillis": 1000,
   "maxRequestBodyBytes": 65536,
+  "maxResponseBodyBytes": 65536,
+  "compareHeaders": ["Content-Type"],
+  "ignoreJsonPaths": ["$.timestamp"],
   "forwardHeaders": ["Accept", "Content-Type"],
   "extraHeaders": {"X-Shadow-Token": "<shadow-only-credential>"}
 }
@@ -64,8 +71,35 @@ Example rule handle:
   operator names them. Every shadow request carries `X-Shenyu-Shadow: true`.
 - A slow, failing or unavailable shadow target cannot delay, replace or alter
   the primary response.
+- The primary response body is observed while it is written, without buffering,
+  delaying or releasing primary buffers.
 - A full queue drops the sample; a shadow attempt honours `timeoutMillis`;
   removing or re-binding a rule releases its queue.
+
+## Comparison
+
+The shadow response is compared with the primary response after the primary
+exchange terminated:
+
+- Status codes must be equal.
+- Every header in `compareHeaders` must have the same values on both sides.
+- JSON bodies are compared structurally, ignoring `ignoreJsonPaths`; other
+  bodies are compared byte for byte.
+- Latency is measured separately for both sides and never used as a match
+  criterion.
+
+| Outcome | Meaning |
+| --- | --- |
+| `MATCH` | Status, compared headers and body are equal |
+| `NORMALIZED` | The bodies differ only in ignored JSON paths |
+| `MISMATCH` | Status, a compared header or the body differs |
+| `TRUNCATED` | At least one body exceeded the comparison bound |
+| `SHADOW_FAILED` | The shadow call failed or timed out |
+
+Reports are written to the `LoggingShadowReporter` logger. A report names the
+outcome, rule, statuses, latencies and the redacted detail (a status pair, a
+header name or a JSON path); response values, header values and credentials are
+never written.
 
 ## Skip reasons
 
