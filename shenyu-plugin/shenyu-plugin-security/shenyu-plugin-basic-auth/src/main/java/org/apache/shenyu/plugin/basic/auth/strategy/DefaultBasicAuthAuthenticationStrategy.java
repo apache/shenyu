@@ -63,8 +63,8 @@ public class DefaultBasicAuthAuthenticationStrategy implements BasicAuthAuthenti
      * <p>The Basic scheme is case-insensitive and permits one or more spaces before the Base64 token. Valid Basic
      * credentials are decoded as UTF-8 and compared with the configured authorization in constant time. An exact,
      * constant-time literal comparison is also retained for compatibility with configurations containing the full
-     * Basic header. Malformed Basic credentials fail without falling back to literal matching. Non-Basic values use
-     * the legacy exact literal comparison. URI user-info fallback is handled by
+     * Basic header, including values whose token is not strict Base64. Non-Basic values use the legacy exact literal
+     * comparison. URI user-info fallback is handled by
      * {@link org.apache.shenyu.plugin.basic.auth.BasicAuthPlugin}.</p>
      *
      * @param basicAuthRuleHandle basic auth rule handle
@@ -86,12 +86,12 @@ public class DefaultBasicAuthAuthenticationStrategy implements BasicAuthAuthenti
         }
         String token = extractBasicToken(trimmedAuthentication);
         String decodedCredential = decodeBasicToken(token);
-        if (Objects.isNull(decodedCredential)) {
-            return false;
+        if (Objects.nonNull(decodedCredential) && constantTimeEquals(decodedCredential, configuredAuthorization)) {
+            return true;
         }
-        boolean decodedMatches = constantTimeEquals(decodedCredential, configuredAuthorization);
-        boolean literalMatches = constantTimeEquals(authentication, configuredAuthorization);
-        return decodedMatches || literalMatches;
+        // A configured value may store the complete Basic header, including tokens that are not
+        // strict Base64, so the literal comparison must remain reachable when decoding fails.
+        return constantTimeEquals(authentication, configuredAuthorization);
     }
 
     private boolean hasBasicScheme(final String authentication) {
