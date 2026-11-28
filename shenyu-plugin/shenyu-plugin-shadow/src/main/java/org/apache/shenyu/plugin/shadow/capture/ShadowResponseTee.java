@@ -45,6 +45,12 @@ public final class ShadowResponseTee extends ServerHttpResponseDecorator {
         return super.writeWith(Flux.from(body).doOnNext(capture::append));
     }
 
+    @Override
+    public Mono<Void> writeAndFlushWith(final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+        return super.writeAndFlushWith(Flux.from(body)
+                .map(chunk -> Flux.from(chunk).doOnNext(capture::append)));
+    }
+
     /**
      * Wrap the exchange with a teed response body.
      *

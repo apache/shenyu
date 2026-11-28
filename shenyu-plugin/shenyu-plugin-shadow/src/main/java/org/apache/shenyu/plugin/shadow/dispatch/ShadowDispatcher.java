@@ -26,6 +26,7 @@ import org.apache.shenyu.plugin.shadow.report.ShadowReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -122,9 +123,26 @@ public final class ShadowDispatcher implements AutoCloseable {
         HttpHeaders headers = response.headers().asHttpHeaders();
         int status = response.statusCode().value();
         ShadowBodyCapture capture = new ShadowBodyCapture(handle.getMaxResponseBodyBytes());
+        return consume(response, capture).then(Mono.fromRunnable(() -> report(call, status, headers, capture, start)));
+    }
+
+    /**
+     * Copy one shadow response body into the capture and release every buffer.
+     *
+     * <p>{@code bodyToFlux(DataBuffer.class)} hands buffer ownership to the
+     * caller, so the copy must release each one or the pooled direct memory
+     * leaks once per sampled response.</p>
+     */
+    static Mono<Void> consume(final ClientResponse response, final ShadowBodyCapture capture) {
         return response.bodyToFlux(DataBuffer.class)
-                .doOnNext(capture::append)
-                .then(Mono.fromRunnable(() -> report(call, status, headers, capture, start)));
+                .doOnNext(buffer -> {
+                    try {
+                        capture.append(buffer);
+                    } finally {
+                        DataBufferUtils.release(buffer);
+                    }
+                })
+                .then();
     }
 
     private void report(final ShadowCall call, final int status, final HttpHeaders headers,

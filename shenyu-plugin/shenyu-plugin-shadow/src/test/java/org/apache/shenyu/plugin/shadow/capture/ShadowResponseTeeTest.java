@@ -24,6 +24,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -63,5 +64,15 @@ public final class ShadowResponseTeeTest {
         StepVerifier.create(observed.getResponse().writeWith(Mono.just(buffer))).verifyComplete();
         assertEquals(2, capture.bytes().length);
         assertTrue(capture.isTruncated());
+    }
+
+    @Test
+    public void testCapturesFlushedStreamingBody() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/stream").build());
+        ShadowBodyCapture capture = new ShadowBodyCapture(16);
+        ServerWebExchange observed = ShadowResponseTee.tee(exchange, capture);
+        DataBuffer buffer = factory.wrap("chunk".getBytes(StandardCharsets.UTF_8));
+        StepVerifier.create(observed.getResponse().writeAndFlushWith(Flux.just(Flux.just(buffer)))).verifyComplete();
+        assertEquals("chunk", new String(capture.bytes(), StandardCharsets.UTF_8));
     }
 }
