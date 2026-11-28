@@ -220,6 +220,10 @@ class DivideCanaryFailoverTest {
         }
 
         @Override
+        protected Integer extractStatusCode(final String response) {
+            return 200;
+        }
+
         protected Mono<String> doRequest(final ServerWebExchange exchange, final String method, final URI uri, final Flux<DataBuffer> body) {
             attempts.add(uri);
             return Mono.just("success");

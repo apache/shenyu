@@ -110,6 +110,10 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
     }
     
     @Override
+    protected Integer extractStatusCode(final ResponseEntity<Flux<DataBuffer>> response) {
+        return response.getStatusCode().value();
+    }
+
     protected Mono<ResponseEntity<Flux<DataBuffer>>> doRequest(final ServerWebExchange exchange, final String httpMethod,
                                              final URI uri, final Flux<DataBuffer> body) {
         // springWebflux5.3 mark #exchange() deprecated. because #echange maybe make memory leak.
@@ -150,8 +154,14 @@ public class WebClientPlugin extends AbstractHttpClientPlugin<ResponseEntity<Flu
         }
         final WebClient.ResponseSpec responseSpec = requestHeadersSpec
                 .retrieve()
-                .onRawStatus(httpStatus -> shouldFailover(exchange, httpStatus), clientResponse -> clientResponse.releaseBody()
-                        .thenReturn(new ShenyuUpstreamStatusException(clientResponse.statusCode().value())))
+                .onRawStatus(httpStatus -> shouldFailover(exchange, httpStatus), clientResponse -> {
+                    // record the headers at the transport's response-header boundary, before the
+                    // retryable status is turned into an error, so a failed attempt keeps its
+                    // status and its time to headers (#8209)
+                    recordUpstreamHeaders(exchange, clientResponse.statusCode().value());
+                    return clientResponse.releaseBody()
+                        .thenReturn(new ShenyuUpstreamStatusException(clientResponse.statusCode().value()));
+                })
                 // cover DefaultResponseSpec#DEFAULT_STATUS_HANDLER
                 .onRawStatus(httpStatus -> httpStatus >= 400, clientResponse -> Mono.empty());
         HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
