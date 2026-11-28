@@ -151,8 +151,8 @@ final class RemoteMcpHttpSupport {
             throw new IllegalArgumentException("Missing upstream tool name");
         }
         if (value.charAt(0) <= ' ' || value.charAt(value.length() - 1) <= ' '
-                || value.startsWith(ENCODED_PREFIX) && value.endsWith(ENCODED_SUFFIX)
-                || value.chars().anyMatch(c -> c > '~' || c < ' ' && c != '\t')) {
+                || (value.startsWith(ENCODED_PREFIX) && value.endsWith(ENCODED_SUFFIX))
+                || value.chars().anyMatch(c -> c > '~' || (c < ' ' && c != '\t'))) {
             if (!StandardCharsets.UTF_8.newEncoder().canEncode(value)) {
                 throw new IllegalArgumentException("Invalid upstream tool name");
             }
@@ -161,6 +161,16 @@ final class RemoteMcpHttpSupport {
         return value;
     }
 
+    /**
+     * Decode a UTF-8 JSON-RPC envelope.
+     * Callers must pass the normalized media type ({@code application/json} or {@code text/event-stream}),
+     * with parameters such as {@code ;charset=...} already stripped.
+     *
+     * @param bytes response body bytes
+     * @param contentType normalized media type without parameters
+     * @param requireMessageEvent whether SSE frames must be complete message events
+     * @return decoded JSON-RPC envelope
+     */
     static ObjectNode decodeEnvelope(final byte[] bytes, final String contentType, final boolean requireMessageEvent) {
         try {
             String text = StandardCharsets.UTF_8.newDecoder()
