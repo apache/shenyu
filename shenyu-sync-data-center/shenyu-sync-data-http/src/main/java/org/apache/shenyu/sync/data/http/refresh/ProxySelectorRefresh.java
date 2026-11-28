@@ -28,13 +28,19 @@ import org.apache.shenyu.sync.data.api.ProxySelectorDataSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class ProxySelectorRefresh extends AbstractDataRefresh<ProxySelectorData> {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProxySelectorRefresh.class);
 
     private final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers;
+
+    private final Map<SelectorKey, ProxySelectorData> previousSnapshot = new HashMap<>();
 
     public ProxySelectorRefresh(final List<ProxySelectorDataSubscriber> proxySelectorDataSubscribers) {
         this.proxySelectorDataSubscribers = proxySelectorDataSubscribers;
@@ -52,13 +58,37 @@ public class ProxySelectorRefresh extends AbstractDataRefresh<ProxySelectorData>
     }
 
     @Override
+    public synchronized Boolean refresh(final JsonObject data) {
+        // Version selection and the subscriber callbacks must complete in the same order.
+        return super.refresh(data);
+    }
+
+    @Override
     protected void refresh(final List<ProxySelectorData> data) {
         if (CollectionUtils.isEmpty(data)) {
             LOG.info("clear all ProxySelector data cache");
             proxySelectorDataSubscribers.forEach(ProxySelectorDataSubscriber::refresh);
+            previousSnapshot.clear();
             return;
         }
-        data.forEach(d -> proxySelectorDataSubscribers.forEach(pss -> pss.onSubscribe(d)));
+        Map<SelectorKey, ProxySelectorData> currentSnapshot = new LinkedHashMap<>();
+        for (ProxySelectorData selector : data) {
+            if (Objects.isNull(selector) || Objects.isNull(selector.getId()) || Objects.isNull(selector.getPluginName())) {
+                LOG.warn("ignore proxy selector snapshot item without pluginName or id");
+                continue;
+            }
+            currentSnapshot.put(new SelectorKey(selector.getPluginName(), selector.getId()), selector);
+        }
+        previousSnapshot.forEach((key, selector) -> {
+            ProxySelectorData current = currentSnapshot.get(key);
+            // Handlers are keyed by name; remove the old name before publishing updates.
+            if (Objects.isNull(current) || !Objects.equals(selector.getName(), current.getName())) {
+                proxySelectorDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(selector));
+            }
+        });
+        currentSnapshot.values().forEach(selector -> proxySelectorDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(selector)));
+        previousSnapshot.clear();
+        previousSnapshot.putAll(currentSnapshot);
     }
 
     @Override
@@ -71,4 +101,6 @@ public class ProxySelectorRefresh extends AbstractDataRefresh<ProxySelectorData>
         return GROUP_CACHE.get(ConfigGroupEnum.PROXY_SELECTOR);
     }
 
+    private record SelectorKey(String pluginName, String id) {
+    }
 }
