@@ -51,6 +51,22 @@ import java.util.stream.Collectors;
  */
 public class SwaggerDocParser implements DocParser {
 
+    private static final String DESCRIPTION = "description";
+
+    private static final String MAX_LENGTH = "maxLength";
+
+    private static final String OBJECT = "object";
+
+    private static final String PROPERTIES = "properties";
+
+    private static final String REF = "$ref";
+
+    private static final String REQUIRED = "required";
+
+    private static final String SCHEMA = "schema";
+
+    private static final String TYPE = "type";
+
     /**
      * parseJson.
      *
@@ -143,8 +159,8 @@ public class SwaggerDocParser implements DocParser {
         if (Objects.nonNull(docInfo.get("summary"))) {
             docItem.setSummary(docInfo.get("summary").getAsString());
         }
-        if (Objects.nonNull(docInfo.get("description"))) {
-            docItem.setDescription(docInfo.get("description").getAsString());
+        if (Objects.nonNull(docInfo.get(DESCRIPTION))) {
+            docItem.setDescription(docInfo.get(DESCRIPTION).getAsString());
         }
         docItem.setConsumes(GsonUtils.getGson().fromJson(docInfo.getAsJsonArray("consumes"), new TypeToken<List<String>>() {
         }.getType()));
@@ -188,7 +204,7 @@ public class SwaggerDocParser implements DocParser {
         
         for (int i = 0; i < parameters.size(); i++) {
             JsonObject fieldJson = parameters.get(i).getAsJsonObject();
-            JsonObject schema = fieldJson.getAsJsonObject("schema");
+            JsonObject schema = fieldJson.getAsJsonObject(SCHEMA);
             
             if (Objects.nonNull(schema)) {
                 RefInfo refInfo = getRefInfo(schema, version);
@@ -224,17 +240,111 @@ public class SwaggerDocParser implements DocParser {
         collect.forEach((key, value) -> {
             DocParameter moduleDoc = new DocParameter();
             moduleDoc.setName(key);
-            moduleDoc.setType("object");
+            moduleDoc.setType(OBJECT);
             moduleDoc.setRefs(value);
             docRequestParameterList.add(moduleDoc);
         });
 
         List<DocParameter> requestParameterList = docRequestParameterList.stream()
             .filter(docParameter -> !docParameter.getName().contains("."))
-            .collect(Collectors.toList());
+            .collect(Collectors.toCollection(ArrayList::new));
 
+        if (version == SwaggerVersion.V3) {
+            buildJsonRequestBody(docInfo.getAsJsonObject("requestBody"), docRoot).ifPresent(requestParameterList::add);
+        }
         docItem.setRequestParameters(requestParameterList);
         docItem.setRequestHeaders(docHeaderParameterList);
+    }
+
+    private Optional<DocParameter> buildJsonRequestBody(final JsonObject requestBody, final JsonObject docRoot) {
+        JsonObject schema = Optional.ofNullable(requestBody)
+                .map(body -> body.getAsJsonObject("content"))
+                .map(content -> content.getAsJsonObject("application/json"))
+                .map(mediaType -> mediaType.get(SCHEMA))
+                .filter(JsonElement::isJsonObject)
+                .map(JsonElement::getAsJsonObject)
+                .orElse(null);
+        if (Objects.isNull(schema)) {
+            return Optional.empty();
+        }
+        schema = resolveRequestSchema(schema, docRoot);
+        if (Objects.isNull(schema)) {
+            return Optional.empty();
+        }
+        JsonElement type = schema.get(TYPE);
+        if (Objects.isNull(type) ? !schema.has(PROPERTIES) : !type.isJsonPrimitive() || !OBJECT.equals(type.getAsString())) {
+            return Optional.empty();
+        }
+        DocParameter body = new DocParameter();
+        body.setName("Request body");
+        body.setType(OBJECT);
+        JsonElement required = requestBody.get(REQUIRED);
+        body.setRequired(Objects.nonNull(required) && required.isJsonPrimitive() && required.getAsJsonPrimitive().isBoolean() && required.getAsBoolean());
+        body.setRefs(buildRequestBodyFields(schema, docRoot));
+        return Optional.of(body);
+    }
+
+    private JsonObject resolveRequestSchema(final JsonObject schema, final JsonObject docRoot) {
+        JsonElement ref = schema.get(REF);
+        if (Objects.isNull(ref)) {
+            return schema;
+        }
+        if (!ref.isJsonPrimitive() || !ref.getAsJsonPrimitive().isString()) {
+            return null;
+        }
+        String schemaName = getLocalOpenApiSchemaName(ref.getAsString());
+        if (Objects.isNull(schemaName) || schemaName.isEmpty()) {
+            return null;
+        }
+        JsonObject definitions = getSchemaDefinitions(docRoot, SwaggerVersion.V3);
+        JsonElement model = Objects.isNull(definitions) ? null : definitions.get(schemaName);
+        if (Objects.isNull(model) || !model.isJsonObject() || model.getAsJsonObject().has(REF)) {
+            return null;
+        }
+        return model.getAsJsonObject();
+    }
+
+    private boolean isReadOnly(final JsonObject schema) {
+        JsonElement readOnly = schema.get("readOnly");
+        return Objects.nonNull(readOnly) && readOnly.isJsonPrimitive() && readOnly.getAsJsonPrimitive().isBoolean() && readOnly.getAsBoolean();
+    }
+
+    private List<DocParameter> buildRequestBodyFields(final JsonObject schema, final JsonObject docRoot) {
+        JsonObject properties = schema.getAsJsonObject(PROPERTIES);
+        if (Objects.isNull(properties)) {
+            return Collections.emptyList();
+        }
+        List<String> required = jsonArrayToStringList(schema.getAsJsonArray(REQUIRED));
+        List<DocParameter> fields = new ArrayList<>();
+        for (Map.Entry<String, JsonElement> property : properties.entrySet()) {
+            if (property.getValue().isJsonObject()) {
+                String name = property.getKey();
+                buildRequestBodyField(name, property.getValue().getAsJsonObject(), required.contains(name), docRoot).ifPresent(fields::add);
+            }
+        }
+        return fields;
+    }
+
+    private Optional<DocParameter> buildRequestBodyField(final String name, final JsonObject propertySchema, final boolean required, final JsonObject docRoot) {
+        JsonObject field = resolveRequestSchema(propertySchema, docRoot);
+        if (Objects.isNull(field) || isReadOnly(propertySchema) || isReadOnly(field)) {
+            return Optional.empty();
+        }
+        JsonElement type = field.get(TYPE);
+        if (Objects.nonNull(type) && (!type.isJsonPrimitive() || !type.getAsJsonPrimitive().isString())) {
+            return Optional.empty();
+        }
+        DocParameter parameter = new DocParameter();
+        parameter.setName(name);
+        parameter.setType(Objects.isNull(type) ? null : type.getAsString());
+        parameter.setRequired(required);
+        readPrimitiveString(field, DESCRIPTION).ifPresent(parameter::setDescription);
+        readPrimitiveString(field, MAX_LENGTH).ifPresent(parameter::setMaxLength);
+        return Optional.of(parameter);
+    }
+
+    private Optional<String> readPrimitiveString(final JsonObject field, final String name) {
+        return Optional.ofNullable(field.get(name)).filter(JsonElement::isJsonPrimitive).map(JsonElement::getAsString);
     }
 
     protected List<DocParameter> buildResponseParameterList(final JsonObject docInfo, 
@@ -271,8 +381,8 @@ public class SwaggerDocParser implements DocParser {
             return Collections.emptyList();
         }
         
-        JsonObject properties = responseObject.getAsJsonObject("properties");
-        JsonArray requiredProperties = responseObject.getAsJsonArray("required");
+        JsonObject properties = responseObject.getAsJsonObject(PROPERTIES);
+        JsonArray requiredProperties = responseObject.getAsJsonArray(REQUIRED);
         List<String> requiredFieldList = this.jsonArrayToStringList(requiredProperties);
         List<DocParameter> docParameterList = new ArrayList<>();
         
@@ -289,9 +399,9 @@ public class SwaggerDocParser implements DocParser {
 
             JsonObject prop = properties.getAsJsonObject(fieldName);
             if (Objects.nonNull(prop)) {
-                docParameter.setMaxLength(Objects.isNull(prop.get("maxLength")) ? "-" : prop.get("maxLength").getAsString());
-                if (Objects.nonNull(prop.get("required"))) {
-                    docParameter.setRequired(Boolean.parseBoolean(prop.get("required").getAsString()));
+                docParameter.setMaxLength(Objects.isNull(prop.get(MAX_LENGTH)) ? "-" : prop.get(MAX_LENGTH).getAsString());
+                if (Objects.nonNull(prop.get(REQUIRED))) {
+                    docParameter.setRequired(Boolean.parseBoolean(prop.get(REQUIRED).getAsString()));
                 }
             }
 
@@ -334,7 +444,7 @@ public class SwaggerDocParser implements DocParser {
             // v2: responses/200/schema
             return Optional.ofNullable(docInfo.getAsJsonObject("responses"))
                 .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("200")))
-                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("schema")))
+                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject(SCHEMA)))
                 .map(schema -> this.getRefInfo(schema, version))
                 .orElse(null);
         } else {
@@ -343,7 +453,7 @@ public class SwaggerDocParser implements DocParser {
                 .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("200")))
                 .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("content")))
                 .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("application/json")))
-                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject("schema")))
+                .flatMap(jsonObject -> Optional.ofNullable(jsonObject.getAsJsonObject(SCHEMA)))
                 .map(schema -> this.getRefInfo(schema, version))
                 .orElse(null);
         }
@@ -351,12 +461,12 @@ public class SwaggerDocParser implements DocParser {
 
     private RefInfo getRefInfo(final JsonObject jsonObject, final SwaggerVersion version) {
         JsonElement refElement;
-        boolean isArray = Objects.nonNull(jsonObject.get("type")) && "array".equals(jsonObject.get("type").getAsString());
+        boolean isArray = Objects.nonNull(jsonObject.get(TYPE)) && "array".equals(jsonObject.get(TYPE).getAsString());
         
         if (isArray) {
-            refElement = jsonObject.getAsJsonObject("items").get("$ref");
+            refElement = jsonObject.getAsJsonObject("items").get(REF);
         } else {
-            refElement = jsonObject.get("$ref");
+            refElement = jsonObject.get(REF);
         }
         
         if (Objects.isNull(refElement)) {
@@ -373,8 +483,9 @@ public class SwaggerDocParser implements DocParser {
             }
         } else {
             // v3: #/components/schemas/ModelName
-            if (ref.startsWith("#/components/schemas/")) {
-                ref = ref.substring("#/components/schemas/".length());
+            String schemaName = getLocalOpenApiSchemaName(ref);
+            if (Objects.nonNull(schemaName)) {
+                ref = schemaName;
             }
         }
         
@@ -382,6 +493,11 @@ public class SwaggerDocParser implements DocParser {
         refInfo.isArray = isArray;
         refInfo.ref = ref;
         return refInfo;
+    }
+
+    private String getLocalOpenApiSchemaName(final String ref) {
+        String prefix = "#/components/schemas/";
+        return ref.startsWith(prefix) ? ref.substring(prefix.length()) : null;
     }
 
     /**
