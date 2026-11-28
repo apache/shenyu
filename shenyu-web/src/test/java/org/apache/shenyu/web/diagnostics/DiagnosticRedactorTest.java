@@ -18,6 +18,10 @@
 package org.apache.shenyu.web.diagnostics;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
+
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -90,5 +94,23 @@ public final class DiagnosticRedactorTest {
         assertFalse(redactor.digest("abc").equals(redactor.digest("abd")));
         assertEquals("", redactor.digest(null));
         assertEquals("", redactor.digest(""));
+    }
+
+    @Test
+    @ResourceLock(Resources.LOCALE)
+    public void isSecretKeyIsLocaleIndependent() {
+        Locale original = Locale.getDefault();
+        Locale display = Locale.getDefault(Locale.Category.DISPLAY);
+        Locale format = Locale.getDefault(Locale.Category.FORMAT);
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            assertTrue(redactor.isSecretKey("X-API-KEY"),
+                    "secret-key classification must not depend on the default locale");
+            assertTrue(redactor.isSecretKey("SESSION_ID"));
+        } finally {
+            Locale.setDefault(original);
+            Locale.setDefault(Locale.Category.DISPLAY, display);
+            Locale.setDefault(Locale.Category.FORMAT, format);
+        }
     }
 }

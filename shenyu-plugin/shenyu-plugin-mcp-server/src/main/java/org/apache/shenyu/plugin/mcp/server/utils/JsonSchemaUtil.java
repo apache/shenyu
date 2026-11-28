@@ -28,6 +28,7 @@ import org.springframework.ai.util.json.JsonParser;
 import org.springframework.ai.util.json.schema.JsonSchemaGenerator.SchemaOption;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 public final class JsonSchemaUtil {
@@ -130,7 +131,7 @@ public final class JsonSchemaUtil {
                     });
                 } else if (value.isTextual() && entry.getKey().equals("type")) {
                     String oldValue = node.get("type").asText();
-                    node.put("type", oldValue.toUpperCase());
+                    node.put("type", oldValue.toUpperCase(Locale.ROOT));
                 }
             });
         } else if (node.isArray()) {
