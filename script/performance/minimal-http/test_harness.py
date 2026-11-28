@@ -84,7 +84,7 @@ class LoadResultTest(unittest.TestCase):
             "http_req_duration": {"values": {"p(99)": 200}},
         }}
 
-    def run_load(self, summary, returncode=99):
+    def run_load(self, summary, returncode=99, duration=20):
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp) / "load"
             def start(*args, **kwargs):
@@ -93,12 +93,13 @@ class LoadResultTest(unittest.TestCase):
                 return Mock(returncode=returncode, poll=Mock(return_value=returncode))
             with patch("benchmark.subprocess.Popen", side_effect=start):
                 return load(SimpleNamespace(k6="k6", p99_ms=100), "http://127.0.0.1/bench/ok",
-                            b"upstream-a", 100, 20, output)
+                            b"upstream-a", 100, duration, output)
 
     def test_throughput_includes_graceful_stop_time(self):
         result = self.run_load(self.summary())
         self.assertEqual(72, result["successful_rps"])
         self.assertEqual(25, result["measurement_duration_s"])
+        self.assertGreaterEqual(result["load_process_elapsed_s"], 0)
         self.assertEqual(20, result["offered_duration_s"])
         self.assertEqual(100, result["offered_rps"])
         self.assertEqual(2000, result["requests"])
@@ -111,14 +112,38 @@ class LoadResultTest(unittest.TestCase):
         summary["metrics"]["successful_requests"]["values"] = {"count": 2000, "rate": 80}
         summary["metrics"]["http_req_duration"]["values"]["p(99)"] = 80
         result = self.run_load(summary, 0)
+        self.assertTrue(result["measurement_valid"])
         self.assertTrue(result["thresholds_passed"])
         self.assertEqual(80, result["successful_rps"])
         self.assertEqual(0, result["errors"])
+
+    def test_k6_success_outside_the_measurement_window_cannot_pass(self):
+        for measured_ms in (18_999, 26_001, 173_050):
+            with self.subTest(measured_ms=measured_ms):
+                summary = self.summary()
+                summary["state"]["testRunDurationMs"] = measured_ms
+                summary["metrics"]["successful_requests"]["values"]["count"] = 2000
+                summary["metrics"]["http_req_duration"]["values"]["p(99)"] = 80
+                result = self.run_load(summary, 0)
+                self.assertFalse(result["thresholds_passed"])
+                self.assertFalse(result["measurement_valid"])
+                self.assertEqual(measured_ms / 1000, result["measurement_duration_s"])
+                self.assertAlmostEqual(2_000_000 / measured_ms, result["successful_rps"])
+
+    def test_measurement_window_includes_both_boundaries_at_a_non_default_duration(self):
+        for measured_ms, expected in ((5_999, False), (6_000, True), (13_000, True), (13_001, False)):
+            with self.subTest(measured_ms=measured_ms):
+                summary = self.summary()
+                summary["state"]["testRunDurationMs"] = measured_ms
+                result = self.run_load(summary, returncode=0, duration=7)
+                self.assertEqual(expected, result["measurement_valid"])
+                self.assertEqual(expected, result["thresholds_passed"])
 
     def test_threshold_failure_remains_a_valid_sweep_point(self):
         summary = self.summary()
         summary["metrics"]["dropped_iterations"] = {"values": {"count": 10}}
         result = self.run_load(summary, 99)
+        self.assertTrue(result["measurement_valid"])
         self.assertFalse(result["thresholds_passed"])
         self.assertEqual(10, result["dropped_iterations"])
         self.assertEqual(72, result["successful_rps"])
