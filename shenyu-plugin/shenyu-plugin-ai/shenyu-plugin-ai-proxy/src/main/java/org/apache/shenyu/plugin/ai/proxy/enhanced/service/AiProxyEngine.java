@@ -18,6 +18,8 @@
 package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
@@ -112,11 +114,28 @@ public final class AiProxyEngine {
                               final AiCommonConfig primaryConfig,
                               final Optional<AiCommonConfig> fallbackConfig,
                               final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
+        return execute(requestBody, null, primaryConfig, fallbackConfig, responseConsumer);
+    }
+
+    /**
+     * Execute an exchange, reusing the parsed request for primary and fallback planning.
+     *
+     * @param requestBody original client request
+     * @param parsedPayload parsed request payload, or null to parse the body
+     * @param primaryConfig resolved primary configuration
+     * @param fallbackConfig resolved fallback configuration
+     * @param responseConsumer response boundary consuming the reactive body once
+     * @return completion or a classified failure
+     */
+    public Mono<Void> execute(final String requestBody, final JsonNode parsedPayload, final AiCommonConfig primaryConfig,
+                              final Optional<AiCommonConfig> fallbackConfig,
+                              final Function<AiUpstreamResponse, Mono<Void>> responseConsumer) {
         return observationScope.observe(responseConsumer, observedConsumer -> Mono.defer(() -> {
             AiCommonConfig resolvedPrimary = new AiCommonConfig(primaryConfig);
-            AiPreparedExchange primary = exchangePlanner.prepare(requestBody, resolvedPrimary);
+            ObjectNode payload = exchangePlanner.requestPayload(requestBody, parsedPayload);
+            AiPreparedExchange primary = exchangePlanner.prepare(requestBody, payload, resolvedPrimary);
             AiExecutionRequest executionRequest = new AiExecutionRequest(
-                    new AiExecutionState.RequestPayload(requestBody), resolvedPrimary, primary, fallbackConfig);
+                    new AiExecutionState.RequestPayload(requestBody, payload), resolvedPrimary, primary, fallbackConfig);
             return executionCoordinator.execute(executionRequest, observedConsumer);
         }));
     }

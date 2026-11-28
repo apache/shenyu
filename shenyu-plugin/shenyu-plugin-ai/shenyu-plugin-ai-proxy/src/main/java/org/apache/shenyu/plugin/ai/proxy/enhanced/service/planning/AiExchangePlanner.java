@@ -65,9 +65,13 @@ public final class AiExchangePlanner {
     }
 
     public AiPreparedExchange prepare(final String requestBody, final AiCommonConfig config) {
-        ObjectNode payload = parseRequestPayload(requestBody);
+        return prepare(requestBody, requestPayload(requestBody, null), config);
+    }
+
+    public AiPreparedExchange prepare(final String requestBody, final ObjectNode parsedPayload, final AiCommonConfig config) {
+        ObjectNode payload = parsedPayload.deepCopy();
         String upstreamBody = removeFallbackConfig(payload, requestBody);
-        AiProxyProtocol clientProtocol = resolveClientProtocol(payload, config);
+        AiProxyProtocol clientProtocol = resolveClientProtocol(config);
         validateClientProtocol(clientProtocol, payload);
         ShenyuAiRequest clientRequest = decodeClientRequest(clientProtocol, upstreamBody, payload, config);
         AiProxyProvider provider = resolveProvider(config);
@@ -82,13 +86,13 @@ public final class AiExchangePlanner {
                 providerRequest, provider, clientProtocol, targetProtocol, route, config, stream);
     }
 
-    private ObjectNode parseRequestPayload(final String requestBody) {
+    public ObjectNode requestPayload(final String requestBody, final JsonNode parsedPayload) {
         if (Objects.isNull(requestBody) || requestBody.isBlank()) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must not be empty", null);
         }
         final JsonNode root;
         try {
-            root = OBJECT_MAPPER.readTree(requestBody);
+            root = Objects.nonNull(parsedPayload) ? parsedPayload : OBJECT_MAPPER.readTree(requestBody);
         } catch (JsonProcessingException error) {
             throw new AiProxyException(AiProxyException.Kind.REQUEST, "AI request body must be valid JSON", error);
         }
@@ -106,9 +110,12 @@ public final class AiExchangePlanner {
         return requestBody;
     }
 
-    private AiProxyProtocol resolveClientProtocol(final ObjectNode payload, final AiCommonConfig config) {
-        return Objects.isNull(config.getProtocol()) || config.getProtocol().isBlank()
-                ? protocolFactory.detect(payload) : protocolFactory.getProtocol(config.getProtocol());
+    private AiProxyProtocol resolveClientProtocol(final AiCommonConfig config) {
+        if (Objects.isNull(config.getProtocol()) || config.getProtocol().isBlank()) {
+            throw new AiProxyException(AiProxyException.Kind.REQUEST,
+                    "AI protocol must be resolved before the request reaches the engine", null);
+        }
+        return protocolFactory.getProtocol(config.getProtocol());
     }
 
     private void validateClientProtocol(final AiProxyProtocol protocol, final ObjectNode payload) {

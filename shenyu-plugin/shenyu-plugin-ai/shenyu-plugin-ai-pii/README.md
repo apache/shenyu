@@ -34,6 +34,15 @@ extraction and configurable actions.
   modes: fail-closed rules reject them and fail-open rules warn and pass them through.
   Validation is limited to extraction shape, not the complete provider schema. Valid
   textless messages, such as tool calls or image-only content, remain supported.
+- The request side protocol is resolved by the shared AI protocol detector (request
+  path, then header hints, then body shape, only when the stronger levels are
+  inconclusive) and the profile is selected by the resolved identifier. When the
+  path is recognizable the path wins: for example a `/v1/responses` path carrying a
+  messages shaped body is validated against the responses profile, which fails the
+  shape validation and hits the unsupported failure policy, instead of falling back
+  to the chat profile by body shape. This plugin cannot see the ai-proxy selector
+  handle, so an explicitly configured `protocol` there does not influence the
+  selection here; align both configurations when the request evidence is ambiguous.
 - Redaction happens on the parsed JSON tree and only inside the extracted fields, so the
   JSON structure and the escaping of everything else are preserved. Overlapping detections
   are merged on the original coordinates before anything is replaced, the merged range

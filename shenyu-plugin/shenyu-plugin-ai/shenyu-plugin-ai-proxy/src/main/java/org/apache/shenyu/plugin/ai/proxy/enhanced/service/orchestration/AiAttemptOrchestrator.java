@@ -289,8 +289,8 @@ public final class AiAttemptOrchestrator {
                     AiProxyRetryPolicy.retryAfter(responseHeaders, retrySettings));
             AiCommonConfig fallbackConfig = plan.fallback().orElseThrow().config();
             plan.execution().request().activeUpstream().select(fallbackConfig);
-            AiPreparedExchange fallbackExchange = exchangePlanner.prepare(
-                    plan.execution().request().payload().body(), fallbackConfig);
+            AiExecutionState.RequestPayload payload = plan.execution().request().payload();
+            AiPreparedExchange fallbackExchange = exchangePlanner.prepare(payload.body(), payload.parsed(), fallbackConfig);
             return attempt(plan.forFallback(fallbackExchange));
         });
     }

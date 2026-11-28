@@ -92,8 +92,9 @@ and `OpenAiResponses` as the starting point:
 5. Register a protocol bean and declare a matching native binding in the provider
    capabilities. Set the selector's `protocol` and `provider` identifiers.
 
-`detectionOrder()` resolves overlapping envelope detection. Exact response caching
-is an explicit opt-in; its existing native text Chat eligibility rules still apply.
+`AiProxyProtocolFactory.detect()` uses `detectionOrder()` when called directly.
+Gateway requests with a blank protocol use the shared detector described below.
+Exact response caching is an explicit opt-in; its existing native text Chat eligibility rules still apply.
 Implement a converter only when clients need this protocol against an upstream
 that speaks another protocol. Register its directional route and return the
 request-scoped reverse response adapter together with the converted request.
@@ -319,6 +320,32 @@ The OpenAI upstream receives Responses `input` and `max_output_tokens` at
 configured token field at its Chat endpoint. An explicit client `stream` setting
 takes precedence over the configured default. Existing `maxTokens` and
 `temperature` gateway overrides apply to the selected target protocol.
+
+The selector handle's `protocol` has two states.
+
+**Configured** (the default `openai-chat`, and any other explicit value). The
+value is the client protocol: it decodes the incoming request and encodes the
+response sent back to the client. The upstream protocol is not configured here;
+it is chosen by the provider, natively or through a converter. A configured
+protocol is authoritative and detection never overrides it.
+
+The AI plugins that run before this one (`aiPrompt`, `piiDetection`) cannot see
+the selector handle, so they can only detect. When their detection contradicts
+the configured protocol, this plugin logs a warning and keeps the configured
+value. The selected protocol checks the envelope and decodes the request.
+Detection is skipped for identifiers without a built-in descriptor, so a
+custom `AiProxyProtocol` bean does not produce that warning.
+
+**Blank**, which opts into detection. This state is reachable only by setting
+`"protocol": ""` on the rule handle: omitting the field or setting `null` keeps
+the `openai-chat` default, and the selector handle default also overrides a
+blank plugin-level value. Detection uses three levels of evidence: the request
+path, exact header hints and, only when the stronger levels are inconclusive,
+the request body shape. The body is parsed once, and the resolved protocol and
+payload are reused by the request view, fallback resolution and the engine. When
+detection is inconclusive, the request fails before reaching the upstream; the
+engine has no second body-shape fallback. This is also the only state in which
+the protocol identity is shared with the plugins that run before this one.
 
 ### Per-protocol request-body overrides
 

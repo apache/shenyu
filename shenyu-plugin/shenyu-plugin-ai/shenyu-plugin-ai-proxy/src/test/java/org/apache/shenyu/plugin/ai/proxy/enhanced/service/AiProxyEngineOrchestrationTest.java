@@ -74,7 +74,7 @@ class AiProxyEngineOrchestrationTest {
     private static final String BODY = "{\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"unknown\":42}";
 
     @Test
-    void convertsResponsesAfterRetryAndFallbackWithoutSharingStreamState() {
+    void convertsResponsesAfterRetryAndFallbackWithoutSharingStreamState() throws Exception {
         List<AiUpstreamRequest> requests = new ArrayList<>();
         AiCommonConfig fallback = config(false, "fallback");
         fallback.setProvider("DeepSeek");
@@ -87,11 +87,15 @@ class AiProxyEngineOrchestrationTest {
         AiCommonConfig primary = config(false, "main");
         primary.setProtocol(OpenAiResponses.NAME);
         List<String> received = new ArrayList<>();
-        StepVerifier.create(engine.execute("{\"input\":\"hi\",\"stream\":true}", primary, Optional.of(fallback),
+        String requestBody = "{\"input\":\"hi\",\"stream\":true,\"fallbackConfig\":{\"target\":\"backup\"}}";
+        JsonNode payload = new ObjectMapper().readTree(requestBody);
+        StepVerifier.create(engine.execute(requestBody, payload, primary, Optional.of(fallback),
                 response -> consume(response, received))).verifyComplete();
         assertEquals(3, requests.size());
+        assertEquals("backup", payload.at("/fallbackConfig/target").asText());
         assertArrayEquals(requests.get(0).getBody(), requests.get(1).getBody());
         String body = new String(requests.get(2).getBody(), StandardCharsets.UTF_8);
+        assertFalse(body.contains("fallbackConfig"));
         assertTrue(body.contains("\"model\":\"fallback\""));
         assertTrue(body.contains("\"max_tokens\":23"));
         assertFalse(body.contains("max_completion_tokens"));
@@ -673,6 +677,22 @@ class AiProxyEngineOrchestrationTest {
         StepVerifier.create(engine.execute("invalid", config(true, "main"), Optional.of(config(true, "fallback")), response -> response.getBody().then()))
                 .expectErrorMatches(error -> error instanceof AiProxyException request
                         && request.getKind() == AiProxyException.Kind.REQUEST).verify();
+        assertEquals(0, calls.get());
+    }
+
+    @Test
+    void unresolvedProtocolFailsBeforeUpstream() {
+        AtomicInteger calls = new AtomicInteger();
+        AiProxyEngine engine = engine(request -> {
+            calls.incrementAndGet();
+            return Mono.just(response(200, Flux.just(bytes("ok"))));
+        });
+        AiCommonConfig config = config(false, "main");
+        config.setProtocol("");
+        StepVerifier.create(engine.execute(BODY, config, Optional.empty(), response -> response.getBody().then()))
+                .expectErrorMatches(error -> error instanceof AiProxyException exception
+                        && exception.getKind() == AiProxyException.Kind.REQUEST)
+                .verify();
         assertEquals(0, calls.get());
     }
 
