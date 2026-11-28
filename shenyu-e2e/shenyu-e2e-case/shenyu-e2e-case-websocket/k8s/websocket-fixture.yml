@@ -1,0 +1,54 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websocket-fixture
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: websocket-fixture
+  template:
+    metadata:
+      labels:
+        app: websocket-fixture
+    spec:
+      containers:
+        - name: websocket-fixture
+          image: shenyu-websocket-test-fixture:local
+          imagePullPolicy: Never
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: websocket
+          ports:
+            - name: websocket
+              containerPort: 8868
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: websocket-fixture
+spec:
+  selector:
+    app: websocket-fixture
+  ports:
+    - name: websocket
+      port: 8868
+      targetPort: websocket
