@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.admin.listener.http;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import jakarta.servlet.AsyncContext;
 import org.apache.shenyu.admin.config.properties.ClusterProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
@@ -24,8 +26,10 @@ import org.apache.shenyu.admin.listener.ConfigDataCache;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.listener.DataChangedEventDispatcher;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
+import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
@@ -49,6 +53,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -294,6 +299,80 @@ class HttpCacheRebuildTest {
         scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
         verify(lateClient).complete();
         assertTrue(((MockHttpServletResponse) lateClient.getResponse()).getContentAsString().contains("RULE"));
+    }
+
+    @Test
+    void coldFetchDoesNotDeadlockSynchronousAfterCommitOnSaturatedPool() throws Exception {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl("jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
+        hikariConfig.setMaximumPoolSize(1);
+        hikariConfig.setConnectionTimeout(1000);
+        try (HikariDataSource poolDataSource = new HikariDataSource(hikariConfig)) {
+            JdbcTemplate pooledJdbc = new JdbcTemplate(poolDataSource);
+            pooledJdbc.execute("CREATE TABLE test_rule (id VARCHAR PRIMARY KEY, namespace_id VARCHAR, name VARCHAR)");
+            pooledJdbc.execute("CREATE TABLE test_app_auth (id VARCHAR PRIMARY KEY, namespace_id VARCHAR)");
+            TransactionTemplate pooledTransactions = new TransactionTemplate(new DataSourceTransactionManager(poolDataSource));
+
+            String namespaceId = "ns-saturated-pool";
+            TestListener syncListener = new TestListener(new HttpSyncProperties());
+            syncListener.clearCache();
+
+            CountDownLatch txHoldingConnection = new CountDownLatch(1);
+            CountDownLatch coldFetchInsideLock = new CountDownLatch(1);
+
+            RuleService pooledRules = mock(RuleService.class);
+            when(pooledRules.listAllByNamespaceId(namespaceId)).thenAnswer(invocation ->
+                    pooledJdbc.query("SELECT id, namespace_id, name FROM test_rule WHERE namespace_id = ? ORDER BY id",
+                            (row, index) -> rule(row.getString("id"), row.getString("namespace_id"), row.getString("name")),
+                            namespaceId));
+            AppAuthService pooledAppAuth = mock(AppAuthService.class);
+            when(pooledAppAuth.listAllByNamespaceId(namespaceId)).thenAnswer(invocation -> {
+                coldFetchInsideLock.countDown();
+                pooledJdbc.queryForList("SELECT id FROM test_app_auth WHERE namespace_id = ?", String.class, namespaceId);
+                return Collections.emptyList();
+            });
+            ReflectionTestUtils.setField(syncListener, "ruleService", pooledRules);
+            ReflectionTestUtils.setField(syncListener, "appAuthService", pooledAppAuth);
+
+            DataChangedEventDispatcher syncDispatcher = new DataChangedEventDispatcher(mock(ApplicationContext.class));
+            ReflectionTestUtils.setField(syncDispatcher, "clusterProperties", new ClusterProperties());
+            ReflectionTestUtils.setField(syncDispatcher, "listeners", List.of(syncListener));
+
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
+                final Future<ConfigData<?>> coldFetchFuture = executor.submit(() -> {
+                    assertTrue(txHoldingConnection.await(5, TimeUnit.SECONDS));
+                    return syncListener.fetchConfig(ConfigGroupEnum.APP_AUTH, namespaceId);
+                });
+
+                pooledTransactions.executeWithoutResult(status -> {
+                    pooledJdbc.update("INSERT INTO test_rule VALUES (?, ?, ?)", "1", namespaceId, "committed-rule");
+                    syncDispatcher.onApplicationEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.CREATE,
+                            List.of(rule("1", namespaceId, "committed-rule"))));
+                    txHoldingConnection.countDown();
+                    awaitLatch(coldFetchInsideLock);
+                });
+
+                ConfigData<?> authConfig = coldFetchFuture.get(5, TimeUnit.SECONDS);
+                ConfigData<?> ruleConfig = syncListener.fetchConfig(ConfigGroupEnum.RULE, namespaceId);
+                assertTrue(authConfig.getData().isEmpty());
+                assertEquals(1, ruleConfig.getData().size());
+                assertEquals("committed-rule", ((RuleData) ruleConfig.getData().get(0)).getName());
+            } finally {
+                executor.shutdownNow();
+                syncListener.destroy();
+                syncListener.clearCache();
+            }
+        }
+    }
+
+    private void awaitLatch(final CountDownLatch latch) {
+        try {
+            assertTrue(latch.await(5, TimeUnit.SECONDS));
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(ex);
+        }
     }
 
     private ScheduledExecutorService scheduler() {
