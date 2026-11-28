@@ -3541,6 +3541,7 @@ INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) 
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303973', '1346358560427216896', '1953048313980116913', sysdate, sysdate);
 INSERT INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953049887387303974', '1346358560427216896', '1953048313980116914', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1907261515594055681', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '67', NULL, 197, 0, sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX(namespace_plugin_rel(id)) */ INTO namespace_plugin_rel (id, namespace_id, plugin_id, config, sort, enabled, date_created, date_updated) VALUES ('1960000000000003000', '649330b6-c2d7-4edc-be8e-8a54df9eb385', '70', NULL, 207, 0, sysdate, sysdate);
 
 -- app auth lifecycle idempotency records (no credential copies stored)
 CREATE TABLE app_auth_request
@@ -3584,6 +3585,16 @@ INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, o
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117952', '1346358560427216896', '1953048313980116922', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117953', '1346358560427216896', '1953048313980116923', sysdate, sysdate);
 INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1953048313980117954', '1346358560427216896', '1953048313980116924', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003001', '1346358560427216896', '1960000000000002001', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003002', '1346358560427216896', '1960000000000002002', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003003', '1346358560427216896', '1960000000000002003', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003004', '1346358560427216896', '1960000000000002004', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003005', '1346358560427216896', '1960000000000002005', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003006', '1346358560427216896', '1960000000000002006', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003007', '1346358560427216896', '1960000000000002007', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003008', '1346358560427216896', '1960000000000002008', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003009', '1346358560427216896', '1960000000000002009', sysdate, sysdate);
+INSERT /*+ IGNORE_ROW_ON_DUPKEY_INDEX (permission(id)) */ INTO permission (id, object_id, resource_id, date_created, date_updated) VALUES ('1960000000000003010', '1346358560427216896', '1960000000000002010', sysdate, sysdate);
 CREATE TABLE registration_fencing_target (
     id varchar2(128) NOT NULL,
     date_created timestamp(3) DEFAULT SYSTIMESTAMP NOT NULL,
