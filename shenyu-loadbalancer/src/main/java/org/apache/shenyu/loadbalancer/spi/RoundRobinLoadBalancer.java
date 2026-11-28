@@ -17,17 +17,20 @@
 
 package org.apache.shenyu.loadbalancer.spi;
 
+import org.apache.shenyu.common.cache.WindowTinyLFUMap;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.MapUtils;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.entity.UpstreamIdentity;
 import org.apache.shenyu.spi.Join;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -36,19 +39,36 @@ import java.util.concurrent.atomic.AtomicLong;
 @Join
 public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
 
-    private final int recyclePeriod = 60000;
-
-    private final ConcurrentMap<String, ConcurrentMap<UpstreamIdentity, WeightedRoundRobin>> methodWeightMap = new ConcurrentHashMap<>(16);
-
-    private final AtomicBoolean updateLock = new AtomicBoolean();
+    /**
+     * State is keyed by the full ordered upstream identity set together with the
+     * configured weights (#8441): selectors whose upstream lists share an address
+     * never share smooth weighted round-robin counters, and the bounded cache
+     * evicts pools orphaned by reorders or weight changes.
+     *
+     * <p>Eviction intent (#8441 review): the bound (1000) is sized to sit comfortably above
+     * the realistic live key count — one key per selector per configured-weight revision
+     * per circuit-breaker/canary subset — so a live pool is evicted only in a pathological
+     * configuration; a freshly created pool starts its smooth cycle from zero, which is the
+     * same warm-up behavior as a gateway restart, not a distribution regression to guard
+     * against here.</p>
+     */
+    private final Map<List<String>, ConcurrentMap<UpstreamIdentity, WeightedRoundRobin>> poolByUpstreamSet =
+            new WindowTinyLFUMap<>(Constants.CACHE_MAX_COUNT);
 
     @Override
     public Upstream doSelect(final List<Upstream> upstreamList, final LoadBalanceData data) {
-        String key = upstreamList.get(0).getUrl();
-        ConcurrentMap<UpstreamIdentity, WeightedRoundRobin> map = MapUtils.computeIfAbsent(methodWeightMap, key, k -> new ConcurrentHashMap<>(16));
+        List<String> stateKey = new ArrayList<>(upstreamList.size());
+        for (Upstream upstream : upstreamList) {
+            // the configured weight, not the warm-up adjusted one: this only keeps a warm-up
+            // tick from rotating to a different pool and zeroing the whole pool's counters.
+            // Inside the pool a warm-up-adjusted weight still re-arms the entry's own counter
+            // (weight != getWeight() below), which is pre-existing smooth-WRR warm-up behavior.
+            stateKey.add(upstream.identity().markerKey() + ':' + upstream.getWeight());
+        }
+        ConcurrentMap<UpstreamIdentity, WeightedRoundRobin> map =
+                poolByUpstreamSet.computeIfAbsent(List.copyOf(stateKey), k -> new ConcurrentHashMap<>(16));
         long totalWeight = 0;
         long maxCurrent = Long.MIN_VALUE;
-        long now = System.currentTimeMillis();
         Upstream selectedInvoker = null;
         WeightedRoundRobin selectedWeightedRoundRobin = null;
         for (Upstream upstream : upstreamList) {
@@ -59,27 +79,16 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
                 return roundRobin;
             });
             if (weight != weightedRoundRobin.getWeight()) {
-                // weight changed.
+                // weight changed (warm-up ramping or configuration update).
                 weightedRoundRobin.setWeight(weight);
             }
             long cur = weightedRoundRobin.increaseCurrent();
-            weightedRoundRobin.setLastUpdate(now);
             if (cur > maxCurrent) {
                 maxCurrent = cur;
                 selectedInvoker = upstream;
                 selectedWeightedRoundRobin = weightedRoundRobin;
             }
             totalWeight += weight;
-        }
-        if (!updateLock.get() && upstreamList.size() != map.size() && updateLock.compareAndSet(false, true)) {
-            try {
-                // copy -> modify -> update reference.
-                ConcurrentMap<UpstreamIdentity, WeightedRoundRobin> newMap = new ConcurrentHashMap<>(map);
-                newMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
-                methodWeightMap.put(key, newMap);
-            } finally {
-                updateLock.set(false);
-            }
         }
         if (Objects.nonNull(selectedInvoker)) {
             selectedWeightedRoundRobin.sel(totalWeight);
@@ -97,8 +106,6 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
         private int weight;
 
         private final AtomicLong current = new AtomicLong(0);
-
-        private long lastUpdate;
 
         /**
          * Gets weight.
@@ -135,24 +142,6 @@ public class RoundRobinLoadBalancer extends AbstractLoadBalancer {
          */
         void sel(final long total) {
             current.addAndGet(-total);
-        }
-
-        /**
-         * Gets last update.
-         *
-         * @return the last update
-         */
-        long getLastUpdate() {
-            return lastUpdate;
-        }
-
-        /**
-         * Sets last update.
-         *
-         * @param lastUpdate the last update
-         */
-        void setLastUpdate(final long lastUpdate) {
-            this.lastUpdate = lastUpdate;
         }
     }
 }
