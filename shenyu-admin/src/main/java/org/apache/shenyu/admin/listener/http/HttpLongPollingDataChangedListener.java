@@ -166,9 +166,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     @Override
     protected void refreshCache(final ConfigGroupEnum group, final String namespaceId, final Runnable rebuild) {
         if (Objects.isNull(cacheRebuildCoordinator)) {
-            synchronized (refreshLocks.computeIfAbsent(namespaceId, key -> new Object())) {
-                super.refreshCache(group, namespaceId, rebuild);
-            }
+            super.refreshCache(group, namespaceId, rebuild);
             return;
         }
         Runnable work = () -> {
