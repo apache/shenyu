@@ -24,11 +24,16 @@ import org.apache.shenyu.plugin.mock.api.MockRequest;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
+import org.mockito.MockedStatic;
 import org.springframework.expression.spel.SpelEvaluationException;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +54,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * ExpressionGeneratorTest.
@@ -102,6 +109,24 @@ public class ExpressionGeneratorTest {
                 matchesRegex("^\"\\d{4}(-\\d{2}){2}\"$"));
     }
     
+    @Test
+    @ResourceLock(Resources.LOCALE)
+    public void testCurrentTimeUsesCalendarYearByDefault() {
+        LocalDateTime now = LocalDateTime.of(2025, 12, 31, 13, 14, 15);
+        Locale originalFormatLocale = Locale.getDefault(Locale.Category.FORMAT);
+        try (MockedStatic<LocalDateTime> time = mockStatic(LocalDateTime.class, CALLS_REAL_METHODS)) {
+            Locale.setDefault(Locale.Category.FORMAT, Locale.US);
+            time.when(LocalDateTime::now).thenReturn(now);
+
+            assertEquals("\"2025-12-31 13:14:15\"", GeneratorFactory.dealRule("${current}", mockRequest));
+            // With Locale.US, December 31, 2025 belongs to week-based year 2026.
+            assertEquals("\"2026-12-31\"", generator.generate("expression|#current('YYYY-MM-dd')", mockRequest));
+            assertEquals("\"2025-12-31 13:14:15\"", generator.generate("expression|#current()", mockRequest));
+        } finally {
+            Locale.setDefault(Locale.Category.FORMAT, originalFormatLocale);
+        }
+    }
+
     @Test
     public void testEmailTimeGenerate() {
         assertNotNull(generator.generate("expression|#email()", mockRequest));

@@ -34,7 +34,7 @@ public final class MockUtil {
     
     private static final Logger LOG = LoggerFactory.getLogger(MockUtil.class);
     
-    private static final String DEFAULT_FORMAT = "YYYY-MM-dd HH:mm:ss";
+    private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
     
     private static final String[] DOMAIN_SUFFIX = {"com", "org", "cn", "com.cn", "top", "edu", "io"};
     
