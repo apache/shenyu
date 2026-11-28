@@ -19,19 +19,14 @@ package org.apache.shenyu.client.core.utils;
 
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -53,32 +48,17 @@ public class RequestMethodUtils {
      * @return the list of method Type
      */
     public static List<String> getRequestMethodTypes(final Method method) {
-        if (method.isAnnotationPresent(GetMapping.class)) {
-            return List.of("GET");
+        RequestMapping mapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
+        if (Objects.isNull(mapping)) {
+            return List.of();
         }
-        if (method.isAnnotationPresent(PostMapping.class)) {
-            return List.of("POST");
+        RequestMethod[] requestMethods = mapping.method();
+        if (requestMethods.length == 0) {
+            return List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD");
         }
-        if (method.isAnnotationPresent(PutMapping.class)) {
-            return List.of("PUT");
-        }
-        if (method.isAnnotationPresent(DeleteMapping.class)) {
-            return List.of("DELETE");
-        }
-        if (method.isAnnotationPresent(PatchMapping.class)) {
-            return List.of("PATCH");
-        }
-        if (method.isAnnotationPresent(RequestMapping.class)) {
-            RequestMapping rm = method.getAnnotation(RequestMapping.class);
-            RequestMethod[] requestMethods = rm.method();
-            if (requestMethods.length == 0) {
-                return List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD");
-            }
-            return Arrays.stream(requestMethods)
-                    .map(Enum::name)
-                    .collect(Collectors.toList());
-        }
-        return List.of();
+        return Arrays.stream(requestMethods)
+                .map(Enum::name)
+                .collect(Collectors.toList());
     }
 
     /**
