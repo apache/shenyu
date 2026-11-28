@@ -272,17 +272,46 @@ class HttpCacheRebuildTest {
     }
 
     private AsyncContext client(final String namespace) {
-        AsyncContext context = mock(AsyncContext.class);
+        return client(namespace, "seed");
+    }
+
+    private AsyncContext client(final String namespace, final String ruleMd5) {
+        final AsyncContext context = mock(AsyncContext.class);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setParameter("namespaceId", namespace);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             listener.seedCache(group, namespace);
             request.setParameter(group.name(), "seed,0");
         }
+        request.setParameter(ConfigGroupEnum.RULE.name(), ruleMd5 + ",0");
         when(context.getRequest()).thenReturn(request);
         when(context.getResponse()).thenReturn(new MockHttpServletResponse());
         scheduler().execute(listener.new LongPollingClient(context, "127.0.0.1", 30000, namespace));
         return context;
+    }
+
+    @Test
+    void unchangedPluginNotificationKeepsClientListeningForTheNextRule() throws Exception {
+        AsyncContext waiting = client("a");
+        scheduler().submit(listener.new DataChangeTask(ConfigGroupEnum.PLUGIN, "a")).get(5, TimeUnit.SECONDS);
+        verify(waiting, never()).complete();
+        commit("1", "a", "new-route");
+        tasks.remove().run();
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        verify(waiting).complete();
+        assertTrue(((MockHttpServletResponse) waiting.getResponse()).getContentAsString().contains("RULE"));
+    }
+
+    @Test
+    void delayedNotificationOnlyWakesClientsMissingThePublishedGroup() throws Exception {
+        final AsyncContext behind = client("a");
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        listener.updateCache(ConfigGroupEnum.RULE, List.of(rule("1", "a", "new-route")), "a");
+        AsyncContext current = client("a", listener.cached("a").getMd5());
+        scheduler().submit(listener.new DataChangeTask(ConfigGroupEnum.RULE, "a")).get(5, TimeUnit.SECONDS);
+        verify(behind).complete();
+        verify(current, never()).complete();
+        assertEquals(1, listener.getClientsMap().get("a").size());
     }
 
     @Test
