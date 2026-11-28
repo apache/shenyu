@@ -40,6 +40,8 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.AiProxyProviderFactor
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAi;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiProviderOptions;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.provider.OpenAiCompatible;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmissionProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyEngine;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.AiProxyRetryProperties;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.config.AiProxyConfigService;
@@ -147,6 +149,32 @@ public class AiProxyPluginConfiguration {
      * @param responseCache          optional exact response cache
      * @return the AI proxy engine
      */
+    /**
+     * Opt-in concurrency admission properties, bound from
+     * {@code shenyu.plugins.ai.proxy.admission.*} (#8254).
+     *
+     * @return the bound properties
+     */
+    @Bean
+    @ConfigurationProperties("shenyu.plugins.ai.proxy.admission")
+    public AiConcurrencyAdmissionProperties aiConcurrencyAdmissionProperties() {
+        return new AiConcurrencyAdmissionProperties();
+    }
+
+    /**
+     * Opt-in concurrency admission (#8254): created only when
+     * {@code shenyu.plugins.ai.proxy.admission.enabled=true}; the bounds fail fast at
+     * construction when misconfigured.
+     *
+     * @param properties the bound admission properties
+     * @return the admission component
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "shenyu.plugins.ai.proxy.admission", name = "enabled", havingValue = "true")
+    public AiConcurrencyAdmission aiConcurrencyAdmission(final AiConcurrencyAdmissionProperties properties) {
+        return new AiConcurrencyAdmission(properties);
+    }
+
     @Bean
     public AiProxyEngine aiProxyEngine(final AiProxyProtocolFactory aiProxyProtocolFactory,
                                        final AiProxyProviderFactory aiProxyProviderFactory,
@@ -155,7 +183,8 @@ public class AiProxyPluginConfiguration {
                                        final ObjectProvider<AiCallObserver> observers,
                                        final AiProxyRetryProperties retryProperties,
                                        final ObjectProvider<AiProxyAttemptListener> attemptListener,
-                                       final ObjectProvider<AiExactResponseCache> responseCache) {
+                                       final ObjectProvider<AiExactResponseCache> responseCache,
+                                       final ObjectProvider<AiConcurrencyAdmission> admission) {
         return AiProxyEngine.builder(aiProxyProtocolFactory, aiProxyProviderFactory,
                         aiProtocolRouteResolver, aiProxyTransport)
                 .retryProperties(retryProperties)
@@ -163,6 +192,7 @@ public class AiProxyPluginConfiguration {
                 .attemptListener(attemptListener.getIfAvailable(() -> event -> {
                 }))
                 .responseCache(responseCache.getIfAvailable())
+                .admission(admission.getIfAvailable())
                 .build();
     }
 

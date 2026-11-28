@@ -51,7 +51,8 @@ class AiProxyFailureMapperTest {
     void mapsEveryProxyFailureKind(final AiProxyException.Kind kind) {
         AiProxyFailureResponse response = mapper.map(new AiProxyException(kind, "proxy failure", null));
         HttpStatus expected = kind == AiProxyException.Kind.REQUEST
-                ? HttpStatus.BAD_REQUEST : HttpStatus.BAD_GATEWAY;
+                ? HttpStatus.BAD_REQUEST
+                : kind == AiProxyException.Kind.ADMISSION ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.BAD_GATEWAY;
         assertEquals(expected, response.getStatus());
     }
 

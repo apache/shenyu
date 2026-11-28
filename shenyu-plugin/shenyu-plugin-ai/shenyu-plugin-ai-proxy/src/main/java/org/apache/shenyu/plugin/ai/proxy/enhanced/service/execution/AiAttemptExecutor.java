@@ -25,6 +25,11 @@ import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.event.AiProxyAttemptEvent;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.observation.AiObservationSupport;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.orchestration.AiAttemptOutcome;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiProxyException;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission.AdmissionOutcome;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission.AdmissionResult;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission.AdmissionTicket;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.service.planning.AiPreparedExchange;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.transport.AiProxyTransport;
 import reactor.core.publisher.Mono;
@@ -39,8 +44,11 @@ public final class AiAttemptExecutor {
 
     private final AiProxyTransport transport;
 
-    public AiAttemptExecutor(final AiProxyTransport transport) {
+    private final AiConcurrencyAdmission admission;
+
+    public AiAttemptExecutor(final AiProxyTransport transport, final AiConcurrencyAdmission admission) {
         this.transport = Objects.requireNonNull(transport, "transport must not be null");
+        this.admission = admission;
     }
 
     public Mono<AiAttemptOutcome> execute(final AiExecutionState.AttemptLifecycle lifecycle,
@@ -54,10 +62,31 @@ public final class AiAttemptExecutor {
             AiRequestObservation.Attempt observation = lifecycle.observation().startAttempt(
                     target, attemptKind(phase, attemptIndex), prepared.providerName(),
                     prepared.clientProtocol(), prepared.stream());
-            return transport.execute(prepared.request())
-                    .flatMap(response -> handleResponse(response, prepared, observation, responseHandler))
-                    .timeout(lifecycle.requestDeadline().remainingTimeout(),
-                            Mono.error(lifecycle.requestDeadline().timeoutException()))
+            // the target permit covers exactly one attempt — for streaming that is body
+            // completion — and backoff between attempts holds none (#8254)
+            Mono<AdmissionResult> targetAdmission = Objects.isNull(admission)
+                    ? Mono.just(AdmissionResult.ADMITTED)
+                    // the pool key is the authorized (configured) model, never the client
+                    // body's model string: a caller must not rotate keys or occupy pool
+                    // slots with arbitrary endpoint strings (#8254 review)
+                    : admission.acquireTarget(prepared.authorizedModel(),
+                            lifecycle.requestDeadline().deadlineNanos());
+            return targetAdmission.flatMap(result -> {
+                if (result.outcome() != AdmissionOutcome.ACQUIRED) {
+                    return Mono.error(new AiProxyException(AiProxyException.Kind.ADMISSION,
+                            "AI attempt rejected by concurrency admission: " + result.outcome(), null));
+                }
+                AdmissionTicket targetTicket = result.ticket();
+                return transport.execute(prepared.request())
+                        .flatMap(response -> handleResponse(response, prepared, observation, responseHandler))
+                        .timeout(lifecycle.requestDeadline().remainingTimeout(),
+                                Mono.error(lifecycle.requestDeadline().timeoutException()))
+                        .doFinally(signal -> {
+                            if (java.util.Objects.nonNull(admission)) {
+                                admission.release(targetTicket);
+                            }
+                        });
+            })
                     .doOnSuccess(ignored -> observation.finish(SignalType.ON_COMPLETE, null))
                     .doOnError(error -> observation.finish(SignalType.ON_ERROR, AiObservationSupport.outcome(error)))
                     .doFinally(signal -> {

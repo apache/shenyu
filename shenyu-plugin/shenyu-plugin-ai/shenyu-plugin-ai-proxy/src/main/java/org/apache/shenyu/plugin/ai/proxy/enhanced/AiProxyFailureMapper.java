@@ -73,6 +73,8 @@ final class AiProxyFailureMapper {
         HttpStatus status = switch (failure.getKind()) {
             case REQUEST -> HttpStatus.BAD_REQUEST;
             case PROVIDER, TRANSPORT, PROTOCOL, CONTENT -> HttpStatus.BAD_GATEWAY;
+            // admission rejection happens before any upstream call: 429 with no retry burn
+            case ADMISSION -> HttpStatus.TOO_MANY_REQUESTS;
         };
         return response(status);
     }

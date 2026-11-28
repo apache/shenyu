@@ -106,7 +106,7 @@ class AiAttemptExecutorTest {
 
     private static AiAttemptExecutor executor() {
         return new AiAttemptExecutor(request -> Mono.just(
-                new AiUpstreamResponse(200, Map.of(), Flux.empty())));
+                new AiUpstreamResponse(200, Map.of(), Flux.empty())), null);
     }
 
     private static AiExecutionState.AttemptLifecycle lifecycle(final List<AiAttemptEvent> attempts) {
@@ -131,6 +131,6 @@ class AiAttemptExecutorTest {
         request.setBody("{\"model\":\"test-model\"}".getBytes(StandardCharsets.UTF_8));
         return new AiPreparedExchange(request, AiResponseAdapter.identity(), AiProtocolResponseInspector.identity(),
                 "openai-chat", "openai-chat", false, true, ShenyuAiRequest.Operation.CHAT_COMPLETION,
-                true, "openai", "test-model", false);
+                true, "openai", "test-model", false, "test-model");
     }
 }

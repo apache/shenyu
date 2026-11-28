@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.ai.proxy.enhanced.service;
 
 import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.ai.common.config.AiCommonConfig;
+import org.apache.shenyu.plugin.ai.proxy.enhanced.admission.AiConcurrencyAdmission;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.cache.AiExactResponseCache;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamRequest;
 import org.apache.shenyu.plugin.ai.proxy.enhanced.model.AiUpstreamResponse;
@@ -70,7 +71,7 @@ public final class AiProxyEngine {
     private AiProxyEngine(final Builder builder) {
         this.exchangePlanner = new AiExchangePlanner(
                 builder.protocols, builder.providers, builder.routeResolver);
-        AiAttemptExecutor attemptExecutor = new AiAttemptExecutor(builder.transport);
+        AiAttemptExecutor attemptExecutor = new AiAttemptExecutor(builder.transport, builder.admission);
         AiRetrySettings retrySettings = new AiRetrySettings(builder.retryProperties);
         AiAttemptEventEmitter eventEmitter = new AiAttemptEventEmitter(builder.attemptListener);
         AiStatusFailureClassifier statusFailureClassifier = new AiStatusFailureClassifier(
@@ -80,7 +81,7 @@ public final class AiProxyEngine {
         AiAttemptOrchestrator attemptOrchestrator = new AiAttemptOrchestrator(
                 exchangePlanner, attemptExecutor, retrySettings, eventEmitter, statusOutcomeResolver);
         this.executionCoordinator = new AiExecutionCoordinator(
-                attemptOrchestrator, builder.retryProperties, builder.responseCache);
+                attemptOrchestrator, builder.retryProperties, builder.responseCache, builder.admission);
         this.observationScope = new AiCallObservationScope(builder.observer);
     }
 
@@ -154,6 +155,8 @@ public final class AiProxyEngine {
 
         private AiExactResponseCache responseCache;
 
+        private AiConcurrencyAdmission admission;
+
         private Builder(final AiProxyProtocolFactory protocols, final AiProxyProviderFactory providers,
                         final AiProtocolRouteResolver routeResolver, final AiProxyTransport transport) {
             this.protocols = Objects.requireNonNull(protocols, "protocols must not be null");
@@ -203,6 +206,17 @@ public final class AiProxyEngine {
          */
         public Builder responseCache(final AiExactResponseCache responseCache) {
             this.responseCache = responseCache;
+            return this;
+        }
+
+        /**
+         * Attach the opt-in concurrency admission (#8254).
+         *
+         * @param admission the admission component, or null to disable
+         * @return builder
+         */
+        public Builder admission(final AiConcurrencyAdmission admission) {
+            this.admission = admission;
             return this;
         }
 
