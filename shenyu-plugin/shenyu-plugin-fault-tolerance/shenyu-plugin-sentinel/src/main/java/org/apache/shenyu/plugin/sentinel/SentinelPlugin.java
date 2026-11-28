@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.sentinel;
 
+import com.alibaba.csp.sentinel.EntryType;
+import com.alibaba.csp.sentinel.adapter.reactor.EntryConfig;
 import com.alibaba.csp.sentinel.adapter.reactor.SentinelReactorTransformer;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -36,6 +38,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -44,6 +47,10 @@ import java.util.function.Consumer;
  * Sentinel Plugin.
  */
 public class SentinelPlugin extends AbstractShenyuPlugin {
+
+    private static final int MAX_PARAMETER_LENGTH = 256;
+
+    private static final String MISSING_PARAMETER_BUCKET = "missing";
 
     private final FallbackHandler fallbackHandler;
 
@@ -66,12 +73,35 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
                 throw new SentinelFallbackException(Objects.isNull(status) ? HttpStatus.INTERNAL_SERVER_ERROR : status);
             }
         });
-        return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName)).onErrorResume(throwable ->
+        return protect(exchange, chain, resourceName, sentinelHandle).onErrorResume(throwable ->
                 fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable)).doFinally(monoV -> {
                     final Consumer<HttpStatusCode> consumer = exchange.getAttribute(Constants.METRICS_SENTINEL);
                     Optional.ofNullable(consumer).ifPresent(c -> c.accept(exchange.getResponse().getStatusCode()));
                 }
         );
+    }
+
+    private static Mono<Void> protect(final ServerWebExchange exchange, final ShenyuPluginChain chain, final String resourceName, final SentinelHandle handle) {
+        if (!handle.isParamFlowEnabled()) {
+            return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName));
+        }
+        final EntryConfig entry = new EntryConfig(resourceName, EntryType.OUT, 1, parameterArguments(exchange, handle));
+        // Start the downstream chain only after the Sentinel subscriber has granted demand.
+        return Mono.just(exchange).hide().flatMap(chain::execute).transform(new SentinelReactorTransformer<>(entry));
+    }
+
+    private static Object[] parameterArguments(final ServerWebExchange exchange, final SentinelHandle handle) {
+        Object value = SentinelHandle.PARAM_FLOW_HEADER.equals(handle.getParamFlowSource())
+                ? singleHeader(exchange, handle.getParamFlowKey()) : exchange.getAttribute(handle.getParamFlowKey());
+        if (value instanceof String parameter && !parameter.isBlank() && parameter.length() <= MAX_PARAMETER_LENGTH) {
+            return new Object[] {"value:" + parameter};
+        }
+        return handle.skipMissingParamFlowKey() ? new Object[0] : new Object[] {MISSING_PARAMETER_BUCKET};
+    }
+
+    private static String singleHeader(final ServerWebExchange exchange, final String key) {
+        List<String> values = exchange.getRequest().getHeaders().get(key);
+        return Objects.nonNull(values) && values.size() == 1 ? values.get(0) : null;
     }
 
     @Override

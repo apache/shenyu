@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
+import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowRuleManager;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.rule.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
@@ -54,6 +55,7 @@ public final class SentinelRuleHandleTest {
     public void setUp() {
         FlowRuleManager.loadRules(Collections.emptyList());
         DegradeRuleManager.loadRules(Collections.emptyList());
+        ParamFlowRuleManager.loadRules(Collections.emptyList());
         sentinelRuleHandle = new SentinelRuleHandle();
     }
 
@@ -139,6 +141,48 @@ public final class SentinelRuleHandleTest {
         assertTrue(FlowRuleManager.getRules().isEmpty());
         assertTrue(DegradeRuleManager.getRules().isEmpty());
         assertNull(SentinelRuleHandle.CACHED_HANDLE.get().obtainHandle("sentinel_null-clear-test"));
+    }
+
+    @Test
+    public void switchingModesDoesNotChangeTheDegradeResourceOrOtherRules() {
+        RuleData rule = createRuleData("switch");
+        RuleData other = createRuleData("other");
+        sentinelRuleHandle.handlerRule(rule);
+        sentinelRuleHandle.handlerRule(other);
+        final String legacy = rule.getHandle();
+        String parameter = """
+                {"flowRuleEnable":1,"flowRuleCount":5,"degradeRuleEnable":1,"degradeRuleCount":1,
+                 "degradeRuleGrade":0,"degradeRuleTimeWindow":5,"paramFlowEnable":1,
+                 "paramFlowSource":"HEADER","paramFlowKey":"X-Quota-Group"}
+                """;
+        rule.setHandle(parameter);
+        sentinelRuleHandle.handlerRule(rule);
+        assertEquals(5.0, ParamFlowRuleManager.getRulesOfResource("sentinel_switch").get(0).getCount());
+        assertEquals("sentinel_other", FlowRuleManager.getRules().get(0).getResource());
+        assertTrue(DegradeRuleManager.getRules().stream().anyMatch(item -> "sentinel_switch".equals(item.getResource())));
+
+        rule.setHandle(parameter.replace("\"HEADER\"", "\"INVALID\""));
+        sentinelRuleHandle.handlerRule(rule);
+        assertEquals(1, ParamFlowRuleManager.getRulesOfResource("sentinel_switch").size());
+
+        rule.setHandle(legacy);
+        sentinelRuleHandle.handlerRule(rule);
+        assertTrue(ParamFlowRuleManager.getRules().isEmpty());
+        assertEquals(2, FlowRuleManager.getRules().size());
+
+        rule.setHandle(parameter);
+        sentinelRuleHandle.handlerRule(rule);
+        rule.setEnabled(false);
+        sentinelRuleHandle.handlerRule(rule);
+        assertTrue(ParamFlowRuleManager.getRules().isEmpty());
+        assertEquals("sentinel_other", FlowRuleManager.getRules().get(0).getResource());
+
+        rule.setEnabled(true);
+        sentinelRuleHandle.handlerRule(rule);
+        sentinelRuleHandle.removeRule(rule);
+        assertTrue(ParamFlowRuleManager.getRules().isEmpty());
+        assertNull(SentinelRuleHandle.CACHED_HANDLE.get().obtainHandle("sentinel_switch"));
+        sentinelRuleHandle.removeRule(other);
     }
 
     private SentinelHandle sentinelHandle() {

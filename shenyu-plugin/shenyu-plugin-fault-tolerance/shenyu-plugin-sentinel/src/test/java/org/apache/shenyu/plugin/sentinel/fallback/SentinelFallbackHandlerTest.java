@@ -20,7 +20,10 @@ package org.apache.shenyu.plugin.sentinel.fallback;
 import com.alibaba.csp.sentinel.slots.block.authority.AuthorityException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
+import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowException;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UriUtils;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuEntity;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -34,7 +37,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
@@ -50,7 +52,7 @@ public final class SentinelFallbackHandlerTest {
 
     private SentinelFallbackHandler fallbackHandler;
 
-    private ServerWebExchange exchange;
+    private MockServerWebExchange exchange;
 
     @BeforeEach
     public void setUp() {
@@ -78,6 +80,15 @@ public final class SentinelFallbackHandlerTest {
     @Test
     public void testFlowException() {
         StepVerifier.create(fallbackHandler.withoutFallback(exchange, new FlowException(""))).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testParameterFlowExceptionReturnsTooManyRequests() {
+        StepVerifier.create(fallbackHandler.withoutFallback(exchange, new ParamFlowException("resource", "blue"))).verifyComplete();
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS, exchange.getResponse().getStatusCode());
+        StepVerifier.create(exchange.getResponse().getBodyAsString())
+                .assertNext(body -> assertEquals(429, GsonUtils.getInstance().fromJson(body, DefaultShenyuEntity.class).getCode().intValue()))
+                .verifyComplete();
     }
 
     /**

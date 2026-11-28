@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.sentinel.fallback;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
+import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowException;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
@@ -41,7 +42,7 @@ public class SentinelFallbackHandler implements FallbackHandler {
         if (throwable instanceof DegradeException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.SERVICE_RESULT_ERROR);
-        } else if (throwable instanceof FlowException) {
+        } else if (throwable instanceof FlowException || throwable instanceof ParamFlowException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
             error = ShenyuResultWrap.error(exchange, ShenyuResultEnum.TOO_MANY_REQUESTS);
         } else if (throwable instanceof BlockException) {
