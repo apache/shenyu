@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.AppAuthService;
@@ -58,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.apache.shenyu.admin.service.AiProxyApiKeyService;
@@ -335,6 +337,61 @@ public final class AbstractDataChangedListenerTest {
         listener.updateCache(ConfigGroupEnum.META_DATA, metaDatas, SYS_DEFAULT_NAMESPACE_ID);
         ConfigData<?> result5 = listener.fetchConfig(ConfigGroupEnum.META_DATA, SYS_DEFAULT_NAMESPACE_ID);
         assertNotNull(result5);
+    }
+
+    @Test
+    public void testFetchConfigLoadsMissingGroupsForNewlyCreatedNamespaceAndPropagatesLaterEdit() {
+        listener.afterPropertiesSet();
+
+        String newNamespace = "ns-created-after-startup";
+        SelectorData divideSelector = SelectorData.builder()
+                .id("divide-selector-1")
+                .namespaceId(newNamespace)
+                .build();
+        when(namespacePluginService.listAll(newNamespace)).thenReturn(Collections.emptyList());
+        when(appAuthService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(ruleService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(selectorService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.singletonList(divideSelector));
+        when(metaDataService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(proxySelectorService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(discoveryUpstreamService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+        when(aiProxyApiKeyService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.emptyList());
+
+        // Simulate a route created in the new namespace while APP_AUTH and other groups were never written.
+        listener.onSelectorChanged(Collections.singletonList(divideSelector), DataEventTypeEnum.CREATE);
+        assertFalse(listener.getCache().containsKey(
+                HttpLongPollingDataChangedListener.buildCacheKey(newNamespace, ConfigGroupEnum.APP_AUTH.name())));
+
+        String emptyJsonMd5 = DigestUtils.md5Hex("[]");
+        for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+            ConfigData<?> fetched = listener.fetchConfig(group, newNamespace);
+            assertNotNull(fetched);
+            assertNotNull(fetched.getMd5());
+            assertTrue(fetched.getLastModifyTime() > 0);
+            assertNotNull(fetched.getData());
+            if (group == ConfigGroupEnum.SELECTOR) {
+                assertEquals(1, fetched.getData().size());
+                assertEquals("divide-selector-1", ((SelectorData) fetched.getData().get(0)).getId());
+            } else {
+                assertTrue(fetched.getData().isEmpty());
+                assertEquals(emptyJsonMd5, fetched.getMd5());
+            }
+        }
+        verify(appAuthService, times(1)).listAllByNamespaceId(newNamespace);
+
+        // Subsequent APP_AUTH edit in the new namespace must update the cached snapshot and propagate.
+        AppAuthData newAuth = AppAuthData.builder()
+                .appKey("app-key-1")
+                .namespaceId(newNamespace)
+                .build();
+        when(appAuthService.listAllByNamespaceId(newNamespace)).thenReturn(Collections.singletonList(newAuth));
+        listener.onAppAuthChanged(Collections.singletonList(newAuth), DataEventTypeEnum.CREATE);
+
+        ConfigData<?> updatedAuth = listener.fetchConfig(ConfigGroupEnum.APP_AUTH, newNamespace);
+        assertEquals(1, updatedAuth.getData().size());
+        assertEquals("app-key-1", ((AppAuthData) updatedAuth.getData().get(0)).getAppKey());
+        assertFalse(emptyJsonMd5.equals(updatedAuth.getMd5()));
+        assertCallbackBatch(ConfigGroupEnum.APP_AUTH, newNamespace, newAuth);
     }
 
     @Test

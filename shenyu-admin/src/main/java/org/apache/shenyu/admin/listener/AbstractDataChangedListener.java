@@ -124,7 +124,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @return the configuration data
      */
     public ConfigData<?> fetchConfig(final ConfigGroupEnum groupKey, final String namespaceId) {
-        ConfigDataCache config = CACHE.get(HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, groupKey.name()));
+        ConfigDataCache config = getOrLoadCache(groupKey, namespaceId);
         switch (groupKey) {
             case APP_AUTH:
                 return buildConfigData(config, AppAuthData.class);
@@ -389,6 +389,33 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateProxySelectorDataCache(namespaceId);
         this.updateDiscoveryUpstreamDataCache(namespaceId);
         this.updateAiProxyApiKeyCache(namespaceId);
+    }
+
+    /**
+     * Get cached configuration for a group and namespace, loading from persistence if absent.
+     *
+     * @param groupKey    the group key
+     * @param namespaceId the namespaceId
+     * @return the cached configuration
+     */
+    protected ConfigDataCache getOrLoadCache(final ConfigGroupEnum groupKey, final String namespaceId) {
+        String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, groupKey.name());
+        ConfigDataCache config = CACHE.get(cacheKey);
+        if (Objects.isNull(config)) {
+            this.refreshLocalCache(namespaceId);
+            config = CACHE.get(cacheKey);
+        }
+        return config;
+    }
+
+    /**
+     * Check whether the namespace exists in persistence.
+     *
+     * @param namespaceId namespace id
+     * @return true if the namespace exists
+     */
+    protected boolean isNamespaceExist(final String namespaceId) {
+        return Objects.nonNull(namespaceService.findByNamespaceId(namespaceId));
     }
 
     /**

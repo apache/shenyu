@@ -27,7 +27,9 @@ import org.apache.shenyu.admin.listener.ConfigDataCache;
 import org.apache.shenyu.admin.model.event.instance.InstanceInfoReportEvent;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.InstanceInfoVO;
+import org.apache.shenyu.admin.model.vo.NamespaceVO;
 import org.apache.shenyu.admin.service.InstanceInfoService;
+import org.apache.shenyu.admin.service.NamespaceService;
 import org.apache.shenyu.admin.service.fencing.RegistrationFencingGuard;
 import org.apache.shenyu.admin.service.impl.InstanceCheckService;
 import org.apache.shenyu.admin.service.publish.InstanceInfoReportEventPublisher;
@@ -35,6 +37,7 @@ import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.constant.InstanceTypeConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
+import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.dto.DiscoverySyncData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -44,6 +47,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.InstanceStatusEnum;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,8 +76,13 @@ import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -395,6 +404,98 @@ public final class HttpLongPollingDataChangedListenerTest {
         } finally {
             clearAllGroupsInCache(namespaceId);
             clearAllGroupsInCache(otherNamespaceId);
+        }
+    }
+
+    @Test
+    public void testFetchConfigMissingGroupLoadsOnceUnderConcurrency() throws Exception {
+        String namespaceId = "ns-concurrent-miss";
+        AtomicInteger refreshCount = new AtomicInteger();
+        HttpLongPollingDataChangedListener concurrentListener = new HttpLongPollingDataChangedListener(httpSyncProperties) {
+            @Override
+            protected void refreshLocalCache(final String ns) {
+                refreshCount.incrementAndGet();
+                for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+                    updateCache(group, List.of(), ns);
+                }
+            }
+        };
+        ExecutorService pool = Executors.newFixedThreadPool(4);
+        CountDownLatch startGate = new CountDownLatch(1);
+        try {
+            List<Future<ConfigData<?>>> futures = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                futures.add(pool.submit(() -> {
+                    startGate.await(5, TimeUnit.SECONDS);
+                    return concurrentListener.fetchConfig(ConfigGroupEnum.APP_AUTH, namespaceId);
+                }));
+            }
+            startGate.countDown();
+            for (Future<ConfigData<?>> future : futures) {
+                ConfigData<?> data = future.get(5, TimeUnit.SECONDS);
+                assertNotNull(data);
+                assertTrue(data.getData().isEmpty());
+            }
+            assertEquals(1, refreshCount.get());
+        } finally {
+            pool.shutdownNow();
+            clearAllGroupsInCache(namespaceId);
+        }
+    }
+
+    @Test
+    public void testCompareChangedGroupLoadsMissingCacheForExistingNamespace() throws Exception {
+        String namespaceId = "ns-longpoll-miss";
+        NamespaceService namespaceService = Mockito.mock(NamespaceService.class);
+        Mockito.when(namespaceService.findByNamespaceId(namespaceId)).thenReturn(new NamespaceVO());
+        AtomicInteger refreshCount = new AtomicInteger();
+        HttpLongPollingDataChangedListener target = new HttpLongPollingDataChangedListener(httpSyncProperties) {
+            @Override
+            protected void refreshLocalCache(final String ns) {
+                refreshCount.incrementAndGet();
+                for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+                    updateCache(group, List.of(), ns);
+                }
+            }
+        };
+        injectNamespaceService(target, namespaceService);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("namespaceId", namespaceId);
+        setAllGroupParamsForNamespace(request, namespaceId);
+        try {
+            List<ConfigGroupEnum> changed = invokeCompareChangedGroup(target, request);
+            assertEquals(ConfigGroupEnum.values().length, changed.size());
+            assertEquals(1, refreshCount.get());
+        } finally {
+            clearAllGroupsInCache(namespaceId);
+        }
+    }
+
+    @Test
+    public void testCompareChangedGroupRejectsUnknownNamespaceWithoutPollutingCache() throws Exception {
+        String unknownNamespace = "ns-does-not-exist";
+        NamespaceService namespaceService = Mockito.mock(NamespaceService.class);
+        Mockito.when(namespaceService.findByNamespaceId(unknownNamespace)).thenReturn(null);
+        AtomicInteger refreshCount = new AtomicInteger();
+        HttpLongPollingDataChangedListener target = new HttpLongPollingDataChangedListener(httpSyncProperties) {
+            @Override
+            protected void refreshLocalCache(final String ns) {
+                refreshCount.incrementAndGet();
+            }
+        };
+        injectNamespaceService(target, namespaceService);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("namespaceId", unknownNamespace);
+        setAllGroupParamsForNamespace(request, unknownNamespace);
+        try {
+            InvocationTargetException ex = assertThrows(InvocationTargetException.class,
+                    () -> invokeCompareChangedGroup(target, request));
+            assertTrue(ex.getTargetException() instanceof ShenyuException);
+            assertEquals("namespace is not exist", ex.getTargetException().getMessage());
+            assertEquals(0, refreshCount.get());
+            assertNull(getCache().get(HttpLongPollingDataChangedListener.buildCacheKey(unknownNamespace, ConfigGroupEnum.APP_AUTH.name())));
+        } finally {
+            clearAllGroupsInCache(unknownNamespace);
         }
     }
 
@@ -1079,10 +1180,23 @@ public final class HttpLongPollingDataChangedListenerTest {
 
     @SuppressWarnings("unchecked")
     private List<ConfigGroupEnum> invokeCompareChangedGroup(final HttpServletRequest request) throws Exception {
+        return invokeCompareChangedGroup(listener, request);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<ConfigGroupEnum> invokeCompareChangedGroup(final HttpLongPollingDataChangedListener target,
+                                                            final HttpServletRequest request) throws Exception {
         Method method = HttpLongPollingDataChangedListener.class.getDeclaredMethod(
                 "compareChangedGroup", HttpServletRequest.class);
         method.setAccessible(true);
-        return (List<ConfigGroupEnum>) method.invoke(listener, request);
+        return (List<ConfigGroupEnum>) method.invoke(target, request);
+    }
+
+    private void injectNamespaceService(final HttpLongPollingDataChangedListener target,
+                                        final NamespaceService namespaceService) throws Exception {
+        Field field = AbstractDataChangedListener.class.getDeclaredField("namespaceService");
+        field.setAccessible(true);
+        field.set(target, namespaceService);
     }
 
     private void invokeGenerateResponse(final jakarta.servlet.http.HttpServletResponse response,

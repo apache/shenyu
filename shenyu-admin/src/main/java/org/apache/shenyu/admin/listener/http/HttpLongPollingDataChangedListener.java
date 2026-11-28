@@ -196,6 +196,23 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
     }
 
+    @Override
+    protected ConfigDataCache getOrLoadCache(final ConfigGroupEnum groupKey, final String namespaceId) {
+        String cacheKey = buildCacheKey(namespaceId, groupKey.name());
+        ConfigDataCache config = CACHE.get(cacheKey);
+        if (Objects.nonNull(config)) {
+            return config;
+        }
+        synchronized (refreshLocks.computeIfAbsent(namespaceId, key -> new Object())) {
+            config = CACHE.get(cacheKey);
+            if (Objects.isNull(config)) {
+                this.refreshLocalCache(namespaceId);
+                config = CACHE.get(cacheKey);
+            }
+        }
+        return config;
+    }
+
     private void notifyChanged(final ConfigGroupEnum group, final String namespaceId) {
         // Intentionally a no-op when coalescing is enabled: the coalesced rebuild in refreshCache issues
         // the DataChangeTask after it publishes the new snapshot, so notifying here would wake clients
@@ -352,13 +369,24 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
 
-            ConfigDataCache serverCache = CACHE.get(buildCacheKey(namespaceId, group.name()));
+            ConfigDataCache serverCache = resolveServerCache(group, namespaceId);
             // do check.
             if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
                 changedGroup.add(group);
             }
         }
         return changedGroup;
+    }
+
+    private ConfigDataCache resolveServerCache(final ConfigGroupEnum group, final String namespaceId) {
+        ConfigDataCache serverCache = CACHE.get(buildCacheKey(namespaceId, group.name()));
+        if (Objects.nonNull(serverCache)) {
+            return serverCache;
+        }
+        if (!this.isNamespaceExist(namespaceId)) {
+            throw new ShenyuException("namespace is not exist");
+        }
+        return this.getOrLoadCache(group, namespaceId);
     }
 
     public static String buildCacheKey(final String namespaceId, final String group) {
