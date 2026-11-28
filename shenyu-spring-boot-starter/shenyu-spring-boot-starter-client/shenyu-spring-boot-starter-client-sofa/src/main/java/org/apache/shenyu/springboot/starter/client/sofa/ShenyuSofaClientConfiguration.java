@@ -21,6 +21,8 @@ import org.apache.shenyu.client.sofa.SofaServiceEventListener;
 import org.apache.shenyu.common.utils.VersionUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuClientConfig;
+import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.springboot.starter.client.common.config.ClientRegistrationValidator;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,4 +52,15 @@ public class ShenyuSofaClientConfiguration {
     public SofaServiceEventListener sofaServiceEventListener(final ShenyuClientConfig clientConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new SofaServiceEventListener(clientConfig, shenyuClientRegisterRepository);
     }
+
+    /**
+     * Declare validation for this enabled protocol before common client resources are allocated.
+     *
+     * @return protocol configuration validator
+     */
+    @Bean
+    public ClientRegistrationValidator sofaClientRegistrationValidator() {
+        return new ClientRegistrationValidator(RpcTypeEnum.SOFA);
+    }
+
 }

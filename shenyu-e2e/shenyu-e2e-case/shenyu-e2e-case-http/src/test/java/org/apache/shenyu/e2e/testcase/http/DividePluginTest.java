@@ -18,21 +18,21 @@
 package org.apache.shenyu.e2e.testcase.http;
 
 import com.google.common.collect.Lists;
-import org.apache.shenyu.e2e.client.WaitDataSync;
 import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuScenario;
 import org.apache.shenyu.e2e.engine.annotation.ShenYuTest;
+import org.apache.shenyu.e2e.engine.scenario.function.ConfigSyncHelper;
+import org.apache.shenyu.e2e.engine.scenario.specification.AfterEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.BeforeEachSpec;
 import org.apache.shenyu.e2e.engine.scenario.specification.CaseSpec;
 import org.apache.shenyu.e2e.enums.ServiceTypeEnum;
 import org.apache.shenyu.e2e.model.ResourcesData;
 import org.apache.shenyu.e2e.model.data.BindingData;
 import org.apache.shenyu.e2e.model.response.SelectorDTO;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,9 +61,9 @@ import static org.apache.shenyu.e2e.constant.Constants.SYS_DEFAULT_NAMESPACE_NAM
 })
 public class DividePluginTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DividePluginTest.class);
+    private final List<String> selectorIds = Lists.newArrayList();
 
-    private List<String> selectorIds = Lists.newArrayList();
+    private final List<String> ruleIds = Lists.newArrayList();
 
     @BeforeEach
     void before(final AdminClient client, final GatewayClient gateway, final BeforeEachSpec spec) {
@@ -75,7 +75,7 @@ public class DividePluginTest {
             selectorIds.add(dto.getId());
             res.getRules().forEach(rule -> {
                 rule.setSelectorId(dto.getId());
-                client.create(rule);
+                ruleIds.add(client.create(rule).getId());
             });
             BindingData bindingData = res.getBindingData();
             if (Objects.nonNull(bindingData)) {
@@ -85,23 +85,22 @@ public class DividePluginTest {
             }
         }
 
+        ConfigSyncHelper.awaitCreated(gateway, selectorIds, ruleIds);
         spec.getWaiting().waitFor(gateway);
     }
 
-//    @AfterEach
-//    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
-//        spec.getDeleter().delete(client, selectorIds);
-//        spec.deleteWaiting().waitFor(gateway);
-//        selectorIds = Lists.newArrayList();
-//    }
-
+    @AfterEach
+    void after(final AdminClient client, final GatewayClient gateway, final AfterEachSpec spec) {
+        if (!selectorIds.isEmpty()) {
+            spec.getDeleter().delete(client, selectorIds);
+            ConfigSyncHelper.awaitDeleted(gateway, selectorIds, ruleIds);
+        }
+        spec.deleteWaiting().waitFor(gateway);
+    }
 
     @BeforeAll
-    void setup(final AdminClient adminClient, final GatewayClient gatewayClient) throws Exception {
+    void setup(final AdminClient adminClient) {
         adminClient.login();
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllSelectors, gatewayClient::getSelectorCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllMetaData, gatewayClient::getMetaDataCache, adminClient);
-        WaitDataSync.waitAdmin2GatewayDataSyncEquals(adminClient::listAllRules, gatewayClient::getRuleCache, adminClient);
     }
 
     @ShenYuScenario(provider = DividePluginCases.class)

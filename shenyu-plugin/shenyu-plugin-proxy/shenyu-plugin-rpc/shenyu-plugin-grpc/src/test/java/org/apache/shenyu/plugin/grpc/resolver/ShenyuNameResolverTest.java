@@ -29,13 +29,18 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,18 +59,22 @@ public class ShenyuNameResolverTest {
     private NameResolver.Listener2 listener;
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setUp() {
         cache = ApplicationConfigCache.getInstance();
         cache.invalidate(APP_NAME);
+        resolver = newResolver();
+        listener = mock(NameResolver.Listener2.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ShenyuNameResolver newResolver() {
         NameResolver.Args args = mock(NameResolver.Args.class);
         when(args.getSynchronizationContext()).thenReturn(new SynchronizationContext((thread, error) -> {
             throw new AssertionError(error);
         }));
         SharedResourceHolder.Resource<Executor> resource = mock(SharedResourceHolder.Resource.class);
         when(resource.create()).thenReturn(Runnable::run);
-        resolver = new ShenyuNameResolver(APP_NAME, args, resource);
-        listener = mock(NameResolver.Listener2.class);
+        return new ShenyuNameResolver(APP_NAME, args, resource);
     }
 
     @AfterEach
@@ -83,8 +92,7 @@ public class ShenyuNameResolverTest {
         updateUpstream("127.0.0.1:8080");
         resolver.refresh();
 
-        verify(listener, times(1)).onResult(any(NameResolver.ResolutionResult.class));
-        verify(listener, never()).onError(any(Status.class));
+        verifySuccessfulResults(1);
     }
 
     @Test
@@ -97,10 +105,8 @@ public class ShenyuNameResolverTest {
         updateUpstream("127.0.0.1:8081");
         updateUpstream("127.0.0.1:8081");
 
-        ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
-        verify(listener, times(2)).onResult(results.capture());
+        ArgumentCaptor<NameResolver.ResolutionResult> results = verifySuccessfulResults(2);
         assertEquals(new InetSocketAddress("127.0.0.1", 8081), results.getValue().getAddresses().get(0).getAddresses().get(0));
-        verify(listener, never()).onError(any(Status.class));
     }
 
     @Test
@@ -136,8 +142,127 @@ public class ShenyuNameResolverTest {
         assertEquals("Failed to update server list for " + APP_NAME, error.getValue().getDescription());
     }
 
+    @Test
+    public void testShutdownUnregistersCurrentWatcher() {
+        resolver = spy(resolver);
+        updateUpstream("127.0.0.1:8080");
+        resolver.start(listener);
+
+        resolver.shutdown();
+        updateUpstream("127.0.0.1:8081");
+
+        verify(resolver, never()).accept(any());
+    }
+
+    @Test
+    public void testShutdownDoesNotRemoveSuccessorWatcher() {
+        updateUpstream("127.0.0.1:8080");
+        resolver.start(listener);
+        final ShenyuNameResolver successor = newResolver();
+        final NameResolver.Listener2 successorListener = mock(NameResolver.Listener2.class);
+        successor.start(successorListener);
+        try {
+            resolver.shutdown();
+            updateUpstream("127.0.0.1:8081");
+
+            verify(listener).onResult(any(NameResolver.ResolutionResult.class));
+            ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
+            verify(successorListener, times(2)).onResult(results.capture());
+            assertEquals(new InetSocketAddress("127.0.0.1", 8081), results.getValue().getAddresses().get(0).getAddresses().get(0));
+        } finally {
+            successor.shutdown();
+        }
+    }
+
     private void updateUpstream(final String url) {
         cache.handlerUpstream(APP_NAME, Collections.singletonList(GrpcUpstream.builder()
                 .upstreamUrl(url).weight(50).status(true).build()));
+    }
+
+    @Test
+    public void testReorderedUpstreamsDoNotPublishAnotherResult() {
+        cache.handlerUpstream(APP_NAME, upstreams(3));
+        resolver.start(listener);
+        List<GrpcUpstream> reordered = upstreams(3);
+        Collections.reverse(reordered);
+        cache.handlerUpstream(APP_NAME, reordered);
+        resolver.refresh();
+
+        verifySuccessfulResults(1);
+    }
+
+    @Test
+    public void testSameSizeReplacementPreservesPublishedOrder() {
+        cache.handlerUpstream(APP_NAME, upstreams(3));
+        resolver.start(listener);
+        List<GrpcUpstream> changed = upstreams(3);
+        changed.set(1, GrpcUpstream.builder().upstreamUrl("127.0.0.1:9000").weight(50).status(true).build());
+        cache.handlerUpstream(APP_NAME, changed);
+
+        ArgumentCaptor<NameResolver.ResolutionResult> results = verifySuccessfulResults(2);
+        assertEquals(3, results.getValue().getAddresses().size());
+        assertEquals(new InetSocketAddress("127.0.0.1", 8080), results.getValue().getAddresses().get(0).getAddresses().get(0));
+        assertEquals(new InetSocketAddress("127.0.0.1", 9000), results.getValue().getAddresses().get(1).getAddresses().get(0));
+        assertEquals(new InetSocketAddress("127.0.0.1", 8082), results.getValue().getAddresses().get(2).getAddresses().get(0));
+    }
+
+    @Test
+    public void testAddedAndRemovedUpstreamsPublishResults() {
+        cache.handlerUpstream(APP_NAME, upstreams(2));
+        resolver.start(listener);
+        cache.handlerUpstream(APP_NAME, upstreams(3));
+        cache.handlerUpstream(APP_NAME, upstreams(1));
+
+        ArgumentCaptor<NameResolver.ResolutionResult> results = verifySuccessfulResults(3);
+        assertEquals(3, results.getAllValues().get(1).getAddresses().size());
+        assertEquals(1, results.getAllValues().get(2).getAddresses().size());
+    }
+
+    @Test
+    public void testDuplicateUpstreamsKeepExistingMembershipSemantics() {
+        List<GrpcUpstream> initial = upstreams(2);
+        cache.handlerUpstream(APP_NAME, Arrays.asList(initial.get(0), initial.get(0), initial.get(1)));
+        resolver.start(listener);
+        List<GrpcUpstream> updated = upstreams(2);
+        cache.handlerUpstream(APP_NAME, Arrays.asList(updated.get(0), updated.get(1), updated.get(1)));
+
+        verifySuccessfulResults(1);
+    }
+
+    // Behavioral regression at larger input size; timing and scaling are evaluated by JMH, not this test.
+    @Test
+    public void testLargeUnchangedUpstreamListDoesNotPublishAnotherResult() {
+        cache.handlerUpstream(APP_NAME, upstreams(1024));
+        resolver.start(listener);
+        cache.handlerUpstream(APP_NAME, upstreams(1024));
+
+        verifySuccessfulResults(1);
+    }
+
+    @Test
+    public void testNamespaceChangePublishesAnotherResult() {
+        cache.handlerUpstream(APP_NAME, upstreams(2));
+        resolver.start(listener);
+        List<GrpcUpstream> changed = upstreams(2);
+        changed.get(1).setNamespaceId("another-namespace");
+        cache.handlerUpstream(APP_NAME, changed);
+
+        verifySuccessfulResults(2);
+    }
+
+    private ArgumentCaptor<NameResolver.ResolutionResult> verifySuccessfulResults(final int count) {
+        ArgumentCaptor<NameResolver.ResolutionResult> results = ArgumentCaptor.forClass(NameResolver.ResolutionResult.class);
+        verify(listener, times(count)).onResult(results.capture());
+        verify(listener, never()).onError(any(Status.class));
+        results.getAllValues().forEach(result -> assertNotNull(result));
+        return results;
+    }
+
+    private List<GrpcUpstream> upstreams(final int size) {
+        List<GrpcUpstream> result = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            result.add(GrpcUpstream.builder().upstreamUrl("127.0.0.1:" + (8080 + i)).weight(50).status(true).build());
+        }
+        return result;
     }
 }

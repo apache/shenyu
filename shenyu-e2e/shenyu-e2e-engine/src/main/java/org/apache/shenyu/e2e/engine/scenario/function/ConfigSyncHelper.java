@@ -17,17 +17,27 @@
 
 package org.apache.shenyu.e2e.engine.scenario.function;
 
+import org.apache.shenyu.e2e.client.admin.AdminClient;
 import org.apache.shenyu.e2e.client.gateway.GatewayClient;
+import org.apache.shenyu.e2e.model.Plugin;
+import org.apache.shenyu.e2e.model.data.Condition;
+import org.apache.shenyu.e2e.model.data.MetaData;
 import org.apache.shenyu.e2e.model.data.RuleCacheData;
 import org.apache.shenyu.e2e.model.data.SelectorCacheData;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newConditions;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newDivideRuleHandle;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newRuleBuilder;
+import static org.apache.shenyu.e2e.template.ResourceDataTemplate.newSelectorBuilder;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -38,6 +48,41 @@ public final class ConfigSyncHelper {
     private static final Duration TIMEOUT = Duration.ofSeconds(30);
 
     private ConfigSyncHelper() {
+    }
+
+    /**
+     * Verify selectors, rules and metadata reach the gateway and clean up the test data.
+     *
+     * @param admin Admin client
+     * @param gateway gateway client
+     * @param rpcType RPC type for the metadata
+     */
+    public static void verifyResourceSync(final AdminClient admin, final GatewayClient gateway, final String rpcType) {
+        admin.login();
+        final String name = rpcType + "-fixture-sync";
+        final var conditions = newConditions(Condition.ParamType.URI, Condition.Operator.EQUAL, "/" + name);
+        final String selectorId = admin.create(newSelectorBuilder(name, Plugin.DIVIDE).conditionList(conditions).build()).getId();
+        final String context = "/" + name;
+        final String metadataPath = context + "/" + selectorId;
+        final List<String> ruleIds = new ArrayList<>(1);
+        try {
+            final var rule = newRuleBuilder(name).conditionList(conditions).handle(newDivideRuleHandle()).build();
+            rule.setSelectorId(selectorId);
+            ruleIds.add(admin.create(rule).getId());
+            admin.createMetaData(MetaData.builder()
+                    .appName(name).contextPath(context).path(metadataPath).rpcType(rpcType)
+                    .serviceName(name).methodName("metadata").enabled(true).build());
+            awaitCreated(gateway, List.of(selectorId), ruleIds);
+            await().alias("Created metadata applied to gateway: " + metadataPath).atMost(TIMEOUT)
+                    .until(() -> gateway.getMetaDataCache().stream()
+                            .anyMatch(metadata -> metadataPath.equals(metadata.getPath()) && rpcType.equals(metadata.getRpcType())));
+        } finally {
+            assertAll("Clean up temporary synchronization resources",
+                    () -> admin.deleteMetaDataByPath(metadataPath),
+                    () -> admin.deleteRules(ruleIds.toArray(String[]::new)),
+                    () -> admin.deleteSelectors(selectorId));
+        }
+        awaitDeleted(gateway, List.of(selectorId), ruleIds);
     }
 
     /**

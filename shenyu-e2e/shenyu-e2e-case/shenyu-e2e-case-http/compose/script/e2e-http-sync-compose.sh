@@ -29,6 +29,7 @@ bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 CUR_PATH=$(readlink -f "$(dirname "$0")")
 PRGDIR=$(dirname "$CUR_PATH")
 HEALTHCHECK_SCRIPT="${SHENYU_TESTCASE_DIR}/k8s/script/healthcheck.sh"
+FIXTURE_COMPOSE="${PRGDIR}/http-fixture-compose.yml"
 
 log_compose() {
   local sync=$1
@@ -41,9 +42,9 @@ log_compose() {
   echo "shenyu-bootstrap log:"
   echo "------------------"
   docker compose -f "$sync_compose_file" logs shenyu-bootstrap || true
-  echo "shenyu-examples-http log:"
+  echo "HTTP fixture log:"
   echo "------------------"
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml logs shenyu-examples-http || true
+  docker compose -f "$FIXTURE_COMPOSE" logs httpbin || true
 }
 
 start_sync_compose() {
@@ -60,11 +61,6 @@ start_sync_compose() {
   sh "$HEALTHCHECK_SCRIPT" http://localhost:31195/actuator/health
 }
 
-start_examples() {
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
-  sh "$HEALTHCHECK_SCRIPT" http://localhost:31189/actuator/health
-}
-
 # init shenyu sync
 
 docker network create -d bridge shenyu || true
@@ -77,12 +73,11 @@ for sync in "${SYNC_ARRAY[@]}"; do
     log_compose "$sync"
     exit 1
   fi
-  if ! start_examples; then
-    echo "shenyu-examples-http startup failed"
+  if ! docker compose -f "$FIXTURE_COMPOSE" up --wait --quiet-pull; then
+    echo "HTTP fixture startup failed"
     log_compose "$sync"
     exit 1
   fi
-  sleep 10s
   docker ps -a
   ## run e2e-test
   if ! ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-http -am test; then
@@ -91,6 +86,6 @@ for sync in "${SYNC_ARRAY[@]}"; do
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}".yml down
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml down
+  docker compose -f "$FIXTURE_COMPOSE" down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done

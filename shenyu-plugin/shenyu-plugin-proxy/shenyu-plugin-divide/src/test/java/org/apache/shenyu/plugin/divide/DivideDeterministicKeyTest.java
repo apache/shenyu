@@ -31,6 +31,7 @@ import org.apache.shenyu.loadbalancer.factory.LoadBalancerFactory;
 import org.apache.shenyu.loadbalancer.entity.LoadBalanceData;
 import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.UpstreamLabelUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.sticky.DeterministicKeyExtractor;
 import org.apache.shenyu.plugin.divide.sticky.StickySessionAffinity;
@@ -58,6 +59,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -305,7 +308,8 @@ class DivideDeterministicKeyTest {
         final MockedStatic<UpstreamCacheManager> cache = org.mockito.Mockito.mockStatic(UpstreamCacheManager.class);
         final UpstreamCacheManager manager = mock(UpstreamCacheManager.class);
         // the cache contract hands filter() a mutable, request-owned snapshot
-        when(manager.findAllUpstreamListBySelectorId(selector.getId())).thenReturn(new ArrayList<>(upstreams));
+        when(manager.findUpstreamListByLabels(eq(selector.getId()), any()))
+                .thenAnswer(invocation -> UpstreamLabelUtils.filter(upstreams, invocation.getArgument(1)));
         final List<Upstream> gray = upstreams.stream().filter(Upstream::isGray).toList();
         when(manager.findUpstreamListBySelectorId(selector.getId())).thenReturn(
                 gray.isEmpty() ? new ArrayList<>(upstreams) : new ArrayList<>(gray));

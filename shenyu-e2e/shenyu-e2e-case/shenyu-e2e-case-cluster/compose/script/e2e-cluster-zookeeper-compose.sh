@@ -20,9 +20,6 @@
 SHENYU_TESTCASE_DIR=$(dirname "$(dirname "$(dirname "$(dirname "$0")")")")
 bash "${SHENYU_TESTCASE_DIR}"/k8s/script/storage/storage_init_mysql.sh
 
-# init register center
-CUR_PATH=$(readlink -f "$(dirname "$0")")
-PRGDIR=$(dirname "$CUR_PATH")
 # init shenyu sync
 SYNC_ARRAY=("websocket")
 #SYNC_ARRAY=("websocket" "http" "zookeeper" "etcd")
@@ -38,9 +35,6 @@ for sync in "${SYNC_ARRAY[@]}"; do
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31095/actuator/health 45
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31096/actuator/health 45
   sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31195/actuator/health 45
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml up -d --quiet-pull
-  sh "$SHENYU_TESTCASE_DIR"/k8s/script/healthcheck.sh http://localhost:31189/actuator/health 45
-  sleep 10s
   docker ps -a
   ## run e2e-test
   ./mvnw -B -f ./shenyu-e2e/pom.xml -pl shenyu-e2e-case/shenyu-e2e-case-cluster -am test
@@ -57,12 +51,9 @@ for sync in "${SYNC_ARRAY[@]}"; do
     echo "shenyu-bootstrap log:"
     echo "------------------"
     docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}"-cluster-zookeeper.yml logs shenyu-bootstrap
-    echo "shenyu-examples-http log:"
     echo "------------------"
-    docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml logs shenyu-examples-http
     exit 1
   fi
   docker compose -f "$SHENYU_TESTCASE_DIR"/compose/sync/shenyu-sync-"${sync}"-cluster-zookeeper.yml down
-  docker compose -f "${PRGDIR}"/shenyu-examples-http-compose.yml down
   echo "[Remove ${sync} synchronous] delete shenyu-admin-${sync}.yml shenyu-bootstrap-${sync}.yml "
 done

@@ -80,14 +80,18 @@ public interface DiscoveryMapper extends ExistProvider {
     List<DiscoveryDO> selectAllByNamespaceIds(List<String> namespaceIds);
 
     /**
-     * select discovery by plugin name and level.
+     * Select discovery definitions matching the lookup scope.
      *
      * @param pluginName    plugin name
      * @param level         level
      * @param namespaceId   namespaceId
-     * @return {@linkplain DiscoveryDO}
+     * @param selectorId optional regular selector ID
+     * @param discoveryType optional plugin discovery type
+     * @return at most two matching discoveries for ambiguity detection
      */
-    DiscoveryDO selectByPluginNameAndLevelAndNamespaceId(@Param("pluginName") String pluginName, @Param("level") String level, @Param("namespaceId") String namespaceId);
+    List<DiscoveryDO> selectByPluginNameAndLevelAndNamespaceId(@Param("pluginName") String pluginName, @Param("level") String level,
+                                                              @Param("namespaceId") String namespaceId, @Param("selectorId") String selectorId,
+                                                              @Param("discoveryType") String discoveryType);
 
     /**
      * select discovery by plugin name and level.
