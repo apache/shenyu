@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.ai.pii.profile;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -27,9 +28,11 @@ import java.util.Objects;
 /**
  * The Gemini generateContent profile (#8458). A request carries
  * {@code contents} whose {@code parts} carry a {@code text} member for text
- * parts, plus an optional {@code systemInstruction} with the same shape; a
- * response (stream line or complete body) carries the same content shape
- * below {@code candidates[].content}.
+ * parts (a {@code functionCall.args} object for tool-call parts, whose string
+ * leaves are walked like the Anthropic {@code tool_use.input}), plus an
+ * optional {@code systemInstruction} with the same shape; a response (stream
+ * line or complete body) carries the same content shape below
+ * {@code candidates[].content}.
  */
 public class GeminiGenerateContentProfile implements PiiProtocolProfile {
 
@@ -37,6 +40,13 @@ public class GeminiGenerateContentProfile implements PiiProtocolProfile {
      * The profile identifier.
      */
     public static final String ID = "gemini-generate-content";
+
+    /**
+     * Bound on how deep the functionCall.args walker descends into nested
+     * objects and arrays; deeper leaves are skipped and this bound is the
+     * documented truncation point (#8458 review).
+     */
+    private static final int MAX_ARGS_DEPTH = 4;
 
     @Override
     public String id() {
@@ -85,9 +95,56 @@ public class GeminiGenerateContentProfile implements PiiProtocolProfile {
             if (!part.isJsonObject()) {
                 continue;
             }
-            PiiTextSlot slot = PiiTextSlot.ofMember(part.getAsJsonObject(), "text");
+            JsonObject partObject = part.getAsJsonObject();
+            PiiTextSlot slot = PiiTextSlot.ofMember(partObject, "text");
             if (Objects.nonNull(slot)) {
                 slots.add(slot);
+            }
+            // a tool-call part carries structured arguments instead of text: walk the
+            // functionCall.args leaves so they are redacted like Anthropic tool_use.input
+            // instead of passing through unmasked while the scan reports covered (#8458)
+            JsonElement functionCall = partObject.get("functionCall");
+            if (Objects.nonNull(functionCall) && functionCall.isJsonObject()) {
+                collectArgsSlots(functionCall.getAsJsonObject().get("args"), slots, 0);
+            }
+        }
+    }
+
+    private void collectArgsSlots(final JsonElement args, final List<PiiTextSlot> slots, final int depth) {
+        if (Objects.isNull(args) || args.isJsonNull() || depth > MAX_ARGS_DEPTH) {
+            return;
+        }
+        if (args.isJsonObject()) {
+            JsonObject object = args.getAsJsonObject();
+            for (String member : object.keySet()) {
+                JsonElement value = object.get(member);
+                if (Objects.isNull(value) || value.isJsonNull()) {
+                    continue;
+                }
+                if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+                    PiiTextSlot slot = PiiTextSlot.ofMember(object, member);
+                    if (Objects.nonNull(slot)) {
+                        slots.add(slot);
+                    }
+                } else if (value.isJsonObject() || value.isJsonArray()) {
+                    collectArgsSlots(value, slots, depth + 1);
+                }
+            }
+        } else if (args.isJsonArray()) {
+            JsonArray array = args.getAsJsonArray();
+            for (int i = 0; i < array.size(); i++) {
+                JsonElement element = array.get(i);
+                if (Objects.isNull(element) || element.isJsonNull()) {
+                    continue;
+                }
+                if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
+                    PiiTextSlot slot = PiiTextSlot.ofElement(array, i);
+                    if (Objects.nonNull(slot)) {
+                        slots.add(slot);
+                    }
+                } else if (element.isJsonObject() || element.isJsonArray()) {
+                    collectArgsSlots(element, slots, depth + 1);
+                }
             }
         }
     }

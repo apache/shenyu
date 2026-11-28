@@ -29,10 +29,11 @@ import java.util.Objects;
  * The Anthropic Messages profile (#8458). A request carries a top-level
  * {@code system} prompt (string or text blocks) and {@code messages} whose
  * {@code content} is a string or an array of typed blocks — text blocks carry
- * a {@code text} member, {@code tool_use} blocks carry a JSON {@code input}
- * object whose string leaves are text slots, and {@code tool_result} blocks
- * carry string-or-block content. A non streaming response carries the same
- * block shape below the top-level {@code content}.
+ * a {@code text} member, thinking blocks carry a {@code thinking} member,
+ * {@code tool_use} blocks carry a JSON {@code input} object whose string
+ * leaves (through nested objects and arrays) are text slots, and
+ * {@code tool_result} blocks carry string-or-block content. A non streaming
+ * response carries the same block shape below the top-level {@code content}.
  */
 public class AnthropicMessagesProfile implements PiiProtocolProfile {
 
@@ -52,14 +53,21 @@ public class AnthropicMessagesProfile implements PiiProtocolProfile {
     private static final String TOOL_USE_BLOCK = "tool_use";
 
     /**
+     * The type of an extended-thinking block.
+     */
+    private static final String THINKING_BLOCK = "thinking";
+
+    /**
      * The type of a tool result block.
      */
     private static final String TOOL_RESULT_BLOCK = "tool_result";
 
     /**
-     * Bound on how deep the tool-input walker descends into nested objects.
+     * Bound on how deep the tool-input walker descends into nested objects
+     * and arrays; deep enough for array-bearing tool inputs, deeper leaves are
+     * skipped and this bound is the documented truncation point (#8458 review).
      */
-    private static final int MAX_INPUT_DEPTH = 2;
+    private static final int MAX_INPUT_DEPTH = 4;
 
     @Override
     public String id() {
@@ -138,7 +146,14 @@ public class AnthropicMessagesProfile implements PiiProtocolProfile {
             }
             JsonElement type = object.get("type");
             String name = Objects.nonNull(type) && isString(type) ? type.getAsString() : "";
-            if (TOOL_USE_BLOCK.equals(name)) {
+            if (THINKING_BLOCK.equals(name)) {
+                // extended-thinking prose is model- and user-authored content on both
+                // request and response paths; redacted_thinking is ciphertext and needs none
+                PiiTextSlot thinkingSlot = PiiTextSlot.ofMember(object, "thinking");
+                if (Objects.nonNull(thinkingSlot)) {
+                    slots.add(thinkingSlot);
+                }
+            } else if (TOOL_USE_BLOCK.equals(name)) {
                 collectInputSlots(object.get("input"), slots, 0);
             } else if (TOOL_RESULT_BLOCK.equals(name) && depth < MAX_INPUT_DEPTH) {
                 collectContentSlots(object, slots, depth + 1);
@@ -163,6 +178,30 @@ public class AnthropicMessagesProfile implements PiiProtocolProfile {
                 }
             } else if (value.isJsonObject() && depth < MAX_INPUT_DEPTH) {
                 collectInputSlots(value, slots, depth + 1);
+            } else if (value.isJsonArray() && depth < MAX_INPUT_DEPTH) {
+                collectInputArraySlots(value.getAsJsonArray(), slots, depth + 1);
+            }
+        }
+    }
+
+    private void collectInputArraySlots(final JsonArray array, final List<PiiTextSlot> slots, final int depth) {
+        if (depth > MAX_INPUT_DEPTH) {
+            return;
+        }
+        for (int i = 0; i < array.size(); i++) {
+            JsonElement element = array.get(i);
+            if (Objects.isNull(element) || element.isJsonNull()) {
+                continue;
+            }
+            if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
+                PiiTextSlot slot = PiiTextSlot.ofElement(array, i);
+                if (Objects.nonNull(slot)) {
+                    slots.add(slot);
+                }
+            } else if (element.isJsonObject() && depth < MAX_INPUT_DEPTH) {
+                collectInputSlots(element, slots, depth + 1);
+            } else if (element.isJsonArray() && depth < MAX_INPUT_DEPTH) {
+                collectInputArraySlots(element.getAsJsonArray(), slots, depth + 1);
             }
         }
     }

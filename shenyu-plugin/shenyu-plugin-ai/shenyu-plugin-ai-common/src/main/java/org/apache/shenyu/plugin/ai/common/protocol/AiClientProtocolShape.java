@@ -99,26 +99,4 @@ public final class AiClientProtocolShape {
         }
         return Shape.UNKNOWN;
     }
-
-    /**
-     * The protocol name string for a shape, aligned with the AI proxy's
-     * protocol identifiers.
-     *
-     * @param shape the detected shape
-     * @return the protocol name, or {@code null} for {@link Shape#UNKNOWN}
-     */
-    public static String protocolName(final Shape shape) {
-        switch (shape) {
-            case OPENAI_CHAT:
-                return OPENAI_CHAT;
-            case OPENAI_RESPONSES:
-                return OPENAI_RESPONSES;
-            case ANTHROPIC_MESSAGES:
-                return ANTHROPIC_MESSAGES;
-            case GEMINI_GENERATE_CONTENT:
-                return GEMINI_GENERATE_CONTENT;
-            default:
-                return null;
-        }
-    }
 }

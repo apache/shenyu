@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
@@ -117,6 +118,66 @@ public final class PiiMultiProtocolProfilesTest {
         List<PiiTextSlot> slots = new GeminiGenerateContentProfile().responseSlots(root);
         assertEquals(1, slots.size());
         assertEquals("dial 13800138000", slots.get(0).text());
+    }
+
+    /**
+     * A Gemini tool-call part carries structured {@code functionCall.args} instead of
+     * text: its string leaves must be redacted like Anthropic tool_use.input instead of
+     * passing through unmasked while the scan reports covered (#8458 review).
+     */
+    @Test
+    public void testGeminiFunctionCallArgsAreSlots() {
+        JsonObject root = parse("{\"contents\":[{\"role\":\"user\",\"parts\":["
+                + "{\"functionCall\":{\"name\":\"addContact\",\"args\":{\"phone\":\"13800138000\","
+                + "\"filters\":[{\"email\":\"a@b.com\"}],\"count\":2}}}]}]}");
+        assertNotNull(PiiProtocolProfiles.select(root), "a functionCall part is a valid gemini shape");
+        List<PiiTextSlot> slots = new GeminiGenerateContentProfile().requestSlots(root);
+        assertEquals(2, slots.size());
+        slots.get(0).replace("<PHONE_CN>");
+        slots.get(1).replace("<EMAIL>");
+        JsonObject args = root.get("contents").getAsJsonArray().get(0).getAsJsonObject()
+                .get("parts").getAsJsonArray().get(0).getAsJsonObject()
+                .get("functionCall").getAsJsonObject().get("args").getAsJsonObject();
+        assertEquals("<PHONE_CN>", args.get("phone").getAsString());
+        assertEquals("<EMAIL>", args.get("filters").getAsJsonArray().get(0).getAsJsonObject().get("email").getAsString());
+        assertEquals(2, args.get("count").getAsInt());
+        assertEquals("addContact", root.get("contents").getAsJsonArray().get(0).getAsJsonObject()
+                .get("parts").getAsJsonArray().get(0).getAsJsonObject()
+                .get("functionCall").getAsJsonObject().get("name").getAsString());
+    }
+
+    /**
+     * tool_use.input holding an array of objects — the shape the old walker skipped —
+     * must surface its string leaves as slots (#8458 review).
+     */
+    @Test
+    public void testAnthropicToolUseArrayInputIsWalked() {
+        JsonObject root = parse("{\"messages\":[{\"role\":\"assistant\",\"content\":["
+                + "{\"type\":\"tool_use\",\"id\":\"t1\",\"name\":\"search\","
+                + "\"input\":{\"filters\":[{\"email\":\"a@b.com\"}],\"tags\":[\"token 13800138000\"]}}]}] }");
+        List<PiiTextSlot> slots = new AnthropicMessagesProfile().requestSlots(root);
+        assertEquals(2, slots.size());
+        slots.get(0).replace("<EMAIL>");
+        slots.get(1).replace("token <PHONE_CN>");
+        JsonObject input = root.get("messages").getAsJsonArray().get(0).getAsJsonObject()
+                .get("content").getAsJsonArray().get(0).getAsJsonObject().get("input").getAsJsonObject();
+        assertEquals("<EMAIL>", input.get("filters").getAsJsonArray().get(0).getAsJsonObject().get("email").getAsString());
+        assertEquals("token <PHONE_CN>", input.get("tags").getAsJsonArray().get(0).getAsString());
+    }
+
+    /**
+     * Extended-thinking prose is model- and user-authored content: a thinking block's
+     * text member must be a slot on both shapes (#8458 review).
+     */
+    @Test
+    public void testAnthropicThinkingBlockIsASlot() {
+        JsonObject root = parse("{\"content\":[{\"type\":\"thinking\",\"thinking\":\"user mail is a@b.com\"},"
+                + "{\"type\":\"text\",\"text\":\"done\"}]}");
+        List<PiiTextSlot> slots = new AnthropicMessagesProfile().responseSlots(root);
+        assertEquals(2, slots.size());
+        slots.get(0).replace("user mail is <EMAIL>");
+        assertEquals("user mail is <EMAIL>", root.get("content").getAsJsonArray().get(0).getAsJsonObject()
+                .get("thinking").getAsString());
     }
 
     private JsonObject parse(final String body) {
