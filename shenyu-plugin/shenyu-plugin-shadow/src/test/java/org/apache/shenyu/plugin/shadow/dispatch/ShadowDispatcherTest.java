@@ -33,7 +33,9 @@ import org.springframework.http.HttpHeaders;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -104,13 +106,13 @@ public final class ShadowDispatcherTest {
 
     @Test
     public void testReportsShadowFailureOnTimeout() {
-        server.stubFor(get(urlEqualTo(PATH)).willReturn(jsonResponse(200, JSON_BODY).withFixedDelay(2000)));
+        server.stubFor(get(urlEqualTo(PATH)).willReturn(jsonResponse(200, JSON_BODY).withFixedDelay(SLOW_DELAY_MILLIS)));
         ShadowHandle handle = handle();
         handle.setTimeoutMillis(200);
         RecordingReporter reporter = new RecordingReporter();
         ShadowDispatcher dispatcher = dispatcher(handle, reporter);
         try {
-            assertTrue(dispatcher.dispatch(task(), primary(200, JSON_BODY)));
+            assertTrue(dispatcher.dispatch(task(PATH, 200), primary(200, JSON_BODY)));
             awaitReport(reporter);
             assertEquals(ShadowOutcome.SHADOW_FAILED, reporter.get(0).getOutcome());
         } finally {
@@ -153,13 +155,17 @@ public final class ShadowDispatcherTest {
 
     @Test
     public void testPairsEachShadowResponseWithItsOwnPrimary() {
-        server.stubFor(get(urlEqualTo(PATH)).willReturn(jsonResponse(200, JSON_BODY)));
+        String pathA = "/api/a";
+        String pathB = "/api/b";
+        server.stubFor(get(urlEqualTo(pathA)).willReturn(jsonResponse(200, "{\"a\":1}")));
+        server.stubFor(get(urlEqualTo(pathB)).willReturn(jsonResponse(500, "{\"b\":2}")));
         RecordingReporter reporter = new RecordingReporter();
         ShadowDispatcher dispatcher = dispatcher(handle(), reporter);
         try {
-            assertTrue(dispatcher.dispatch(task(), primary(200, JSON_BODY)));
-            assertTrue(dispatcher.dispatch(task(), primary(500, JSON_BODY)));
+            assertTrue(dispatcher.dispatch(task(pathA, 2000), primary(200, "{\"a\":1}")));
+            assertTrue(dispatcher.dispatch(task(pathB, 2000), primary(500, "{\"b\":3}")));
             await().atMost(Duration.ofSeconds(10)).until(() -> reporter.size() == 2);
+            assertEquals(Set.of("200:200", "500:500"), reporter.statusPairs());
             assertTrue(reporter.outcomes().contains(ShadowOutcome.MATCH));
             assertTrue(reporter.outcomes().contains(ShadowOutcome.MISMATCH));
         } finally {
@@ -188,10 +194,14 @@ public final class ShadowDispatcherTest {
     }
 
     private ShadowTask task() {
+        return task(PATH, 2000);
+    }
+
+    private ShadowTask task(final String path, final int timeoutMillis) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(ShadowTaskFactory.SHADOW_HEADER, Boolean.TRUE.toString());
-        return new ShadowTask("GET", URI.create("http://localhost:" + server.port() + PATH),
-                headers, new byte[0], 2000);
+        return new ShadowTask("GET", URI.create("http://localhost:" + server.port() + path),
+                headers, new byte[0], timeoutMillis);
     }
 
     private ShadowObservation primary(final int status, final String body) {
@@ -212,10 +222,17 @@ public final class ShadowDispatcherTest {
 
         private final List<ShadowComparison> comparisons = new CopyOnWriteArrayList<>();
 
+        private final List<String> statusPairs = new CopyOnWriteArrayList<>();
+
         @Override
         public void report(final String ruleId, final ShadowComparison comparison,
                            final ShadowObservation primary, final ShadowObservation shadow) {
             comparisons.add(comparison);
+            statusPairs.add(primary.getStatus() + ":" + shadow.getStatus());
+        }
+
+        private Set<String> statusPairs() {
+            return new HashSet<>(statusPairs);
         }
 
         private int size() {
