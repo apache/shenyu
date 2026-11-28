@@ -69,6 +69,13 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
 
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
+    // IANA-registered close codes added after RFC 6455.
+    private static final int SERVICE_RESTART_CLOSE_CODE = 1012;
+
+    private static final int TRY_AGAIN_LATER_CLOSE_CODE = 1013;
+
+    private static final int BAD_GATEWAY_CLOSE_CODE = 1014;
+
     private final WebSocketClient webSocketClient;
 
     private final WebSocketService webSocketService;
@@ -181,7 +188,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
     }
 
     // see https://github.com/spring-cloud/spring-cloud-gateway/pull/2254
-    private static CloseStatus adaptCloseStatus(final CloseStatus closeStatus) {
+    static CloseStatus adaptCloseStatus(final CloseStatus closeStatus) {
         int code = closeStatus.getCode();
         if (code > 2999 && code < 5000) {
             return closeStatus;
@@ -196,6 +203,9 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             case 1009:
             case 1010:
             case 1011:
+            case SERVICE_RESTART_CLOSE_CODE:
+            case TRY_AGAIN_LATER_CLOSE_CODE:
+            case BAD_GATEWAY_CLOSE_CODE:
                 return closeStatus;
             case 1004:
             // Should not be used in a close frame
@@ -206,12 +216,6 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
             case 1006:
             // Should not be used in a close frame
             // return CloseStatus.NO_CLOSE_FRAME;
-            case 1012:
-            // Not in RFC6455
-            // return CloseStatus.SERVICE_RESTARTED;
-            case 1013:
-            // Not in RFC6455
-            // return CloseStatus.SERVICE_OVERLOAD;
             case 1015:
             // Should not be used in a close frame
             // return CloseStatus.TLS_HANDSHAKE_FAILURE;
