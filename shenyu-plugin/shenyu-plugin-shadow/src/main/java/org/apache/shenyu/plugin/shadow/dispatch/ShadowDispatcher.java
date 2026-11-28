@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.shadow.dispatch;
 import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
 import org.apache.shenyu.plugin.shadow.capture.ShadowBodyCapture;
 import org.apache.shenyu.plugin.shadow.compare.ShadowComparator;
+import org.apache.shenyu.plugin.shadow.compare.ShadowComparison;
 import org.apache.shenyu.plugin.shadow.compare.ShadowObservation;
 import org.apache.shenyu.plugin.shadow.report.ShadowReporter;
 import org.slf4j.Logger;
@@ -50,6 +51,8 @@ public final class ShadowDispatcher implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(ShadowDispatcher.class);
 
     private static final int MIN_CAPACITY = 1;
+
+    private static final byte[] EMPTY = new byte[0];
 
     private final WebClient webClient;
 
@@ -109,7 +112,7 @@ public final class ShadowDispatcher implements AutoCloseable {
         })
                 .timeout(Duration.ofMillis(task.getTimeoutMillis()))
                 .onErrorResume(error -> {
-                    reporter.failure(ruleKey, error);
+                    reportFailure(call, error, start);
                     return Mono.empty();
                 })
                 .then();
@@ -129,5 +132,11 @@ public final class ShadowDispatcher implements AutoCloseable {
         ShadowObservation shadow = new ShadowObservation(status, headers, capture.bytes(), capture.isTruncated(),
                 System.nanoTime() - start);
         reporter.report(ruleKey, ShadowComparator.compare(handle, call.getPrimary(), shadow), call.getPrimary(), shadow);
+    }
+
+    private void reportFailure(final ShadowCall call, final Throwable error, final long start) {
+        ShadowObservation shadow = new ShadowObservation(-1, new HttpHeaders(), EMPTY, false,
+                System.nanoTime() - start);
+        reporter.report(ruleKey, ShadowComparison.failed(error.getClass().getSimpleName()), call.getPrimary(), shadow);
     }
 }

@@ -48,9 +48,4 @@ public class LoggingShadowReporter implements ShadowReporter {
                 comparison.getOutcome(), ruleId, comparison.getDetail(), primary.getStatus(), shadow.getStatus(),
                 primary.getDurationNanos() / NANOS_PER_MICRO, shadow.getDurationNanos() / NANOS_PER_MICRO);
     }
-
-    @Override
-    public void failure(final String ruleId, final Throwable error) {
-        LOG.warn("shadow call for rule={} failed: {}", ruleId, error.toString());
-    }
 }

@@ -29,7 +29,7 @@ import org.apache.shenyu.plugin.shadow.compare.ShadowObservation;
 public interface ShadowReporter {
 
     /**
-     * Report one comparison.
+     * Report one comparison, including a failed shadow call.
      *
      * @param ruleId the rule cache key
      * @param comparison the bounded comparison result
@@ -37,12 +37,4 @@ public interface ShadowReporter {
      * @param shadow the shadow response observation
      */
     void report(String ruleId, ShadowComparison comparison, ShadowObservation primary, ShadowObservation shadow);
-
-    /**
-     * Report one failed shadow call.
-     *
-     * @param ruleId the rule cache key
-     * @param error the failure
-     */
-    void failure(String ruleId, Throwable error);
 }
