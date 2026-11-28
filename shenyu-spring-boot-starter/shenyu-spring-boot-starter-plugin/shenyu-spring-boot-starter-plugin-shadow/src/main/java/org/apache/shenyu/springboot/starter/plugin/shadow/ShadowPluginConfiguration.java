@@ -23,6 +23,8 @@ import org.apache.shenyu.plugin.shadow.ShadowPlugin;
 import org.apache.shenyu.plugin.shadow.dispatch.ShadowRuntimeRegistry;
 import org.apache.shenyu.plugin.shadow.dispatch.ShadowWebClientFactory;
 import org.apache.shenyu.plugin.shadow.handler.ShadowPluginDataHandler;
+import org.apache.shenyu.plugin.shadow.report.LoggingShadowReporter;
+import org.apache.shenyu.plugin.shadow.report.ShadowReporter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,13 +37,24 @@ import org.springframework.context.annotation.Configuration;
 public class ShadowPluginConfiguration {
 
     /**
+     * Shadow reporter.
+     *
+     * @return the shadow reporter
+     */
+    @Bean
+    public ShadowReporter shadowReporter() {
+        return new LoggingShadowReporter();
+    }
+
+    /**
      * Shadow runtime registry.
      *
+     * @param reporter the shadow reporter
      * @return the shadow runtime registry
      */
     @Bean(destroyMethod = "close")
-    public ShadowRuntimeRegistry shadowRuntimeRegistry() {
-        return new ShadowRuntimeRegistry(ShadowWebClientFactory.create());
+    public ShadowRuntimeRegistry shadowRuntimeRegistry(final ShadowReporter reporter) {
+        return new ShadowRuntimeRegistry(ShadowWebClientFactory.create(), reporter);
     }
 
     /**

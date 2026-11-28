@@ -25,6 +25,8 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.shadow.capture.ShadowBodyCapture;
 import org.apache.shenyu.plugin.shadow.capture.ShadowRequestTee;
+import org.apache.shenyu.plugin.shadow.capture.ShadowResponseTee;
+import org.apache.shenyu.plugin.shadow.compare.ShadowObservation;
 import org.apache.shenyu.plugin.shadow.config.ShadowEligibility;
 import org.apache.shenyu.plugin.shadow.config.ShadowSampler;
 import org.apache.shenyu.plugin.shadow.config.ShadowSkipReason;
@@ -34,6 +36,7 @@ import org.apache.shenyu.plugin.shadow.dispatch.ShadowTask;
 import org.apache.shenyu.plugin.shadow.dispatch.ShadowTaskFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
@@ -84,9 +87,13 @@ public class ShadowPlugin extends AbstractShenyuPlugin {
         if (!ShadowSampler.sample(exchange, rule, runtime.getHandle().getSampleRate())) {
             return chain.execute(exchange);
         }
-        ShadowBodyCapture capture = new ShadowBodyCapture(runtime.getHandle().getMaxRequestBodyBytes());
-        ServerWebExchange observed = ShadowRequestTee.tee(exchange, capture);
-        return chain.execute(observed).doFinally(signal -> dispatch(runtime, observed, capture, signal));
+        long start = System.nanoTime();
+        ShadowBodyCapture requestCapture = new ShadowBodyCapture(runtime.getHandle().getMaxRequestBodyBytes());
+        ShadowBodyCapture responseCapture = new ShadowBodyCapture(runtime.getHandle().getMaxResponseBodyBytes());
+        ServerWebExchange observed = ShadowResponseTee.tee(
+                ShadowRequestTee.tee(exchange, requestCapture), responseCapture);
+        return chain.execute(observed)
+                .doFinally(signal -> dispatch(runtime, observed, requestCapture, responseCapture, start, signal));
     }
 
     /**
@@ -98,20 +105,23 @@ public class ShadowPlugin extends AbstractShenyuPlugin {
      *
      * @param runtime the rule runtime
      * @param exchange the observed exchange
-     * @param capture the bounded body capture
+     * @param requestCapture the bounded request body capture
+     * @param responseCapture the bounded primary response body capture
+     * @param startNanos the primary start time
      * @param signal the primary terminal signal
      */
     private void dispatch(final ShadowRuntime runtime, final ServerWebExchange exchange,
-                          final ShadowBodyCapture capture, final SignalType signal) {
+                          final ShadowBodyCapture requestCapture, final ShadowBodyCapture responseCapture,
+                          final long startNanos, final SignalType signal) {
         if (SignalType.CANCEL.equals(signal)) {
             runtime.recordSkip(ShadowSkipReason.PRIMARY_CANCELLED);
             return;
         }
-        if (capture.isTruncated()) {
+        if (requestCapture.isTruncated()) {
             runtime.recordSkip(ShadowSkipReason.BODY_TOO_LARGE);
             return;
         }
-        byte[] body = capture.bytes();
+        byte[] body = requestCapture.bytes();
         long declaredLength = exchange.getRequest().getHeaders().getContentLength();
         if (declaredLength >= 0 && body.length != declaredLength) {
             // The primary did not read the complete declared body, so a copy would
@@ -124,9 +134,16 @@ public class ShadowPlugin extends AbstractShenyuPlugin {
             runtime.recordSkip(ShadowSkipReason.INVALID_TARGET);
             return;
         }
-        if (!runtime.mirror(task.get())) {
+        ShadowObservation primary = new ShadowObservation(statusOf(exchange), exchange.getResponse().getHeaders(),
+                responseCapture.bytes(), responseCapture.isTruncated(), System.nanoTime() - startNanos);
+        if (!runtime.mirror(task.get(), primary)) {
             runtime.recordSkip(ShadowSkipReason.QUEUE_OVERFLOW);
             LOG.debug("shadow queue is full, sample dropped");
         }
+    }
+
+    private static int statusOf(final ServerWebExchange exchange) {
+        HttpStatusCode code = exchange.getResponse().getStatusCode();
+        return Objects.isNull(code) ? -1 : code.value();
     }
 }

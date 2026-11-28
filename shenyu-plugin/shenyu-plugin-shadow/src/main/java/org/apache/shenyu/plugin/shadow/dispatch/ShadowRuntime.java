@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.shadow.dispatch;
 
 import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
+import org.apache.shenyu.plugin.shadow.compare.ShadowObservation;
 import org.apache.shenyu.plugin.shadow.config.ShadowSkipReason;
 
 import java.util.Map;
@@ -52,13 +53,14 @@ public class ShadowRuntime {
     }
 
     /**
-     * Mirror one shadow call.
+     * Mirror one shadow call and compare it with the primary observation.
      *
-     * @param task the shadow call
+     * @param task the shadow request
+     * @param primary the primary response observation
      * @return true when the call was queued
      */
-    public boolean mirror(final ShadowTask task) {
-        return dispatcher.dispatch(task);
+    public boolean mirror(final ShadowTask task, final ShadowObservation primary) {
+        return dispatcher.dispatch(task, primary);
     }
 
     /**

@@ -120,6 +120,27 @@ public final class ShadowConfigValidatorTest {
     }
 
     @Test
+    public void testRejectsNegativeResponseBound() {
+        ShadowHandle handle = validHandle();
+        handle.setMaxResponseBodyBytes(-1);
+        assertProblem(handle, "maxResponseBodyBytes");
+    }
+
+    @Test
+    public void testRejectsMissingCompareHeaders() {
+        ShadowHandle handle = validHandle();
+        handle.setCompareHeaders(null);
+        assertProblem(handle, "compareHeaders");
+    }
+
+    @Test
+    public void testRejectsMissingIgnorePaths() {
+        ShadowHandle handle = validHandle();
+        handle.setIgnoreJsonPaths(null);
+        assertProblem(handle, "ignoreJsonPaths");
+    }
+
+    @Test
     public void testRejectsHeaderLineBreak() {
         ShadowHandle handle = validHandle();
         handle.setExtraHeaders(Map.of("X-Token", "value\r\nInjected: true"));

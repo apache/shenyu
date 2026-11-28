@@ -17,15 +17,22 @@
 
 package org.apache.shenyu.plugin.shadow.dispatch;
 
+import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
+import org.apache.shenyu.plugin.shadow.capture.ShadowBodyCapture;
+import org.apache.shenyu.plugin.shadow.compare.ShadowComparator;
+import org.apache.shenyu.plugin.shadow.compare.ShadowObservation;
+import org.apache.shenyu.plugin.shadow.report.ShadowReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -35,8 +42,8 @@ import java.util.concurrent.ArrayBlockingQueue;
  *
  * <p>Work is accepted only while the rule's queue has room; a full queue drops
  * the sample instead of growing memory or applying backpressure to the primary
- * request. Every attempt is bounded by the rule's timeout and its failure never
- * reaches the primary response.</p>
+ * request. Every attempt is bounded by the rule's timeout, and its result is
+ * compared and reported without touching the primary response.</p>
  */
 public final class ShadowDispatcher implements AutoCloseable {
 
@@ -46,27 +53,38 @@ public final class ShadowDispatcher implements AutoCloseable {
 
     private final WebClient webClient;
 
-    private final Sinks.Many<ShadowTask> sink;
+    private final ShadowHandle handle;
+
+    private final String ruleKey;
+
+    private final ShadowReporter reporter;
+
+    private final Sinks.Many<ShadowCall> sink;
 
     private final Disposable subscription;
 
-    public ShadowDispatcher(final WebClient webClient, final int maxConcurrent, final int queueCapacity) {
-        this.webClient = webClient;
+    public ShadowDispatcher(final WebClient webClient, final ShadowHandle handle, final String ruleKey,
+                            final ShadowReporter reporter) {
+        this.webClient = Objects.requireNonNull(webClient);
+        this.handle = Objects.requireNonNull(handle);
+        this.ruleKey = Objects.requireNonNull(ruleKey);
+        this.reporter = Objects.requireNonNull(reporter);
         this.sink = Sinks.many().unicast()
-                .onBackpressureBuffer(new ArrayBlockingQueue<>(Math.max(queueCapacity, MIN_CAPACITY)));
+                .onBackpressureBuffer(new ArrayBlockingQueue<>(Math.max(handle.getQueueCapacity(), MIN_CAPACITY)));
         this.subscription = sink.asFlux()
-                .flatMap(this::mirror, Math.max(maxConcurrent, MIN_CAPACITY))
+                .flatMap(this::mirror, Math.max(handle.getMaxConcurrent(), MIN_CAPACITY))
                 .subscribe(ignored -> { }, error -> LOG.warn("shadow dispatcher terminated", error));
     }
 
     /**
      * Offer one shadow call without blocking the caller.
      *
-     * @param task the shadow call
-     * @return true when the task was queued, false when the queue is full
+     * @param task the shadow request
+     * @param primary the primary response observation
+     * @return true when the call was queued, false when the queue is full
      */
-    public boolean dispatch(final ShadowTask task) {
-        return sink.tryEmitNext(task).isSuccess();
+    public boolean dispatch(final ShadowTask task, final ShadowObservation primary) {
+        return sink.tryEmitNext(new ShadowCall(task, primary)).isSuccess();
     }
 
     @Override
@@ -75,7 +93,9 @@ public final class ShadowDispatcher implements AutoCloseable {
         subscription.dispose();
     }
 
-    private Mono<Void> mirror(final ShadowTask task) {
+    private Mono<Void> mirror(final ShadowCall call) {
+        ShadowTask task = call.getTask();
+        long start = System.nanoTime();
         // Build the request lazily: a value that cannot be turned into a request
         // (for example an unsupported method) must fail this attempt only, never
         // terminate the dispatcher subscription for the whole rule.
@@ -85,23 +105,29 @@ public final class ShadowDispatcher implements AutoCloseable {
                     .headers(headers -> headers.addAll(task.getHeaders()));
             WebClient.RequestHeadersSpec<?> request = task.getBody().length == 0
                     ? spec : spec.bodyValue(task.getBody());
-            return request.exchangeToMono(response -> response.releaseBody());
+            return request.exchangeToMono(response -> observe(response, call, start));
         })
                 .timeout(Duration.ofMillis(task.getTimeoutMillis()))
-                .doOnError(error -> LOG.warn("shadow attempt to {} failed with {}",
-                        redactedTarget(task.getUri()), error.getClass().getSimpleName()))
-                .onErrorResume(error -> Mono.empty());
+                .onErrorResume(error -> {
+                    reporter.failure(ruleKey, error);
+                    return Mono.empty();
+                })
+                .then();
     }
 
-    /**
-     * Describe a shadow target without its query string.
-     *
-     * <p>Queries can carry request tokens, and the failure path must not copy
-     * them into the gateway log.</p>
-     */
-    private static String redactedTarget(final URI uri) {
-        String authority = Objects.isNull(uri.getRawAuthority()) ? "" : uri.getRawAuthority();
-        String path = Objects.isNull(uri.getRawPath()) ? "" : uri.getRawPath();
-        return uri.getScheme() + "://" + authority + path;
+    private Mono<Void> observe(final ClientResponse response, final ShadowCall call, final long start) {
+        HttpHeaders headers = response.headers().asHttpHeaders();
+        int status = response.statusCode().value();
+        ShadowBodyCapture capture = new ShadowBodyCapture(handle.getMaxResponseBodyBytes());
+        return response.bodyToFlux(DataBuffer.class)
+                .doOnNext(capture::append)
+                .then(Mono.fromRunnable(() -> report(call, status, headers, capture, start)));
+    }
+
+    private void report(final ShadowCall call, final int status, final HttpHeaders headers,
+                        final ShadowBodyCapture capture, final long start) {
+        ShadowObservation shadow = new ShadowObservation(status, headers, capture.bytes(), capture.isTruncated(),
+                System.nanoTime() - start);
+        reporter.report(ruleKey, ShadowComparator.compare(handle, call.getPrimary(), shadow), call.getPrimary(), shadow);
     }
 }

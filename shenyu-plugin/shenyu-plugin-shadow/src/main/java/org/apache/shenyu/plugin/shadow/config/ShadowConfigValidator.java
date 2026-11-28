@@ -126,8 +126,17 @@ public final class ShadowConfigValidator {
         if (Objects.isNull(handle.getMaxRequestBodyBytes()) || handle.getMaxRequestBodyBytes() < 0) {
             return Optional.of("shadow maxRequestBodyBytes must not be negative");
         }
+        if (Objects.isNull(handle.getMaxResponseBodyBytes()) || handle.getMaxResponseBodyBytes() < 0) {
+            return Optional.of("shadow maxResponseBodyBytes must not be negative");
+        }
         if (Objects.isNull(handle.getForwardHeaders())) {
             return Optional.of("shadow forwardHeaders must not be null");
+        }
+        if (Objects.isNull(handle.getCompareHeaders())) {
+            return Optional.of("shadow compareHeaders must not be null");
+        }
+        if (Objects.isNull(handle.getIgnoreJsonPaths())) {
+            return Optional.of("shadow ignoreJsonPaths must not be null");
         }
         return Optional.empty();
     }

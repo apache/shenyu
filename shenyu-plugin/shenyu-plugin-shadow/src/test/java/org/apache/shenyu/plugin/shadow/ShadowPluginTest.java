@@ -89,13 +89,13 @@ public final class ShadowPluginTest {
 
     @Test
     public void testMirrorsEligibleRequest() {
-        when(runtime.mirror(any())).thenReturn(true);
+        when(runtime.mirror(any(), any())).thenReturn(true);
         ServerWebExchange exchange = exchange(MockServerHttpRequest.get("http://localhost/api/orders/42?a=1").build(), true);
         StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule()))
                 .expectSubscription()
                 .verifyComplete();
         ArgumentCaptor<ShadowTask> captor = ArgumentCaptor.forClass(ShadowTask.class);
-        verify(runtime).mirror(captor.capture());
+        verify(runtime).mirror(captor.capture(), any());
         assertEquals("http://shadow:8080/api/orders/42?a=1", captor.getValue().getUri().toString());
         assertEquals("GET", captor.getValue().getMethod());
     }
@@ -103,7 +103,7 @@ public final class ShadowPluginTest {
     @Test
     public void testMirrorsObservedBody() {
         handle.setMethods(Collections.singletonList("POST"));
-        when(runtime.mirror(any())).thenReturn(true);
+        when(runtime.mirror(any(), any())).thenReturn(true);
         ServerWebExchange exchange = exchange(MockServerHttpRequest.post("http://localhost/api")
                 .body("payload"), true);
         lenient().when(chain.execute(any())).thenAnswer(invocation -> {
@@ -114,7 +114,7 @@ public final class ShadowPluginTest {
                 .expectSubscription()
                 .verifyComplete();
         ArgumentCaptor<ShadowTask> captor = ArgumentCaptor.forClass(ShadowTask.class);
-        verify(runtime).mirror(captor.capture());
+        verify(runtime).mirror(captor.capture(), any());
         assertEquals("payload", new String(captor.getValue().getBody(), StandardCharsets.UTF_8));
     }
 
@@ -132,7 +132,7 @@ public final class ShadowPluginTest {
                 .expectSubscription()
                 .verifyComplete();
         verify(runtime).recordSkip(ShadowSkipReason.BODY_TOO_LARGE);
-        verify(runtime, never()).mirror(any());
+        verify(runtime, never()).mirror(any(), any());
     }
 
     @Test
@@ -145,7 +145,7 @@ public final class ShadowPluginTest {
                 .expectSubscription()
                 .verifyComplete();
         verify(runtime).recordSkip(ShadowSkipReason.BODY_INCOMPLETE);
-        verify(runtime, never()).mirror(any());
+        verify(runtime, never()).mirror(any(), any());
     }
 
     @Test
@@ -156,7 +156,7 @@ public final class ShadowPluginTest {
                 .expectSubscription()
                 .verifyComplete();
         verify(chain).execute(any());
-        verify(runtime, never()).mirror(any());
+        verify(runtime, never()).mirror(any(), any());
     }
 
     @Test
@@ -166,7 +166,7 @@ public final class ShadowPluginTest {
                 .expectSubscription()
                 .verifyComplete();
         verify(runtime).recordSkip(ShadowSkipReason.NOT_HTTP);
-        verify(runtime, never()).mirror(any());
+        verify(runtime, never()).mirror(any(), any());
     }
 
     @Test
@@ -176,12 +176,12 @@ public final class ShadowPluginTest {
                 .expectSubscription()
                 .verifyComplete();
         verify(runtime).recordSkip(ShadowSkipReason.METHOD_NOT_ALLOWED);
-        verify(runtime, never()).mirror(any());
+        verify(runtime, never()).mirror(any(), any());
     }
 
     @Test
     public void testRecordsQueueOverflow() {
-        when(runtime.mirror(any())).thenReturn(false);
+        when(runtime.mirror(any(), any())).thenReturn(false);
         ServerWebExchange exchange = exchange(MockServerHttpRequest.get("http://localhost/api").build(), true);
         StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule()))
                 .expectSubscription()

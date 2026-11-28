@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.shadow.dispatch;
 
 import org.apache.shenyu.common.dto.convert.rule.ShadowHandle;
+import org.apache.shenyu.plugin.shadow.report.ShadowReporter;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Objects;
@@ -33,10 +34,13 @@ public class ShadowRuntimeRegistry implements AutoCloseable {
 
     private final WebClient webClient;
 
+    private final ShadowReporter reporter;
+
     private final ConcurrentHashMap<String, ShadowRuntime> runtimes = new ConcurrentHashMap<>();
 
-    public ShadowRuntimeRegistry(final WebClient webClient) {
+    public ShadowRuntimeRegistry(final WebClient webClient, final ShadowReporter reporter) {
         this.webClient = Objects.requireNonNull(webClient);
+        this.reporter = Objects.requireNonNull(reporter);
     }
 
     /**
@@ -51,8 +55,7 @@ public class ShadowRuntimeRegistry implements AutoCloseable {
             previous.close();
         }
         if (Boolean.TRUE.equals(handle.getEnabled())) {
-            runtimes.put(key, new ShadowRuntime(handle,
-                    new ShadowDispatcher(webClient, handle.getMaxConcurrent(), handle.getQueueCapacity())));
+            runtimes.put(key, new ShadowRuntime(handle, new ShadowDispatcher(webClient, handle, key, reporter)));
         }
     }
 
