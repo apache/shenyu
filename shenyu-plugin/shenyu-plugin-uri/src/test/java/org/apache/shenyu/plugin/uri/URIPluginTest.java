@@ -25,6 +25,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.http.HttpMethod;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
@@ -32,6 +33,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +57,8 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class URIPluginTest {
 
+    private static final String RAW_QUERY = "tag=a%2Bb&empty=&tag=c+d&flag&space=a%20b";
+
     private MockServerHttpRequest request;
     
     private URIPlugin uriPlugin;
@@ -63,6 +68,53 @@ public class URIPluginTest {
     private ShenyuPluginChain chain;
     
     private ShenyuContext shenyuContext;
+
+    @Test
+    void testPreservesRawQueryWithPathRewrite() {
+        assertEquals("http://upstream.example/rewritten%2Fpath?" + RAW_QUERY,
+                buildUpstreamUri("/echo?" + RAW_QUERY, "/rewritten%2Fpath", Boolean.TRUE).toString());
+    }
+
+    @Test
+    void testPreservesCurrentRequestQuery() {
+        final ServerWebExchange original = MockServerWebExchange.from(MockServerHttpRequest.get("/echo?old=1"));
+        final URI updatedUri = URI.create("/echo?new=a%2bb&new=c+d");
+        final ServerWebExchange updated = original.mutate().request(original.getRequest().mutate().uri(updatedUri).build()).build();
+        assertEquals("new=a%2bb&new=c+d", forward(updated, "/echo", Boolean.TRUE).getRawQuery());
+    }
+
+    @Test
+    void testPreservesExplicitTargetQuery() {
+        assertEquals("http://upstream.example/new?fixed=x%2By",
+                buildUpstreamUri("/echo?" + RAW_QUERY, "/new?fixed=x%2By", Boolean.TRUE).toString());
+    }
+
+    @Test
+    void testKeepsLegacyNormalizationByDefault() {
+        final String normalized = "tag=a%2Bb&tag=c%20d&empty=&flag&space=a%20b";
+        assertEquals(normalized, buildUpstreamUri("/echo?" + RAW_QUERY, "/echo", null).getRawQuery());
+        assertEquals(normalized, buildUpstreamUri("/echo?" + RAW_QUERY, "/echo", Boolean.FALSE).getRawQuery());
+    }
+
+    @Test
+    void testDistinguishesMissingAndEmptyQuery() {
+        assertEquals("http://upstream.example/echo", buildUpstreamUri("/echo", "/echo", Boolean.TRUE).toString());
+        assertEquals("http://upstream.example/echo?", buildUpstreamUri("/echo?", "/echo", Boolean.TRUE).toString());
+    }
+
+    private URI buildUpstreamUri(final String requestTarget, final String rewrite, final Boolean preserve) {
+        return forward(MockServerWebExchange.from(MockServerHttpRequest.method(HttpMethod.GET, URI.create(requestTarget)).build()), rewrite, preserve);
+    }
+
+    private URI forward(final ServerWebExchange requestExchange, final String rewrite, final Boolean preserve) {
+        requestExchange.getAttributes().put(Constants.HTTP_DOMAIN, "http://upstream.example");
+        requestExchange.getAttributes().put(Constants.REWRITE_URI, rewrite);
+        if (Objects.nonNull(preserve)) {
+            requestExchange.getAttributes().put(Constants.PRESERVE_RAW_QUERY, preserve);
+        }
+        StepVerifier.create(uriPlugin.execute(requestExchange, unused -> Mono.empty())).verifyComplete();
+        return requestExchange.getRequiredAttribute(Constants.HTTP_URI);
+    }
 
     @BeforeEach
     public void setUp() {

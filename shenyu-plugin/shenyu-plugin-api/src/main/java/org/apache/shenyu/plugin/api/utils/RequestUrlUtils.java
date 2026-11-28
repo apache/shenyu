@@ -55,6 +55,9 @@ public final class RequestUrlUtils {
             }
         }
         URI uri = exchange.getRequest().getURI();
+        if (Boolean.TRUE.equals(exchange.getAttribute(Constants.PRESERVE_RAW_QUERY))) {
+            return appendRawQuery(path, uri.getRawQuery());
+        }
         if (StringUtils.isNotEmpty(uri.getRawQuery()) && uri.getRawQuery().contains("%")
                 || StringUtils.isNotEmpty(uri.getRawPath()) && uri.getRawPath().contains("%")) {
             path = path + "?" + RequestQueryCodecUtil.getCodecQuery(exchange);
@@ -66,6 +69,20 @@ public final class RequestUrlUtils {
             Objects.requireNonNull(path);
             return UriComponentsBuilder.fromUriString(path).build(false).toUri();
         }
+    }
+
+    private static URI appendRawQuery(final String path, final String rawQuery) {
+        // Encode the target path independently; the request's raw query is already encoded.
+        final URI target = UriComponentsBuilder.fromUriString(path).build(path.contains("%")).toUri();
+        if (Objects.isNull(rawQuery) || Objects.nonNull(target.getRawQuery())) {
+            return target;
+        }
+        final String targetUri = target.toString();
+        final int fragment = targetUri.indexOf('#');
+        if (fragment < 0) {
+            return URI.create(targetUri + "?" + rawQuery);
+        }
+        return URI.create(targetUri.substring(0, fragment) + "?" + rawQuery + targetUri.substring(fragment));
     }
     
     /**

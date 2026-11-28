@@ -87,6 +87,26 @@ public class DivideRuleHandle implements RuleHandle {
      */
     private String poolGroup;
 
+    private boolean preserveRawQuery;
+
+    /**
+     * Returns whether the upstream URI keeps the request's raw query.
+     *
+     * @return true to preserve the raw query
+     */
+    public boolean isPreserveRawQuery() {
+        return preserveRawQuery;
+    }
+
+    /**
+     * Sets whether the upstream URI keeps the request's raw query.
+     *
+     * @param preserveRawQuery true to preserve the raw query
+     */
+    public void setPreserveRawQuery(final boolean preserveRawQuery) {
+        this.preserveRawQuery = preserveRawQuery;
+    }
+
     /**
      * Get the overall HTTPRoute request budget.
      * @return milliseconds, zero for a disabled deadline, or null for legacy retry handling
@@ -296,12 +316,14 @@ public class DivideRuleHandle implements RuleHandle {
                 && requestMaxSize == that.requestMaxSize && Objects.equals(loadBalance, that.loadBalance)
                 && Objects.equals(requestTimeout, that.requestTimeout) && Objects.equals(retryStrategy, that.retryStrategy)
                 && Objects.equals(retryBackOffSpec, that.retryBackOffSpec) && Objects.equals(canary, that.canary)
-                && Objects.equals(sticky, that.sticky) && Objects.equals(poolGroup, that.poolGroup);
+                && Objects.equals(sticky, that.sticky) && Objects.equals(poolGroup, that.poolGroup)
+                && preserveRawQuery == that.preserveRawQuery;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, requestTimeout, headerMaxSize, requestMaxSize, canary, sticky, poolGroup);
+        return Objects.hash(loadBalance, retryStrategy, retryBackOffSpec, retry, timeout, requestTimeout,
+                headerMaxSize, requestMaxSize, canary, sticky, poolGroup, preserveRawQuery);
     }
 
     @Override
@@ -333,6 +355,8 @@ public class DivideRuleHandle implements RuleHandle {
                 + ", poolGroup='"
                 + poolGroup
                 + '\''
+                + ", preserveRawQuery="
+                + preserveRawQuery
                 + '}';
     }
 }
