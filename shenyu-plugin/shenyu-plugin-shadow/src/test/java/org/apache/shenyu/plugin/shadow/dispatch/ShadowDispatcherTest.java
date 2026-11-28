@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -146,6 +147,22 @@ public final class ShadowDispatcherTest {
     }
 
     @Test
+    public void testPairsEachShadowResponseWithItsOwnPrimary() {
+        server.stubFor(get(urlEqualTo(PATH)).willReturn(jsonResponse(200, JSON_BODY)));
+        RecordingReporter reporter = new RecordingReporter();
+        ShadowDispatcher dispatcher = dispatcher(handle(), reporter);
+        try {
+            assertTrue(dispatcher.dispatch(task(), primary(200, JSON_BODY)));
+            assertTrue(dispatcher.dispatch(task(), primary(500, JSON_BODY)));
+            await().atMost(Duration.ofSeconds(10)).until(() -> reporter.size() == 2);
+            assertTrue(reporter.outcomes().contains(ShadowOutcome.MATCH));
+            assertTrue(reporter.outcomes().contains(ShadowOutcome.MISMATCH));
+        } finally {
+            dispatcher.close();
+        }
+    }
+
+    @Test
     public void testCloseRejectsFurtherWork() {
         ShadowDispatcher dispatcher = dispatcher(handle(), new RecordingReporter());
         dispatcher.close();
@@ -202,6 +219,10 @@ public final class ShadowDispatcherTest {
 
         private ShadowComparison get(final int index) {
             return comparisons.get(index);
+        }
+
+        private List<ShadowOutcome> outcomes() {
+            return comparisons.stream().map(ShadowComparison::getOutcome).collect(Collectors.toList());
         }
     }
 }

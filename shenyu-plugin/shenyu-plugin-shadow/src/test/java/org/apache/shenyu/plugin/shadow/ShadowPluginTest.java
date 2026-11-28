@@ -149,6 +149,17 @@ public final class ShadowPluginTest {
     }
 
     @Test
+    public void testRecordsCancelledPrimary() {
+        when(chain.execute(any())).thenReturn(Mono.never());
+        ServerWebExchange exchange = exchange(MockServerHttpRequest.get("http://localhost/api").build(), true);
+        StepVerifier.create(plugin.doExecute(exchange, chain, selector, rule()))
+                .thenCancel()
+                .verify();
+        verify(runtime).recordSkip(ShadowSkipReason.PRIMARY_CANCELLED);
+        verify(runtime, never()).mirror(any(), any());
+    }
+
+    @Test
     public void testPassesThroughWithoutRuntime() {
         when(runtimeRegistry.find(anyString())).thenReturn(null);
         ServerWebExchange exchange = exchange(MockServerHttpRequest.get("http://localhost/api").build(), true);
