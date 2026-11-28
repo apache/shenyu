@@ -366,6 +366,28 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     }
 
     /**
+     * Populate local cache only if no snapshot has been published for the group and namespace yet.
+     *
+     * @param group       ConfigGroupEnum
+     * @param data        the loaded config data
+     * @param namespaceId the namespaceId
+     * @param <T>         the type of class
+     * @return the existing snapshot if concurrently published, otherwise the newly inserted snapshot
+     */
+    protected <T> ConfigDataCache putCacheIfAbsent(final ConfigGroupEnum group, final List<T> data, final String namespaceId) {
+        String json = GsonUtils.getInstance().toJson(data);
+        String newMd5 = DigestUtils.md5Hex(json);
+        String configDataCacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, group.name());
+        ConfigDataCache newVal = new ConfigDataCache(configDataCacheKey, json, newMd5, System.currentTimeMillis(), namespaceId);
+        ConfigDataCache existing = CACHE.putIfAbsent(newVal.getGroup(), newVal);
+        if (Objects.nonNull(existing)) {
+            return existing;
+        }
+        LOG.info("init config cache[{}], updated: {}", group, newVal);
+        return newVal;
+    }
+
+    /**
      * refresh local cache.
      */
     protected void refreshLocalCache() {
@@ -402,10 +424,20 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         String cacheKey = HttpLongPollingDataChangedListener.buildCacheKey(namespaceId, groupKey.name());
         ConfigDataCache config = CACHE.get(cacheKey);
         if (Objects.isNull(config)) {
-            this.refreshLocalCache(namespaceId);
-            config = CACHE.get(cacheKey);
+            config = this.loadMissingGroupCache(groupKey, namespaceId);
         }
         return config;
+    }
+
+    /**
+     * Load a single missing group cache from persistence without overwriting any concurrent publication.
+     *
+     * @param groupKey    the group key
+     * @param namespaceId the namespaceId
+     * @return the cached configuration
+     */
+    protected ConfigDataCache loadMissingGroupCache(final ConfigGroupEnum groupKey, final String namespaceId) {
+        return this.putCacheIfAbsent(groupKey, listGroupData(groupKey, namespaceId), namespaceId);
     }
 
     /**
@@ -463,6 +495,29 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
 
     protected void updateAiProxyApiKeyCache(final String namespaceId) {
         this.updateCache(ConfigGroupEnum.AI_PROXY_API_KEY, aiProxyApiKeyService.listAllByNamespaceId(namespaceId), namespaceId);
+    }
+
+    private List<?> listGroupData(final ConfigGroupEnum groupKey, final String namespaceId) {
+        switch (groupKey) {
+            case APP_AUTH:
+                return appAuthService.listAllByNamespaceId(namespaceId);
+            case PLUGIN:
+                return namespacePluginService.listAll(namespaceId);
+            case RULE:
+                return ruleService.listAllByNamespaceId(namespaceId);
+            case SELECTOR:
+                return selectorService.listAllByNamespaceId(namespaceId);
+            case META_DATA:
+                return metaDataService.listAllByNamespaceId(namespaceId);
+            case PROXY_SELECTOR:
+                return proxySelectorService.listAllByNamespaceId(namespaceId);
+            case DISCOVER_UPSTREAM:
+                return discoveryUpstreamService.listAllByNamespaceId(namespaceId);
+            case AI_PROXY_API_KEY:
+                return aiProxyApiKeyService.listAllByNamespaceId(namespaceId);
+            default:
+                throw new IllegalStateException("Unexpected groupKey: " + groupKey);
+        }
     }
 
     private <T> ConfigData<T> buildConfigData(final ConfigDataCache config, final Class<T> dataType) {

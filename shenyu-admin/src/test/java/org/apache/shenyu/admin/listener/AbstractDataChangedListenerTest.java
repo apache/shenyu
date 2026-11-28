@@ -50,6 +50,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.shenyu.common.constant.Constants.SYS_DEFAULT_NAMESPACE_ID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -378,6 +384,7 @@ public final class AbstractDataChangedListenerTest {
             }
         }
         verify(appAuthService, times(1)).listAllByNamespaceId(newNamespace);
+        verify(selectorService, times(1)).listAllByNamespaceId(newNamespace);
 
         // Subsequent APP_AUTH edit in the new namespace must update the cached snapshot and propagate.
         AppAuthData newAuth = AppAuthData.builder()
@@ -392,6 +399,45 @@ public final class AbstractDataChangedListenerTest {
         assertEquals("app-key-1", ((AppAuthData) updatedAuth.getData().get(0)).getAppKey());
         assertFalse(emptyJsonMd5.equals(updatedAuth.getMd5()));
         assertCallbackBatch(ConfigGroupEnum.APP_AUTH, newNamespace, newAuth);
+    }
+
+    @Test
+    public void testColdFetchDoesNotOverwriteConcurrentSameGroupPublication() throws Exception {
+        String newNamespace = "ns-concurrent-same-group";
+        AppAuthData committedAuth = AppAuthData.builder()
+                .appKey("concurrent-key")
+                .namespaceId(newNamespace)
+                .build();
+        CountDownLatch coldReadEntered = new CountDownLatch(1);
+        CountDownLatch releaseColdRead = new CountDownLatch(1);
+        AtomicInteger callIndex = new AtomicInteger();
+        when(appAuthService.listAllByNamespaceId(newNamespace)).thenAnswer(invocation -> {
+            if (callIndex.getAndIncrement() == 0) {
+                coldReadEntered.countDown();
+                assertTrue(releaseColdRead.await(5, TimeUnit.SECONDS));
+                return Collections.emptyList();
+            }
+            return Collections.singletonList(committedAuth);
+        });
+
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try {
+            final Future<ConfigData<?>> coldFetch = pool.submit(() -> listener.fetchConfig(ConfigGroupEnum.APP_AUTH, newNamespace));
+            assertTrue(coldReadEntered.await(5, TimeUnit.SECONDS));
+
+            // Publish a newer committed APP_AUTH snapshot while the cold fetch still holds the stale empty read.
+            listener.onAppAuthChanged(Collections.singletonList(committedAuth), DataEventTypeEnum.CREATE);
+            releaseColdRead.countDown();
+
+            ConfigData<?> fetchedDuringRace = coldFetch.get(5, TimeUnit.SECONDS);
+            ConfigData<?> finalFetched = listener.fetchConfig(ConfigGroupEnum.APP_AUTH, newNamespace);
+            assertEquals(1, fetchedDuringRace.getData().size());
+            assertEquals("concurrent-key", ((AppAuthData) fetchedDuringRace.getData().get(0)).getAppKey());
+            assertEquals(1, finalFetched.getData().size());
+            assertEquals("concurrent-key", ((AppAuthData) finalFetched.getData().get(0)).getAppKey());
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test
