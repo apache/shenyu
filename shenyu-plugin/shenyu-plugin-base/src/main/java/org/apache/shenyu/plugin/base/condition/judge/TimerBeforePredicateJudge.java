@@ -37,6 +37,11 @@ public class TimerBeforePredicateJudge implements PredicateJudge {
         if (!StringUtils.hasLength(paramName)) {
             return LocalDateTime.now().isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue().trim()));
         }
+        if (!StringUtils.hasLength(realData)) {
+            // a missing request value cannot be evaluated: no match, without aborting
+            // the whole match (#8358 keeps malformed values on the same contract)
+            return false;
+        }
         LocalDateTime configuredTime = DateUtils.parseLocalDateTime(conditionData.getParamValue().trim());
         try {
             return DateUtils.parseLocalDateTime(realData).isBefore(configuredTime);
