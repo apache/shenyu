@@ -18,10 +18,13 @@
 package org.apache.shenyu.web.loader;
 
 import com.google.common.collect.Sets;
+import org.apache.shenyu.common.config.PluginArchiveLimits;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +35,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class ShenyuExtPathPluginJarLoader {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShenyuExtPathPluginJarLoader.class);
 
     private static volatile Set<String> pluginJarName = new HashSet<>();
 
@@ -55,6 +60,19 @@ public class ShenyuExtPathPluginJarLoader {
      * @throws IOException when a jar cannot be read
      */
     public static synchronized ExtPluginLoadResult loadExtendPlugins(final String path, final Consumer<ShenyuPluginClassLoader> deactivation) throws IOException {
+        return loadExtendPlugins(path, deactivation, new PluginArchiveLimits());
+    }
+
+    /**
+     * Discover candidates using the gateway archive policy before any deactivation.
+     * @param path extension directory
+     * @param deactivation ownership-aware cleanup callback
+     * @param limits archive limits
+     * @return discovered changes
+     * @throws IOException when a jar cannot be read
+     */
+    public static synchronized ExtPluginLoadResult loadExtendPlugins(final String path, final Consumer<ShenyuPluginClassLoader> deactivation,
+                                                                    final PluginArchiveLimits limits) throws IOException {
         File[] jarFiles = ShenyuPluginPathBuilder.getPluginFile(path).listFiles(file -> file.getName().endsWith(".jar"));
         if (Objects.isNull(jarFiles)) {
             return new ExtPluginLoadResult(Collections.emptyList(), Collections.emptySet());
@@ -64,8 +82,13 @@ public class ShenyuExtPathPluginJarLoader {
         for (File file : jarFiles) {
             String absolutePath = file.getAbsolutePath();
             currentPaths.add(absolutePath);
-            byte[] pluginBytes = Files.readAllBytes(Paths.get(absolutePath));
-            PluginJarParser.PluginJar uploadPluginJar = PluginJarParser.parseJar(pluginBytes);
+            PluginJarParser.PluginJar uploadPluginJar;
+            try {
+                uploadPluginJar = PluginJarParser.parseFile(Paths.get(absolutePath), limits);
+            } catch (ShenyuException e) {
+                LOG.warn("Skipping rejected extension archive {}: {}", absolutePath, e.getMessage());
+                continue;
+            }
             uploadPluginJar.setAbsolutePath(absolutePath);
             if (pluginJarName.contains(absolutePath)) {
                 ShenyuPluginClassLoaderHolder holder = ShenyuPluginClassLoaderHolder.getSingleton();
