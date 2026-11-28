@@ -1,0 +1,20 @@
+{
+  "tools": [
+    {
+      "name": "rfc8785_numbers_exponent_letter_case",
+      "description": "Synthetic fixture: only the number spelling differs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "minimum": 1E30
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "tools": [
+    {
+      "name": "rfc8785_numbers_two_pow_53_plus_one",
+      "description": "Synthetic fixture: only the number spelling differs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "minimum": 9007199254740993
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      }
+    }
+  ]
+}
