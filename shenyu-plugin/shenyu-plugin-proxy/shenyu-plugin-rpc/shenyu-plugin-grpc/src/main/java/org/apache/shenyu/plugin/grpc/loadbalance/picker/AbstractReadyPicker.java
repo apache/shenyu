@@ -65,9 +65,7 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
      * @param args pick arguments
      * @return result subChannel
      */
-    protected SubChannelCopy pick(final List<SubChannelCopy> list, final LoadBalancer.PickSubchannelArgs args) {
-        return pick(list);
-    }
+    protected abstract SubChannelCopy pick(List<SubChannelCopy> list, LoadBalancer.PickSubchannelArgs args);
 
     /**
      * Choose subChannel without per-call arguments.
@@ -75,7 +73,9 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
      * @param list subchannels
      * @return selected subchannel
      */
-    protected abstract SubChannelCopy pick(List<SubChannelCopy> list);
+    protected SubChannelCopy pick(final List<SubChannelCopy> list) {
+        return pick(list, null);
+    }
 
     @Override
     public List<SubChannelCopy> getSubchannels() {

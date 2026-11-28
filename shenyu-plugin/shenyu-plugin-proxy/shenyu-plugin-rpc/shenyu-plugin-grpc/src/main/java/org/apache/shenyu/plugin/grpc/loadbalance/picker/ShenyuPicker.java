@@ -51,11 +51,6 @@ public class ShenyuPicker extends AbstractReadyPicker {
     }
 
     @Override
-    protected SubChannelCopy pick(final List<SubChannelCopy> list) {
-        return randomPicker.pick(list);
-    }
-
-    @Override
     protected SubChannelCopy pick(final List<SubChannelCopy> list, final LoadBalancer.PickSubchannelArgs args) {
         if (Objects.isNull(args)) {
             LOG.debug("Using random gRPC picker without call arguments");

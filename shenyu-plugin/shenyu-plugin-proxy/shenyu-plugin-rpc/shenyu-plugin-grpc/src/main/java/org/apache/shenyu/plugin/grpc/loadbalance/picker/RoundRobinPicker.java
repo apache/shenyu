@@ -42,7 +42,7 @@ public class RoundRobinPicker extends AbstractReadyPicker {
     }
 
     @Override
-    protected SubChannelCopy pick(final List<SubChannelCopy> list) {
+    protected SubChannelCopy pick(final List<SubChannelCopy> list, final LoadBalancer.PickSubchannelArgs args) {
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }

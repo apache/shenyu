@@ -128,7 +128,6 @@ public class GrpcPluginTest {
         clientCacheMap.put("grpcId", mockClient);
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
-        when(data.getId()).thenReturn("ruleId");
 
         reactor.core.Disposable subscription = grpcPlugin.doExecute(exchange, chain, selector, data).subscribe();
         subscription.dispose();
@@ -148,7 +147,6 @@ public class GrpcPluginTest {
         putClient(new ShenyuGrpcClient(channel));
         when(chain.execute(Mockito.any())).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
-        when(data.getId()).thenReturn("ruleId");
 
         Mono<Void> response = grpcPlugin.doExecute(exchange, chain, selector, data);
         Mockito.verifyNoInteractions(channel);
