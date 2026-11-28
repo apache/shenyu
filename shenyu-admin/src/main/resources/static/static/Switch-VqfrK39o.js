@@ -1,0 +1,1 @@
+import{j as c}from"./index-DL4z5Mky.js";import{S as o}from"./index-Bgg4pViR.js";function x({checkedChildren:t,unCheckedChildren:e,...r}){return c.jsx(o,{...r,checkedText:t,uncheckedText:e})}export{x as S};

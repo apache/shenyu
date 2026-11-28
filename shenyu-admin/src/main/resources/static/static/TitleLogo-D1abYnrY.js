@@ -1,0 +1,1 @@
+import{r}from"./index-DL4z5Mky.js";function u({title:t,children:e}){return r.useEffect(()=>{const o=document.title;return document.title=t,()=>{document.title===t&&(document.title=o)}},[t]),e||null}const c=""+new URL("TitleLogo-LPRNoz1Z.svg",import.meta.url).href;export{u as D,c as T};
