@@ -220,6 +220,50 @@ class HttpCacheRebuildTest {
     }
 
     @Test
+    void unchangedReSyncKeepsCoalescedLongPollWaitingForTheNextChange() throws Exception {
+        final AsyncContext client = client("a");
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        commit("1", "a", "same");
+        tasks.remove().run();
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        verify(client).complete();
+
+        final AsyncContext waiting = currentClient("a");
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        event(rule("1", "a", "same"), DataEventTypeEnum.UPDATE);
+        tasks.remove().run();
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        verify(waiting, never()).complete();
+
+        commit("2", "a", "next");
+        tasks.remove().run();
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        verify(waiting).complete();
+    }
+
+    @Test
+    void unchangedReSyncKeepsSynchronousLongPollWaitingForTheNextChange() throws Exception {
+        ((HttpCacheRebuildCoordinator) ReflectionTestUtils.getField(listener, "cacheRebuildCoordinator")).close();
+        ReflectionTestUtils.setField(listener, "cacheRebuildCoordinator", null);
+
+        final AsyncContext client = client("a");
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        commit("1", "a", "same");
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        verify(client).complete();
+
+        final AsyncContext waiting = currentClient("a");
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        event(rule("1", "a", "same"), DataEventTypeEnum.UPDATE);
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        verify(waiting, never()).complete();
+
+        commit("2", "a", "next");
+        scheduler().submit(() -> { }).get(5, TimeUnit.SECONDS);
+        verify(waiting).complete();
+    }
+
+    @Test
     void disabledModeStillRebuildsSynchronouslyPerEvent() {
         ((HttpCacheRebuildCoordinator) ReflectionTestUtils.getField(listener, "cacheRebuildCoordinator")).close();
         ReflectionTestUtils.setField(listener, "cacheRebuildCoordinator", null);
@@ -285,6 +329,20 @@ class HttpCacheRebuildTest {
         return context;
     }
 
+    private AsyncContext currentClient(final String namespace) {
+        AsyncContext context = mock(AsyncContext.class);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("namespaceId", namespace);
+        for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
+            ConfigDataCache cache = listener.cacheOf(group, namespace);
+            request.setParameter(group.name(), cache.getMd5() + "," + cache.getLastModifyTime());
+        }
+        when(context.getRequest()).thenReturn(request);
+        when(context.getResponse()).thenReturn(new MockHttpServletResponse());
+        scheduler().execute(listener.new LongPollingClient(context, "127.0.0.1", 30000, namespace));
+        return context;
+    }
+
     @Test
     void registrationRechecksChangesPublishedAfterTheInitialComparison() throws Exception {
         commit("1", "a", "changed-before-registration");
@@ -343,6 +401,10 @@ class HttpCacheRebuildTest {
 
         private ConfigDataCache cached(final String namespaceId) {
             return CACHE.get(buildCacheKey(namespaceId, ConfigGroupEnum.RULE.name()));
+        }
+
+        private ConfigDataCache cacheOf(final ConfigGroupEnum group, final String namespaceId) {
+            return CACHE.get(buildCacheKey(namespaceId, group.name()));
         }
 
         private void seedCache(final ConfigGroupEnum group, final String namespaceId) {

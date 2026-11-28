@@ -114,6 +114,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private long heartbeatIntervalMs;
 
+    private final Map<String, String> lastNotifiedMd5 = new ConcurrentHashMap<>();
+
     private final HttpSyncProperties httpSyncProperties;
 
     /**
@@ -165,14 +167,20 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     @Override
     protected void refreshCache(final ConfigGroupEnum group, final String namespaceId, final Runnable rebuild) {
+        String cacheKey = buildCacheKey(namespaceId, group.name());
         if (Objects.isNull(cacheRebuildCoordinator)) {
+            String previousMd5 = cacheMd5(cacheKey);
             super.refreshCache(group, namespaceId, rebuild);
+            recordUnchangedPublication(cacheKey, previousMd5);
             return;
         }
         Runnable work = () -> {
+            String previousMd5;
             synchronized (refreshLocks.computeIfAbsent(namespaceId, key -> new Object())) {
+                previousMd5 = cacheMd5(cacheKey);
                 rebuild.run();
             }
+            recordUnchangedPublication(cacheKey, previousMd5);
             // The coalescing path owns its notification: wake long-poll clients only after publication.
             try {
                 scheduler.execute(new DataChangeTask(group, namespaceId));
@@ -183,7 +191,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 LOG.debug("skip long-polling notification for {} {}: listener is shutting down", namespaceId, group, ex);
             }
         };
-        if (!cacheRebuildCoordinator.request(buildCacheKey(namespaceId, group.name()), work)) {
+        if (!cacheRebuildCoordinator.request(cacheKey, work)) {
             // Bounded memory under overload: new keys apply backpressure to their committing caller.
             work.run();
         }
@@ -303,6 +311,25 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private boolean shouldReportInstance(final String clientPort) {
         return !StringUtils.isBlank(clientPort) && !CLIENT_PORT_ZERO.equals(clientPort);
+    }
+
+    private static String cacheMd5(final String cacheKey) {
+        ConfigDataCache cache = CACHE.get(cacheKey);
+        return Objects.isNull(cache) ? null : cache.getMd5();
+    }
+
+    /**
+     * Remember the digest of a rebuild that did not change the snapshot, so the notification
+     * scheduled by the caller does not wake clients for data they already hold.
+     *
+     * @param cacheKey    the namespace/group cache key
+     * @param previousMd5 the digest before the rebuild, or null when no snapshot existed
+     */
+    private void recordUnchangedPublication(final String cacheKey, final String previousMd5) {
+        ConfigDataCache published = CACHE.get(cacheKey);
+        if (Objects.nonNull(published) && StringUtils.equals(previousMd5, published.getMd5())) {
+            lastNotifiedMd5.put(cacheKey, published.getMd5());
+        }
     }
 
     @Override
@@ -488,6 +515,15 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         @Override
         public void run() {
+            String cacheKey = buildCacheKey(namespaceId, groupKey.name());
+            ConfigDataCache cache = CACHE.get(cacheKey);
+            if (Objects.nonNull(cache)) {
+                String md5 = cache.getMd5();
+                if (StringUtils.equals(md5, lastNotifiedMd5.get(cacheKey))) {
+                    return;
+                }
+                lastNotifiedMd5.put(cacheKey, md5);
+            }
             BlockingQueue<LongPollingClient> namespaceClients = clientsMap.get(namespaceId);
             if (CollectionUtils.isEmpty(namespaceClients)) {
                 return;
