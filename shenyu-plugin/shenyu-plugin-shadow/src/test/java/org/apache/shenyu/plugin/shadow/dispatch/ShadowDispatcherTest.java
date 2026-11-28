@@ -198,10 +198,22 @@ public final class ShadowDispatcherTest {
     }
 
     private ShadowTask task(final String path, final int timeoutMillis) {
+        return task("GET", path, timeoutMillis);
+    }
+
+    private ShadowTask task(final String method, final String path, final int timeoutMillis) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(ShadowTaskFactory.SHADOW_HEADER, Boolean.TRUE.toString());
-        return new ShadowTask("GET", URI.create("http://localhost:" + server.port() + path),
+        return new ShadowTask(method, URI.create("http://localhost:" + server.port() + path),
                 headers, new byte[0], timeoutMillis);
+    }
+
+    /**
+     * A task that cannot be turned into a request: {@link HttpMethod#valueOf} rejects a null method.
+     * Spring 6 accepts arbitrary method names, so a null value is the construction failure.
+     */
+    private ShadowTask malformedTask() {
+        return task(null, PATH, 2000);
     }
 
     private ShadowObservation primary(final int status, final String body) {
@@ -216,6 +228,22 @@ public final class ShadowDispatcherTest {
 
     private void awaitReport(final RecordingReporter reporter) {
         await().atMost(Duration.ofSeconds(10)).until(() -> reporter.size() == 1);
+    }
+
+    @Test
+    public void testOneBadCallDoesNotTerminateTheDispatcher() {
+        server.stubFor(get(urlEqualTo(PATH)).willReturn(jsonResponse(200, JSON_BODY)));
+        RecordingReporter reporter = new RecordingReporter();
+        ShadowDispatcher dispatcher = dispatcher(handle(), reporter);
+        try {
+            assertTrue(dispatcher.dispatch(malformedTask(), primary(200, JSON_BODY)));
+            assertTrue(dispatcher.dispatch(task(), primary(200, JSON_BODY)));
+            await().atMost(Duration.ofSeconds(10)).until(() -> reporter.size() == 2);
+            assertTrue(reporter.outcomes().contains(ShadowOutcome.SHADOW_FAILED));
+            assertTrue(reporter.outcomes().contains(ShadowOutcome.MATCH));
+        } finally {
+            dispatcher.close();
+        }
     }
 
     private static final class RecordingReporter implements ShadowReporter {
