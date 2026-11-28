@@ -139,12 +139,14 @@ public class AiProxyPlugin extends AbstractShenyuPlugin {
             final String realApiKey;
             if (Objects.nonNull(handle) && "true".equalsIgnoreCase(handle.getProxyEnabled())) {
                 String proxyKey = exchange.getRequest().getHeaders().getFirst(Constants.X_API_KEY);
-                realApiKey = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
-                        : AiProxyApiKeyCache.getInstance().getRealApiKey(selector.getId(), proxyKey);
+                ProxyApiKeyData mapping = Objects.isNull(proxyKey) || proxyKey.isEmpty() ? null
+                        : AiProxyApiKeyCache.getInstance().getValidatedMapping(selector.getId(), proxyKey);
+                realApiKey = Objects.isNull(mapping) ? null : mapping.getRealApiKey();
                 if (Objects.isNull(realApiKey)) {
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return exchange.getResponse().setComplete();
                 }
+                observation.updateContext(observation.getContext().withApiKeyId(mapping.getId()));
             } else {
                 realApiKey = null;
             }

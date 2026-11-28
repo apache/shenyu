@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.agent.gateway.protocol;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
+import org.apache.shenyu.common.dto.AgentGatewayAdmissionConfig;
 import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolExecutionException;
@@ -427,6 +428,29 @@ class AgentMcpDispatcherTest {
                     assertFalse(((AgentMcpProtocolException) error).toResponse().path("error").has("data"));
                 }).verify();
         assertEquals(1, calls.get());
+    }
+
+    @Test
+    void shouldAdmitLocalToolOnlyAfterPreExecutionValidation() {
+        AtomicInteger admitted = new AtomicInteger();
+        AgentMcpResourceAdmission.ResourceAdmissionController admission = AgentMcpResourceAdmission.create(
+                new AgentGatewayAdmissionConfig(1, 0, 1, 0, 1, 0));
+        try {
+            AgentToolProvider invalid = provider("order_status", input -> {
+                throw new IllegalArgumentException("invalid private input");
+            }, input -> {
+                admitted.incrementAndGet();
+                return Mono.just(input.getArguments());
+            });
+            AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(List.of(invalid)),
+                    "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION, null, admission);
+            StepVerifier.create(dispatcher.dispatch(request("tools/call", "1", "order_status"), () -> context("A", Set.of("order_status"))))
+                    .assertNext(response -> assertTrue(response.path("result").path("isError").booleanValue()))
+                    .verifyComplete();
+            assertEquals(0, admitted.get());
+        } finally {
+            admission.close();
+        }
     }
 
     private AgentMcpExecutionContext context(final String subject, final Set<String> grants) {

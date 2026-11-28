@@ -54,6 +54,35 @@ class AgentGatewayAggregationConfigTest {
         assertThrows(IllegalArgumentException.class, () -> AgentGatewayAggregationConfig.parsePluginConfig(wrap(server + "," + server)));
     }
 
+    @Test
+    void parsesOptionalStrictAdmissionConfiguration() {
+        String source = "{\"aggregation\":{\"revision\":\"v1\",\"servers\":[]},"
+                + "\"admission\":{\"globalInFlight\":1,\"globalQueued\":2,\"localInFlight\":3,"
+                + "\"localQueued\":4,\"remoteInFlight\":5,\"remoteQueued\":6}}";
+        AgentGatewayAdmissionConfig admission = AgentGatewayAggregationConfig.parsePluginConfig(source).admission();
+        assertEquals(1, admission.globalInFlight());
+        assertEquals(2, admission.globalQueued());
+        assertEquals(3, admission.localInFlight());
+        assertEquals(4, admission.localQueued());
+        assertEquals(5, admission.remoteInFlight());
+        assertEquals(6, admission.remoteQueued());
+    }
+
+    @Test
+    void parsesAdmissionWithoutRemoteAggregation() {
+        String source = "{\"admission\":{\"globalInFlight\":8,\"globalQueued\":4,\"localInFlight\":1,"
+                + "\"localQueued\":0,\"remoteInFlight\":2,\"remoteQueued\":2}}";
+        AgentGatewayAggregationConfig config = AgentGatewayAggregationConfig.parsePluginConfig(source);
+        assertTrue(config.servers().isEmpty());
+        assertEquals(1, config.admission().localInFlight());
+    }
+
+    @Test
+    void rejectsUnknownOrExcessiveAdmissionFields() {
+        assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(0, 0, 1, 0, 1, 0));
+        assertThrows(IllegalArgumentException.class, () -> new AgentGatewayAdmissionConfig(129, 0, 1, 0, 1, 0));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"http://user:pass@127.0.0.1:8080/mcp", "http://127.0.0.1/mcp", "http://127.0.0.1:8080/a/../mcp",
         "http://127.0.0.1:8080/mcp?key=SECRET", "http://127.0.0.1:8080/mcp#SECRET", "http://127.0.0.1:8080/%2e/mcp",
