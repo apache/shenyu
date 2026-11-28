@@ -26,7 +26,7 @@ import org.apache.shenyu.sdk.spring.ShenyuClient;
 import org.apache.shenyu.sdk.spring.factory.AnnotatedParameterProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -82,19 +82,15 @@ public class ShenyuClientMethodHandler {
         if (ShenyuResponse.class == returnType) {
             return shenyuResponse;
         }
-        if (!isSuccessful(shenyuResponse.getStatus())) {
+        final HttpStatusCode status = HttpStatusCode.valueOf(shenyuResponse.getStatus());
+        if (!status.is2xxSuccessful()) {
             log.warn("handlerResponse http status warn shenyuResponse {}", JsonUtils.toJson(shenyuResponse));
-            throw new HttpClientErrorException(HttpStatus.valueOf(shenyuResponse.getStatus()));
+            throw new HttpClientErrorException(status);
         }
         if (void.class == returnType || !StringUtils.hasText(shenyuResponse.getBody())) {
             return null;
         }
         return JsonUtils.jsonToObject(shenyuResponse.getBody(), returnType);
-    }
-
-    private boolean isSuccessful(final int status) {
-        final HttpStatus httpStatus = HttpStatus.resolve(status);
-        return Objects.nonNull(httpStatus) && httpStatus.is2xxSuccessful();
     }
 
     private ShenyuRequest targetProcessor(final RequestTemplate requestTemplate, final Object[] args) {
