@@ -25,9 +25,9 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.utils.MapUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 
 
@@ -38,16 +38,20 @@ public final class MatchDataCache {
 
     private static final MatchDataCache INSTANCE = new MatchDataCache();
 
+    private static final MatchDataCache PUBLISHED = new MatchDataCache();
+
+    private static final ReadOnly READ_ONLY = new ReadOnly();
+
     /**
      * pluginName -> LRUMap.
      */
-    private static final ConcurrentMap<String, Map<String, SelectorData>> SELECTOR_DATA_MAP = Maps.newConcurrentMap();
+    private final ConcurrentMap<String, Map<String, SelectorData>> selectorDataMap = Maps.newConcurrentMap();
     
     /**
      * plugin name -> LRU Map.
      * LRU Map: path -> rule data.
      */
-    private static final ConcurrentMap<String, Map<String, RuleData>> RULE_DATA_MAP = Maps.newConcurrentMap();
+    private final ConcurrentMap<String, Map<String, RuleData>> ruleDataMap = Maps.newConcurrentMap();
 
     private MatchDataCache() {
     }
@@ -62,12 +66,25 @@ public final class MatchDataCache {
     }
 
     /**
+     * Access isolated derived matches for the frozen configuration contract.
+     * @return shared access without exposing the backing maps
+     */
+    public ReadOnly readOnly() {
+        return READ_ONLY;
+    }
+
+    /**
      * Remove selector data.
      *
      * @param pluginName the pluginName
      */
     public void removeSelectorData(final String pluginName) {
-        SELECTOR_DATA_MAP.remove(pluginName);
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.removeSelectorData(pluginName);
+            }
+        }
+        selectorDataMap.remove(pluginName);
     }
     
     /**
@@ -77,13 +94,18 @@ public final class MatchDataCache {
      * @param selectorId selector id
      */
     public void removeSelectorData(final String pluginName, final String selectorId) {
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.removeSelectorData(pluginName, selectorId);
+            }
+        }
         if (StringUtils.isBlank(pluginName)) {
             // a dangling selector carries no plugin name, so its entries may live under any plugin bucket
-            SELECTOR_DATA_MAP.values().forEach(pathSelectorCache ->
+            selectorDataMap.values().forEach(pathSelectorCache ->
                     pathSelectorCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getId())));
             return;
         }
-        Map<String, SelectorData> pathSelectorCache = SELECTOR_DATA_MAP.get(pluginName);
+        Map<String, SelectorData> pathSelectorCache = selectorDataMap.get(pluginName);
         if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
             return;
         }
@@ -96,10 +118,15 @@ public final class MatchDataCache {
      * @param pluginName plugin name
      */
     public void removeEmptySelectorData(final String pluginName) {
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.removeEmptySelectorData(pluginName);
+            }
+        }
         if (StringUtils.isBlank(pluginName)) {
             return;
         }
-        Map<String, SelectorData> pathSelectorCache = SELECTOR_DATA_MAP.get(pluginName);
+        Map<String, SelectorData> pathSelectorCache = selectorDataMap.get(pluginName);
         if (Objects.isNull(pathSelectorCache) || pathSelectorCache.isEmpty()) {
             return;
         }
@@ -110,7 +137,12 @@ public final class MatchDataCache {
      * Clean selector data.
      */
     public void cleanSelectorData() {
-        SELECTOR_DATA_MAP.clear();
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.cleanSelectorData();
+            }
+        }
+        selectorDataMap.clear();
     }
 
     /**
@@ -135,7 +167,7 @@ public final class MatchDataCache {
      * @param ttl lifetime in milliseconds
      */
     public void cacheSelectorData(final String path, final SelectorData selectorData, final int initialCapacity, final long maximumSize, final long ttl) {
-        MapUtils.computeIfAbsent(SELECTOR_DATA_MAP, selectorData.getPluginName(), map ->
+        MapUtils.computeIfAbsent(selectorDataMap, selectorData.getPluginName(), map ->
                 new WindowTinyLFUMap<>(initialCapacity, ttl, maximumSize, Boolean.FALSE)).put(path, selectorData);
     }
 
@@ -147,8 +179,8 @@ public final class MatchDataCache {
      * @return the selector data
      */
     public SelectorData obtainSelectorData(final String pluginName, final String path) {
-        final Map<String, SelectorData> lruMap = SELECTOR_DATA_MAP.get(pluginName);
-        return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+        final Map<String, SelectorData> lruMap = selectorDataMap.get(pluginName);
+        return Objects.isNull(lruMap) ? null : lruMap.get(path);
     }
     
     /**
@@ -173,7 +205,7 @@ public final class MatchDataCache {
      * @param ttl lifetime in milliseconds
      */
     public void cacheRuleData(final String path, final RuleData ruleData, final int initialCapacity, final long maximumSize, final long ttl) {
-        MapUtils.computeIfAbsent(RULE_DATA_MAP, ruleData.getPluginName(), map ->
+        MapUtils.computeIfAbsent(ruleDataMap, ruleData.getPluginName(), map ->
                 new WindowTinyLFUMap<>(initialCapacity, ttl, maximumSize, Boolean.FALSE)).put(path, ruleData);
     }
     
@@ -183,7 +215,12 @@ public final class MatchDataCache {
      * @param pluginName pluginName
      */
     public void removeRuleData(final String pluginName) {
-        RULE_DATA_MAP.remove(pluginName);
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.removeRuleData(pluginName);
+            }
+        }
+        ruleDataMap.remove(pluginName);
     }
     
     /**
@@ -193,13 +230,18 @@ public final class MatchDataCache {
      * @param ruleId ruleId
      */
     public void removeRuleData(final String pluginName, final String ruleId) {
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.removeRuleData(pluginName, ruleId);
+            }
+        }
         if (StringUtils.isBlank(pluginName)) {
             // a rule of a deleted plugin carries no plugin name, so its entries may live under any plugin bucket
-            RULE_DATA_MAP.values().forEach(pathRuleDataCache ->
+            ruleDataMap.values().forEach(pathRuleDataCache ->
                     pathRuleDataCache.entrySet().removeIf(entry -> ruleId.equals(entry.getValue().getId())));
             return;
         }
-        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        Map<String, RuleData> pathRuleDataCache = ruleDataMap.get(pluginName);
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
@@ -213,13 +255,18 @@ public final class MatchDataCache {
      * @param selectorId selectorId
      */
     public void removeRuleDataBySelector(final String pluginName, final String selectorId) {
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.removeRuleDataBySelector(pluginName, selectorId);
+            }
+        }
         if (StringUtils.isBlank(pluginName)) {
             // a dangling selector carries no plugin name, so its rule entries may live under any plugin bucket
-            RULE_DATA_MAP.values().forEach(pathRuleDataCache ->
+            ruleDataMap.values().forEach(pathRuleDataCache ->
                     pathRuleDataCache.entrySet().removeIf(entry -> selectorId.equals(entry.getValue().getSelectorId())));
             return;
         }
-        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        Map<String, RuleData> pathRuleDataCache = ruleDataMap.get(pluginName);
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
@@ -232,10 +279,15 @@ public final class MatchDataCache {
      * @param pluginName plugin name
      */
     public void removeEmptyRuleData(final String pluginName) {
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.removeEmptyRuleData(pluginName);
+            }
+        }
         if (StringUtils.isBlank(pluginName)) {
             return;
         }
-        Map<String, RuleData> pathRuleDataCache = RULE_DATA_MAP.get(pluginName);
+        Map<String, RuleData> pathRuleDataCache = ruleDataMap.get(pluginName);
         if (Objects.isNull(pathRuleDataCache) || pathRuleDataCache.isEmpty()) {
             return;
         }
@@ -246,7 +298,12 @@ public final class MatchDataCache {
      * clear the cache.
      */
     public void cleanRuleDataData() {
-        RULE_DATA_MAP.clear();
+        if (this == INSTANCE) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.cleanRuleDataData();
+            }
+        }
+        ruleDataMap.clear();
     }
     
     /**
@@ -257,8 +314,8 @@ public final class MatchDataCache {
      * @return ruleData
      */
     public RuleData obtainRuleData(final String pluginName, final String path) {
-        final Map<String, RuleData> lruMap = RULE_DATA_MAP.get(pluginName);
-        return Optional.ofNullable(lruMap).orElse(Maps.newHashMap()).get(path);
+        final Map<String, RuleData> lruMap = ruleDataMap.get(pluginName);
+        return Objects.isNull(lruMap) ? null : lruMap.get(path);
     }
     
     /**
@@ -267,7 +324,7 @@ public final class MatchDataCache {
      * @return selector match cache
      */
     public ConcurrentMap<String, Map<String, SelectorData>> getSelectorMatchCache() {
-        return SELECTOR_DATA_MAP;
+        return selectorDataMap;
     }
     
     /**
@@ -276,7 +333,111 @@ public final class MatchDataCache {
      * @return rule match cache
      */
     public ConcurrentMap<String, Map<String, RuleData>> getRuleMatchCache() {
-        return RULE_DATA_MAP;
+        return ruleDataMap;
     }
     
+    /**
+     * Isolated match cache for already-frozen values. This API never freezes on the request path.
+     */
+    public static final class ReadOnly {
+
+        private ReadOnly() {
+        }
+
+        /**
+         * Get a frozen matched selector.
+         * @param pluginName plugin name
+         * @param path request path
+         * @return frozen value or null
+         */
+        public SelectorData obtainSelectorData(final String pluginName, final String path) {
+            return PUBLISHED.obtainSelectorData(pluginName, path);
+        }
+
+        /**
+         * Get a frozen matched rule.
+         * @param pluginName plugin name
+         * @param path request path
+         * @return frozen value or null
+         */
+        public RuleData obtainRuleData(final String pluginName, final String path) {
+            return PUBLISHED.obtainRuleData(pluginName, path);
+        }
+
+        /**
+         * Cache a previously published selector without copying it.
+         * @param path request path
+         * @param data frozen selector
+         * @param initialCapacity initial capacity
+         * @param maximumSize maximum size
+         * @param ttl lifetime in milliseconds
+         */
+        public void cacheSelectorData(final String path, final SelectorData data, final int initialCapacity, final long maximumSize, final long ttl) {
+            if (!data.frozen()) {
+                throw new IllegalArgumentException("Read-only matching requires a frozen selector");
+            }
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.cacheSelectorData(path, data, initialCapacity, maximumSize, ttl);
+            }
+        }
+
+        /**
+         * Store a selector result only while its complete candidate list is still published.
+         * Matching stays outside the publication monitor; a stale in-flight result may still execute.
+         * @param path request path
+         * @param data frozen result, including a negative sentinel
+         * @param selectors candidate list captured before matching
+         * @param initialCapacity initial capacity
+         * @param maximumSize maximum size
+         * @param ttl lifetime in milliseconds
+         */
+        public void cacheSelectorData(final String path, final SelectorData data, final List<SelectorData> selectors,
+                                      final int initialCapacity, final long maximumSize, final long ttl) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                if (BaseDataCache.getInstance().readOnly().obtainSelectorData(data.getPluginName()) == selectors) {
+                    cacheSelectorData(path, data, initialCapacity, maximumSize, ttl);
+                }
+            }
+        }
+
+        /**
+         * Cache a previously published rule without copying it.
+         * @param path request path
+         * @param data frozen rule
+         * @param initialCapacity initial capacity
+         * @param maximumSize maximum size
+         * @param ttl lifetime in milliseconds
+         */
+        public void cacheRuleData(final String path, final RuleData data, final int initialCapacity, final long maximumSize, final long ttl) {
+            if (!data.frozen()) {
+                throw new IllegalArgumentException("Read-only matching requires a frozen rule");
+            }
+            synchronized (BaseDataCache.publishedMonitor()) {
+                PUBLISHED.cacheRuleData(path, data, initialCapacity, maximumSize, ttl);
+            }
+        }
+
+        /**
+         * Store a rule result only while both complete candidate lists are still published.
+         * The selector id is required even for a negative rule sentinel.
+         * @param path request path
+         * @param data frozen result, including a negative sentinel
+         * @param selectors selector list captured before matching
+         * @param selectorId matched selector id
+         * @param rules rule list captured before matching
+         * @param initialCapacity initial capacity
+         * @param maximumSize maximum size
+         * @param ttl lifetime in milliseconds
+         */
+        public void cacheRuleData(final String path, final RuleData data, final List<SelectorData> selectors,
+                                  final String selectorId, final List<RuleData> rules,
+                                  final int initialCapacity, final long maximumSize, final long ttl) {
+            synchronized (BaseDataCache.publishedMonitor()) {
+                BaseDataCache.ReadOnly base = BaseDataCache.getInstance().readOnly();
+                if (base.obtainSelectorData(data.getPluginName()) == selectors && base.obtainRuleData(selectorId) == rules) {
+                    cacheRuleData(path, data, initialCapacity, maximumSize, ttl);
+                }
+            }
+        }
+    }
 }
