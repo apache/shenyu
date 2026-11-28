@@ -191,8 +191,18 @@ public final class PrometheusMetricsService implements MetricsService {
         }
 
         private List<MetricFamilySamples> mergeSamples(final List<MetricFamilySamples> shared, final List<MetricFamilySamples> jvm) {
-            Set<String> sharedNames = metricNames(shared);
-            jvm.stream().filter(family -> Arrays.stream(family.getNames()).noneMatch(sharedNames::contains)).forEach(shared::add);
+            // A shared family takes precedence only once it has samples.
+            Set<String> sharedNames = shared.stream().filter(family -> !family.samples.isEmpty())
+                    .flatMap(family -> Arrays.stream(family.getNames())).collect(Collectors.toSet());
+            List<MetricFamilySamples> jvmFallback = jvm.stream()
+                    .filter(family -> Arrays.stream(family.getNames()).noneMatch(sharedNames::contains)).toList();
+            if (!jvmFallback.isEmpty()) {
+                Set<String> fallbackNames = metricNames(jvmFallback);
+                // The formatter also writes metadata for empty families.
+                shared.removeIf(family -> family.samples.isEmpty()
+                        && Arrays.stream(family.getNames()).anyMatch(fallbackNames::contains));
+                shared.addAll(jvmFallback);
+            }
             return shared;
         }
 

@@ -226,6 +226,34 @@ public final class PrometheusMetricsServiceLifecycleTest {
     }
 
     @Test
+    public void testEmptySharedFamilyFallsBackToJvmForFullAndFilteredScrapes() throws IOException, InterruptedException {
+        Gauge external = Gauge.build().name(JVM_CLASSES_LOADED).help("Application loaded classes").labelNames("source").register();
+        PrometheusMetricsService service = new PrometheusMetricsService();
+        MetricsConfig config = loopbackConfig();
+        try {
+            config.getProps().setProperty(JVM_ENABLED, "true");
+            service.start(config, new PrometheusMetricsRegister());
+            for (String query : List.of("", "?name%5B%5D=" + JVM_CLASSES_LOADED)) {
+                String fallback = scrape(service, query);
+                assertEquals(1L, countSamples(fallback, JVM_CLASSES_LOADED));
+                assertFalse(fallback.contains("# HELP " + JVM_CLASSES_LOADED + " Application loaded classes"));
+                assertEquals(1L, fallback.lines().filter(line -> line.startsWith("# TYPE " + JVM_CLASSES_LOADED + " ")).count());
+            }
+
+            external.labels("app").set(234);
+            for (String query : List.of("", "?name%5B%5D=" + JVM_CLASSES_LOADED)) {
+                String shared = scrape(service, query);
+                assertEquals(1L, countSamples(shared, JVM_CLASSES_LOADED));
+                assertTrue(shared.contains(JVM_CLASSES_LOADED + "{source=\"app\",} 234.0"));
+                assertEquals(1L, shared.lines().filter(line -> line.startsWith("# TYPE " + JVM_CLASSES_LOADED + " ")).count());
+            }
+        } finally {
+            service.stop();
+            CollectorRegistry.defaultRegistry.unregister(external);
+        }
+    }
+
+    @Test
     public void testFailedBindReleasesOwnedCollectorsForRetry() throws IOException, InterruptedException {
         PrometheusMetricsService service = new PrometheusMetricsService();
         PrometheusMetricsRegister metricsRegister = new PrometheusMetricsRegister();
