@@ -33,6 +33,7 @@
         <module>shenyu-plugin-sign</module>
         <module>shenyu-plugin-cryptor</module>
         <module>shenyu-plugin-basic-auth</module>
+        <module>shenyu-plugin-jwe</module>
     </modules>
 
     <dependencies>
