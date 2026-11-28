@@ -63,6 +63,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -79,6 +81,8 @@ public class HttpSyncDataService implements SyncDataService {
      */
     private static final Logger LOG = LoggerFactory.getLogger(HttpSyncDataService.class);
 
+    private static final long PLUGIN_RETRY_DELAY_NANOS = TimeUnit.SECONDS.toNanos(5);
+
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
     private ExecutorService executor;
@@ -86,6 +90,9 @@ public class HttpSyncDataService implements SyncDataService {
     private final List<String> serverList;
 
     private final DataRefreshFactory factory;
+
+    // Each Admin has its own poller and retry budget. A failing peer must not throttle a healthy peer.
+    private final ConcurrentMap<String, Long> pluginRetryAfter = new ConcurrentHashMap<>();
 
     private final AccessTokenManager accessTokenManager;
 
@@ -180,6 +187,13 @@ public class HttpSyncDataService implements SyncDataService {
     }
 
     private void doFetchGroupConfig(final String server, final ConfigGroupEnum... groups) {
+        if (!fetchAndApplyGroupConfig(server, groups)) {
+            LOG.info("The config of the server[{}] has not been updated or is out of date. Wait for listening for changes again.", server);
+            ThreadUtils.sleep(TimeUnit.SECONDS, 5);
+        }
+    }
+
+    private boolean fetchAndApplyGroupConfig(final String server, final ConfigGroupEnum... groups) {
         StringBuilder params = new StringBuilder();
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKeys").append("=").append(groupKey.name()).append("&");
@@ -206,31 +220,56 @@ public class HttpSyncDataService implements SyncDataService {
             LOG.warn(message);
             throw new ShenyuException(message, e);
         }
-        // update local cache
-        boolean updated = this.updateCacheWithJson(json);
+        JsonObject response = GsonUtils.getGson().fromJson(json, JsonObject.class);
+        JsonObject data = Objects.isNull(response) ? null : response.getAsJsonObject("data");
+        boolean updated = Objects.nonNull(data) && factory.executor(data);
         if (updated) {
             LOG.debug("get latest configs: [{}]", json);
+        }
+        return updated;
+    }
+
+    private long remainingPluginRetryNanos(final String server) {
+        Long retryAfter = pluginRetryAfter.get(server);
+        return Objects.isNull(retryAfter) ? 0L : retryAfter - System.nanoTime();
+    }
+
+    private void tryFetchPluginConfig(final String server) {
+        if (remainingPluginRetryNanos(server) > 0L) {
             return;
         }
-        // not updated. it is likely that the current config server has not been updated yet. wait a moment.
-        LOG.info("The config of the server[{}] has not been updated or is out of date. Wait for listening for changes again.", server);
-        ThreadUtils.sleep(TimeUnit.SECONDS, 5);
+        try {
+            if (fetchAndApplyGroupConfig(server, ConfigGroupEnum.PLUGIN)) {
+                pluginRetryAfter.remove(server);
+                return;
+            }
+        } catch (RuntimeException ex) {
+            LOG.warn("Failed to apply HTTP plugin configuration from [{}]; will retry independently.", server, ex);
+        }
+        pluginRetryAfter.put(server, System.nanoTime() + PLUGIN_RETRY_DELAY_NANOS);
     }
 
+    private long doLongPolling(final String server) {
+        ConfigGroupEnum[] changedGroups = listenForChanges(server);
+        ConfigGroupEnum[] otherGroups = Arrays.stream(changedGroups)
+                .filter(group -> group != ConfigGroupEnum.PLUGIN)
+                .toArray(ConfigGroupEnum[]::new);
+        if (otherGroups.length > 0) {
+            doFetchGroupConfig(server, otherGroups);
+        }
 
-    /**
-     * update local cache.
-     *
-     * @param json the response from config server.
-     * @return true: the local cache was updated. false: not updated.
-     */
-    private boolean updateCacheWithJson(final String json) {
-        JsonObject jsonObject = GsonUtils.getGson().fromJson(json, JsonObject.class);
-        // if the config cache will be updated?
-        return factory.executor(jsonObject.getAsJsonObject("data"));
+        // A rolled-back Admin can report no change for the last advertised plugin digest.
+        if (otherGroups.length != changedGroups.length || factory.isPluginRecoveryRequired()) {
+            tryFetchPluginConfig(server);
+        }
+        if (otherGroups.length == 0 && changedGroups.length > 0) {
+            // An unapplied plugin digest can make the next listener return immediately. Avoid a busy loop.
+            return remainingPluginRetryNanos(server);
+        }
+        return 0L;
     }
 
-    private void doLongPolling(final String server) {
+    private ConfigGroupEnum[] listenForChanges(final String server) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = factory.cacheConfigData(group);
@@ -270,11 +309,11 @@ public class HttpSyncDataService implements SyncDataService {
             LOG.info("listener result: [{}]", json);
             JsonElement responseFromServer = GsonUtils.getGson().fromJson(json, JsonElement.class);
             if (Objects.isNull(responseFromServer) || responseFromServer.isJsonNull()) {
-                return;
+                return new ConfigGroupEnum[0];
             }
             JsonElement element = responseFromServer.getAsJsonObject().get("data");
             if (Objects.isNull(element) || element.isJsonNull()) {
-                return;
+                return new ConfigGroupEnum[0];
             }
             groupJson = element.getAsJsonArray();
         } catch (IOException e) {
@@ -282,12 +321,7 @@ public class HttpSyncDataService implements SyncDataService {
             throw new ShenyuException(message, e);
         }
 
-        if (Objects.nonNull(groupJson) && !groupJson.isEmpty()) {
-            // fetch group configuration async.
-            ConfigGroupEnum[] changedGroups = GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
-            LOG.info("Group config changed: {}", Arrays.toString(changedGroups));
-            this.doFetchGroupConfig(server, changedGroups);
-        }
+        return GsonUtils.getGson().fromJson(groupJson, ConfigGroupEnum[].class);
     }
 
     @Override
@@ -314,8 +348,10 @@ public class HttpSyncDataService implements SyncDataService {
                 int retryTimes = 10;
                 for (int time = 1; time <= retryTimes; time++) {
                     try {
-                        //do long polling.
-                        doLongPolling(server);
+                        long pluginRetryDelay = doLongPolling(server);
+                        if (pluginRetryDelay > 0L) {
+                            ThreadUtils.sleep(TimeUnit.MILLISECONDS, 1 + (int) TimeUnit.NANOSECONDS.toMillis(pluginRetryDelay));
+                        }
                         break;
                     } catch (Exception e) {
                         // print warnning LOG.

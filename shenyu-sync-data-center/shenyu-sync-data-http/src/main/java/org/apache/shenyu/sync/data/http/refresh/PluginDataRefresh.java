@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The type Plugin data refresh.
@@ -39,6 +40,10 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
      * logger.
      */
     private static final Logger LOG = LoggerFactory.getLogger(PluginDataRefresh.class);
+
+    private static final Object APPLY_LOCK = new Object();
+
+    private static volatile boolean recoveryRequired;
 
     private final PluginDataSubscriber pluginDataSubscriber;
 
@@ -59,7 +64,40 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
 
     @Override
     protected boolean updateCacheIfNeed(final ConfigData<PluginData> result) {
-        return updateCacheIfNeed(result, ConfigGroupEnum.PLUGIN);
+        synchronized (APPLY_LOCK) {
+            return updateCacheIfNeed(result, ConfigGroupEnum.PLUGIN);
+        }
+    }
+
+    static boolean isRecoveryRequired() {
+        return recoveryRequired;
+    }
+
+    @Override
+    protected boolean applyConfig(final ConfigData<PluginData> result) {
+        synchronized (APPLY_LOCK) {
+            ConfigData<?> applied = cacheConfigData();
+            // During recovery the snapshot may be identical to the last successful one, but the subscriber state is not.
+            boolean restoreApplied = recoveryRequired && Objects.nonNull(applied)
+                    && Objects.nonNull(result.getMd5())
+                    && Objects.equals(applied.getMd5(), result.getMd5());
+            if (!restoreApplied && !isNewerConfig(applied, result, ConfigGroupEnum.PLUGIN)) {
+                return false;
+            }
+            try {
+                refresh(result.getData());
+            } catch (RuntimeException ex) {
+                recoveryRequired = true;
+                throw ex;
+            }
+            // Advertise the digest only after the subscriber has applied or restored this snapshot.
+            if (!restoreApplied || result.getLastModifyTime() > applied.getLastModifyTime()) {
+                // A peer may have the right contents, but an older timestamp. Keep the published version.
+                GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
+            }
+            recoveryRequired = false;
+            return true;
+        }
     }
 
     @Override

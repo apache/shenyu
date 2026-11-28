@@ -77,6 +77,15 @@ public final class DataRefreshFactory {
     }
 
     /**
+     * Check whether the HTTP client must refetch the plugin snapshot after a failed apply.
+     *
+     * @return whether plugin recovery is needed
+     */
+    public boolean isPluginRecoveryRequired() {
+        return PluginDataRefresh.isRecoveryRequired();
+    }
+
+    /**
      * Cache config data.
      *
      * @param group the group
