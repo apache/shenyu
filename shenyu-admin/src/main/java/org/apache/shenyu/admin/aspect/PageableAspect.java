@@ -86,7 +86,7 @@ public class PageableAspect {
         pageParameter.setPageSize(pageInfo.getPageSize());
         pageParameter.setTotalPage(pageInfo.getPages());
         pageParameter.setTotalCount((int) pageInfo.getTotal());
-        pageParameter.setOffset(pageInfo.getPageSize());
+        pageParameter.setOffset((int) pageInfo.getStartRow());
         return pageParameter;
     }
 }
