@@ -86,6 +86,9 @@ management:
           - 'info'
 shenyu:
   namespace: 649330b6-c2d7-4edc-be8e-8a54df9eb385
+  # Set to true to prefer lower sort values when multiple selectors or conditional rules match.
+  # Equal sort values use condition specificity. Restart gateways with the same value on every replica.
+  match-sort-first: false
   selectorMatchCache:
     ## selector match cache
     cache:
