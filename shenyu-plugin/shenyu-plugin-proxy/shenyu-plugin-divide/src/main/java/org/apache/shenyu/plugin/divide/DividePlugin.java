@@ -421,7 +421,8 @@ public class DividePlugin extends AbstractShenyuPlugin {
             // release runs when the response body is done, errors or is cancelled (#8158)
             response = response.doFinally(signalType -> attemptOwner.releaseCurrent());
         }
-        return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey);
+        return probe ? response : UpstreamCircuitBreaker.recordOutcome(response, breakerKey,
+                () -> exchange.getAttribute(UpstreamCircuitBreaker.INITIAL_FAILOVER_LOCAL_REJECTION));
     }
 
     /**

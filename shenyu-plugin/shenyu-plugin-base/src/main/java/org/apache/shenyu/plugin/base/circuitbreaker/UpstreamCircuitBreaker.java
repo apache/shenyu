@@ -24,6 +24,8 @@ import reactor.core.publisher.SignalType;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * A lightweight built-in circuit breaker for divide/http proxy upstreams.
@@ -45,6 +47,11 @@ public final class UpstreamCircuitBreaker {
      * Exchange attribute marking an exclusive, single-attempt recovery probe.
      */
     public static final String HALF_OPEN_PROBE = "shenyu.upstreamCircuitBreaker.halfOpenProbe";
+
+    /**
+     * Whether the primary failure was a local rejection, present only after a primary error during failover.
+     */
+    public static final String INITIAL_FAILOVER_LOCAL_REJECTION = "shenyu.upstreamCircuitBreaker.initialFailoverLocalRejection";
 
     /**
      * The default number of consecutive failures before the breaker opens.
@@ -218,25 +225,34 @@ public final class UpstreamCircuitBreaker {
      * @return the wrapped mono with outcome recording attached
      */
     public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key) {
+        return recordOutcome(source, key, () -> null);
+    }
+
+    /**
+     * Record an outcome, keeping local rejections neutral for the selected target.
+     *
+     * @param <T> the element type of the source mono
+     * @param source the forwarding operation
+     * @param key the breaker key
+     * @param initialLocalRejection whether the primary error was a local rejection, or null if no primary failure was recorded
+     * @return the wrapped mono with outcome recording attached
+     */
+    public static <T> Mono<T> recordOutcome(final Mono<T> source, final String key, final Supplier<Boolean> initialLocalRejection) {
         return Mono.defer(() -> {
             CircuitBreakerState initial = INSTANCE.breakers.get(key);
             long generation = Objects.isNull(initial) ? 0 : initial.getGeneration();
-            return source.doFinally(signal -> {
+            final AtomicBoolean localRejection = new AtomicBoolean();
+            return source.doOnError(LocalPoolRejectionException::isLocalRejection, ignored -> localRejection.set(true)).doFinally(signal -> {
                 if (signal != SignalType.ON_COMPLETE && signal != SignalType.ON_ERROR) {
                     return;
                 }
-                CircuitBreakerState current = INSTANCE.breakers.get(key);
-                if (Objects.isNull(initial)) {
-                    if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
-                        current = INSTANCE.breakers.computeIfAbsent(key,
-                                ignored -> new CircuitBreakerState(INSTANCE.failureThreshold, INSTANCE.halfOpenWaitMillis));
-                    }
-                } else if (current != initial) {
+                final Boolean primaryRejected = initialLocalRejection.get();
+                // A standby's terminal result may differ from the primary's own rejection.
+                final boolean rejectedLocally = Objects.isNull(primaryRejected) ? localRejection.get() : primaryRejected;
+                if (rejectedLocally) {
                     return;
                 }
-                if (Objects.nonNull(current)) {
-                    current.recordOrdinaryOutcome(generation, signal);
-                }
+                INSTANCE.recordOrdinaryOutcome(key, initial, generation, signal);
             });
         });
     }
@@ -260,6 +276,21 @@ public final class UpstreamCircuitBreaker {
         }
         synchronized (state) {
             return INSTANCE.new HalfOpenProbe(key, state, state.generation).recordOutcome(source);
+        }
+    }
+
+    private void recordOrdinaryOutcome(final String key, final CircuitBreakerState initial, final long generation, final SignalType signal) {
+        CircuitBreakerState current = breakers.get(key);
+        if (Objects.isNull(initial)) {
+            if (Objects.isNull(current) && signal == SignalType.ON_ERROR) {
+                current = breakers.computeIfAbsent(key,
+                        ignored -> new CircuitBreakerState(failureThreshold, halfOpenWaitMillis));
+            }
+        } else if (current != initial) {
+            return;
+        }
+        if (Objects.nonNull(current)) {
+            current.recordOrdinaryOutcome(generation, signal);
         }
     }
 
@@ -401,6 +432,8 @@ public final class UpstreamCircuitBreaker {
                 if (signal == SignalType.ON_COMPLETE) {
                     recordSuccess();
                 } else if (signal == SignalType.ON_ERROR || signal == SignalType.CANCEL) {
+                    // A local pool rejection supplies no evidence of recovery. Release the probe
+                    // and back off so a saturated pool does not admit a stream of new probes.
                     open();
                 }
             }

@@ -21,6 +21,7 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.alert.AlarmSender;
+import org.apache.shenyu.plugin.base.circuitbreaker.LocalPoolRejectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
@@ -55,7 +56,9 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @Override
     @NonNull
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange, @NonNull final Throwable throwable) {
-        LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
+        if (!LocalPoolRejectionException.isLocalRejection(throwable)) {
+            LOG.error("handle error: {} formatError:{} throwable:", exchange.getLogPrefix(), formatError(throwable, exchange.getRequest()), throwable);
+        }
         if (Objects.nonNull(exchange.getAttribute(HttpRouteDeadline.REQUEST)) && throwable instanceof ResponseStatusException status
                 && HttpStatus.GATEWAY_TIMEOUT.equals(status.getStatusCode())) {
             if (exchange.getResponse().isCommitted()) {

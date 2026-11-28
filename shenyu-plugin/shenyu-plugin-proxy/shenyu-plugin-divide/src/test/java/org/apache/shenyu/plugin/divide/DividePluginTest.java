@@ -26,6 +26,7 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.HttpRetryBackoffSpecEnum;
+import org.apache.shenyu.common.enums.RetryEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
@@ -37,10 +38,14 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.circuitbreaker.LocalPoolRejectionException;
+import org.apache.shenyu.plugin.base.circuitbreaker.UpstreamCircuitBreaker;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.LoadbalancerUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.handler.DivideUpstreamDataHandler;
+import org.apache.shenyu.plugin.httpclient.DefaultRetryStrategy;
+import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +55,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
@@ -63,18 +69,24 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.HttpClientResponse;
 import reactor.test.StepVerifier;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -439,6 +451,53 @@ public final class DividePluginTest {
             subscription.dispose();
 
             assertEquals(1, upstream.getInflight().get());
+        }
+    }
+
+    @Test
+    public void poolRejectionBeforeFailoverDoesNotChargeStandbyFailureToPrimary() {
+        String selectorId = "pool-rejection-failover";
+        Upstream primary = Upstream.builder().url("primary:8080").protocol("http://").status(true).build();
+        Upstream standby = Upstream.builder().url("standby:8080").protocol("http://").status(true).build();
+        when(selectorData.getId()).thenReturn(selectorId);
+        DivideRuleHandle ruleHandle = DividePluginDataHandler.CACHED_HANDLE.get()
+                .obtainHandle(CacheKeyUtils.INST.getKey(ruleData));
+        ruleHandle.setRetryStrategy(RetryEnum.FAILOVER.getName());
+        UpstreamCacheManager cache = UpstreamCacheManager.getInstance();
+        cache.submit(selectorId, List.of(primary, standby));
+        UpstreamCircuitBreaker breaker = UpstreamCircuitBreaker.getInstance();
+        String primaryKey = UpstreamCircuitBreaker.buildKey(selectorId, primary);
+        String standbyKey = UpstreamCircuitBreaker.buildKey(selectorId, standby);
+        AtomicInteger standbyCalls = new AtomicInteger();
+        DefaultRetryStrategy<HttpClientResponse> strategy = new DefaultRetryStrategy<>(new NettyHttpClientPlugin(HttpClient.create(), 1024) {
+            @Override
+            protected Mono<HttpClientResponse> doRequest(final ServerWebExchange request, final String method,
+                                                          final URI uri, final Flux<DataBuffer> body) {
+                standbyCalls.incrementAndGet();
+                assertEquals("standby", uri.getHost());
+                return Mono.error(new IllegalStateException("standby disconnected"));
+            }
+        });
+        ShenyuPluginChain failover = current -> {
+            current.getAttributes().put(Constants.HTTP_URI, URI.create(primary.buildDomain() + "/test"));
+            LocalPoolRejectionException rejection = new LocalPoolRejectionException(new IllegalStateException("pool full"));
+            return strategy.execute(Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "overloaded", rejection)),
+                    current, Duration.ofSeconds(1), 1).then();
+        };
+        try (MockedStatic<LoadbalancerUtils> loadbalancer = mockStatic(LoadbalancerUtils.class)) {
+            loadbalancer.when(() -> LoadbalancerUtils.getForExchange(any(), anyString(), any()))
+                    .thenAnswer(invocation -> invocation.<List<Upstream>>getArgument(0).get(0));
+            for (int i = 0; i < UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD; i++) {
+                StepVerifier.create(dividePlugin.doExecute(freshExchange(), failover, selectorData, ruleData))
+                        .verifyErrorMessage("standby disconnected");
+            }
+            assertEquals(UpstreamCircuitBreaker.DEFAULT_FAILURE_THRESHOLD, standbyCalls.get());
+            assertTrue(breaker.isBlocking(standbyKey));
+            assertFalse(breaker.isBlocking(primaryKey));
+        } finally {
+            breaker.reset(primaryKey);
+            breaker.reset(standbyKey);
+            cache.removeByKey(selectorId);
         }
     }
 
