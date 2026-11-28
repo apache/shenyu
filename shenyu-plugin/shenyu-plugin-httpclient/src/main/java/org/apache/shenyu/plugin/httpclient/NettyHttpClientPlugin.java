@@ -24,6 +24,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.UniqueHeaderEnum;
 import org.apache.shenyu.plugin.api.utils.HttpRouteDeadline;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.apache.shenyu.plugin.api.utils.HttpRouteResponseHeaders;
 import org.apache.shenyu.plugin.httpclient.config.UpstreamPoolGroupRegistry;
 import org.apache.shenyu.plugin.httpclient.exception.ShenyuUpstreamStatusException;
@@ -49,6 +50,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * The type Netty http client plugin.
@@ -127,7 +129,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
             return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), ex));
         }
         HttpRouteDeadline attempt = exchange.getAttribute(HttpRouteDeadline.ATTEMPT);
-        return Mono.from(client.headers(headers -> {
+        Function<HttpClient, Mono<HttpClientResponse>> send = transport -> Mono.from(transport.headers(headers -> {
             httpHeaders.forEach(headers::set);
             headers.remove(HttpHeaders.HOST);
             Boolean preserveHost = exchange.getAttributeOrDefault(Constants.PRESERVE_HOST, Boolean.FALSE);
@@ -189,6 +191,7 @@ public class NettyHttpClientPlugin extends AbstractHttpClientPlugin<HttpClientRe
                     });
                     return Mono.just(res);
                 }));
+        return Mono.deferContextual(context -> send.apply(context.hasKey(HttpToolDispatchGuard.class) ? client.disableRetry(true).followRedirect(false) : client));
     }
 
     /**

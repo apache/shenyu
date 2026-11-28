@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -121,6 +122,7 @@ public final class AgentMcpHttpHandler {
             Object callback = exchange.getAttribute(Constants.METRICS_AGENT_MCP_CALL);
             final AgentMcpCallObservation observation = new AgentMcpCallObservation(callback instanceof AgentMcpCallObserver observer ? observer : null,
                     tracer, parentContext);
+            AtomicBoolean delegated = new AtomicBoolean();
             AtomicReference<JsonNode> rpcId = new AtomicReference<>();
             return Mono.fromRunnable(() -> preflight(exchange, config))
                     .then(Mono.defer(() -> securityResolver.resolve(exchange))
@@ -140,7 +142,7 @@ public final class AgentMcpHttpHandler {
                                 return dispatcher.dispatch(request, () -> new AgentMcpExecutionContext(traffic.getRequestId(),
                                         identity.getSubject(), traffic.getRuleId(), configurationVersion, config.getAllowedTools(),
                                         identity.getToolGrants(), deadline, config.getResultFilters(), config.getAllowedResources(),
-                                        identity.getResourceGrants(), config.getHttpTools(), httpInvoker,
+                                        identity.getResourceGrants(), config.getHttpTools(), observeDelegation(httpInvoker, delegated),
                                         identity.getTenant().orElse(null), () -> {
                                             if (Objects.nonNull(terminal)) {
                                                 terminal.attempted();
@@ -160,7 +162,8 @@ public final class AgentMcpHttpHandler {
                         }
                         return write(exchange, response, config, "sse".equals(config.getResponseMode()), 200);
                     })
-                    .timeout(Duration.ofMillis(config.getTimeoutMs()))
+                    .timeout(Duration.ofMillis(config.getTimeoutMs()), Mono.error(() -> delegated.get()
+                            ? AgentMcpProtocolException.httpToolDeadline(rpcId.get()) : new TimeoutException("Request deadline exceeded")))
                     .onErrorResume(error -> {
                         observation.failure(error);
                         recordFailure(terminal, error);
@@ -178,6 +181,16 @@ public final class AgentMcpHttpHandler {
                         }
                     });
         });
+    }
+
+    private AgentHttpToolInvoker observeDelegation(final AgentHttpToolInvoker invoker, final AtomicBoolean delegated) {
+        if (Objects.isNull(invoker)) {
+            return null;
+        }
+        return (tool, input) -> {
+            delegated.set(tool.getIdentityDelegation().isPresent());
+            return invoker.invoke(tool, input);
+        };
     }
 
     private void recordFailure(final AgentMcpTerminalObservation terminal, final Throwable error) {

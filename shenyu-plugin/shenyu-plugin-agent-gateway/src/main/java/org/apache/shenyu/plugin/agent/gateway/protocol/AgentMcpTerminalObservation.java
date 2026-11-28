@@ -22,9 +22,11 @@ import org.apache.shenyu.common.metrics.AgentMcpTerminalEvent;
 import org.apache.shenyu.common.metrics.AgentMcpTerminalObserver;
 import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentIdentityDelegationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.http.HttpStatus;
 import reactor.core.publisher.SignalType;
 
 import java.util.Objects;
@@ -123,7 +125,9 @@ final class AgentMcpTerminalObservation {
         if (error instanceof AgentMcpProtocolException) {
             status = ((AgentMcpProtocolException) error).getHttpStatus();
         }
-        if (Objects.equals(status, 401)) {
+        if (error.getCause() instanceof AgentIdentityDelegationException) {
+            reason = AgentRuntimeMetrics.Reason.IDENTITY_DELEGATION;
+        } else if (Objects.equals(status, HttpStatus.UNAUTHORIZED.value())) {
             reason = AgentRuntimeMetrics.Reason.AUTHENTICATION;
         } else if (Objects.equals(status, 403)) {
             reason = Objects.isNull(method) ? AgentRuntimeMetrics.Reason.PROTOCOL : AgentRuntimeMetrics.Reason.AUTHORIZATION;

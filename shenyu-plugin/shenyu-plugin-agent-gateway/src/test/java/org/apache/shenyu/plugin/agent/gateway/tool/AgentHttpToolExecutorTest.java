@@ -29,7 +29,12 @@ import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingRuleHandle;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentHttpIdentityDelegator;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentIdentityDelegationException;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentIdentityDelegationException.Reason;
+import org.apache.shenyu.plugin.agent.gateway.delegation.DelegatedCredential;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.RequestUrlUtils;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
@@ -43,18 +48,24 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.ServerWebExchangeDecorator;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
 import reactor.core.scheduler.Schedulers;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -65,6 +76,8 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -298,6 +311,161 @@ class AgentHttpToolExecutorTest {
     void customChainsMustOptIntoForking() {
         ShenyuPluginChain unsupported = child -> write(child, "{}");
         StepVerifier.create(executor(origin(), unsupported, 4096).invoke(tool("GET"), invocation("A"))).expectError(UnsupportedOperationException.class).verify();
+    }
+
+    @Test
+    void missingEmptyOrFailingDelegatorNeverForksOrLeaksProviderMessages() {
+        RecordingChain chain = new RecordingChain(child -> write(child, "{}"));
+        var tool = delegatedTool();
+        StepVerifier.create(executor(origin(), chain, 4096).invoke(tool, invocation("A")))
+                .expectErrorSatisfies(error -> assertReason(error, Reason.UNCONFIGURED)).verify();
+        for (var source : java.util.List.of(Mono.<DelegatedCredential>empty(), Mono.<DelegatedCredential>error(new IllegalStateException("private provider message")))) {
+            StepVerifier.create(delegated(chain, ignored -> source).invoke(tool, invocation("A")))
+                    .expectErrorSatisfies(error -> {
+                        assertReason(error, Reason.KEY_UNAVAILABLE);
+                        assertNull(error.getCause());
+                        assertFalse(error.toString().contains("private provider message"));
+                    }).verify();
+        }
+        assertEquals(0, chain.forks.get());
+    }
+
+    @Test
+    void missingTenantCannotReachAPermissiveCustomDelegator() {
+        AtomicInteger credentials = new AtomicInteger();
+        var chain = new RecordingChain(child -> write(child, "{}"));
+        var executor = delegated(chain, ignored -> {
+            credentials.incrementAndGet();
+            return Mono.just(credential());
+        });
+        StepVerifier.create(executor.invoke(delegatedTool(true), invocation("A")))
+                .expectErrorSatisfies(error -> assertReason(error, Reason.TENANT_MISSING)).verify();
+        assertEquals(0, credentials.get());
+        assertEquals(0, chain.forks.get());
+    }
+
+    @Test
+    void cancellationAndTimeoutReleaseThePendingCredentialWithoutDispatch() {
+        AtomicInteger cancellations = new AtomicInteger();
+        var chain = new RecordingChain(child -> write(child, "{}"));
+        var executor = delegated(chain, ignored -> Mono.<DelegatedCredential>never().doOnCancel(cancellations::incrementAndGet));
+        StepVerifier.create(executor.invoke(delegatedTool(), invocation("A"))).thenCancel().verify();
+        StepVerifier.withVirtualTime(() -> executor.invoke(delegatedTool(), invocation("A")))
+                .thenAwait(Duration.ofSeconds(11)).expectErrorSatisfies(error -> assertReason(error, Reason.DEADLINE_EXCEEDED)).verify();
+        assertEquals(2, cancellations.get());
+        assertEquals(0, chain.forks.get());
+    }
+
+    @Test
+    void rejectsAReplacedPolicyWhileResolutionIsPendingAndAnAlreadyExpiredCredential() {
+        var chain = new RecordingChain(child -> write(child, "{}"));
+        AtomicBoolean current = new AtomicBoolean(true);
+        Sinks.One<DelegatedCredential> pending = Sinks.one();
+        StepVerifier.create(delegated(chain, ignored -> pending.asMono()).invoke(delegatedTool(), invocation("A"), current::get))
+                .then(() -> {
+                    current.set(false);
+                    pending.tryEmitValue(credential());
+                }).expectErrorSatisfies(error -> assertReason(error, Reason.REVOKED_OR_EXPIRED)).verify();
+        StepVerifier.create(delegated(chain, ignored -> Mono.just(new DelegatedCredential("old", Instant.EPOCH))).invoke(delegatedTool(), invocation("A")))
+                .expectErrorSatisfies(error -> assertReason(error, Reason.REVOKED_OR_EXPIRED)).verify();
+        assertEquals(0, chain.forks.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"path", "context", "realUrl", "rewrite", "header", "authority", "method", "rpc", "selectorPath"})
+    void rejectsRequestAndContextRewritesBeforeTheBusinessCall(final String change) {
+        AtomicInteger calls = new AtomicInteger();
+        RecordingChain chain = new RecordingChain(child -> {
+            ServerWebExchange allowed = child.mutate().request(request -> request.header("X-Route", "verified")).build();
+            ShenyuContext context = allowed.getRequiredAttribute(Constants.CONTEXT);
+            switch (change) {
+                case "path" -> allowed.mutate().request(request -> request.path("/other")).build();
+                case "method" -> allowed.mutate().request(request -> request.method(org.springframework.http.HttpMethod.POST)).build();
+                case "authority" -> allowed.mutate().request(request -> request.uri(URI.create("http://other/orders/status"))).build();
+                case "header" -> allowed.mutate().request(request -> request.headers(headers -> headers.remove(HttpHeaders.AUTHORIZATION))).build();
+                case "context" -> context.setPath("/other");
+                case "rpc" -> context.setRpcType("dubbo");
+                case "selectorPath" -> allowed.getAttributes().put(Constants.REWRITE_CONTEXT_PATH, "/public");
+                case "realUrl" -> context.setRealUrl("/other");
+                default -> allowed.getAttributes().put(Constants.REWRITE_URI, "/other");
+            }
+            allowed.getRequest();
+            calls.incrementAndGet();
+            return write(allowed, "{}");
+        });
+        StepVerifier.create(delegated(chain, ignored -> Mono.just(credential())).invoke(delegatedTool(), invocation("A")))
+                .expectErrorSatisfies(error -> assertReason(error, Reason.TARGET_MISMATCH)).verify();
+        assertEquals(0, calls.get());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"decorator", "host", "repeat", "unbound"})
+    void verifiesFinalRequestEvenAfterExternalDecorationOrResubscription(final String invalid) {
+        URI target = URI.create("https://orders.internal/orders/status");
+        AtomicInteger sends = new AtomicInteger();
+        RecordingChain chain = new RecordingChain(child -> Mono.deferContextual(context -> {
+            var guard = context.get(HttpToolDispatchGuard.class);
+            if (!"unbound".equals(invalid)) {
+                guard.bind("https://orders.internal");
+            }
+            ServerWebExchange finalExchange = child;
+            if ("decorator".equals(invalid)) {
+                ServerHttpRequest replacement = child.getRequest().mutate().headers(headers -> headers.setBearerAuth("wrong")).build();
+                finalExchange = new ServerWebExchangeDecorator(child) {
+                    @Override
+                    public ServerHttpRequest getRequest() {
+                        return replacement;
+                    }
+                };
+            } else if ("host".equals(invalid)) {
+                child.getAttributes().put(Constants.PRESERVE_HOST, true);
+                finalExchange = child.mutate().request(request -> request.header("Host", "other.test")).build();
+            } else if ("repeat".equals(invalid)) {
+                guard.verify(child, target);
+                sends.incrementAndGet();
+            }
+            guard.verify(finalExchange, target);
+            sends.incrementAndGet();
+            return write(child, "{}");
+        }));
+        StepVerifier.create(delegated(chain, ignored -> Mono.just(credential())).invoke(delegatedTool(), invocation("A")))
+                .expectErrorSatisfies(error -> assertReason(error, Reason.TARGET_MISMATCH)).verify();
+        assertEquals("repeat".equals(invalid) ? 1 : 0, sends.get());
+    }
+
+    @Test
+    void legacyConstructorHasNoTenantAndBlankTenantFailsBeforeExecution() {
+        AgentToolInvocation input = invocation("A");
+        assertTrue(input.getTenant().isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> new AgentToolInvocation(input, "  "));
+        assertEquals("t", new AgentToolInvocation(input, "t").getTenant().orElseThrow());
+    }
+
+    private void assertReason(final Throwable error, final Reason reason) {
+        assertTrue(error instanceof AgentIdentityDelegationException);
+        assertEquals(reason, ((AgentIdentityDelegationException) error).getReason());
+    }
+
+    private AgentHttpToolExecutor delegated(final ShenyuPluginChain chain, final AgentHttpIdentityDelegator delegator) {
+        return new AgentHttpToolExecutor(origin(), chain, 4096, 4096, delegator);
+    }
+
+    private DelegatedCredential credential() {
+        return new DelegatedCredential("signed-token", Instant.now().plusSeconds(30));
+    }
+
+    private AgentGatewayHttpToolConfig.Tool delegatedTool() {
+        return delegatedTool(false);
+    }
+
+    private AgentGatewayHttpToolConfig.Tool delegatedTool(final boolean requireTenant) {
+        JsonObject plans = JsonParser.parseString("""
+                {"lookup":{"description":"Look up a record","inputSchema":{"type":"object","properties":{"id":{"type":"string"}},"required":["id"]},
+                "identityDelegation":{"audience":"orders","scopes":["read"],"credentialRef":"orders","credentialVersion":"v1"},
+                "requestConfig":{"requestTemplate":{"method":"GET","url":"/orders/status"},"argsPosition":{"id":"query"}}}}
+                """).getAsJsonObject();
+        plans.getAsJsonObject("lookup").getAsJsonObject("identityDelegation").addProperty("requireTenant", requireTenant);
+        return AgentGatewayHttpToolConfig.parse(plans, Set.of("lookup")).getTools().get("lookup");
     }
 
     private AgentHttpToolExecutor executor(final ServerWebExchange origin, final ShenyuPluginChain chain, final int maximum) {

@@ -36,6 +36,7 @@ import org.apache.shenyu.loadbalancer.entity.Upstream;
 import org.apache.shenyu.loadbalancer.spi.AdaptiveLoadBalancer;
 import org.apache.shenyu.loadbalancer.spi.AdaptiveOutcome;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.apache.shenyu.plugin.api.context.CanaryContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -406,7 +407,12 @@ public class DividePlugin extends AbstractShenyuPlugin {
     private Mono<Void> forwardWithCircuitBreaker(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                                  final DivideRuleHandle ruleHandle, final String breakerKey, final Upstream upstream,
                                                  final UpstreamAttemptOwner attemptOwner, final boolean probe) {
-        Mono<Void> response = Mono.defer(() -> chain.execute(exchange));
+        Mono<Void> response = Mono.deferContextual(context -> {
+            if (context.hasKey(HttpToolDispatchGuard.class)) {
+                context.get(HttpToolDispatchGuard.class).bind(upstream.buildDomain());
+            }
+            return chain.execute(exchange);
+        });
         if (SHORTEST_RESPONSE.equals(ruleHandle.getLoadBalance())) {
             long beginTime = System.currentTimeMillis();
             response = response.doOnSuccess(e -> successResponseTrigger(upstream, beginTime));

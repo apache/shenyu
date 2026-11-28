@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.api;
 
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -40,5 +41,14 @@ public interface ShenyuPluginChain {
      */
     default ShenyuPluginChain fork() {
         throw new UnsupportedOperationException("This plugin chain does not support isolated internal dispatch");
+    }
+
+    /**
+     * Fork a cursor whose downstream plugins must preserve the bound destination.
+     * @param guard request-owned constraint shared with the HTTP transport
+     * @return independent cursor
+     */
+    default ShenyuPluginChain fork(final HttpToolDispatchGuard guard) {
+        return fork();
     }
 }

@@ -25,6 +25,9 @@ import org.apache.shenyu.common.metrics.AiCallObserver;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayConstants;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentHttpIdentityDelegator;
+import org.apache.shenyu.plugin.agent.gateway.delegation.FileDelegationSigningKeyResolver;
+import org.apache.shenyu.plugin.agent.gateway.delegation.JwtHttpIdentityDelegator;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
@@ -50,6 +53,7 @@ import org.apache.shenyu.plugin.agent.gateway.remote.ManagedRemoteMcpCatalog;
 import org.apache.shenyu.plugin.agent.gateway.remote.RemoteServiceCredentialResolver;
 import org.apache.shenyu.plugin.agent.gateway.remote.FileRemoteServiceCredentialResolver;
 import java.net.URI;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -67,6 +71,8 @@ public class AgentGatewayPluginConfiguration {
 
     private static final String JWT_SECURITY_RESOLVER_BEAN_NAME = "agentGatewayJwtSecurityResolver";
 
+    private static final String HTTP_DELEGATION_PREFIX = "shenyu.plugins.agent.gateway.delegation.http";
+
     /**
      * Create a plugin with an optional managed remote catalog.
      * @param providers local providers
@@ -77,6 +83,7 @@ public class AgentGatewayPluginConfiguration {
      * @param terminalObservers optional application-owned terminal event sink
      * @param aiObservers optional application-owned AI attempt and terminal sink
      * @param auditors optional unified audit sink
+     * @param delegators optional HTTP tool identity delegator
      * @param environment deployment-controlled tracing opt-in
      * @param beanFactory application bean factory used to verify the conditional JWT resolver
      * @return the plugin
@@ -88,6 +95,7 @@ public class AgentGatewayPluginConfiguration {
                                            final ObjectProvider<AgentMcpTerminalObserver> terminalObservers,
                                            final ObjectProvider<AiCallObserver> aiObservers,
                                            final ObjectProvider<AgentInvocationAuditObserver> auditors,
+                                           final ObjectProvider<AgentHttpIdentityDelegator> delegators,
                                            final Environment environment, final BeanFactory beanFactory) {
         AgentMcpCallTracer tracer = tracers.getIfAvailable();
         if (environment.getProperty("shenyu.plugins.agent.gateway.tracing.enabled", Boolean.class, false) && java.util.Objects.isNull(tracer)) {
@@ -109,25 +117,36 @@ public class AgentGatewayPluginConfiguration {
                 && !beanFactory.containsBean(JWT_SECURITY_RESOLVER_BEAN_NAME)) {
             throw new IllegalStateException("Enabled MCP JWT identity requires the optional JWT adapter dependencies");
         }
-        return createPlugin(providers, authorities, catalogs.getIfAvailable(), tracer, resources,
-                AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditors.getIfAvailable()),
-                AgentInvocationAuditBridge.ai(aiObservers.getIfAvailable(), auditors.getIfAvailable()),
-                environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false));
-    }
-
-    private ShenyuPlugin createPlugin(final ObjectProvider<AgentToolProvider> providers, final List<AgentMcpSecurityResolver> candidates,
-                                      final AgentMcpRemoteCatalog catalog, final AgentMcpCallTracer tracer,
-                                      final ObjectProvider<AgentResourceProvider> resources, final AgentMcpTerminalObserver terminalObserver,
-                                      final AiCallObserver aiObserver, final boolean llmIdentityEnabled) {
-        AgentToolRegistry registry = new AgentToolRegistry(providers.orderedStream().toList());
-        AgentMcpSecurityResolver resolver = candidates.isEmpty() ? exchange -> Mono.empty() : candidates.get(0);
-        if (llmIdentityEnabled && candidates.isEmpty()) {
+        boolean llmIdentityEnabled = environment.getProperty("shenyu.plugins.agent.gateway.security.llm.enabled", Boolean.class, false);
+        if (llmIdentityEnabled && authorities.isEmpty()) {
             throw new IllegalStateException("Enabled LLM identity mapping requires an authoritative security resolver");
         }
-        AgentResourceRegistry resourceRegistry = new AgentResourceRegistry(resources.orderedStream().toList());
-        return new AgentGatewayPlugin(new AgentMcpHttpHandler(new AgentMcpDispatcher(registry, "shenyu-agent-gateway",
-                AgentGatewayConstants.MCP_SERVER_VERSION, catalog, resourceRegistry), resolver, tracer, terminalObserver),
-                llmIdentityEnabled ? resolver : null, aiObserver);
+        AgentMcpSecurityResolver resolver = authorities.isEmpty() ? exchange -> Mono.empty() : authorities.get(0);
+        AgentMcpDispatcher dispatcher = new AgentMcpDispatcher(new AgentToolRegistry(providers.orderedStream().toList()), "shenyu-agent-gateway",
+                AgentGatewayConstants.MCP_SERVER_VERSION, catalogs.getIfAvailable(), new AgentResourceRegistry(resources.orderedStream().toList()));
+        AgentInvocationAuditObserver auditor = auditors.getIfAvailable();
+        return new AgentGatewayPlugin(new AgentMcpHttpHandler(dispatcher, resolver, tracer, AgentInvocationAuditBridge.mcp(terminalObservers.getIfAvailable(), auditor)),
+                llmIdentityEnabled ? resolver : null, AgentInvocationAuditBridge.ai(aiObservers.getIfAvailable(), auditor), delegators.getIfAvailable());
+    }
+
+    /**
+     * Sign HTTP tool assertions with gateway-local deployment keys.
+     * @param environment deployment-owned key directory
+     * @return target-bound HTTP delegator
+     */
+    @Bean
+    @ConditionalOnMissingBean(AgentHttpIdentityDelegator.class)
+    @ConditionalOnProperty(prefix = HTTP_DELEGATION_PREFIX, name = "enabled", havingValue = "true")
+    public AgentHttpIdentityDelegator agentHttpIdentityDelegator(final Environment environment) {
+        String directory = environment.getRequiredProperty(HTTP_DELEGATION_PREFIX + ".credentials-directory");
+        if (directory.isBlank()) {
+            throw new IllegalArgumentException("HTTP delegation requires a credentials directory");
+        }
+        try {
+            return new JwtHttpIdentityDelegator(new FileDelegationSigningKeyResolver(Path.of(directory)));
+        } catch (InvalidPathException ex) {
+            throw new IllegalArgumentException("Invalid HTTP delegation credentials directory");
+        }
     }
 
     /**

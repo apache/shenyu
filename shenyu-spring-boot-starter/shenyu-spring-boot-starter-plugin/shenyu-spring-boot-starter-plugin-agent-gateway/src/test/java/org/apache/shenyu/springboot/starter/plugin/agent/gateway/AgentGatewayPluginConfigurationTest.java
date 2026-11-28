@@ -19,6 +19,8 @@ package org.apache.shenyu.springboot.starter.plugin.agent.gateway;
 
 import org.apache.shenyu.plugin.agent.gateway.AgentGatewayPlugin;
 import org.apache.shenyu.plugin.agent.gateway.AgentTrafficContext;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentHttpIdentityDelegator;
+import org.apache.shenyu.plugin.agent.gateway.delegation.JwtHttpIdentityDelegator;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpCallTracer;
 import io.opentelemetry.api.OpenTelemetry;
@@ -37,6 +39,7 @@ import com.google.gson.JsonParser;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -44,6 +47,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.List;
 
@@ -52,6 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,6 +77,47 @@ class AgentGatewayPluginConfigurationTest {
         contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true")
                 .withBean(AgentMcpSecurityResolver.class, () -> resolver)
                 .run(context -> assertTrue(java.util.Objects.isNull(ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "llmSecurityResolver"))));
+    }
+
+    @Test
+    void httpDelegationDefaultsToDisabled() {
+        contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true").run(context -> {
+            assertTrue(context.getBeansOfType(AgentHttpIdentityDelegator.class).isEmpty());
+            assertNull(ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "identityDelegator"));
+        });
+    }
+
+    @Test
+    void httpDelegationWiresTheEnabledFileSigner(@TempDir final Path directory) {
+        httpDelegationContext().withPropertyValues("shenyu.plugins.agent.gateway.delegation.http.credentials-directory=" + directory)
+                .run(context -> {
+                    var signer = context.getBean(AgentHttpIdentityDelegator.class);
+                    assertTrue(signer instanceof JwtHttpIdentityDelegator);
+                    assertSame(signer, ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "identityDelegator"));
+                });
+    }
+
+    @Test
+    void builtInHttpDelegationRequiresAnExistingKeyDirectory(@TempDir final Path directory) {
+        httpDelegationContext().run(context -> assertNotNull(context.getStartupFailure()));
+        httpDelegationContext().withPropertyValues("shenyu.plugins.agent.gateway.delegation.http.credentials-directory=")
+                .run(context -> assertNotNull(context.getStartupFailure()));
+        httpDelegationContext().withPropertyValues("shenyu.plugins.agent.gateway.delegation.http.credentials-directory=" + directory.resolve("missing"))
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
+    @Test
+    void customHttpDelegatorReplacesTheFileSignerWithoutAKeyDirectory() {
+        AgentHttpIdentityDelegator custom = mock(AgentHttpIdentityDelegator.class);
+        httpDelegationContext().withBean(AgentHttpIdentityDelegator.class, () -> custom).run(context -> {
+            assertEquals(1, context.getBeansOfType(AgentHttpIdentityDelegator.class).size());
+            assertSame(custom, context.getBean(AgentHttpIdentityDelegator.class));
+            assertSame(custom, ReflectionTestUtils.getField(context.getBean(AgentGatewayPlugin.class), "identityDelegator"));
+        });
+    }
+
+    private ApplicationContextRunner httpDelegationContext() {
+        return contextRunner.withPropertyValues("shenyu.plugins.agent.gateway.enabled=true", "shenyu.plugins.agent.gateway.delegation.http.enabled=true");
     }
 
     @Test

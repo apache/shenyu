@@ -45,7 +45,6 @@ import reactor.netty.resources.LoopResources;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
 
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -282,7 +281,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
                 .exchangeStrategies(ExchangeStrategies.builder()
                         .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(maxInMemorySize))
                         .build())
-                .clientConnector(new ReactorClientHttpConnector(client))
+                .clientConnector(new ToolAwareClientHttpConnector(client))
                 .build();
     }
 

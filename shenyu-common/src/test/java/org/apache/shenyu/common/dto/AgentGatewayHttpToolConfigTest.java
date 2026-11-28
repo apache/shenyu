@@ -17,16 +17,21 @@
 
 package org.apache.shenyu.common.dto;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Shared plan validation, fixed targets, typed arguments and immutable configuration.
@@ -48,6 +53,103 @@ class AgentGatewayHttpToolConfigTest {
         assertEquals("/orders/status", tool.requestPath(arguments("ABC")));
         assertEquals("object", tool.getInputSchema().get("type").getAsString());
         assertEquals("ABC", tool.requestBody(arguments("ABC")).get("id").getAsString());
+    }
+
+    @Test
+    void delegationIsOptionalAndCapturesAnImmutablePolicySnapshot() {
+        JsonObject source = plans("GET", "/orders/status");
+        assertTrue(parse(source).getIdentityDelegation().isEmpty());
+        JsonObject policy = delegation();
+        source.getAsJsonObject("lookup").add("identityDelegation", policy);
+        AgentGatewayHttpToolConfig.Tool tool = parse(source);
+        policy.getAsJsonArray("scopes").add("admin");
+        policy.addProperty("audience", "other-api");
+
+        var binding = tool.getIdentityDelegation().orElseThrow();
+        assertEquals("/orders/status", tool.getPath());
+        assertEquals("https://orders-api/v1", binding.getAudience());
+        assertEquals("orders_key-1", binding.getCredentialRef());
+        assertEquals("v1.0", binding.getCredentialVersion());
+        assertEquals(List.of("orders:read", "orders/item"), binding.getScopes());
+        assertThrows(UnsupportedOperationException.class, () -> binding.getScopes().clear());
+        assertEquals(30, binding.getTtlSeconds());
+        assertTrue(binding.isRequireTenant());
+    }
+
+    @Test
+    void acceptsExplicitPolicyLimitsAndOptionalTenant() {
+        JsonObject policy = delegation();
+        JsonArray scopes = new JsonArray();
+        for (int i = 0; i < 16; i++) {
+            scopes.add("s".repeat(63) + (char) ('a' + i));
+        }
+        policy.add("scopes", scopes);
+        policy.addProperty("audience", "a".repeat(256));
+        policy.addProperty("credentialRef", "_".repeat(64));
+        policy.addProperty("credentialVersion", "-".repeat(64));
+        policy.addProperty("requireTenant", false);
+        policy.addProperty("ttlSeconds", 1);
+        var binding = parseDelegation(policy);
+        assertEquals(1, binding.getTtlSeconds());
+        assertFalse(binding.isRequireTenant());
+        assertEquals(16, binding.getScopes().size());
+        policy.addProperty("ttlSeconds", 300);
+        assertEquals(300, parseDelegation(policy).getTtlSeconds());
+        scopes.add("one-too-many");
+        assertThrows(IllegalArgumentException.class, () -> parseDelegation(policy));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"audience", "scopes", "credentialRef", "credentialVersion"})
+    void requiresAnExplicitKeyAndTarget(final String field) {
+        JsonObject policy = delegation();
+        policy.remove(field);
+        assertThrows(IllegalArgumentException.class, () -> parseDelegation(policy));
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+        "audience|null", "audience|true", "audience|\"\"", "audience|\"orders *\"", "audience|\"orders*\"",
+        "scopes|[]", "scopes|null", "scopes|\"read\"", "scopes|[true]", "scopes|[\"read\",\"read\"]",
+        "scopes|[\"*\"]", "scopes|[\"add role\"]", "scopes|[\"\"]",
+        "credentialRef|\"../key\"", "credentialRef|\"key.json\"", "credentialRef|42",
+        "credentialVersion|\"v1/sub\"", "credentialVersion|null", "credentialVersion|\"\"",
+        "ttlSeconds|0", "ttlSeconds|301", "ttlSeconds|null", "ttlSeconds|\"3\"", "ttlSeconds|3.1", "ttlSeconds|4294967297",
+        "requireTenant|\"true\"", "requireTenant|0", "requireTenant|null", "header|\"Authorization\"" })
+    void rejectsInvalidDelegationAtAdminAndGatewayBoundaries(final String field, final String value) {
+        JsonObject policy = delegation();
+        policy.add(field, JsonParser.parseString(value));
+        JsonObject source = plans("GET", "/orders/status");
+        source.getAsJsonObject("lookup").add("identityDelegation", policy);
+        JsonObject mcp = JsonParser.parseString("{\"allowedTools\":[\"lookup\"]}").getAsJsonObject();
+        mcp.add("httpTools", source);
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayMcpConfig.parse(mcp, true));
+        assertThrows(IllegalArgumentException.class, () -> AgentGatewayMcpConfig.parse(mcp, false));
+    }
+
+    @Test
+    void rejectsOversizedBindingsAndExplicitNullDelegation() {
+        JsonObject policy = delegation();
+        for (String field : List.of("audience", "credentialRef", "credentialVersion")) {
+            JsonObject oversized = policy.deepCopy();
+            oversized.addProperty(field, "x".repeat("audience".equals(field) ? 257 : 65));
+            assertThrows(IllegalArgumentException.class, () -> parseDelegation(oversized));
+        }
+        policy.getAsJsonArray("scopes").add("s".repeat(65));
+        assertThrows(IllegalArgumentException.class, () -> parseDelegation(policy));
+        assertThrows(IllegalArgumentException.class, () -> parseDelegation(null));
+    }
+
+    private JsonObject delegation() {
+        return JsonParser.parseString("""
+                {"audience":"https://orders-api/v1","scopes":["orders:read","orders/item"],"credentialRef":"orders_key-1","credentialVersion":"v1.0"}
+                """).getAsJsonObject();
+    }
+
+    private AgentGatewayHttpToolConfig.IdentityDelegation parseDelegation(final JsonObject policy) {
+        JsonObject source = plans("GET", "/orders/status");
+        source.getAsJsonObject("lookup").add("identityDelegation", policy);
+        return parse(source).getIdentityDelegation().orElseThrow();
     }
 
     @Test

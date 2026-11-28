@@ -24,6 +24,7 @@ import org.apache.shenyu.common.enums.PluginHandlerEventEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.utils.HttpToolDispatchGuard;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.base.cache.PluginHandlerEvent;
 import org.apache.shenyu.web.loader.ShenyuLoaderService;
@@ -58,6 +59,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * test for ShenyuWebHandler.
@@ -97,6 +100,33 @@ public final class ShenyuWebHandlerTest {
         Mono<Void> handle = shenyuWebHandler.handle(exchange);
         StepVerifier.create(handle).expectSubscription().verifyComplete();
 
+    }
+
+    @Test
+    public void guardedForkRestoresItsConstraintAfterAPluginReplacesTheReactorContext() {
+        var parent = MockServerWebExchange.from(MockServerHttpRequest.get("/mcp"));
+        var child = MockServerWebExchange.from(MockServerHttpRequest.get("/orders"));
+        var guard = mock(HttpToolDispatchGuard.class);
+        ShenyuPlugin entry = new TestPlugin1() {
+            @Override
+            public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+                return exchange == parent ? chain.fork(guard).execute(child)
+                        : chain.execute(exchange).contextWrite(ignored -> reactor.util.context.Context.empty());
+            }
+        };
+        ShenyuPlugin transport = new TestPlugin3() {
+            @Override
+            public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+                return Mono.deferContextual(context -> {
+                    assertEquals(child, exchange);
+                    assertEquals(guard, context.get(HttpToolDispatchGuard.class));
+                    return Mono.empty();
+                });
+            }
+        };
+        var handler = new ShenyuWebHandler(List.of(entry, transport), shenyuLoaderService, new ShenyuConfig());
+        StepVerifier.create(handler.handle(parent)).verifyComplete();
+        verify(guard, times(2)).checkRoute(child);
     }
 
     @Test

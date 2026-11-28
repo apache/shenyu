@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.agent.gateway;
 
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.AgentRequestContext;
 import org.apache.shenyu.common.metrics.AiCallObserver;
@@ -25,6 +26,7 @@ import org.apache.shenyu.common.metrics.AgentRuntimeMetrics;
 import org.apache.shenyu.common.metrics.AiCallOutcome;
 import org.apache.shenyu.common.metrics.AiRequestObservation;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.agent.gateway.delegation.AgentHttpIdentityDelegator;
 import org.apache.shenyu.plugin.agent.gateway.handle.AgentGatewayRuleHandle;
 import org.apache.shenyu.plugin.agent.gateway.handle.AgentGatewayRuleHandleParser;
 import org.apache.shenyu.plugin.agent.gateway.handler.AgentGatewayPluginDataHandler;
@@ -32,12 +34,14 @@ import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpDispatcher;
 import org.apache.shenyu.plugin.agent.gateway.protocol.AgentMcpHttpHandler;
 import org.apache.shenyu.plugin.agent.gateway.security.AgentMcpSecurityResolver;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentToolRegistry;
+import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolInvoker;
 import org.apache.shenyu.plugin.agent.gateway.tool.AgentHttpToolExecutor;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
@@ -62,6 +66,8 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
 
     private final AiCallObserver aiObserver;
 
+    private final AgentHttpIdentityDelegator identityDelegator;
+
     public AgentGatewayPlugin() {
         this(new AgentMcpHttpHandler(new AgentMcpDispatcher(new AgentToolRegistry(List.of()), "shenyu-agent-gateway", AgentGatewayConstants.MCP_SERVER_VERSION),
                 exchange -> Mono.empty()));
@@ -72,6 +78,12 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
     }
 
     public AgentGatewayPlugin(final AgentMcpHttpHandler mcpHandler, final AgentMcpSecurityResolver llmSecurityResolver, final AiCallObserver aiObserver) {
+        this(mcpHandler, llmSecurityResolver, aiObserver, null);
+    }
+
+    public AgentGatewayPlugin(final AgentMcpHttpHandler mcpHandler, final AgentMcpSecurityResolver llmSecurityResolver,
+                              final AiCallObserver aiObserver, final AgentHttpIdentityDelegator identityDelegator) {
+        this.identityDelegator = identityDelegator;
         this.mcpHandler = Objects.requireNonNull(mcpHandler, "mcpHandler");
         this.llmSecurityResolver = llmSecurityResolver;
         this.aiObserver = aiObserver;
@@ -97,12 +109,38 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
             }
             return Mono.defer(() -> "mcp".equals(handle.getTrafficType())
                     ? mcpHandler.handle(exchange, handle.getMcp(), context, handle.getGeneration(),
-                            new AgentHttpToolExecutor(exchange, chain, handle.getMcp().getMaxRequestBytes(), handle.getMcp().getMaxResponseBytes()))
+                            httpTools(exchange, chain, selector, rule, handle))
                     : handleLlm(exchange, chain, context.toRequestContext(handle.getGeneration())))
                     .contextWrite(reactorContext -> reactorContext.put(AgentGatewayConstants.REACTOR_CONTEXT_KEY, context)
                             .put(AgentRequestContext.REACTOR_KEY, context.toRequestContext(handle.getGeneration())))
                     .doFinally(signal -> restorePreviousContext(exchange, previousContext, context));
         });
+    }
+
+    private AgentHttpToolInvoker httpTools(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
+                                          final RuleData rule, final AgentGatewayRuleHandle handle) {
+        AgentHttpToolExecutor executor = new AgentHttpToolExecutor(exchange, chain, handle.getMcp().getMaxRequestBytes(), handle.getMcp().getMaxResponseBytes(), identityDelegator);
+        String key = CacheKeyUtils.INST.getKey(rule);
+        return (tool, invocation) -> executor.invoke(tool, invocation, () -> currentDelegationPolicy(key, handle, selector, rule));
+    }
+
+    private boolean currentDelegationPolicy(final String key, final AgentGatewayRuleHandle handle, final SelectorData selector, final RuleData rule) {
+        if (AgentGatewayPluginDataHandler.CACHED_HANDLE.get().obtainHandle(key) != handle) {
+            return false;
+        }
+        BaseDataCache cache = BaseDataCache.getInstance();
+        PluginData plugin = cache.obtainPluginData(named());
+        if (Objects.isNull(plugin) || !Boolean.TRUE.equals(plugin.getEnabled())) {
+            return false;
+        }
+        List<SelectorData> selectors = cache.obtainSelectorData(named());
+        List<RuleData> rules = cache.obtainRuleData(selector.getId());
+        return Boolean.TRUE.equals(selector.getEnabled()) && Objects.nonNull(selectors) && selectors.contains(selector)
+                && containsEnabledRule(rules, rule);
+    }
+
+    private boolean containsEnabledRule(final List<RuleData> rules, final RuleData rule) {
+        return Boolean.TRUE.equals(rule.getEnabled()) && Objects.nonNull(rules) && rules.contains(rule);
     }
 
     private Mono<Void> handleLlm(final ServerWebExchange exchange, final ShenyuPluginChain chain, final AgentRequestContext initial) {
@@ -153,7 +191,13 @@ public class AgentGatewayPlugin extends AbstractShenyuPlugin {
             return cached;
         }
         final AgentGatewayRuleHandle parsed = parser.parse(rule.getHandle());
-        AgentGatewayPluginDataHandler.CACHED_HANDLE.get().cachedHandle(key, parsed);
+        // Only data sync may publish or restore an identity-bearing generation. An admitted request
+        // can still hold old RuleData after a replacement or deletion.
+        boolean delegates = Objects.nonNull(parsed.getMcp()) && parsed.getMcp().getHttpTools().getTools().values().stream()
+                .anyMatch(tool -> tool.getIdentityDelegation().isPresent());
+        if (!delegates && Objects.isNull(cached)) {
+            AgentGatewayPluginDataHandler.CACHED_HANDLE.get().getAllCache().putIfAbsent(key, parsed);
+        }
         return parsed;
     }
 
